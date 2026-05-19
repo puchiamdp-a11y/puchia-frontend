@@ -1,24 +1,46 @@
-/* HOME.JS - Lógica para index.html - FASE 2 FINAL */
+/* CLIENTE.JS - Lógica para proceso-compra.html - FINAL COMPLETO */
 
-// DATOS DE PRODUCTOS DESTACADOS (Los 6 primeros)
-const featuredProducts = [
-    { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños', badge: 'Más vendido' },
-    { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños', badge: 'Nuevo' },
-    { id: 3, name: 'Bolsitas 3D', price: 1050, icon: '📦', category: 'cumpleaños', badge: 'Más vendido' },
-    { id: 4, name: 'Calendarios Negocios', price: 790, icon: '📅', category: 'emprendedores' },
-    { id: 5, name: 'Imágenes Decorativas', price: 1200, icon: '🖼️', category: 'cumpleaños', badge: 'Nuevo' },
-    { id: 6, name: 'Librito para Pintar', price: 990, icon: '🎨', category: 'cumpleaños' },
+const allProducts = [
+    { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños', desc: 'Banderín decorativo personalizado.' },
+    { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños', desc: 'Bolsitas de papel para golosinas.' },
+    { id: 3, name: 'Bolsitas 3D', price: 1050, icon: '📦', category: 'cumpleaños', desc: 'Bolsitas 3D con diseño especial.' },
+    { id: 4, name: 'Calendarios Negocios', price: 790, icon: '📅', category: 'emprendedores', desc: 'Calendario personalizado.' },
+    { id: 5, name: 'Imágenes Decorativas', price: 1200, icon: '🖼️', category: 'cumpleaños', desc: 'Imágenes personalizadas.' },
+    { id: 6, name: 'Librito para Pintar', price: 990, icon: '🎨', category: 'cumpleaños', desc: 'Librito para colorear.' },
+    { id: 7, name: 'Llaveros Acrílico', price: 1190, icon: '🔑', category: 'regalos', desc: 'Llaveros acrílicos personalizados.' },
+    { id: 8, name: 'Mini Toppers x15', price: 3900, icon: '🎂', category: 'cumpleaños', desc: 'Set de 15 mini toppers.' },
+    { id: 9, name: 'Stickers A4 Vinilo', price: 2500, icon: '🏷️', category: 'cumpleaños', desc: 'Lámina de stickers vinilo.' },
 ];
 
-let currentBanner = 0;
+const promoProducts = [
+    { id: 10, name: 'Pack Cumpleaños x3', price: 1500, icon: '🎊', category: 'promos', desc: 'Combo especial de 3 productos.' },
+    { id: 11, name: 'Oferta Mega Regalos', price: 2000, icon: '🎁', category: 'promos', desc: 'Descuento en paquete de regalos.' },
+    { id: 12, name: 'Promoción Emprendedor', price: 899, icon: '💼', category: 'promos', desc: 'Oferta especial para negocios.' },
+];
 
-// ════════════════════════════════════════════════════════════════
-// CARGAR CONFIGURACIÓN
-// ════════════════════════════════════════════════════════════════
+let currentFilter = 'todas';
+let currentSection = 'productos';
+
+function loadInterface() {
+    updateUIWithSettings();
+    
+    const selected = localStorage.getItem('selectedCategory');
+    if (selected === 'promos') {
+        currentSection = 'promos';
+        localStorage.removeItem('selectedCategory');
+        showSection('promos');
+    } else {
+        currentSection = 'productos';
+        if (selected) {
+            currentFilter = selected;
+            localStorage.removeItem('selectedCategory');
+        }
+        showSection('productos');
+    }
+}
 
 function updateUIWithSettings() {
     const settings = getSettings();
-    
     const logo = document.getElementById('headerLogo');
     const logoText = document.getElementById('headerLogoText');
     const footerLogo = document.getElementById('footerLogo');
@@ -32,150 +54,159 @@ function updateUIWithSettings() {
     if (announcementBar) announcementBar.textContent = settings.announceText;
 }
 
-// ════════════════════════════════════════════════════════════════
-// CARGAR PRODUCTOS DESTACADOS
-// ════════════════════════════════════════════════════════════════
-
-function loadAndRenderProducts() {
-    const grid = document.getElementById('productsGrid');
-    if (!grid) return;
+function showSection(section) {
+    currentSection = section;
     
-    const html = featuredProducts.map(product => {
-        let badgeHtml = '';
-        if (product.badge) {
-            const badgeClass = product.badge === 'Nuevo' ? 'badge-new' : 'badge-hot';
-            badgeHtml = `<div class="product-badge ${badgeClass}">${product.badge}</div>`;
-        }
-        
-        return `
-            <div class="product-card">
-                ${badgeHtml}
-                <div class="product-image">${product.icon}</div>
-                <div class="product-info">
-                    <div class="product-name">${product.name}</div>
-                    <div class="product-price">${formatCurrency(product.price)}</div>
-                    <button class="product-btn" onclick="addProductToCart(${product.id}, '${product.name}', ${product.price})">
-                        Agregar al Carrito
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
+    const productsSection = document.getElementById('productsSection');
+    const promosSection = document.getElementById('promosSection');
+    const prodBtn = document.getElementById('productosBtn');
+    const promBtn = document.getElementById('promosBtn');
     
-    grid.innerHTML = html;
+    if (section === 'productos') {
+        if (productsSection) productsSection.style.display = 'block';
+        if (promosSection) promosSection.style.display = 'none';
+        if (prodBtn) prodBtn.classList.add('active');
+        if (promBtn) promBtn.classList.remove('active');
+        loadAndRenderProducts();
+    } else {
+        if (productsSection) productsSection.style.display = 'none';
+        if (promosSection) promosSection.style.display = 'block';
+        if (prodBtn) prodBtn.classList.remove('active');
+        if (promBtn) promBtn.classList.add('active');
+        loadAndRenderPromos();
+    }
 }
 
-function addProductToCart(id, name, price) {
-    const product = { id, name, price };
+function loadAndRenderProducts() {
+    const filtered = currentFilter === 'todas' 
+        ? allProducts 
+        : allProducts.filter(p => p.category === currentFilter);
+    
+    const html = filtered.map(product => `
+        <div class="product-card">
+            <div class="product-image">${product.icon}</div>
+            <div class="product-info">
+                <div class="product-name">${product.name}</div>
+                <div class="product-price">${formatCurrency(product.price)}</div>
+                <button class="product-btn" onclick="addProductToCart(${product.id}, '${product.name}', ${product.price}, '${product.icon}')">
+                    Agregar al Carrito
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    const grid = document.getElementById('productsGrid');
+    if (grid) grid.innerHTML = html;
+}
+
+function loadAndRenderPromos() {
+    const html = promoProducts.map(product => `
+        <div class="product-card">
+            <div class="product-image">${product.icon}</div>
+            <div class="product-info">
+                <div class="product-name">${product.name}</div>
+                <div class="product-price">${formatCurrency(product.price)}</div>
+                <button class="product-btn" onclick="addProductToCart(${product.id}, '${product.name}', ${product.price}, '${product.icon}')">
+                    Agregar al Carrito
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    const grid = document.getElementById('promosGrid');
+    if (grid) grid.innerHTML = html;
+}
+
+function filterProducts(category) {
+    currentFilter = category;
+    
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    loadAndRenderProducts();
+}
+
+function addProductToCart(id, name, price, icon) {
+    const product = { id, name, price, icon };
     addToCart(product);
     showToast(`${name} agregado al carrito`, 'success');
 }
 
-// ════════════════════════════════════════════════════════════════
-// BANNER CAROUSEL
-// ════════════════════════════════════════════════════════════════
-
-function changeBanner(index) {
-    currentBanner = index;
-    const banners = document.querySelectorAll('.banner');
-    const dots = document.querySelectorAll('.dot');
-    
-    banners.forEach(b => b.classList.remove('active'));
-    dots.forEach(d => d.classList.remove('active'));
-    
-    if (banners[index]) banners[index].classList.add('active');
-    if (dots[index]) dots[index].classList.add('active');
+function closeCheckout() {
+    const modal = document.getElementById('checkoutModal');
+    if (modal) modal.classList.remove('active');
 }
 
-function nextBanner() {
-    const banners = document.querySelectorAll('.banner');
-    if (banners.length === 0) return;
-    currentBanner = (currentBanner + 1) % banners.length;
-    changeBanner(currentBanner);
-}
-
-// Auto-rotate banner
-setInterval(nextBanner, 5000);
-
-// ════════════════════════════════════════════════════════════════
-// ANIMACIÓN DE ESTADÍSTICAS
-// ════════════════════════════════════════════════════════════════
-
-function animateCounters() {
-    const counters = document.querySelectorAll('.stat-number');
+function submitOrder(e) {
+    e.preventDefault();
     
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const el = entry.target;
-                const target = parseInt(el.dataset.target);
-                const isStar = target === 5;
-                const isPercent = target === 100;
-                
-                let current = 0;
-                const duration = 2000;
-                const step = target / (duration / 16);
-                
-                const timer = setInterval(() => {
-                    current += step;
-                    if (current >= target) {
-                        current = target;
-                        clearInterval(timer);
-                    }
-                    
-                    const value = Math.floor(current);
-                    if (isStar) {
-                        el.textContent = value + '★';
-                    } else if (isPercent) {
-                        el.textContent = value + '%';
-                    } else {
-                        el.textContent = value.toLocaleString('es-AR');
-                    }
-                }, 16);
-                
-                observer.unobserve(el);
-            }
-        });
-    }, { threshold: 0.3 });
+    const name = document.getElementById('checkoutName').value;
+    const email = document.getElementById('checkoutEmail').value;
+    const phone = document.getElementById('checkoutPhone').value;
+    const dni = document.getElementById('checkoutDNI').value;
+    const province = document.getElementById('checkoutProvince').value;
+    const address = document.getElementById('checkoutAddress').value;
+    const notes = document.getElementById('checkoutNotes').value;
     
-    counters.forEach(counter => observer.observe(counter));
+    if (!name || !email || !phone || !dni || !province || !address) {
+        showToast('Completa todos los campos obligatorios', 'error');
+        return;
+    }
+    
+    const orderId = generateId('ORD');
+    const cart = getCart();
+    const total = getCartTotal();
+    const today = new Date().toISOString().split('T')[0];
+    
+    const order = {
+        id: orderId,
+        client: name,
+        email: email,
+        phone: phone,
+        dni: dni,
+        province: province,
+        address: address,
+        notes: notes,
+        total: total,
+        status: 'Pendiente',
+        date: today,
+        items: cart.map(item => ({ 
+            id: item.id, 
+            name: item.name, 
+            qty: item.qty, 
+            price: item.price 
+        }))
+    };
+    
+    let orders = getOrders();
+    orders.push(order);
+    saveOrders(orders);
+    
+    const confirmNumber = document.getElementById('confirmationNumber');
+    if (confirmNumber) {
+        confirmNumber.textContent = `Orden: ${orderId}`;
+    }
+    
+    closeCheckout();
+    clearCart();
+    renderCartSidebar();
+    
+    const confirmModal = document.getElementById('confirmationModal');
+    if (confirmModal) {
+        confirmModal.classList.add('active');
+    }
+    
+    showToast('¡Orden confirmada!', 'success');
 }
 
-// ════════════════════════════════════════════════════════════════
-// SMOOTH SCROLL
-// ════════════════════════════════════════════════════════════════
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('a[href^="#"]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            if (href !== '#') {
-                e.preventDefault();
-                const target = document.querySelector(href);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }
-        });
-    });
-});
-
-// ════════════════════════════════════════════════════════════════
-// IR A PROMOS CON CATEGORÍA SELECCIONADA
-// ════════════════════════════════════════════════════════════════
-
-function goToPromos(category) {
-    localStorage.setItem('selectedCategory', category);
-    window.location.href = 'proceso-compra.html';
+function goToHome() {
+    window.location.href = 'index.html';
 }
-
-// ════════════════════════════════════════════════════════════════
-// INICIALIZACIÓN
-// ════════════════════════════════════════════════════════════════
 
 window.addEventListener('load', () => {
-    updateUIWithSettings();
-    loadAndRenderProducts();
-    animateCounters();
+    loadInterface();
     updateCartCount();
+    renderCartSidebar();
 });
