@@ -1,441 +1,316 @@
-
 /* ═════════════════════════════════════════════════════════════════
-   COMMON.CSS - Estilos Compartidos Globales
+   COMMON.JS - Funciones Compartidas Globales
    Usado por: index.html, proceso-compra.html, admin
    ═════════════════════════════════════════════════════════════════ */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+// ════════════════════════════════════════════════════════
+// CONFIGURACIÓN GLOBAL
+// ════════════════════════════════════════════════════════
+
+const API_BASE_URL = 'https://puchia-backend.onrender.com/api/v1';
+const APP_NAME = 'Puchia';
+
+// Obtener datos globales del localStorage (incluyendo settings del admin)
+function getSettings() {
+    const defaults = {
+        logo: 'P',
+        logoText: 'Puchia',
+        announceText: 'Envío gratis en compras mayores a $2.000 🎉',
+        whatsappNumber: '5492230000000',
+    };
+    const saved = localStorage.getItem('puchia_settings');
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
 }
 
-:root {
-    --purple: #7f1f6e;
-    --purple-light: #a01f8a;
-    --yellow: #F3E93F;
-    --white: #ffffff;
-    --gray-light: #f5f5f5;
-    --gray-text: #7a8794;
-    --success: #27ae60;
-    --warning: #f39c12;
-    --danger: #e74c3c;
-    --info: #3498db;
+function saveSettings(settings) {
+    localStorage.setItem('puchia_settings', JSON.stringify(settings));
 }
 
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #fafbfc;
-    color: #2c3e50;
-    line-height: 1.6;
-}
+// ════════════════════════════════════════════════════════
+// UTILIDADES DE NOTIFICACIÓN
+// ════════════════════════════════════════════════════════
 
-/* ═════════════════════════════════════════════════════════════════
-   HEADER COMPARTIDO
-   ═════════════════════════════════════════════════════════════════ */
-
-header {
-    background-color: var(--white);
-    padding: 18px 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 40px;
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.logo-container:hover {
-    transform: scale(1.05);
-}
-
-.logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--white);
-    font-weight: 700;
-    font-size: 20px;
-    box-shadow: 0 4px 16px rgba(127,31,110,0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    flex-shrink: 0;
-}
-
-.logo:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(127,31,110,0.3);
-}
-
-.logo-text {
-    font-weight: 700;
-    font-size: 18px;
-    color: var(--purple);
-}
-
-nav {
-    display: flex;
-    gap: 40px;
-}
-
-nav a {
-    text-decoration: none;
-    color: #5a5a5a;
-    font-weight: 500;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-nav a:after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--yellow);
-    transition: width 0.3s ease;
-}
-
-nav a:hover {
-    color: var(--purple);
-}
-
-nav a:hover:after {
-    width: 100%;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.admin-link {
-    background: none;
-    border: none;
-    color: #5a5a5a;
-    font-weight: 500;
-    font-size: 14px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.admin-link:hover {
-    color: var(--purple);
-}
-
-/* ═════════════════════════════════════════════════════════════════
-   FOOTER COMPARTIDO
-   ═════════════════════════════════════════════════════════════════ */
-
-footer {
-    background-color: #2c3e50;
-    color: var(--white);
-    padding: 30px 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 60px;
-}
-
-.footer-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 700;
-}
-
-.footer-logo {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--white);
-    font-size: 16px;
-}
-
-/* ═════════════════════════════════════════════════════════════════
-   ANNOUNCEMENT BAR
-   ═════════════════════════════════════════════════════════════════ */
-
-.announcement-bar {
-    background-color: var(--purple);
-    color: var(--white);
-    text-align: center;
-    padding: 10px 20px;
-    font-size: 13px;
-    font-weight: 400;
-}
-
-/* ═════════════════════════════════════════════════════════════════
-   BOTONES GLOBALES
-   ═════════════════════════════════════════════════════════════════ */
-
-.btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-}
-
-.btn-primary {
-    background-color: var(--purple);
-    color: var(--white);
-}
-
-.btn-primary:hover {
-    background-color: var(--purple-light);
-}
-
-.btn-secondary {
-    background-color: var(--gray-light);
-    color: var(--gray-text);
-}
-
-.btn-secondary:hover {
-    background-color: #ddd;
-}
-
-.btn-success {
-    background-color: var(--success);
-    color: var(--white);
-}
-
-.btn-success:hover {
-    background-color: #229954;
-}
-
-.btn-danger {
-    background-color: var(--danger);
-    color: var(--white);
-}
-
-.btn-danger:hover {
-    background-color: #c0392b;
-}
-
-.btn-info {
-    background-color: var(--info);
-    color: var(--white);
-}
-
-.btn-info:hover {
-    background-color: #2980b9;
-}
-
-.btn-small {
-    padding: 8px 12px;
-    font-size: 12px;
-}
-
-/* ═════════════════════════════════════════════════════════════════
-   FORMULARIOS
-   ═════════════════════════════════════════════════════════════════ */
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    font-weight: 500;
-    color: var(--purple);
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--purple);
-    box-shadow: 0 0 0 3px rgba(127,31,110,0.1);
-}
-
-/* ═════════════════════════════════════════════════════════════════
-   NOTIFICACIONES (TOAST)
-   ═════════════════════════════════════════════════════════════════ */
-
-.toast {
-    position: fixed;
-    bottom: 100px;
-    right: 30px;
-    background: var(--purple);
-    color: var(--white);
-    padding: 16px 24px;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    animation: slideIn 0.3s ease;
-    z-index: 10000;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
+/**
+ * Mostrar notificación toast (pequeña notificación esquina inferior derecha)
+ * @param {string} message - Mensaje a mostrar
+ * @param {string} type - 'success', 'error', 'info' (default)
+ * @param {number} duration - Duración en ms (default 3000)
+ */
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    
+    if (type === 'error') {
+        toast.style.background = '#e74c3c';
+    } else if (type === 'success') {
+        toast.style.background = '#27ae60';
     }
-    to {
-        transform: translateX(0);
-        opacity: 1;
+    
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), duration);
+}
+
+/**
+ * Mostrar diálogo de confirmación
+ * @param {string} message - Mensaje de confirmación
+ * @return {boolean} - true si confirma, false si cancela
+ */
+function showConfirm(message) {
+    return confirm(message);
+}
+
+// ════════════════════════════════════════════════════════
+// FUNCIONES DE API
+// ════════════════════════════════════════════════════════
+
+/**
+ * Realizar petición GET a la API
+ */
+async function apiGet(endpoint) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
     }
 }
 
-/* ═════════════════════════════════════════════════════════════════
-   MODAL
-   ═════════════════════════════════════════════════════════════════ */
-
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.45);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.modal.active {
-    display: flex;
-}
-
-.modal-content {
-    background: var(--white);
-    border-radius: 15px;
-    padding: 40px;
-    max-width: 600px;
-    width: 100%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    margin: auto;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
-}
-
-.modal-title {
-    font-size: 20px;
-    color: var(--purple);
-    font-weight: 700;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--gray-text);
-}
-
-/* ═════════════════════════════════════════════════════════════════
-   UTILIDADES
-   ═════════════════════════════════════════════════════════════════ */
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.mt-20 {
-    margin-top: 20px;
-}
-
-.mb-20 {
-    margin-bottom: 20px;
-}
-
-.mt-40 {
-    margin-top: 40px;
-}
-
-.mb-40 {
-    margin-bottom: 40px;
-}
-
-/* ═════════════════════════════════════════════════════════════════
-   RESPONSIVE
-   ═════════════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-    header {
-        padding: 15px 20px;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .header-left {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    nav {
-        gap: 20px;
-    }
-
-    footer {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
-    }
-
-    .modal-content {
-        padding: 20px;
+/**
+ * Realizar petición POST a la API
+ */
+async function apiPost(endpoint, data) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
     }
 }
+
+/**
+ * Realizar petición PUT a la API (con autenticación)
+ */
+async function apiPut(endpoint, data, token) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// ════════════════════════════════════════════════════════
+// FUNCIONES DE LOCALSTORAGE
+// ════════════════════════════════════════════════════════
+
+/**
+ * Obtener carrito del localStorage
+ */
+function getCart() {
+    const saved = localStorage.getItem('puchia_cart');
+    return saved ? JSON.parse(saved) : [];
+}
+
+/**
+ * Guardar carrito en localStorage
+ */
+function saveCart(cart) {
+    localStorage.setItem('puchia_cart', JSON.stringify(cart));
+}
+
+/**
+ * Obtener órdenes del localStorage
+ */
+function getOrders() {
+    const saved = localStorage.getItem('puchia_orders');
+    return saved ? JSON.parse(saved) : [];
+}
+
+/**
+ * Guardar órdenes en localStorage
+ */
+function saveOrders(orders) {
+    localStorage.setItem('puchia_orders', JSON.stringify(orders));
+}
+
+/**
+ * Obtener token de administrador
+ */
+function getAdminToken() {
+    return localStorage.getItem('puchia_admin_token');
+}
+
+/**
+ * Guardar token de administrador
+ */
+function saveAdminToken(token) {
+    localStorage.setItem('puchia_admin_token', token);
+}
+
+/**
+ * Limpiar token de administrador
+ */
+function clearAdminToken() {
+    localStorage.removeItem('puchia_admin_token');
+}
+
+// ════════════════════════════════════════════════════════
+// FUNCIONES DE FORMATO
+// ════════════════════════════════════════════════════════
+
+/**
+ * Formatear número como moneda argentina
+ */
+function formatCurrency(amount) {
+    return '$' + amount.toLocaleString('es-AR');
+}
+
+/**
+ * Formatear fecha en formato local
+ */
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-AR');
+}
+
+/**
+ * Obtener ID único (para órdenes, etc)
+ */
+function generateId(prefix = 'ORD') {
+    return prefix + '-' + Date.now();
+}
+
+// ════════════════════════════════════════════════════════
+// FUNCIONES DE CARRITO
+// ════════════════════════════════════════════════════════
+
+/**
+ * Agregar producto al carrito
+ */
+function addToCart(product) {
+    let cart = getCart();
+    const existingItem = cart.find(item => item.id === product.id);
+    
+    if (existingItem) {
+        existingItem.qty++;
+    } else {
+        cart.push({ ...product, qty: 1 });
+    }
+    
+    saveCart(cart);
+    updateCartCount();
+    return cart;
+}
+
+/**
+ * Remover producto del carrito
+ */
+function removeFromCart(productId) {
+    let cart = getCart();
+    cart = cart.filter(item => item.id !== productId);
+    saveCart(cart);
+    updateCartCount();
+    return cart;
+}
+
+/**
+ * Actualizar cantidad en carrito
+ */
+function updateCartQty(productId, qty) {
+    let cart = getCart();
+    const item = cart.find(item => item.id === productId);
+    if (item) {
+        item.qty = Math.max(1, parseInt(qty));
+        saveCart(cart);
+        updateCartCount();
+    }
+    return cart;
+}
+
+/**
+ * Actualizar el contador de carrito en el header
+ */
+function updateCartCount() {
+    const cart = getCart();
+    const count = cart.reduce((sum, item) => sum + item.qty, 0);
+    const cartCountElement = document.getElementById('cartCount');
+    if (cartCountElement) {
+        cartCountElement.textContent = count;
+    }
+}
+
+/**
+ * Calcular total del carrito
+ */
+function getCartTotal() {
+    const cart = getCart();
+    return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+}
+
+/**
+ * Limpiar carrito
+ */
+function clearCart() {
+    localStorage.removeItem('puchia_cart');
+    updateCartCount();
+}
+
+// ════════════════════════════════════════════════════════
+// FUNCIONES DE ADMIN
+// ════════════════════════════════════════════════════════
+
+/**
+ * Verificar si el usuario es admin
+ */
+function isAdminLoggedIn() {
+    return !!getAdminToken();
+}
+
+/**
+ * Logout de admin
+ */
+function adminLogout() {
+    clearAdminToken();
+    window.location.href = '/admin/login.html';
+}
+
+// ════════════════════════════════════════════════════════
+// INICIALIZACIÓN
+// ════════════════════════════════════════════════════════
+
+// Actualizar contador de carrito al cargar página
+window.addEventListener('load', () => {
+    updateCartCount();
+});
+
+// Mantener sesión sincronizada entre tabs
+window.addEventListener('storage', (e) => {
+    if (e.key === 'puchia_cart') {
+        updateCartCount();
+    }
+});
