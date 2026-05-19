@@ -1,6 +1,6 @@
-/* CLIENTE.JS - Lógica para proceso-compra.html */
+/* CLIENTE.JS - Lógica para proceso-compra.html - FASE 2 CON PROMOS */
 
-// PRODUCTOS COMPLETOS (Todos los 9)
+// PRODUCTOS COMPLETOS (Todos los 9 + PROMOS)
 const allProducts = [
     { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños', desc: 'Banderín decorativo personalizado.' },
     { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños', desc: 'Bolsitas de papel para golosinas.' },
@@ -11,6 +11,11 @@ const allProducts = [
     { id: 7, name: 'Llaveros Acrílico', price: 1190, icon: '🔑', category: 'regalos', desc: 'Llaveros acrílicos personalizados.' },
     { id: 8, name: 'Mini Toppers x15', price: 3900, icon: '🎂', category: 'cumpleaños', desc: 'Set de 15 mini toppers.' },
     { id: 9, name: 'Stickers A4 Vinilo', price: 2500, icon: '🏷️', category: 'cumpleaños', desc: 'Lámina de stickers vinilo.' },
+    
+    // PRODUCTOS PROMOS (con descuento)
+    { id: 101, name: 'Combo Cumpleaños', price: 2990, icon: '🎉', category: 'promos', desc: 'Banderín + Bolsitas + Toppers por solo $2.990!' },
+    { id: 102, name: 'Pack Regalos', price: 3490, icon: '🎁', category: 'promos', desc: 'Llaveros + Stickers + Imágenes por $3.490!' },
+    { id: 103, name: 'Oferta Emprendedor', price: 1490, icon: '💼', category: 'promos', desc: 'Calendario + 50 tarjetas por $1.490!' },
 ];
 
 let currentFilter = 'todas';
@@ -78,108 +83,21 @@ function filterProducts(category) {
 function addProductToCart(id, name, price, icon) {
     const product = { id, name, price, icon };
     addToCart(product);
-    renderCart();
+    renderCartSidebar();
     showToast(`${name} agregado al carrito`, 'success');
-}
-
-function toggleCart() {
-    const sidebar = document.getElementById('cartSidebar');
-    const overlay = document.getElementById('cartOverlay');
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('open');
-    renderCart();
-}
-
-function closeCart() {
-    document.getElementById('cartSidebar').classList.remove('open');
-    document.getElementById('cartOverlay').classList.remove('open');
-}
-
-function renderCart() {
-    const cart = getCart();
-    const container = document.getElementById('cartItemsContainer');
-    const emptyMessage = document.getElementById('emptyCartMessage');
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    
-    if (cart.length === 0) {
-        emptyMessage.style.display = 'block';
-        checkoutBtn.disabled = true;
-        container.innerHTML = '<div class="empty-cart"><p>Tu carrito está vacío</p></div>';
-    } else {
-        emptyMessage.style.display = 'none';
-        checkoutBtn.disabled = false;
-        const html = cart.map((item, index) => `
-            <div class="cart-item">
-                <div class="cart-item-icon">${item.icon}</div>
-                <div class="cart-item-info">
-                    <div class="cart-item-name">${item.name}</div>
-                    <div class="cart-item-price">${formatCurrency(item.price)}</div>
-                    <div class="cart-item-qty">
-                        <button class="qty-btn" onclick="updateQty(${item.id}, -1)">−</button>
-                        <input type="number" value="${item.qty}" onchange="updateQtyDirect(${item.id}, this.value)" style="width: 40px; text-align: center; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
-                        <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
-                        <button class="remove-item" onclick="removeFromCart(${item.id})">🗑️</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        container.innerHTML = html;
-    }
-    
-    updateCartTotal();
-}
-
-function updateQty(productId, delta) {
-    let cart = getCart();
-    const item = cart.find(i => i.id === productId);
-    if (item) {
-        item.qty += delta;
-        if (item.qty < 1) item.qty = 1;
-        saveCart(cart);
-        updateCartCount();
-        renderCart();
-    }
-}
-
-function updateQtyDirect(productId, value) {
-    let cart = getCart();
-    const item = cart.find(i => i.id === productId);
-    if (item) {
-        item.qty = Math.max(1, parseInt(value) || 1);
-        saveCart(cart);
-        updateCartCount();
-        renderCart();
-    }
 }
 
 function updateCartTotal() {
     const total = getCartTotal();
-    document.getElementById('cartTotal').textContent = formatCurrency(total);
-}
-
-function removeProductFromCart(productId) {
-    const cart = getCart();
-    const product = cart.find(p => p.id === productId);
-    if (product) {
-        removeFromCart(productId);
-        renderCart();
-        showToast(`${product.name} removido del carrito`);
+    const totalElement = document.getElementById('cartTotal');
+    if (totalElement) {
+        totalElement.textContent = formatCurrency(total);
     }
 }
 
 // ════════════════════════════════════════════════════════════════
 // CHECKOUT
 // ════════════════════════════════════════════════════════════════
-
-function goToCheckout() {
-    const cart = getCart();
-    if (cart.length === 0) {
-        showToast('Agrega productos al carrito primero');
-        return;
-    }
-    closeCart();
-    document.getElementById('checkoutModal').classList.add('active');
-}
 
 function closeCheckout() {
     document.getElementById('checkoutModal').classList.remove('active');
@@ -236,7 +154,7 @@ function submitOrder(e) {
     
     // Limpiar carrito
     clearCart();
-    renderCart();
+    renderCartSidebar();
     
     // Mostrar modal de confirmación
     document.getElementById('confirmationModal').classList.add('active');
@@ -253,6 +171,21 @@ function goToHome() {
 // ════════════════════════════════════════════════════════════════
 
 window.addEventListener('load', () => {
+    const selected = localStorage.getItem('selectedCategory');
+    if (selected) {
+        currentFilter = selected;
+        localStorage.removeItem('selectedCategory');
+        
+        // Actualizar botones de filtro
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const buttons = document.querySelectorAll('.filter-btn');
+        const categoryMap = { 'todas': 0, 'cumpleaños': 1, 'regalos': 2, 'emprendedores': 3, 'promos': 4 };
+        if (buttons[categoryMap[selected]]) {
+            buttons[categoryMap[selected]].classList.add('active');
+        }
+    }
+    
     loadInterface();
 });
-
