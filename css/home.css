@@ -1,5 +1,5 @@
 /* ═════════════════════════════════════════════════════════════════
-   HOME.CSS - Estilos Específicos para index.html - COMPLETO
+   HOME.CSS - COMPLETO CON ESTADÍSTICAS ALINEADAS PERFECTAMENTE
    ═════════════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────────────────────────
@@ -129,23 +129,26 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   ESTADÍSTICAS - ALINEADAS CORRECTAMENTE
+   ESTADÍSTICAS - PERFECTAMENTE ALINEADAS Y CENTRADAS
    ───────────────────────────────────────────────────────────────── */
 
 .stats-section {
     background-color: var(--white);
-    padding: 60px;
+    padding: 80px 60px;
     border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
 }
 
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-    max-width: 900px;
-    margin: 0 auto;
-    text-align: center;
+    display: flex;
+    justify-content: center;
     align-items: center;
+    gap: 120px;
+    max-width: 1200px;
+    width: 100%;
 }
 
 .stat-item {
@@ -153,30 +156,31 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 150px;
+    text-align: center;
 }
 
 .stat-number {
-    font-size: 52px;
+    font-size: 56px;
     font-weight: 700;
     color: var(--purple);
     line-height: 1;
-    margin-bottom: 10px;
-    min-height: 60px;
+    margin-bottom: 12px;
+    height: 70px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }
 
 .stat-label {
-    font-size: 14px;
+    font-size: 15px;
     color: var(--gray-text);
     font-weight: 400;
+    white-space: nowrap;
 }
 
 .stat-divider {
-    width: 1px;
-    background-color: #f0f0f0;
-    margin: auto;
+    display: none;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -602,7 +606,15 @@
         font-size: 16px;
     }
 
-    .stats-grid,
+    .stats-grid {
+        flex-direction: column;
+        gap: 50px;
+    }
+
+    .stat-number {
+        font-size: 42px;
+    }
+
     .how-grid,
     .categories-grid,
     .products-grid,
@@ -628,11 +640,12 @@
         font-size: 28px;
     }
 
-    .stat-number {
-        font-size: 36px;
-    }
-
     .categories-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats-section {
+        padding: 60px 20px;
+        min-height: auto;
     }
 }
