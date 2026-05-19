@@ -1,73 +1,299 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puchia - Contacto</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/common.css">
-    <link rel="stylesheet" href="css/home.css">
-    <link rel="stylesheet" href="css/cliente.css">
-</head>
-<body>
+/* ═════════════════════════════════════════════════════════════════
+   COMMON.JS - Funciones Compartidas Globales
+   ═════════════════════════════════════════════════════════════════ */
 
-    <div class="announcement-bar" id="announcementBar">
-        Envío gratis en compras mayores a $2.000 🎉
-    </div>
+const API_BASE_URL = 'https://puchia-backend.onrender.com/api/v1';
 
-    <header>
-        <div class="header-left">
-            <a class="logo-container" href="index.html">
-                <div class="logo" id="headerLogo">P</div>
-                <div class="logo-text" id="headerLogoText">Puchia</div>
-            </a>
-            <nav>
-                <a href="index.html">Inicio</a>
-                <a href="index.html#categorias">Categorías</a>
-                <a href="proceso-compra.html">Productos y promos</a>
-                <a href="contacto.html">Contacto</a>
-            </nav>
+function getSettings() {
+    const defaults = {
+        logo: 'P',
+        logoText: 'Puchia',
+        announceText: 'Envío gratis en compras mayores a $2.000 🎉',
+        whatsappNumber: '5492235847353',
+    };
+    const saved = localStorage.getItem('puchia_settings');
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+}
+
+function saveSettings(settings) {
+    localStorage.setItem('puchia_settings', JSON.stringify(settings));
+}
+
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    if (type === 'error') toast.style.background = '#e74c3c';
+    if (type === 'success') toast.style.background = '#27ae60';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), duration);
+}
+
+async function apiGet(endpoint) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+async function apiPost(endpoint, data) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+function getCart() {
+    const saved = localStorage.getItem('puchia_cart');
+    return saved ? JSON.parse(saved) : [];
+}
+
+function saveCart(cart) {
+    localStorage.setItem('puchia_cart', JSON.stringify(cart));
+}
+
+function getOrders() {
+    const saved = localStorage.getItem('puchia_orders');
+    return saved ? JSON.parse(saved) : [];
+}
+
+function saveOrders(orders) {
+    localStorage.setItem('puchia_orders', JSON.stringify(orders));
+}
+
+function getAdminToken() {
+    return localStorage.getItem('puchia_admin_token');
+}
+
+function saveAdminToken(token) {
+    localStorage.setItem('puchia_admin_token', token);
+}
+
+function clearAdminToken() {
+    localStorage.removeItem('puchia_admin_token');
+}
+
+function formatCurrency(amount) {
+    return '$' + amount.toLocaleString('es-AR');
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-AR');
+}
+
+function generateId(prefix = 'ORD') {
+    return prefix + '-' + Date.now();
+}
+
+function addToCart(product) {
+    let cart = getCart();
+    const existingItem = cart.find(item => item.id === product.id);
+    
+    if (existingItem) {
+        existingItem.qty++;
+    } else {
+        cart.push({ ...product, qty: 1 });
+    }
+    
+    saveCart(cart);
+    updateCartCount();
+    renderCartSidebar();
+    return cart;
+}
+
+function removeFromCart(productId) {
+    let cart = getCart();
+    cart = cart.filter(item => item.id !== productId);
+    saveCart(cart);
+    updateCartCount();
+    renderCartSidebar();
+    return cart;
+}
+
+function updateCartQty(productId, qty) {
+    let cart = getCart();
+    const item = cart.find(item => item.id === productId);
+    if (item) {
+        item.qty = Math.max(1, parseInt(qty));
+        saveCart(cart);
+        updateCartCount();
+        renderCartSidebar();
+    }
+    return cart;
+}
+
+function updateCartCount() {
+    const cart = getCart();
+    const count = cart.reduce((sum, item) => sum + item.qty, 0);
+    const elements = document.querySelectorAll('#cartCount');
+    elements.forEach(el => el.textContent = count);
+}
+
+function getCartTotal() {
+    const cart = getCart();
+    return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+}
+
+function clearCart() {
+    localStorage.removeItem('puchia_cart');
+    updateCartCount();
+    renderCartSidebar();
+}
+
+function toggleCart(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const sidebar = document.getElementById('cartSidebar');
+    const overlay = document.getElementById('cartOverlay');
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+        renderCartSidebar();
+    }
+}
+
+function closeCart() {
+    const sidebar = document.getElementById('cartSidebar');
+    const overlay = document.getElementById('cartOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+}
+
+function renderCartSidebar() {
+    const cart = getCart();
+    const container = document.getElementById('cartItemsContainer');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const totalElement = document.getElementById('cartTotal');
+    
+    if (!container) return;
+    
+    if (cart.length === 0) {
+        container.innerHTML = '<div class="empty-cart"><p>Tu carrito está vacío</p></div>';
+        if (checkoutBtn) checkoutBtn.disabled = true;
+    } else {
+        if (checkoutBtn) checkoutBtn.disabled = false;
+        const html = cart.map(item => `
+            <div class="cart-item">
+                <div class="cart-item-icon">${item.icon || '🎁'}</div>
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price">${formatCurrency(item.price)}</div>
+                    <div class="cart-item-qty">
+                        <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+                        <span style="min-width: 30px; text-align: center; font-weight: 600;">${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                        <button class="remove-item" onclick="removeItem(${item.id})">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        container.innerHTML = html;
+    }
+    
+    if (totalElement) {
+        totalElement.textContent = formatCurrency(getCartTotal());
+    }
+}
+
+function changeQty(productId, delta) {
+    let cart = getCart();
+    const item = cart.find(i => i.id === productId);
+    if (item) {
+        item.qty += delta;
+        if (item.qty < 1) item.qty = 1;
+        saveCart(cart);
+        updateCartCount();
+        renderCartSidebar();
+    }
+}
+
+function removeItem(productId) {
+    removeFromCart(productId);
+    showToast('Producto removido del carrito');
+}
+
+function goToCheckout() {
+    const cart = getCart();
+    if (cart.length === 0) {
+        showToast('Agrega productos al carrito primero');
+        return;
+    }
+    const checkoutModal = document.getElementById('checkoutModal');
+    if (checkoutModal) {
+        closeCart();
+        checkoutModal.classList.add('active');
+    } else {
+        localStorage.setItem('openCheckout', 'true');
+        window.location.href = 'proceso-compra.html';
+    }
+}
+
+function injectCartSidebar() {
+    if (document.getElementById('cartSidebar')) return;
+    
+    const sidebarHTML = `
+        <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+        <div class="cart-sidebar" id="cartSidebar">
+            <div class="cart-header">
+                <h2>Tu Carrito</h2>
+                <button class="close-cart" onclick="closeCart()">✕</button>
+            </div>
+            <div class="cart-items" id="cartItemsContainer">
+                <div class="empty-cart" id="emptyCartMessage">
+                    <p>Tu carrito está vacío</p>
+                </div>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotal">$0</span>
+                </div>
+                <button class="checkout-btn" onclick="goToCheckout()" id="checkoutBtn" disabled>
+                    Ir a Checkout
+                </button>
+            </div>
         </div>
-        <div class="header-right">
-            <button class="cart-btn" onclick="toggleCart(event)" title="Ver carrito" style="background: none; border: none; cursor: pointer; position: relative; font-size: 22px;">
-                🛒
-                <span class="cart-count" id="cartCount">0</span>
-            </button>
-            <a href="admin/login.html" class="admin-link" title="Panel administrador">⚙️</a>
-        </div>
-    </header>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', sidebarHTML);
+}
 
-    <section style="padding: 100px 60px; background-color: #fafbfc; min-height: 60vh;">
-        <h2 class="section-title">Contacto</h2>
-        <p class="section-subtitle">Comunicate con nosotras por tus dudas o consultas</p>
-        
-        <div style="max-width: 600px; margin: 60px auto; text-align: center;">
-            <p style="color: #7a8794; font-size: 16px; margin-bottom: 30px;">
-                ¡Pronto agregaremos aquí nuestras redes sociales y formas de contacto! 📱
-            </p>
-            <a href="https://wa.me/5492235847353" class="btn btn-primary" target="_blank" style="display: inline-block; text-decoration: none;">
-                Escribinos por WhatsApp
-            </a>
-        </div>
-    </section>
+function isAdminLoggedIn() {
+    return !!getAdminToken();
+}
 
-    <a href="https://wa.me/5492235847353" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-    </a>
+function adminLogout() {
+    clearAdminToken();
+    window.location.href = '/admin/login.html';
+}
 
-    <footer>
-        <div class="footer-brand">
-            <div class="footer-logo" id="footerLogo">P</div>
-            <div id="footerBrandText">Puchia</div>
-        </div>
-        <div>© 2024 Puchia — Todos los derechos reservados</div>
-        <div>Regalos personalizados con amor 🤍</div>
-    </footer>
+window.addEventListener('load', () => {
+    injectCartSidebar();
+    updateCartCount();
+    renderCartSidebar();
+});
 
-    <script src="js/common.js"></script>
-    <script src="js/home.js"></script>
-
-</body>
-</html>
+window.addEventListener('storage', (e) => {
+    if (e.key === 'puchia_cart') {
+        updateCartCount();
+        renderCartSidebar();
+    }
+});
