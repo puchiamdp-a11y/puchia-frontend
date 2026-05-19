@@ -1,1 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Tienda Online</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/cliente.css">
+</head>
+<body>
+
+    <div class="announcement-bar" id="announcementBar">
+        Envío gratis en compras mayores a $2.000 🎉
+    </div>
+
+    <header>
+        <div class="header-left">
+            <a class="logo-container" href="index.html">
+                <div class="logo" id="headerLogo">P</div>
+                <div class="logo-text" id="headerLogoText">Puchia</div>
+            </a>
+            <nav>
+                <a href="index.html">Inicio</a>
+                <a href="#productos">Tienda</a>
+                <a href="index.html#opiniones">Opiniones</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="cart-btn" onclick="toggleCart()" title="Ver carrito">
+                🛒
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+            <a href="admin/login.html" class="admin-link" title="Panel administrador">⚙️</a>
+        </div>
+    </header>
+
+    <!-- CARRITO SIDEBAR -->
+    <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button class="close-cart" onclick="closeCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cartItemsContainer">
+            <div class="empty-cart" id="emptyCartMessage">
+                <p>Tu carrito está vacío</p>
+            </div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">$0</span>
+            </div>
+            <button class="checkout-btn" onclick="goToCheckout()" id="checkoutBtn" disabled>
+                Ir a Checkout
+            </button>
+        </div>
+    </div>
+
+    <!-- SECCIÓN PRODUCTOS -->
+    <section class="products-section" id="productos">
+        <h2 class="section-title">Nuestra Tienda</h2>
+        <p class="section-subtitle">Explora nuestro catálogo completo de productos personalizados</p>
+        
+        <div class="filters-bar">
+            <button class="filter-btn active" onclick="filterProducts('todas')">Todos</button>
+            <button class="filter-btn" onclick="filterProducts('cumpleaños')">🎉 Cumpleaños</button>
+            <button class="filter-btn" onclick="filterProducts('regalos')">🎁 Regalos</button>
+            <button class="filter-btn" onclick="filterProducts('emprendedores')">💼 Emprendedores</button>
+        </div>
+
+        <div class="products-grid" id="productsGrid">
+            <!-- SE LLENA CON JAVASCRIPT -->
+        </div>
+    </section>
+
+    <!-- CHECKOUT MODAL -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Completar Compra</h3>
+                <button class="modal-close" onclick="closeCheckout()">✕</button>
+            </div>
+            <form onsubmit="submitOrder(event)" id="checkoutForm">
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" id="checkoutName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="checkoutEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono/WhatsApp *</label>
+                    <input type="tel" id="checkoutPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>DNI *</label>
+                    <input type="text" id="checkoutDNI" required>
+                </div>
+                <div class="form-group">
+                    <label>Provincia *</label>
+                    <select id="checkoutProvince" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Buenos Aires">Buenos Aires</option>
+                        <option value="CABA">CABA</option>
+                        <option value="Córdoba">Córdoba</option>
+                        <option value="Santa Fe">Santa Fe</option>
+                        <option value="Mendoza">Mendoza</option>
+                        <option value="Otras">Otras provincias</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Dirección *</label>
+                    <input type="text" id="checkoutAddress" required>
+                </div>
+                <div class="form-group">
+                    <label>Notas / Personalizaciones (opcional)</label>
+                    <textarea id="checkoutNotes" rows="4"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Confirmar Orden</button>
+                <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="closeCheckout()">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CONFIRMACIÓN -->
+    <div class="modal" id="confirmationModal">
+        <div class="modal-content" style="text-align: center; max-width: 500px;">
+            <div style="font-size: 60px; margin-bottom: 20px;">✅</div>
+            <h3 class="modal-title">¡Orden Confirmada!</h3>
+            <p id="confirmationNumber" style="color: #7a8794; font-size: 14px; margin: 20px 0;">
+                Orden: #ORD-123456789
+            </p>
+            <p style="color: #555; margin-bottom: 30px;">
+                Te contactaremos por email y WhatsApp para confirmar los detalles de tu pedido.
+            </p>
+            <button class="btn btn-primary" onclick="goToHome()" style="width: 200px;">Volver al Inicio</button>
+        </div>
+    </div>
+
+    <a href="https://wa.me/549" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">💬</a>
+
+    <footer>
+        <div class="footer-brand">
+            <div class="footer-logo" id="footerLogo">P</div>
+            <div id="footerBrandText">Puchia</div>
+        </div>
+        <div>© 2024 Puchia — Todos los derechos reservados</div>
+        <div>Regalos personalizados con amor 🤍</div>
+    </footer>
+
+    <script src="js/common.js"></script>
+    <script src="js/cliente.js"></script>
+
+</body>
+</html>
 
