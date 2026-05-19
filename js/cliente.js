@@ -1,6 +1,6 @@
-/* CLIENTE.JS - Lógica para proceso-compra.html - FASE 2 CON PROMOS */
+/* CLIENTE.JS - Lógica para proceso-compra.html - FASE 2 FINAL */
 
-// PRODUCTOS COMPLETOS (Todos los 9 + PROMOS)
+// PRODUCTOS COMPLETOS (Todos los 9)
 const allProducts = [
     { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños', desc: 'Banderín decorativo personalizado.' },
     { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños', desc: 'Bolsitas de papel para golosinas.' },
@@ -11,11 +11,7 @@ const allProducts = [
     { id: 7, name: 'Llaveros Acrílico', price: 1190, icon: '🔑', category: 'regalos', desc: 'Llaveros acrílicos personalizados.' },
     { id: 8, name: 'Mini Toppers x15', price: 3900, icon: '🎂', category: 'cumpleaños', desc: 'Set de 15 mini toppers.' },
     { id: 9, name: 'Stickers A4 Vinilo', price: 2500, icon: '🏷️', category: 'cumpleaños', desc: 'Lámina de stickers vinilo.' },
-    
-    // PRODUCTOS PROMOS (con descuento)
-    { id: 101, name: 'Combo Cumpleaños', price: 2990, icon: '🎉', category: 'promos', desc: 'Banderín + Bolsitas + Toppers por solo $2.990!' },
-    { id: 102, name: 'Pack Regalos', price: 3490, icon: '🎁', category: 'promos', desc: 'Llaveros + Stickers + Imágenes por $3.490!' },
-    { id: 103, name: 'Oferta Emprendedor', price: 1490, icon: '💼', category: 'promos', desc: 'Calendario + 50 tarjetas por $1.490!' },
+    { id: 10, name: 'Oferta Especial', price: 1500, icon: '🎊', category: 'promos', desc: 'Promoción limitada.' },
 ];
 
 let currentFilter = 'todas';
@@ -29,15 +25,37 @@ function loadInterface() {
     loadAndRenderProducts();
     updateCartCount();
     updateCartTotal();
+    
+    // Cargar categoría seleccionada si viene del HOME
+    const selected = localStorage.getItem('selectedCategory');
+    if (selected) {
+        currentFilter = selected;
+        localStorage.removeItem('selectedCategory');
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        const categoryMap = { 'todas': 0, 'cumpleaños': 1, 'regalos': 2, 'emprendedores': 3, 'promos': 4 };
+        const buttons = document.querySelectorAll('.filter-btn');
+        if (buttons[categoryMap[selected]]) {
+            buttons[categoryMap[selected]].classList.add('active');
+        }
+        
+        loadAndRenderProducts();
+    }
 }
 
 function updateUIWithSettings() {
     const settings = getSettings();
-    document.getElementById('headerLogo').textContent = settings.logo;
-    document.getElementById('headerLogoText').textContent = settings.logoText;
-    document.getElementById('footerLogo').textContent = settings.logo;
-    document.getElementById('footerBrandText').textContent = settings.logoText;
-    document.getElementById('announcementBar').textContent = settings.announceText;
+    const logo = document.getElementById('headerLogo');
+    const logoText = document.getElementById('headerLogoText');
+    const footerLogo = document.getElementById('footerLogo');
+    const footerBrandText = document.getElementById('footerBrandText');
+    const announcementBar = document.getElementById('announcementBar');
+    
+    if (logo) logo.textContent = settings.logo;
+    if (logoText) logoText.textContent = settings.logoText;
+    if (footerLogo) footerLogo.textContent = settings.logo;
+    if (footerBrandText) footerBrandText.textContent = settings.logoText;
+    if (announcementBar) announcementBar.textContent = settings.announceText;
 }
 
 function loadAndRenderProducts() {
@@ -58,7 +76,8 @@ function loadAndRenderProducts() {
         </div>
     `).join('');
     
-    document.getElementById('productsGrid').innerHTML = html;
+    const grid = document.getElementById('productsGrid');
+    if (grid) grid.innerHTML = html;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -83,16 +102,7 @@ function filterProducts(category) {
 function addProductToCart(id, name, price, icon) {
     const product = { id, name, price, icon };
     addToCart(product);
-    renderCartSidebar();
     showToast(`${name} agregado al carrito`, 'success');
-}
-
-function updateCartTotal() {
-    const total = getCartTotal();
-    const totalElement = document.getElementById('cartTotal');
-    if (totalElement) {
-        totalElement.textContent = formatCurrency(total);
-    }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -100,7 +110,8 @@ function updateCartTotal() {
 // ════════════════════════════════════════════════════════════════
 
 function closeCheckout() {
-    document.getElementById('checkoutModal').classList.remove('active');
+    const modal = document.getElementById('checkoutModal');
+    if (modal) modal.classList.remove('active');
 }
 
 function submitOrder(e) {
@@ -149,15 +160,19 @@ function submitOrder(e) {
     saveOrders(orders);
     
     // Mostrar confirmación
-    document.getElementById('confirmationNumber').textContent = `Orden: ${orderId}`;
-    closeCheckout();
+    const confirmNumber = document.getElementById('confirmationNumber');
+    if (confirmNumber) {
+        confirmNumber.textContent = `Orden: ${orderId}`;
+    }
     
-    // Limpiar carrito
+    closeCheckout();
     clearCart();
     renderCartSidebar();
     
-    // Mostrar modal de confirmación
-    document.getElementById('confirmationModal').classList.add('active');
+    const confirmModal = document.getElementById('confirmationModal');
+    if (confirmModal) {
+        confirmModal.classList.add('active');
+    }
     
     showToast('¡Orden confirmada!', 'success');
 }
@@ -171,21 +186,5 @@ function goToHome() {
 // ════════════════════════════════════════════════════════════════
 
 window.addEventListener('load', () => {
-    const selected = localStorage.getItem('selectedCategory');
-    if (selected) {
-        currentFilter = selected;
-        localStorage.removeItem('selectedCategory');
-        
-        // Actualizar botones de filtro
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        const buttons = document.querySelectorAll('.filter-btn');
-        const categoryMap = { 'todas': 0, 'cumpleaños': 1, 'regalos': 2, 'emprendedores': 3, 'promos': 4 };
-        if (buttons[categoryMap[selected]]) {
-            buttons[categoryMap[selected]].classList.add('active');
-        }
-    }
-    
     loadInterface();
 });
