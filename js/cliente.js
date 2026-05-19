@@ -1,6 +1,5 @@
-/* CLIENTE.JS - Lógica para proceso-compra.html - FASE 2 FINAL */
+/* CLIENTE.JS - Lógica para proceso-compra.html - FINAL COMPLETO */
 
-// PRODUCTOS COMPLETOS (Todos los 9)
 const allProducts = [
     { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños', desc: 'Banderín decorativo personalizado.' },
     { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños', desc: 'Bolsitas de papel para golosinas.' },
@@ -11,35 +10,32 @@ const allProducts = [
     { id: 7, name: 'Llaveros Acrílico', price: 1190, icon: '🔑', category: 'regalos', desc: 'Llaveros acrílicos personalizados.' },
     { id: 8, name: 'Mini Toppers x15', price: 3900, icon: '🎂', category: 'cumpleaños', desc: 'Set de 15 mini toppers.' },
     { id: 9, name: 'Stickers A4 Vinilo', price: 2500, icon: '🏷️', category: 'cumpleaños', desc: 'Lámina de stickers vinilo.' },
-    { id: 10, name: 'Oferta Especial', price: 1500, icon: '🎊', category: 'promos', desc: 'Promoción limitada.' },
+];
+
+const promoProducts = [
+    { id: 10, name: 'Pack Cumpleaños x3', price: 1500, icon: '🎊', category: 'promos', desc: 'Combo especial de 3 productos.' },
+    { id: 11, name: 'Oferta Mega Regalos', price: 2000, icon: '🎁', category: 'promos', desc: 'Descuento en paquete de regalos.' },
+    { id: 12, name: 'Promoción Emprendedor', price: 899, icon: '💼', category: 'promos', desc: 'Oferta especial para negocios.' },
 ];
 
 let currentFilter = 'todas';
-
-// ════════════════════════════════════════════════════════════════
-// CARGAR INTERFAZ
-// ════════════════════════════════════════════════════════════════
+let currentSection = 'productos';
 
 function loadInterface() {
     updateUIWithSettings();
-    loadAndRenderProducts();
-    updateCartCount();
-    updateCartTotal();
     
-    // Cargar categoría seleccionada si viene del HOME
     const selected = localStorage.getItem('selectedCategory');
-    if (selected) {
-        currentFilter = selected;
+    if (selected === 'promos') {
+        currentSection = 'promos';
         localStorage.removeItem('selectedCategory');
-        
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        const categoryMap = { 'todas': 0, 'cumpleaños': 1, 'regalos': 2, 'emprendedores': 3, 'promos': 4 };
-        const buttons = document.querySelectorAll('.filter-btn');
-        if (buttons[categoryMap[selected]]) {
-            buttons[categoryMap[selected]].classList.add('active');
+        showSection('promos');
+    } else {
+        currentSection = 'productos';
+        if (selected) {
+            currentFilter = selected;
+            localStorage.removeItem('selectedCategory');
         }
-        
-        loadAndRenderProducts();
+        showSection('productos');
     }
 }
 
@@ -56,6 +52,29 @@ function updateUIWithSettings() {
     if (footerLogo) footerLogo.textContent = settings.logo;
     if (footerBrandText) footerBrandText.textContent = settings.logoText;
     if (announcementBar) announcementBar.textContent = settings.announceText;
+}
+
+function showSection(section) {
+    currentSection = section;
+    
+    const productsSection = document.getElementById('productsSection');
+    const promosSection = document.getElementById('promosSection');
+    const prodBtn = document.getElementById('productosBtn');
+    const promBtn = document.getElementById('promosBtn');
+    
+    if (section === 'productos') {
+        if (productsSection) productsSection.style.display = 'block';
+        if (promosSection) promosSection.style.display = 'none';
+        if (prodBtn) prodBtn.classList.add('active');
+        if (promBtn) promBtn.classList.remove('active');
+        loadAndRenderProducts();
+    } else {
+        if (productsSection) productsSection.style.display = 'none';
+        if (promosSection) promosSection.style.display = 'block';
+        if (prodBtn) prodBtn.classList.remove('active');
+        if (promBtn) promBtn.classList.add('active');
+        loadAndRenderPromos();
+    }
 }
 
 function loadAndRenderProducts() {
@@ -80,9 +99,23 @@ function loadAndRenderProducts() {
     if (grid) grid.innerHTML = html;
 }
 
-// ════════════════════════════════════════════════════════════════
-// FILTROS
-// ════════════════════════════════════════════════════════════════
+function loadAndRenderPromos() {
+    const html = promoProducts.map(product => `
+        <div class="product-card">
+            <div class="product-image">${product.icon}</div>
+            <div class="product-info">
+                <div class="product-name">${product.name}</div>
+                <div class="product-price">${formatCurrency(product.price)}</div>
+                <button class="product-btn" onclick="addProductToCart(${product.id}, '${product.name}', ${product.price}, '${product.icon}')">
+                    Agregar al Carrito
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    const grid = document.getElementById('promosGrid');
+    if (grid) grid.innerHTML = html;
+}
 
 function filterProducts(category) {
     currentFilter = category;
@@ -95,19 +128,11 @@ function filterProducts(category) {
     loadAndRenderProducts();
 }
 
-// ════════════════════════════════════════════════════════════════
-// CARRITO
-// ════════════════════════════════════════════════════════════════
-
 function addProductToCart(id, name, price, icon) {
     const product = { id, name, price, icon };
     addToCart(product);
     showToast(`${name} agregado al carrito`, 'success');
 }
-
-// ════════════════════════════════════════════════════════════════
-// CHECKOUT
-// ════════════════════════════════════════════════════════════════
 
 function closeCheckout() {
     const modal = document.getElementById('checkoutModal');
@@ -159,7 +184,6 @@ function submitOrder(e) {
     orders.push(order);
     saveOrders(orders);
     
-    // Mostrar confirmación
     const confirmNumber = document.getElementById('confirmationNumber');
     if (confirmNumber) {
         confirmNumber.textContent = `Orden: ${orderId}`;
@@ -181,10 +205,8 @@ function goToHome() {
     window.location.href = 'index.html';
 }
 
-// ════════════════════════════════════════════════════════════════
-// INICIALIZACIÓN
-// ════════════════════════════════════════════════════════════════
-
 window.addEventListener('load', () => {
     loadInterface();
+    updateCartCount();
+    renderCartSidebar();
 });
