@@ -21,9 +21,10 @@
                 <div class="logo-text" id="headerLogoText">Puchia</div>
             </a>
             <nav>
-                <a href="#productos">Productos</a>
-                <a href="proceso-compra.html">Tienda</a>
-                <a href="#opiniones">Opiniones</a>
+                <a href="index.html">Inicio</a>
+                <a href="#categorias">Categorías</a>
+                <a href="proceso-compra.html">Productos y promos</a>
+                <a href="contacto.html">Contacto</a>
             </nav>
         </div>
         <div class="header-right">
@@ -80,7 +81,7 @@
             <div class="stat-divider"></div>
             <div class="stat-item">
                 <div class="stat-number" data-target="100">0%</div>
-                <div class="stat-label">Satisfacción Garantizada</div>
+                <div class="stat-label">100% Personalizado</div>
             </div>
         </div>
     </section>
@@ -116,21 +117,25 @@
          CATEGORÍAS
          ════════════════════════════════════════════════════════════════ -->
 
-    <section class="categories-section">
+    <section class="categories-section" id="categorias">
         <h2 class="section-title">Nuestras Categorías</h2>
         <p class="section-subtitle">Explorá nuestra variedad de opciones personalizadas</p>
         <div class="categories-grid">
-            <div class="category-card">
+            <div class="category-card" onclick="goToPromos('cumpleaños')">
                 <h3>🎉 Cumpleaños</h3>
                 <p>Decoraciones y regalos únicos para cada celebración</p>
             </div>
-            <div class="category-card">
-                <h3>👶 Bebés</h3>
-                <p>Momentos especiales para los primeros días</p>
+            <div class="category-card" onclick="goToPromos('regalos')">
+                <h3>🎁 Regalos</h3>
+                <p>Momentos especiales para todos los regalos</p>
             </div>
-            <div class="category-card">
+            <div class="category-card" onclick="goToPromos('emprendedores')">
                 <h3>💼 Emprendedores</h3>
                 <p>Herramientas de negocio con identidad propia</p>
+            </div>
+            <div class="category-card" onclick="goToPromos('promos')">
+                <h3>🎊 Promos</h3>
+                <p>Ofertas especiales y descuentos exclusivos</p>
             </div>
         </div>
     </section>
@@ -188,7 +193,11 @@
         </div>
     </section>
 
-    <a href="https://wa.me/549" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">💬</a>
+    <a href="https://wa.me/5492235847353" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </a>
 
     <footer>
         <div class="footer-brand">
