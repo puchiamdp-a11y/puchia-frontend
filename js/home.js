@@ -1,8 +1,6 @@
-/* ═════════════════════════════════════════════════════════════════
-   HOME.JS - Lógica Específica para index.html - ACTUALIZADO
-   ═════════════════════════════════════════════════════════════════ */
+/* HOME.JS - Lógica para index.html - FASE 2 FINAL */
 
-// DATOS DE PRODUCTOS DESTACADOS (Los 6 primeros del catálogo)
+// DATOS DE PRODUCTOS DESTACADOS (Los 6 primeros)
 const featuredProducts = [
     { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños', badge: 'Más vendido' },
     { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños', badge: 'Nuevo' },
@@ -40,6 +38,7 @@ function updateUIWithSettings() {
 
 function loadAndRenderProducts() {
     const grid = document.getElementById('productsGrid');
+    if (!grid) return;
     
     const html = featuredProducts.map(product => {
         let badgeHtml = '';
@@ -63,9 +62,7 @@ function loadAndRenderProducts() {
         `;
     }).join('');
     
-    if (grid) {
-        grid.innerHTML = html;
-    }
+    grid.innerHTML = html;
 }
 
 function addProductToCart(id, name, price) {
@@ -92,6 +89,7 @@ function changeBanner(index) {
 
 function nextBanner() {
     const banners = document.querySelectorAll('.banner');
+    if (banners.length === 0) return;
     currentBanner = (currentBanner + 1) % banners.length;
     changeBanner(currentBanner);
 }
@@ -161,6 +159,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+// ════════════════════════════════════════════════════════════════
+// IR A PROMOS CON CATEGORÍA SELECCIONADA
+// ════════════════════════════════════════════════════════════════
+
+function goToPromos(category) {
+    localStorage.setItem('selectedCategory', category);
+    window.location.href = 'proceso-compra.html';
+}
 
 // ════════════════════════════════════════════════════════════════
 // INICIALIZACIÓN
