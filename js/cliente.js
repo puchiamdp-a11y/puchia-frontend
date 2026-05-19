@@ -1,41 +1,38 @@
-/* CLIENTE.JS - Lógica para proceso-compra.html - FINAL COMPLETO */
+/* CLIENTE.JS - PRODUCTOS Y PROMOS SEPARADOS */
 
 const allProducts = [
-    { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños', desc: 'Banderín decorativo personalizado.' },
-    { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños', desc: 'Bolsitas de papel para golosinas.' },
-    { id: 3, name: 'Bolsitas 3D', price: 1050, icon: '📦', category: 'cumpleaños', desc: 'Bolsitas 3D con diseño especial.' },
-    { id: 4, name: 'Calendarios Negocios', price: 790, icon: '📅', category: 'emprendedores', desc: 'Calendario personalizado.' },
-    { id: 5, name: 'Imágenes Decorativas', price: 1200, icon: '🖼️', category: 'cumpleaños', desc: 'Imágenes personalizadas.' },
-    { id: 6, name: 'Librito para Pintar', price: 990, icon: '🎨', category: 'cumpleaños', desc: 'Librito para colorear.' },
-    { id: 7, name: 'Llaveros Acrílico', price: 1190, icon: '🔑', category: 'regalos', desc: 'Llaveros acrílicos personalizados.' },
-    { id: 8, name: 'Mini Toppers x15', price: 3900, icon: '🎂', category: 'cumpleaños', desc: 'Set de 15 mini toppers.' },
-    { id: 9, name: 'Stickers A4 Vinilo', price: 2500, icon: '🏷️', category: 'cumpleaños', desc: 'Lámina de stickers vinilo.' },
+    { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños' },
+    { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños' },
+    { id: 3, name: 'Bolsitas 3D', price: 1050, icon: '📦', category: 'cumpleaños' },
+    { id: 4, name: 'Calendarios Negocios', price: 790, icon: '📅', category: 'emprendedores' },
+    { id: 5, name: 'Imágenes Decorativas', price: 1200, icon: '🖼️', category: 'cumpleaños' },
+    { id: 6, name: 'Librito para Pintar', price: 990, icon: '🎨', category: 'cumpleaños' },
+    { id: 7, name: 'Llaveros Acrílico', price: 1190, icon: '🔑', category: 'regalos' },
+    { id: 8, name: 'Mini Toppers x15', price: 3900, icon: '🎂', category: 'cumpleaños' },
+    { id: 9, name: 'Stickers A4 Vinilo', price: 2500, icon: '🏷️', category: 'cumpleaños' },
 ];
 
 const promoProducts = [
-    { id: 10, name: 'Pack Cumpleaños x3', price: 1500, icon: '🎊', category: 'promos', desc: 'Combo especial de 3 productos.' },
-    { id: 11, name: 'Oferta Mega Regalos', price: 2000, icon: '🎁', category: 'promos', desc: 'Descuento en paquete de regalos.' },
-    { id: 12, name: 'Promoción Emprendedor', price: 899, icon: '💼', category: 'promos', desc: 'Oferta especial para negocios.' },
+    { id: 10, name: 'Pack Cumpleaños x3', price: 1500, icon: '🎊', category: 'promos' },
+    { id: 11, name: 'Oferta Mega Regalos', price: 2000, icon: '🎁', category: 'promos' },
+    { id: 12, name: 'Promoción Emprendedor', price: 899, icon: '💼', category: 'promos' },
 ];
 
 let currentFilter = 'todas';
-let currentSection = 'productos';
 
 function loadInterface() {
     updateUIWithSettings();
     
     const selected = localStorage.getItem('selectedCategory');
     if (selected === 'promos') {
-        currentSection = 'promos';
         localStorage.removeItem('selectedCategory');
-        showSection('promos');
+        showPromos();
     } else {
-        currentSection = 'productos';
         if (selected) {
             currentFilter = selected;
             localStorage.removeItem('selectedCategory');
         }
-        showSection('productos');
+        showProducts();
     }
 }
 
@@ -54,27 +51,32 @@ function updateUIWithSettings() {
     if (announcementBar) announcementBar.textContent = settings.announceText;
 }
 
-function showSection(section) {
-    currentSection = section;
-    
+function showProducts() {
     const productsSection = document.getElementById('productsSection');
     const promosSection = document.getElementById('promosSection');
     const prodBtn = document.getElementById('productosBtn');
     const promBtn = document.getElementById('promosBtn');
     
-    if (section === 'productos') {
-        if (productsSection) productsSection.style.display = 'block';
-        if (promosSection) promosSection.style.display = 'none';
-        if (prodBtn) prodBtn.classList.add('active');
-        if (promBtn) promBtn.classList.remove('active');
-        loadAndRenderProducts();
-    } else {
-        if (productsSection) productsSection.style.display = 'none';
-        if (promosSection) promosSection.style.display = 'block';
-        if (prodBtn) prodBtn.classList.remove('active');
-        if (promBtn) promBtn.classList.add('active');
-        loadAndRenderPromos();
-    }
+    if (productsSection) productsSection.style.display = 'block';
+    if (promosSection) promosSection.style.display = 'none';
+    if (prodBtn) prodBtn.classList.add('active');
+    if (promBtn) promBtn.classList.remove('active');
+    
+    loadAndRenderProducts();
+}
+
+function showPromos() {
+    const productsSection = document.getElementById('productsSection');
+    const promosSection = document.getElementById('promosSection');
+    const prodBtn = document.getElementById('productosBtn');
+    const promBtn = document.getElementById('promosBtn');
+    
+    if (productsSection) productsSection.style.display = 'none';
+    if (promosSection) promosSection.style.display = 'block';
+    if (prodBtn) prodBtn.classList.remove('active');
+    if (promBtn) promBtn.classList.add('active');
+    
+    loadAndRenderPromos();
 }
 
 function loadAndRenderProducts() {
