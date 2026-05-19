@@ -1,316 +1,73 @@
-/* ═════════════════════════════════════════════════════════════════
-   COMMON.JS - Funciones Compartidas Globales
-   Usado por: index.html, proceso-compra.html, admin
-   ═════════════════════════════════════════════════════════════════ */
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Contacto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/cliente.css">
+</head>
+<body>
 
-// ════════════════════════════════════════════════════════
-// CONFIGURACIÓN GLOBAL
-// ════════════════════════════════════════════════════════
+    <div class="announcement-bar" id="announcementBar">
+        Envío gratis en compras mayores a $2.000 🎉
+    </div>
 
-const API_BASE_URL = 'https://puchia-backend.onrender.com/api/v1';
-const APP_NAME = 'Puchia';
+    <header>
+        <div class="header-left">
+            <a class="logo-container" href="index.html">
+                <div class="logo" id="headerLogo">P</div>
+                <div class="logo-text" id="headerLogoText">Puchia</div>
+            </a>
+            <nav>
+                <a href="index.html">Inicio</a>
+                <a href="index.html#categorias">Categorías</a>
+                <a href="proceso-compra.html">Productos y promos</a>
+                <a href="contacto.html">Contacto</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="cart-btn" onclick="toggleCart(event)" title="Ver carrito" style="background: none; border: none; cursor: pointer; position: relative; font-size: 22px;">
+                🛒
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+            <a href="admin/login.html" class="admin-link" title="Panel administrador">⚙️</a>
+        </div>
+    </header>
 
-// Obtener datos globales del localStorage (incluyendo settings del admin)
-function getSettings() {
-    const defaults = {
-        logo: 'P',
-        logoText: 'Puchia',
-        announceText: 'Envío gratis en compras mayores a $2.000 🎉',
-        whatsappNumber: '5492230000000',
-    };
-    const saved = localStorage.getItem('puchia_settings');
-    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
-}
+    <section style="padding: 100px 60px; background-color: #fafbfc; min-height: 60vh;">
+        <h2 class="section-title">Contacto</h2>
+        <p class="section-subtitle">Comunicate con nosotras por tus dudas o consultas</p>
+        
+        <div style="max-width: 600px; margin: 60px auto; text-align: center;">
+            <p style="color: #7a8794; font-size: 16px; margin-bottom: 30px;">
+                ¡Pronto agregaremos aquí nuestras redes sociales y formas de contacto! 📱
+            </p>
+            <a href="https://wa.me/5492235847353" class="btn btn-primary" target="_blank" style="display: inline-block; text-decoration: none;">
+                Escribinos por WhatsApp
+            </a>
+        </div>
+    </section>
 
-function saveSettings(settings) {
-    localStorage.setItem('puchia_settings', JSON.stringify(settings));
-}
+    <a href="https://wa.me/5492235847353" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+    </a>
 
-// ════════════════════════════════════════════════════════
-// UTILIDADES DE NOTIFICACIÓN
-// ════════════════════════════════════════════════════════
+    <footer>
+        <div class="footer-brand">
+            <div class="footer-logo" id="footerLogo">P</div>
+            <div id="footerBrandText">Puchia</div>
+        </div>
+        <div>© 2024 Puchia — Todos los derechos reservados</div>
+        <div>Regalos personalizados con amor 🤍</div>
+    </footer>
 
-/**
- * Mostrar notificación toast (pequeña notificación esquina inferior derecha)
- * @param {string} message - Mensaje a mostrar
- * @param {string} type - 'success', 'error', 'info' (default)
- * @param {number} duration - Duración en ms (default 3000)
- */
-function showToast(message, type = 'info', duration = 3000) {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    
-    if (type === 'error') {
-        toast.style.background = '#e74c3c';
-    } else if (type === 'success') {
-        toast.style.background = '#27ae60';
-    }
-    
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), duration);
-}
+    <script src="js/common.js"></script>
+    <script src="js/home.js"></script>
 
-/**
- * Mostrar diálogo de confirmación
- * @param {string} message - Mensaje de confirmación
- * @return {boolean} - true si confirma, false si cancela
- */
-function showConfirm(message) {
-    return confirm(message);
-}
-
-// ════════════════════════════════════════════════════════
-// FUNCIONES DE API
-// ════════════════════════════════════════════════════════
-
-/**
- * Realizar petición GET a la API
- */
-async function apiGet(endpoint) {
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
-    }
-}
-
-/**
- * Realizar petición POST a la API
- */
-async function apiPost(endpoint, data) {
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
-    }
-}
-
-/**
- * Realizar petición PUT a la API (con autenticación)
- */
-async function apiPut(endpoint, data, token) {
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(data)
-        });
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
-    }
-}
-
-// ════════════════════════════════════════════════════════
-// FUNCIONES DE LOCALSTORAGE
-// ════════════════════════════════════════════════════════
-
-/**
- * Obtener carrito del localStorage
- */
-function getCart() {
-    const saved = localStorage.getItem('puchia_cart');
-    return saved ? JSON.parse(saved) : [];
-}
-
-/**
- * Guardar carrito en localStorage
- */
-function saveCart(cart) {
-    localStorage.setItem('puchia_cart', JSON.stringify(cart));
-}
-
-/**
- * Obtener órdenes del localStorage
- */
-function getOrders() {
-    const saved = localStorage.getItem('puchia_orders');
-    return saved ? JSON.parse(saved) : [];
-}
-
-/**
- * Guardar órdenes en localStorage
- */
-function saveOrders(orders) {
-    localStorage.setItem('puchia_orders', JSON.stringify(orders));
-}
-
-/**
- * Obtener token de administrador
- */
-function getAdminToken() {
-    return localStorage.getItem('puchia_admin_token');
-}
-
-/**
- * Guardar token de administrador
- */
-function saveAdminToken(token) {
-    localStorage.setItem('puchia_admin_token', token);
-}
-
-/**
- * Limpiar token de administrador
- */
-function clearAdminToken() {
-    localStorage.removeItem('puchia_admin_token');
-}
-
-// ════════════════════════════════════════════════════════
-// FUNCIONES DE FORMATO
-// ════════════════════════════════════════════════════════
-
-/**
- * Formatear número como moneda argentina
- */
-function formatCurrency(amount) {
-    return '$' + amount.toLocaleString('es-AR');
-}
-
-/**
- * Formatear fecha en formato local
- */
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-AR');
-}
-
-/**
- * Obtener ID único (para órdenes, etc)
- */
-function generateId(prefix = 'ORD') {
-    return prefix + '-' + Date.now();
-}
-
-// ════════════════════════════════════════════════════════
-// FUNCIONES DE CARRITO
-// ════════════════════════════════════════════════════════
-
-/**
- * Agregar producto al carrito
- */
-function addToCart(product) {
-    let cart = getCart();
-    const existingItem = cart.find(item => item.id === product.id);
-    
-    if (existingItem) {
-        existingItem.qty++;
-    } else {
-        cart.push({ ...product, qty: 1 });
-    }
-    
-    saveCart(cart);
-    updateCartCount();
-    return cart;
-}
-
-/**
- * Remover producto del carrito
- */
-function removeFromCart(productId) {
-    let cart = getCart();
-    cart = cart.filter(item => item.id !== productId);
-    saveCart(cart);
-    updateCartCount();
-    return cart;
-}
-
-/**
- * Actualizar cantidad en carrito
- */
-function updateCartQty(productId, qty) {
-    let cart = getCart();
-    const item = cart.find(item => item.id === productId);
-    if (item) {
-        item.qty = Math.max(1, parseInt(qty));
-        saveCart(cart);
-        updateCartCount();
-    }
-    return cart;
-}
-
-/**
- * Actualizar el contador de carrito en el header
- */
-function updateCartCount() {
-    const cart = getCart();
-    const count = cart.reduce((sum, item) => sum + item.qty, 0);
-    const cartCountElement = document.getElementById('cartCount');
-    if (cartCountElement) {
-        cartCountElement.textContent = count;
-    }
-}
-
-/**
- * Calcular total del carrito
- */
-function getCartTotal() {
-    const cart = getCart();
-    return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-}
-
-/**
- * Limpiar carrito
- */
-function clearCart() {
-    localStorage.removeItem('puchia_cart');
-    updateCartCount();
-}
-
-// ════════════════════════════════════════════════════════
-// FUNCIONES DE ADMIN
-// ════════════════════════════════════════════════════════
-
-/**
- * Verificar si el usuario es admin
- */
-function isAdminLoggedIn() {
-    return !!getAdminToken();
-}
-
-/**
- * Logout de admin
- */
-function adminLogout() {
-    clearAdminToken();
-    window.location.href = '/admin/login.html';
-}
-
-// ════════════════════════════════════════════════════════
-// INICIALIZACIÓN
-// ════════════════════════════════════════════════════════
-
-// Actualizar contador de carrito al cargar página
-window.addEventListener('load', () => {
-    updateCartCount();
-});
-
-// Mantener sesión sincronizada entre tabs
-window.addEventListener('storage', (e) => {
-    if (e.key === 'puchia_cart') {
-        updateCartCount();
-    }
-});
+</body>
+</html>
