@@ -1,11 +1,11 @@
-const API_BASE_URL = 'http://127.0.0.1:5000/api/v1';
+// API_BASE_URL ya está definido en el HTML
 
 // Verificar autenticación al cargar
 document.addEventListener('DOMContentLoaded', () => {
   checkAdminAuth();
   loadDashboardStats();
-  setupEventListeners();
   loadRecentOrders();
+  setupEventListeners();
 });
 
 // ==================== AUTENTICACIÓN ====================
@@ -25,7 +25,7 @@ function checkAdminAuth() {
   }
 }
 
-document.getElementById('logoutBtn').addEventListener('click', () => {
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
   localStorage.removeItem('puchia_admin_token');
   localStorage.removeItem('puchia_admin_user');
   window.location.href = './login.html';
@@ -35,10 +35,14 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 function setupEventListeners() {
   // Navegación sidebar
-  document.querySelectorAll('.sidebar-nav a').forEach(link => {
+  const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+  console.log('Links encontrados:', sidebarLinks.length);
+  
+  sidebarLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const page = link.dataset.page;
+      console.log('Navegando a:', page);
       
       // Remover activo de todos
       document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));

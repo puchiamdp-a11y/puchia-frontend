@@ -1,6 +1,31 @@
-/* CLIENTE.JS - PRODUCTOS Y PROMOS SEPARADOS */
+/* CLIENTE.JS - PRODUCTOS Y PROMOS DESDE BD */
 
-const allProducts = [
+let allProducts = [];
+let promoProducts = [];
+let currentFilter = 'todas';
+
+const API_BASE_URL = 'http://127.0.0.1:5000/api/v1';
+
+// Cargar productos desde BD al iniciar
+async function loadProductsFromAPI() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/productos`);
+    const data = await response.json();
+    
+    if (data.success) {
+      // Separar productos regulares de promos
+      allProducts = data.data.filter(p => p.category !== 'promos');
+      promoProducts = data.data.filter(p => p.category === 'promos');
+    }
+  } catch (error) {
+    console.error('Error cargando productos:', error);
+    // Si falla, usar productos por defecto
+    useDefaultProducts();
+  }
+}
+
+function useDefaultProducts() {
+  allProducts = [
     { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños' },
     { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños' },
     { id: 3, name: 'Bolsitas 3D', price: 1050, icon: '📦', category: 'cumpleaños' },
@@ -10,15 +35,14 @@ const allProducts = [
     { id: 7, name: 'Llaveros Acrílico', price: 1190, icon: '🔑', category: 'regalos' },
     { id: 8, name: 'Mini Toppers x15', price: 3900, icon: '🎂', category: 'cumpleaños' },
     { id: 9, name: 'Stickers A4 Vinilo', price: 2500, icon: '🏷️', category: 'cumpleaños' },
-];
+  ];
 
-const promoProducts = [
+  promoProducts = [
     { id: 10, name: 'Pack Cumpleaños x3', price: 1500, icon: '🎊', category: 'promos' },
     { id: 11, name: 'Oferta Mega Regalos', price: 2000, icon: '🎁', category: 'promos' },
     { id: 12, name: 'Promoción Emprendedor', price: 899, icon: '💼', category: 'promos' },
-];
-
-let currentFilter = 'todas';
+  ];
+}
 
 function loadInterface() {
     updateUIWithSettings();
@@ -207,7 +231,8 @@ function goToHome() {
     window.location.href = 'index.html';
 }
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+    await loadProductsFromAPI();
     loadInterface();
     updateCartCount();
     renderCartSidebar();

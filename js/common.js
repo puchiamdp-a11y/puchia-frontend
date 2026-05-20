@@ -2,8 +2,6 @@
    COMMON.JS - Funciones Compartidas Globales
    ═════════════════════════════════════════════════════════════════ */
 
-const API_BASE_URL = 'https://puchia-backend.onrender.com/api/v1';
-
 function getSettings() {
     const defaults = {
         logo: 'P',
