@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia Admin - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <!-- HEADER ADMIN -->
+    <header class="admin-header">
+        <a href="./dashboard.html" class="admin-logo-container">
+            <div class="admin-logo">P</div>
+            <span class="admin-logo-text">Puchia Admin</span>
+        </a>
+
+        <div class="admin-user-info">
+            <span class="admin-user-name" id="adminUserName">Admin</span>
+            <button class="admin-logout-btn" id="logoutBtn">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="admin-container">
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="./dashboard.html" class="active" data-page="dashboard">📊 Dashboard</a></li>
+                <li><a href="#" data-page="productos">📦 Productos</a></li>
+                <li><a href="#" data-page="ordenes">📋 Órdenes</a></li>
+                <li><a href="#" data-page="settings">⚙️ Configuración</a></li>
+            </ul>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="admin-content">
+            <!-- DASHBOARD PAGE -->
+            <div id="dashboard-page" class="page">
+                <h1 class="page-title">Dashboard</h1>
+
+                <!-- STATS -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Órdenes Pendientes</div>
+                        <div class="stat-value" id="stat-pending">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Órdenes Completadas</div>
+                        <div class="stat-value" id="stat-completed">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Ventas</div>
+                        <div class="stat-value" id="stat-sales">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Productos Activos</div>
+                        <div class="stat-value" id="stat-products">0</div>
+                    </div>
+                </div>
+
+                <!-- ÓRDENES RECIENTES -->
+                <h2 style="font-size: 20px; margin-bottom: 20px;">Órdenes Recientes</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-orders">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #999;">Cargando órdenes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PRODUCTOS PAGE -->
+            <div id="productos-page" class="page" style="display: none;">
+                <h1 class="page-title">Productos</h1>
+                <button class="btn btn-primary" id="newProductBtn" style="margin-bottom: 20px;">+ Nuevo Producto</button>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Categoría</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productos-list">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999;">Cargando productos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ÓRDENES PAGE -->
+            <div id="ordenes-page" class="page" style="display: none;">
+                <h1 class="page-title">Órdenes</h1>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-orders">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #999;">Cargando órdenes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SETTINGS PAGE -->
+            <div id="settings-page" class="page" style="display: none;">
+                <h1 class="page-title">Configuración</h1>
+
+                <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px;">
+                    <div class="form-group">
+                        <label for="logo">Logo (letra)</label>
+                        <input type="text" id="logo" maxlength="1" placeholder="P">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="logoText">Texto Logo</label>
+                        <input type="text" id="logoText" placeholder="Puchia">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="announcement">Anuncio</label>
+                        <textarea id="announcement" rows="3" placeholder="Ingresa el anuncio..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="whatsapp">Número WhatsApp</label>
+                        <input type="text" id="whatsapp" placeholder="5492235847353">
+                    </div>
+
+                    <button class="btn btn-primary" id="saveSettingsBtn">Guardar Cambios</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>

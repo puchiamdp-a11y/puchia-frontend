@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,787 +6,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puchia - Regalos Personalizados</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #fafbfc;
-            color: #2c3e50;
-            line-height: 1.6;
-        }
-
-        /* ── HEADER ── */
-        header {
-            background-color: #ffffff;
-            padding: 18px 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-        }
-
-        .logo {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 700;
-            font-size: 20px;
-            box-shadow: 0 4px 16px rgba(127,31,110,0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .logo:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(127,31,110,0.3);
-        }
-
-        .logo-text {
-            font-weight: 600;
-            font-size: 17px;
-            color: #7f1f6e;
-        }
-
-        nav { display: flex; gap: 40px; }
-
-        nav a {
-            text-decoration: none;
-            color: #5a5a5a;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        nav a:after {
-            content: '';
-            position: absolute;
-            bottom: -5px; left: 0;
-            width: 0; height: 2px;
-            background-color: #F3E93F;
-            transition: width 0.3s ease;
-        }
-
-        nav a:hover { color: #7f1f6e; }
-        nav a:hover:after { width: 100%; }
-
-        .cart-icon {
-            font-size: 22px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .cart-icon:hover { transform: scale(1.15) rotate(5deg); }
-
-        /* ── ANUNCIO TOP ── */
-        .announcement-bar {
-            background-color: #7f1f6e;
-            color: #fff;
-            text-align: center;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: 400;
-            letter-spacing: 0.3px;
-        }
-
-        .announcement-bar span {
-            margin: 0 20px;
-            opacity: 0.6;
-        }
-
-        /* ── BANNER CAROUSEL ── */
-        .banner-carousel {
-            position: relative;
-            width: 100%;
-            height: 580px;
-            overflow: hidden;
-            background: linear-gradient(135deg, #7f1f6e 0%, #5a1f5c 100%);
-        }
-
-        .banner {
-            position: absolute;
-            width: 100%; height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-            text-align: center;
-            color: white;
-            padding: 60px 40px;
-        }
-
-        .banner.active { opacity: 1; }
-
-        .banner-content { animation: fadeInScale 0.9s ease-in-out; }
-
-        .banner-eyebrow {
-            display: inline-block;
-            background: rgba(243,233,63,0.2);
-            border: 1px solid rgba(243,233,63,0.5);
-            color: #F3E93F;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            padding: 6px 18px;
-            border-radius: 50px;
-            margin-bottom: 24px;
-        }
-
-        .banner h1 {
-            font-size: 60px;
-            margin-bottom: 20px;
-            font-weight: 700;
-            letter-spacing: -1px;
-            line-height: 1.15;
-        }
-
-        .banner p {
-            font-size: 19px;
-            margin-bottom: 40px;
-            color: rgba(255,255,255,0.85);
-            font-weight: 300;
-            max-width: 580px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .banner-btn {
-            background-color: #fff;
-            color: #7f1f6e;
-            padding: 15px 50px;
-            border: none;
-            border-radius: 50px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .banner-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 14px 36px rgba(0,0,0,0.2);
-            background-color: #F3E93F;
-        }
-
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.96) translateY(10px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .carousel-dots {
-            position: absolute;
-            bottom: 32px; left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            z-index: 10;
-        }
-
-        .dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background-color: rgba(255,255,255,0.35);
-            cursor: pointer;
-            transition: all 0.4s ease;
-            border: 1px solid rgba(255,255,255,0.5);
-        }
-
-        .dot.active {
-            background-color: #F3E93F;
-            width: 30px;
-            border-radius: 5px;
-            border-color: #F3E93F;
-        }
-
-        /* ── CONTADOR ── */
-        .stats-section {
-            background-color: #fff;
-            padding: 60px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            max-width: 900px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .stat-item {}
-
-        .stat-number {
-            font-size: 52px;
-            font-weight: 700;
-            color: #7f1f6e;
-            line-height: 1;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #7a8794;
-            font-weight: 400;
-        }
-
-        .stat-divider {
-            width: 1px;
-            background-color: #f0f0f0;
-            margin: auto;
-        }
-
-        /* ── CÓMO FUNCIONA ── */
-        .how-section {
-            padding: 100px 60px;
-            background-color: #fafbfc;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 40px;
-            color: #2c3e50;
-            margin-bottom: 16px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            font-size: 15px;
-            color: #7a8794;
-            margin-bottom: 70px;
-            font-weight: 300;
-        }
-
-        .how-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
-            max-width: 1000px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .how-grid::before {
-            content: '';
-            position: absolute;
-            top: 36px;
-            left: 20%;
-            width: 60%;
-            height: 1px;
-            background: linear-gradient(to right, #e0e0e0, #7f1f6e, #e0e0e0);
-            z-index: 0;
-        }
-
-        .how-step {
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-
-        .how-icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            margin: 0 auto 24px;
-            box-shadow: 0 8px 24px rgba(127,31,110,0.2);
-        }
-
-        .how-step h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .how-step p {
-            font-size: 14px;
-            color: #7a8794;
-            font-weight: 300;
-            line-height: 1.7;
-        }
-
-        /* ── CATEGORÍAS ── */
-        .categories-section {
-            padding: 100px 60px;
-            background-color: #fff;
-        }
-
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-
-        .category-card {
-            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
-            border-radius: 20px;
-            padding: 48px 30px;
-            text-align: center;
-            color: white;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 8px 30px rgba(127,31,110,0.12);
-            min-height: 210px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .category-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0; right: 0;
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.06);
-            transform: translate(20px, 20px);
-        }
-
-        .category-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 50px rgba(127,31,110,0.25);
-        }
-
-        .category-card h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .category-card p {
-            font-size: 13px;
-            color: rgba(255,255,255,0.75);
-            font-weight: 300;
-        }
-
-        /* ── PRODUCTOS ── */
-        .featured-products {
-            padding: 100px 60px;
-            background-color: #fafbfc;
-        }
-
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 28px;
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-
-        .product-card {
-            background-color: #fff;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            transition: all 0.4s ease;
-            border: 1px solid #f0f0f0;
-            position: relative;
-        }
-
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.10);
-        }
-
-        .product-badge {
-            position: absolute;
-            top: 14px; left: 14px;
-            padding: 5px 14px;
-            border-radius: 50px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            z-index: 2;
-        }
-
-        .badge-hot {
-            background-color: #7f1f6e;
-            color: #fff;
-        }
-
-        .badge-new {
-            background-color: #2c3e50;
-            color: #fff;
-        }
-
-        .product-image {
-            width: 100%;
-            height: 220px;
-            background: linear-gradient(135deg, #f5eef9 0%, #ecdff5 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 75px;
-            transition: background 0.4s ease;
-        }
-
-        .product-card:hover .product-image {
-            background: linear-gradient(135deg, #ecdff5 0%, #e0ccee 100%);
-        }
-
-        .product-info { padding: 22px 20px; }
-
-        .product-name {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-
-        .product-price {
-            font-size: 22px;
-            color: #7f1f6e;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .product-btn {
-            width: 100%;
-            background-color: #7f1f6e;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13px;
-            letter-spacing: 0.3px;
-        }
-
-        .product-btn:hover {
-            background-color: #5a1f5c;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(127,31,110,0.2);
-        }
-
-        /* ── TESTIMONIOS ── */
-        .testimonials-section {
-            padding: 100px 60px;
-            background: linear-gradient(135deg, #7f1f6e 0%, #5a1f5c 100%);
-            color: white;
-        }
-
-        .testimonials-title {
-            text-align: center;
-            font-size: 40px;
-            margin-bottom: 16px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .testimonials-subtitle {
-            text-align: center;
-            font-size: 15px;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 60px;
-            font-weight: 300;
-        }
-
-        .testimonials-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-
-        .testimonial-card {
-            background-color: rgba(255,255,255,0.08);
-            border-radius: 18px;
-            padding: 34px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.4s ease;
-        }
-
-        .testimonial-card:hover {
-            background-color: rgba(255,255,255,0.13);
-            transform: translateY(-4px);
-        }
-
-        .google-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
-
-        .google-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        .google-label {
-            font-size: 11px;
-            color: rgba(255,255,255,0.5);
-            font-weight: 400;
-            letter-spacing: 0.5px;
-        }
-
-        .stars {
-            color: #F3E93F;
-            font-size: 13px;
-            margin-bottom: 16px;
-            letter-spacing: 2px;
-        }
-
-        .testimonial-text {
-            font-size: 14px;
-            line-height: 1.8;
-            margin-bottom: 20px;
-            font-weight: 300;
-            color: rgba(255,255,255,0.9);
-        }
-
-        .testimonial-author {
-            font-weight: 600;
-            font-size: 12px;
-            color: rgba(255,255,255,0.5);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* ── WHATSAPP ── */
-        .whatsapp-float {
-            position: fixed;
-            bottom: 30px; left: 30px;
-            width: 60px; height: 60px;
-            background-color: #25d366;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 6px 28px rgba(37,211,102,0.35);
-            transition: all 0.3s ease;
-            z-index: 999;
-            text-decoration: none;
-            color: white;
-            font-size: 28px;
-        }
-
-        .whatsapp-float:hover {
-            transform: scale(1.12) rotate(-10deg);
-            box-shadow: 0 10px 40px rgba(37,211,102,0.45);
-        }
-
-        /* ── FOOTER ── */
-        footer {
-            background-color: #111;
-            color: rgba(255,255,255,0.6);
-            padding: 50px 60px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 40px;
-            align-items: center;
-        }
-
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .footer-logo {
-            width: 36px; height: 36px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #7f1f6e, #a01f8a);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .footer-brand-text {
-            font-weight: 600;
-            color: #fff;
-            font-size: 15px;
-        }
-
-        .footer-center {
-            text-align: center;
-            font-size: 12px;
-        }
-
-        .footer-right {
-            text-align: right;
-            font-size: 12px;
-        }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 1024px) {
-            .stats-grid,
-            .how-grid,
-            .categories-grid,
-            .products-grid,
-            .testimonials-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .how-grid::before { display: none; }
-            footer { grid-template-columns: 1fr; text-align: center; }
-            .footer-right { text-align: center; }
-        }
-
-        @media (max-width: 768px) {
-            header { padding: 15px 20px; }
-            .logo-text { display: none; }
-            nav { gap: 20px; font-size: 13px; }
-            .banner-carousel { height: 480px; }
-            .banner h1 { font-size: 36px; }
-            .banner p { font-size: 16px; }
-            .stats-section { padding: 40px 20px; }
-            .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-            .stat-number { font-size: 36px; }
-            .how-section,
-            .categories-section,
-            .featured-products,
-            .testimonials-section { padding: 70px 20px; }
-            .how-grid,
-            .categories-grid,
-            .products-grid,
-            .testimonials-grid { grid-template-columns: 1fr; }
-            .section-title { font-size: 32px; }
-        }
-    </style>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/cliente.css">
 </head>
 <body>
 
-    <div class="announcement-bar">
-        Envíos a todo el país &nbsp;<span>·</span>&nbsp; Productos personalizados con 7 días de anticipación
+    <div class="announcement-bar" id="announcementBar">
+        Envío gratis en compras mayores a $2.000 🎉
     </div>
 
     <header>
-        <a href="#" class="logo-container">
-            <div class="logo">P</div>
-            <div class="logo-text">Puchia</div>
-        </a>
-        <nav>
-            <a href="#inicio">Inicio</a>
-            <a href="#categorias">Categorías</a>
-            <a href="#productos">Productos</a>
-            <a href="#opiniones">Opiniones</a>
-        </nav>
-        <div class="cart-icon">🛒</div>
+        <div class="header-left">
+            <a class="logo-container" href="index.html">
+                <div class="logo" id="headerLogo">P</div>
+                <div class="logo-text" id="headerLogoText">Puchia</div>
+            </a>
+            <nav>
+                <a href="index.html">Inicio</a>
+                <a href="index.html#categorias">Categorías</a>
+                <a href="proceso-compra.html">Productos y promos</a>
+                <a href="contacto.html">Contacto</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="cart-btn" onclick="toggleCart(event)" title="Ver carrito" style="background: none; border: none; cursor: pointer; position: relative; font-size: 22px;">
+                🛒
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+            <a href="admin/login.html" class="admin-link" title="Panel administrador">⚙️</a>
+        </div>
     </header>
 
-    <div class="banner-carousel" id="inicio">
+    <div class="banner-carousel">
         <div class="banner active">
             <div class="banner-content">
-                <div class="banner-eyebrow">Regalos que se sienten únicos</div>
-                <h1>Bienvenidas<br>a Puchia</h1>
-                <p>Regalos únicos y personalizados que celebran tus momentos más especiales</p>
-                <button class="banner-btn">Explorar Catálogo</button>
+                <div class="banner-eyebrow">NUEVO CATÁLOGO</div>
+                <h1>Regalos Personalizados</h1>
+                <p>Crea momentos especiales con productos hechos a tu medida</p>
+                <a href="proceso-compra.html" class="banner-btn">Explorar Catálogo</a>
             </div>
         </div>
         <div class="banner">
             <div class="banner-content">
-                <div class="banner-eyebrow">Para cada celebración</div>
-                <h1>Cumpleaños<br>& Fiestas</h1>
-                <p>Hacé cada celebración memorable con nuestros productos personalizados</p>
-                <button class="banner-btn">Ver Opciones</button>
-            </div>
-        </div>
-        <div class="banner">
-            <div class="banner-content">
-                <div class="banner-eyebrow">Los primeros momentos</div>
-                <h1>Bebés &<br>Nacimientos</h1>
-                <p>Artículos delicados y especiales para los momentos más dulces de la vida</p>
-                <button class="banner-btn">Descubrir Más</button>
-            </div>
-        </div>
-        <div class="banner">
-            <div class="banner-content">
-                <div class="banner-eyebrow">Impulsá tu marca</div>
-                <h1>Para<br>Emprendedores</h1>
-                <p>Productos profesionales para darle valor e identidad a tu negocio</p>
-                <button class="banner-btn">Conocer Más</button>
+                <div class="banner-eyebrow">TENDENCIA</div>
+                <h1>Personalización Total</h1>
+                <p>Desde vasos hasta tarjetas: todo lo que imagines</p>
+                <a href="proceso-compra.html" class="banner-btn">Ver Más</a>
             </div>
         </div>
         <div class="carousel-dots">
             <div class="dot active" onclick="changeBanner(0)"></div>
             <div class="dot" onclick="changeBanner(1)"></div>
-            <div class="dot" onclick="changeBanner(2)"></div>
-            <div class="dot" onclick="changeBanner(3)"></div>
         </div>
     </div>
 
     <section class="stats-section">
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-number" data-target="1000">0</div>
-                <div class="stat-label">Pedidos entregados</div>
+                <div class="stat-number" data-target="2500">0</div>
+                <div class="stat-label">Clientes Felices</div>
             </div>
+            <div class="stat-divider"></div>
             <div class="stat-item">
-                <div class="stat-number" data-target="5">0</div>
-                <div class="stat-label">Estrellas en Google</div>
+                <div class="stat-number" data-target="5">0★</div>
+                <div class="stat-label">Calificación Promedio</div>
             </div>
+            <div class="stat-divider"></div>
             <div class="stat-item">
-                <div class="stat-number" data-target="100">0</div>
-                <div class="stat-label">% Personalizados</div>
+                <div class="stat-number" data-target="100">0%</div>
+                <div class="stat-label">100% Personalizado</div>
             </div>
         </div>
     </section>
 
     <section class="how-section">
-        <h2 class="section-title">¿Cómo funciona?</h2>
-        <p class="section-subtitle">Simple, rápido y completamente personalizado para vos</p>
+        <h2 class="section-title">¿Cómo Funciona?</h2>
+        <p class="section-subtitle">3 pasos simples para obtener tu regalo perfecto</p>
+        
         <div class="how-grid">
             <div class="how-step">
-                <div class="how-icon">🛍️</div>
-                <h3>Elegís</h3>
-                <p>Navegá nuestro catálogo, seleccioná tus productos favoritos y armá tu pedido</p>
+                <div class="how-icon">1️⃣</div>
+                <h3>Elige tu Producto</h3>
+                <p>Explora nuestro catálogo con cientos de opciones personalizadas</p>
             </div>
             <div class="how-step">
-                <div class="how-icon">✏️</div>
-                <h3>Personalizamos</h3>
-                <p>Coordinamos los detalles por WhatsApp y creamos tu pedido con dedicación</p>
+                <div class="how-icon">2️⃣</div>
+                <h3>Personaliza</h3>
+                <p>Agrega tu toque especial: nombres, colores, mensajes</p>
             </div>
             <div class="how-step">
-                <div class="how-icon">🚚</div>
-                <h3>Lo recibís</h3>
-                <p>Entregamos en tiempo y forma, con la calidad y cuidado que te merecés</p>
+                <div class="how-icon">3️⃣</div>
+                <h3>Recibe tu Regalo</h3>
+                <p>Entrega rápida y segura a tu domicilio</p>
             </div>
         </div>
     </section>
@@ -794,25 +107,21 @@
         <h2 class="section-title">Nuestras Categorías</h2>
         <p class="section-subtitle">Explorá nuestra variedad de opciones personalizadas</p>
         <div class="categories-grid">
-            <div class="category-card">
-                <h3>🎉 Cumpleaños y Fiestas</h3>
+            <div class="category-card" onclick="goToPromos('cumpleaños')">
+                <h3>🎉 Cumpleaños</h3>
                 <p>Decoraciones y regalos únicos para cada celebración</p>
             </div>
-            <div class="category-card">
-                <h3>👶 Bebés y Nacimientos</h3>
-                <p>Momentos especiales para los primeros días</p>
+            <div class="category-card" onclick="goToPromos('regalos')">
+                <h3>🎁 Regalos</h3>
+                <p>Momentos especiales para todos los regalos</p>
             </div>
-            <div class="category-card">
-                <h3>💼 Para Emprendedores</h3>
+            <div class="category-card" onclick="goToPromos('emprendedores')">
+                <h3>💼 Emprendedores</h3>
                 <p>Herramientas de negocio con identidad propia</p>
             </div>
-            <div class="category-card">
-                <h3>🎁 Combos Puchia</h3>
-                <p>Paquetes especiales pensados para sorprender</p>
-            </div>
-            <div class="category-card">
-                <h3>✨ Regalos Personalizados</h3>
-                <p>Tu idea, nuestra creación perfecta</p>
+            <div class="category-card" onclick="goToPromos('promos')">
+                <h3>🎊 Promos</h3>
+                <p>Ofertas especiales y descuentos exclusivos</p>
             </div>
         </div>
     </section>
@@ -820,59 +129,9 @@
     <section class="featured-products" id="productos">
         <h2 class="section-title">Productos Destacados</h2>
         <p class="section-subtitle">Nuestros favoritos, elegidos por nuestras clientes</p>
-        <div class="products-grid">
-            <div class="product-card">
-                <div class="product-badge badge-hot">Más vendido</div>
-                <div class="product-image">🎈</div>
-                <div class="product-info">
-                    <div class="product-name">Globos Personalizados</div>
-                    <div class="product-price">$299</div>
-                    <button class="product-btn">Agregar al Carrito</button>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-badge badge-new">Nuevo</div>
-                <div class="product-image">🧸</div>
-                <div class="product-info">
-                    <div class="product-name">Peluches Bordados</div>
-                    <div class="product-price">$549</div>
-                    <button class="product-btn">Agregar al Carrito</button>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-badge badge-hot">Más vendido</div>
-                <div class="product-image">🎁</div>
-                <div class="product-info">
-                    <div class="product-name">Cajas de Regalos</div>
-                    <div class="product-price">$399</div>
-                    <button class="product-btn">Agregar al Carrito</button>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">🖼️</div>
-                <div class="product-info">
-                    <div class="product-name">Cuadros Personalizados</div>
-                    <div class="product-price">$699</div>
-                    <button class="product-btn">Agregar al Carrito</button>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-badge badge-new">Nuevo</div>
-                <div class="product-image">🏷️</div>
-                <div class="product-info">
-                    <div class="product-name">Etiquetas Personalizadas</div>
-                    <div class="product-price">$149</div>
-                    <button class="product-btn">Agregar al Carrito</button>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">📦</div>
-                <div class="product-info">
-                    <div class="product-name">Empaques Deluxe</div>
-                    <div class="product-price">$459</div>
-                    <button class="product-btn">Agregar al Carrito</button>
-                </div>
-            </div>
+        <div class="products-grid" id="productsGrid"></div>
+        <div class="see-more-container">
+            <a href="proceso-compra.html" class="see-more-btn">Ver Todos los Productos →</a>
         </div>
     </section>
 
@@ -910,107 +169,23 @@
         </div>
     </section>
 
-    <a href="https://wa.me/549" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">💬</a>
+    <a href="https://wa.me/5492235847353" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+    </a>
 
     <footer>
         <div class="footer-brand">
-            <div class="footer-logo">P</div>
-            <div class="footer-brand-text">Puchia</div>
+            <div class="footer-logo" id="footerLogo">P</div>
+            <div id="footerBrandText">Puchia</div>
         </div>
-        <div class="footer-center">
-            &copy; 2024 Puchia — Todos los derechos reservados
-        </div>
-        <div class="footer-right">
-            Regalos personalizados con amor 🤍
-        </div>
+        <div>© 2024 Puchia — Todos los derechos reservados</div>
+        <div>Regalos personalizados con amor 🤍</div>
     </footer>
 
-    <script>
-        let currentBanner = 0;
-        const banners = document.querySelectorAll('.banner');
-        const dots = document.querySelectorAll('.dot');
+    <script src="js/common.js"></script>
+    <script src="js/home.js"></script>
 
-        function showBanner(index) {
-            banners.forEach(b => b.classList.remove('active'));
-            dots.forEach(d => d.classList.remove('active'));
-            banners[index].classList.add('active');
-            dots[index].classList.add('active');
-        }
-
-        function nextBanner() {
-            currentBanner = (currentBanner + 1) % banners.length;
-            showBanner(currentBanner);
-        }
-
-        function changeBanner(index) {
-            currentBanner = index;
-            showBanner(currentBanner);
-        }
-
-        setInterval(nextBanner, 5000);
-
-        document.querySelectorAll('nav a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-        });
-
-        // Contador animado
-        function animateCounter(el, target, suffix) {
-            let start = 0;
-            const duration = 2000;
-            const step = target / (duration / 16);
-            const timer = setInterval(() => {
-                start += step;
-                if (start >= target) {
-                    start = target;
-                    clearInterval(timer);
-                }
-                el.textContent = '+' + Math.floor(start).toLocaleString('es-AR') + (suffix || '');
-            }, 16);
-        }
-
-        // Activar contadores cuando son visibles
-        const statsObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const el = entry.target;
-                    const target = parseInt(el.dataset.target);
-                    const suffix = target === 5 ? '★' : (target === 100 ? '%' : '');
-                    const prefix = target === 5 ? '' : '+';
-                    let start = 0;
-                    const duration = 2000;
-                    const step = target / (duration / 16);
-                    const timer = setInterval(() => {
-                        start += step;
-                        if (start >= target) {
-                            start = target;
-                            clearInterval(timer);
-                        }
-                        const val = Math.floor(start);
-                        if (target === 5) {
-                            el.textContent = val + '★';
-                        } else if (target === 100) {
-                            el.textContent = val + '%';
-                        } else {
-                            el.textContent = '+' + val.toLocaleString('es-AR');
-                        }
-                    }, 16);
-                    statsObserver.unobserve(el);
-                }
-            });
-        }, { threshold: 0.3 });
-
-        document.querySelectorAll('.stat-number').forEach(el => statsObserver.observe(el));
-
-        document.querySelectorAll('.product-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const name = this.closest('.product-card').querySelector('.product-name').textContent;
-                alert(`${name} agregado al carrito.`);
-            });
-        });
-    </script>
 </body>
 </html>
