@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Mi Perfil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/cliente.css">
+    <style>
+        /* ── Layout principal ── */
+        .perfil-page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* ── Tarjeta lateral de usuario ── */
+        .user-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+            overflow: hidden;
+            position: sticky;
+            top: 90px;
+        }
+
+        .user-card-header {
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            padding: 30px 24px;
+            text-align: center;
+            color: white;
+        }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            border: 3px solid rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 auto 12px;
+            letter-spacing: -1px;
+        }
+
+        .user-card-header h2 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-card-header p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .user-card-body {
+            padding: 20px 24px;
+        }
+
+        .user-info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+
+        .user-info-row:last-child { border-bottom: none; }
+
+        .user-info-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+        .user-info-label {
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 1px;
+        }
+
+        .user-info-value {
+            color: #2c3e50;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .badge-cliente {
+            display: inline-block;
+            background: #eafaf1;
+            color: #1e8449;
+            border: 1px solid #a9dfbf;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            margin-top: 8px;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 11px;
+            background: #fdf0ef;
+            color: #c0392b;
+            border: 1.5px solid #f5c6c2;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.25s ease;
+        }
+
+        .btn-logout:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        /* ── Panel derecho ── */
+        .main-panel { display: flex; flex-direction: column; gap: 24px; }
+
+        .panel-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+
+        .panel-card-header {
+            padding: 20px 26px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-card-header h3 {
+            font-size: 16px;
+            color: #7f1f6e;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-card-body { padding: 24px 26px; }
+
+        /* ── Stats rápidos ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stat-box {
+            background: #fafbfc;
+            border: 1.5px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .stat-box-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #7f1f6e;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .stat-box-label {
+            font-size: 12px;
+            color: #7a8794;
+        }
+
+        /* ── Órdenes ── */
+        .orden-item {
+            border: 1.5px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .orden-item:last-child { margin-bottom: 0; }
+
+        .orden-item:hover {
+            border-color: #d4b5cf;
+            box-shadow: 0 4px 16px rgba(127,31,110,0.07);
+        }
+
+        .orden-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .orden-id {
+            font-weight: 700;
+            color: #7f1f6e;
+            font-size: 14px;
+        }
+
+        .orden-fecha {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .orden-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-pendiente   { background: #fef9e7; color: #d68910; border: 1px solid #fad7a0; }
+        .badge-confirmada  { background: #eaf4fb; color: #1a6fa0; border: 1px solid #aed6f1; }
+        .badge-en_proceso  { background: #eaf4fb; color: #1a6fa0; border: 1px solid #aed6f1; }
+        .badge-lista       { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+        .badge-entregada   { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+        .badge-cancelada   { background: #fdf0ef; color: #c0392b; border: 1px solid #f5c6c2; }
+
+        .orden-productos {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .orden-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid #f5f5f5;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .orden-total {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+
+        .orden-metodo {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* ── Estados vacíos y loading ── */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #aaa;
+        }
+
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 14px; }
+        .empty-state h4 { font-size: 16px; color: #555; margin-bottom: 6px; }
+        .empty-state p  { font-size: 13px; }
+
+        .empty-state .btn-shop {
+            display: inline-block;
+            margin-top: 18px;
+            padding: 11px 24px;
+            background: linear-gradient(135deg, #7f1f6e, #a01f8a);
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .empty-state .btn-shop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(127,31,110,0.3);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #aaa;
+        }
+
+        .spinner-lg {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #f0e6ef;
+            border-top-color: #7f1f6e;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .alert {
+            padding: 11px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert.show { display: block; }
+        .alert-error   { background: #fdf0ef; color: #c0392b; border: 1px solid #f5c6c2; }
+        .alert-success { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .perfil-page {
+                grid-template-columns: 1fr;
+                padding: 20px 16px 50px;
+            }
+
+            .user-card { position: static; }
+
+            .stats-row { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+            .stat-box-number { font-size: 22px; }
+
+            .orden-top { flex-direction: column; align-items: flex-start; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-row { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="announcement-bar" id="announcementBar">
+        Envío gratis en compras mayores a $2.000 🎉
+    </div>
+
+    <header>
+        <div class="header-left">
+            <a class="logo-container" href="index.html">
+                <div class="logo" id="headerLogo">P</div>
+                <div class="logo-text" id="headerLogoText">Puchia</div>
+            </a>
+            <nav>
+                <a href="index.html">Inicio</a>
+                <a href="categorias.html">Categorías</a>
+                <a href="proceso-compra.html">Productos</a>
+                <a href="proceso-compra.html?view=promos">Promos</a>
+                <a href="contacto.html">Contacto</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="cart-btn" onclick="toggleCart(event)" title="Ver carrito" style="background:none;border:none;cursor:pointer;position:relative;font-size:22px;">
+                🛒
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+            <a href="perfil.html" class="admin-link" style="color:#7f1f6e;font-weight:600;" title="Mi perfil">👤 Mi cuenta</a>
+        </div>
+    </header>
+
+    <div class="perfil-page">
+
+        <!-- Sidebar de usuario -->
+        <aside>
+            <div class="user-card" id="userCard">
+                <div class="user-card-header">
+                    <div class="avatar" id="userAvatar">?</div>
+                    <h2 id="userName">Cargando...</h2>
+                    <p id="userEmail">—</p>
+                </div>
+                <div class="user-card-body">
+                    <div class="user-info-row">
+                        <span class="user-info-icon">📧</span>
+                        <div>
+                            <div class="user-info-label">Email</div>
+                            <div class="user-info-value" id="infoEmail">—</div>
+                        </div>
+                    </div>
+                    <div class="user-info-row" id="rowWhatsapp" style="display:none;">
+                        <span class="user-info-icon">📱</span>
+                        <div>
+                            <div class="user-info-label">WhatsApp</div>
+                            <div class="user-info-value" id="infoWhatsapp">—</div>
+                        </div>
+                    </div>
+                    <div class="user-info-row">
+                        <span class="user-info-icon">📅</span>
+                        <div>
+                            <div class="user-info-label">Cliente desde</div>
+                            <div class="user-info-value" id="infoDesde">—</div>
+                        </div>
+                    </div>
+                    <div style="text-align:center; padding-top:8px;">
+                        <span class="badge-cliente">✓ Cliente verificado</span>
+                    </div>
+                    <button class="btn-logout" onclick="clienteLogout()">
+                        Cerrar sesión
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Panel principal -->
+        <main class="main-panel">
+
+            <!-- Resumen rápido -->
+            <div class="panel-card">
+                <div class="panel-card-header">
+                    <h3>📊 Resumen</h3>
+                </div>
+                <div class="panel-card-body">
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <div class="stat-box-number" id="totalOrdenes">—</div>
+                            <div class="stat-box-label">Órdenes totales</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-number" id="ordenesActivas">—</div>
+                            <div class="stat-box-label">En proceso</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-number" id="totalGastado">—</div>
+                            <div class="stat-box-label">Total gastado</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historial de órdenes -->
+            <div class="panel-card">
+                <div class="panel-card-header">
+                    <h3>🛍️ Mis órdenes</h3>
+                    <button onclick="cargarOrdenes()" style="background:none;border:none;cursor:pointer;color:#7f1f6e;font-size:13px;font-weight:600;font-family:'Poppins',sans-serif;" title="Actualizar">↻ Actualizar</button>
+                </div>
+                <div class="panel-card-body" id="ordenesContainer">
+                    <div class="loading-state">
+                        <div class="spinner-lg"></div>
+                        <p>Cargando tus órdenes...</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-brand">
+            <div class="footer-logo">P</div>
+            <span>Puchia</span>
+        </div>
+        <div style="font-size:13px;color:#aaa;">© 2025 Puchia. Todos los derechos reservados.</div>
+    </footer>
+
+    <script src="js/common.js"></script>
+    <script src="js/auth-cliente.js"></script>
+    <script>
+        requireLogin();
+
+        const ESTADOS_BADGE = {
+            pendiente:  'badge-pendiente',
+            confirmada: 'badge-confirmada',
+            en_proceso: 'badge-en_proceso',
+            lista:      'badge-lista',
+            entregada:  'badge-entregada',
+            cancelada:  'badge-cancelada',
+        };
+
+        const ESTADOS_LABEL = {
+            pendiente:  'Pendiente',
+            confirmada: 'Confirmada',
+            en_proceso: 'En proceso',
+            lista:      'Lista para retirar',
+            entregada:  'Entregada',
+            cancelada:  'Cancelada',
+        };
+
+        function formatCurrencyLocal(n) {
+            if (!n && n !== 0) return '$0';
+            return '$' + parseFloat(n).toLocaleString('es-AR');
+        }
+
+        function formatDateLocal(str) {
+            if (!str) return '—';
+            return new Date(str).toLocaleDateString('es-AR', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            });
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            return name.trim().split(' ').slice(0, 2).map(w => w[0].toUpperCase()).join('');
+        }
+
+        function renderUserCard(user) {
+            document.getElementById('userAvatar').textContent = getInitials(user.nombre);
+            document.getElementById('userName').textContent   = user.nombre || '—';
+            document.getElementById('userEmail').textContent  = user.email  || '—';
+            document.getElementById('infoEmail').textContent  = user.email  || '—';
+            document.getElementById('infoDesde').textContent  = formatDateLocal(user.createdAt || user.created_at);
+
+            if (user.whatsapp) {
+                document.getElementById('infoWhatsapp').textContent = user.whatsapp;
+                document.getElementById('rowWhatsapp').style.display = 'flex';
+            }
+        }
+
+        function renderOrdenes(ordenes) {
+            const container = document.getElementById('ordenesContainer');
+
+            if (!ordenes || ordenes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🛍️</div>
+                        <h4>Todavía no tenés órdenes</h4>
+                        <p>¡Explorá nuestro catálogo y encontrá el regalo perfecto!</p>
+                        <a href="proceso-compra.html" class="btn-shop">Ver productos</a>
+                    </div>`;
+                return;
+            }
+
+            // Stats
+            const activas     = ordenes.filter(o => ['pendiente','confirmada','en_proceso','lista'].includes(o.estado)).length;
+            const totalGasto  = ordenes.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+            document.getElementById('totalOrdenes').textContent  = ordenes.length;
+            document.getElementById('ordenesActivas').textContent = activas;
+            document.getElementById('totalGastado').textContent  = formatCurrencyLocal(totalGasto);
+
+            const html = ordenes.map(orden => {
+                const badgeClass = ESTADOS_BADGE[orden.estado] || 'badge-pendiente';
+                const badgeLabel = ESTADOS_LABEL[orden.estado] || orden.estado;
+
+                const productos = Array.isArray(orden.items)
+                    ? orden.items.map(i => `${i.nombre || i.name} x${i.cantidad || i.qty}`).join(', ')
+                    : (orden.descripcion || 'Productos personalizados');
+
+                return `
+                <div class="orden-item">
+                    <div class="orden-top">
+                        <div>
+                            <div class="orden-id">#${orden.id || orden.numero}</div>
+                            <div class="orden-fecha">${formatDateLocal(orden.createdAt || orden.created_at || orden.fecha)}</div>
+                        </div>
+                        <span class="orden-badge ${badgeClass}">${badgeLabel}</span>
+                    </div>
+                    <div class="orden-productos">${productos}</div>
+                    <div class="orden-bottom">
+                        <span class="orden-total">${formatCurrencyLocal(orden.total)}</span>
+                        <span class="orden-metodo">${orden.metodo_pago ? '💳 ' + orden.metodo_pago : ''}</span>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        async function cargarOrdenes() {
+            const container = document.getElementById('ordenesContainer');
+            container.innerHTML = `
+                <div class="loading-state">
+                    <div class="spinner-lg"></div>
+                    <p>Cargando tus órdenes...</p>
+                </div>`;
+            try {
+                const data = await apiClienteGet('/clientes/misordenes');
+                const ordenes = data.ordenes || data.data || data || [];
+                renderOrdenes(ordenes);
+            } catch (err) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <h4>No se pudieron cargar las órdenes</h4>
+                        <p>${err.message || 'Verificá tu conexión e intentá de nuevo.'}</p>
+                    </div>`;
+            }
+        }
+
+        async function cargarPerfil() {
+            const localUser = getClienteUser();
+            if (localUser) renderUserCard(localUser);
+
+            try {
+                const data = await apiClienteGet('/clientes/perfil');
+                const user = data.usuario || data.data || data;
+                saveClienteUser(user);
+                renderUserCard(user);
+            } catch (err) {
+                if (err.message?.includes('401') || err.message?.toLowerCase().includes('token')) {
+                    clearClienteSession();
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+
+        // Inicializar stats con valores locales mientras carga
+        document.getElementById('totalOrdenes').textContent  = '—';
+        document.getElementById('ordenesActivas').textContent = '—';
+        document.getElementById('totalGastado').textContent  = '—';
+
+        cargarPerfil();
+        cargarOrdenes();
+    </script>
+</body>
+</html>

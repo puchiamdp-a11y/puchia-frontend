@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puchia - Contacto</title>
+    <title>Puchia - Categorías</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/home.css">
@@ -23,8 +23,9 @@
             </a>
             <nav>
                 <a href="index.html">Inicio</a>
-                <a href="index.html#categorias">Categorías</a>
-                <a href="proceso-compra.html">Productos y promos</a>
+                <a href="categorias.html">Categorías</a>
+                <a href="proceso-compra.html">Productos</a>
+                <a href="proceso-compra.html?view=promos">Promos</a>
                 <a href="contacto.html">Contacto</a>
             </nav>
         </div>
@@ -38,18 +39,25 @@
         </div>
     </header>
 
-    <section style="padding: 100px 60px; background-color: #fafbfc; min-height: 60vh;">
-        <h2 class="section-title">Contacto</h2>
-        <p class="section-subtitle">Comunicate con nosotras por tus dudas o consultas</p>
-        
-        <div style="max-width: 600px; margin: 60px auto; text-align: center;">
-            <p style="color: #7a8794; font-size: 16px; margin-bottom: 30px;">
-                ¡Pronto agregaremos aquí nuestras redes sociales y formas de contacto! 📱
-            </p>
-            <a href="https://wa.me/5492235847353" class="btn btn-primary" target="_blank" style="display: inline-block; text-decoration: none;">
-                Escribinos por WhatsApp
-            </a>
+    <!-- SECCIÓN CATEGORÍAS -->
+    <section id="categoriesSection" class="products-section">
+        <h2 class="section-title">Todas Nuestras Categorías</h2>
+        <p class="section-subtitle">Selecciona una categoría para ver todos nuestros productos</p>
+
+        <div class="categories-grid" id="categoriesGrid"></div>
+    </section>
+
+    <!-- SECCIÓN PRODUCTOS DE CATEGORÍA -->
+    <section id="categoryProductsSection" class="products-section" style="display: none;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <button class="btn btn-secondary" onclick="goBackToCategories()" style="padding: 10px 20px; font-size: 14px;">
+                ← Volver a Categorías
+            </button>
         </div>
+        <h2 id="categoryTitle" class="section-title"></h2>
+        <p id="categorySubtitle" class="section-subtitle"></p>
+
+        <div class="products-grid" id="categoryProductsGrid"></div>
     </section>
 
     <a href="https://wa.me/5492235847353" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">
@@ -67,8 +75,10 @@
         <div>Regalos personalizados con amor 🤍</div>
     </footer>
 
-    <script src="js/common.js"></script>
-    <script src="js/home.js"></script>
+    <script src="js/common.js?v=2026052603"></script>
+    <script src="js/products-data.js?v=2026052603"></script>
+    <script src="js/home.js?v=2026052603"></script>
+    <script src="js/categorias.js?v=2026052603"></script>
 
 </body>
 </html>

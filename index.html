@@ -24,8 +24,9 @@
             </a>
             <nav>
                 <a href="index.html">Inicio</a>
-                <a href="index.html#categorias">Categorías</a>
-                <a href="proceso-compra.html">Productos y promos</a>
+                <a href="categorias.html">Categorías</a>
+                <a href="proceso-compra.html">Productos</a>
+                <a href="proceso-compra.html?view=promos">Promos</a>
                 <a href="contacto.html">Contacto</a>
             </nav>
         </div>
@@ -34,6 +35,7 @@
                 🛒
                 <span class="cart-count" id="cartCount">0</span>
             </button>
+            <a href="perfil.html" class="admin-link" id="clienteNavLink" title="Mi cuenta">👤</a>
             <a href="admin/login.html" class="admin-link" title="Panel administrador">⚙️</a>
         </div>
     </header>
@@ -104,24 +106,23 @@
     </section>
 
     <section class="categories-section" id="categorias">
-        <h2 class="section-title">Nuestras Categorías</h2>
-        <p class="section-subtitle">Explorá nuestra variedad de opciones personalizadas</p>
+        <h2 class="section-title">Categorías Destacadas</h2>
+        <p class="section-subtitle">Explorá nuestras principales opciones personalizadas</p>
         <div class="categories-grid">
-            <div class="category-card" onclick="goToPromos('cumpleaños')">
-                <h3>🎉 Cumpleaños</h3>
+            <div class="category-card" onclick="goToPromos('cumpleanos')">
+                <div class="category-icon">🎉</div>
+                <h3>Cumpleaños</h3>
                 <p>Decoraciones y regalos únicos para cada celebración</p>
             </div>
             <div class="category-card" onclick="goToPromos('regalos')">
-                <h3>🎁 Regalos</h3>
+                <div class="category-icon">🎁</div>
+                <h3>Regalos</h3>
                 <p>Momentos especiales para todos los regalos</p>
             </div>
             <div class="category-card" onclick="goToPromos('emprendedores')">
-                <h3>💼 Emprendedores</h3>
+                <div class="category-icon">💼</div>
+                <h3>Emprendedores</h3>
                 <p>Herramientas de negocio con identidad propia</p>
-            </div>
-            <div class="category-card" onclick="goToPromos('promos')">
-                <h3>🎊 Promos</h3>
-                <p>Ofertas especiales y descuentos exclusivos</p>
             </div>
         </div>
     </section>
@@ -184,8 +185,9 @@
         <div>Regalos personalizados con amor 🤍</div>
     </footer>
 
-    <script src="js/common.js"></script>
-    <script src="js/home.js"></script>
+    <script src="js/common.js?v=2026052603"></script>
+    <script src="js/products-data.js?v=2026052603"></script>
+    <script src="js/home.js?v=2026052603"></script>
 
 </body>
 </html>

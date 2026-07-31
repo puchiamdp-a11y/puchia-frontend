@@ -7,6 +7,44 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/admin.css">
+    <!-- Quill.js CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.js"></script>
+    <!-- XLSX Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        .codigo-badge { display: inline-block; background: #f0e6f6; color: #7f1f6e; font-weight: 700; padding: 4px 12px; border-radius: 8px; font-size: 15px; letter-spacing: 1px; }
+        .codigo-badge-p { background: #ede0f7; color: #6b21a8; }
+        .codigo-badge-jk { background: #fef9c3; color: #854d0e; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-activo { background: #e6f4ea; color: #1a7c3a; }
+        .badge-inactivo { background: #fce8e6; color: #c5221f; }
+        .import-result { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; }
+        .import-result.success { background: #e6f4ea; color: #1a7c3a; }
+        .import-result.error { background: #fce8e6; color: #c5221f; }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid #f3e6f0; border-top-color: #7f1f6e; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .detail-row { display: flex; gap: 16px; margin-bottom: 8px; font-size: 14px; }
+        .detail-label { font-weight: 600; color: #666; min-width: 110px; }
+        .modal.show { display: flex !important; }
+        th.sortable { cursor: pointer; user-select: none; position: relative; }
+        th.sortable:hover { background: #f3e6f0; }
+        th.sortable .sort-ind { font-size: 11px; color: #7f1f6e; margin-left: 4px; opacity: 0.4; }
+        th.sortable.sort-active .sort-ind { opacity: 1; font-weight: 700; }
+        .acciones-cell { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-start; align-items: center; }
+        .toggle-estado-btn { cursor: pointer; border: none; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
+        .toggle-estado-btn.activo { background: #e6f4ea; color: #1a7c3a; }
+        .toggle-estado-btn.activo:hover { background: #c8e6d0; }
+        .toggle-estado-btn.inactivo { background: #f1f1f1; color: #888; }
+        .toggle-estado-btn.inactivo:hover { background: #e0e0e0; }
+        #closeProductModal { position: absolute; top: 16px; right: 16px; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #7b2d8e, #9d4cb8); color: white; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; padding: 0; line-height: 1; }
+        #closeProductModal:hover { opacity: 0.8; }
+        .product-tab-btn { color: #666 !important; }
+        .product-tab-btn:hover { color: #7b2d8e !important; background: #f9f9f9 !important; }
+        .product-tab-btn.active { color: #7b2d8e !important; border-bottom-color: #7b2d8e !important; font-weight: 600 !important; }
+        .product-tab-content { display: none; gap: 16px; flex-direction: column; }
+        .product-tab-content.active { display: flex; }
+    </style>
 </head>
 <body>
     <!-- HEADER ADMIN -->
@@ -27,9 +65,11 @@
         <!-- SIDEBAR -->
         <aside class="admin-sidebar">
             <ul class="sidebar-nav">
-                <li><a href="./dashboard.html" class="active" data-page="dashboard">📊 Dashboard</a></li>
+                <li><a href="#" class="active" data-page="dashboard">📊 Dashboard</a></li>
                 <li><a href="#" data-page="productos">📦 Productos</a></li>
                 <li><a href="#" data-page="ordenes">📋 Órdenes</a></li>
+                <li><a href="#" data-page="clientes">👥 Clientes</a></li>
+                <li><a href="./admin-alertas-config.html">🔔 Alertas</a></li>
                 <li><a href="#" data-page="settings">⚙️ Configuración</a></li>
             </ul>
         </aside>
@@ -85,22 +125,38 @@
 
             <!-- PRODUCTOS PAGE -->
             <div id="productos-page" class="page" style="display: none;">
-                <h1 class="page-title">Productos</h1>
-                <button class="btn btn-primary" id="newProductBtn" style="margin-bottom: 20px;">+ Nuevo Producto</button>
+                <h1 class="page-title">Gestión de Productos</h1>
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="newProductBtn">+ Nuevo Producto</button>
+                    <button class="btn btn-secondary" id="importProductBtn">📥 Importar Excel</button>
+                    <button class="btn btn-secondary" id="exportProductBtn">📤 Exportar Excel</button>
+                </div>
+                <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center;">
+                    <input type="text" id="productSearchInput" placeholder="🔍 Buscar por nombre, descripción, categoría..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit;">
+                    <select id="filtroCategoria" style="padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; color: #333; background: white; width: 200px; flex-shrink: 0;">
+                        <option value="">Todas las categorías</option>
+                        <option value="Cumpleaños">Cumpleaños</option>
+                        <option value="Regalos">Regalos</option>
+                        <option value="Emprendedores">Emprendedores</option>
+                    </select>
+                </div>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Precio</th>
-                                <th>Stock</th>
-                                <th>Categoría</th>
-                                <th>Acciones</th>
+                                <th>ID</th>
+                                <th style="width:54px;">Foto</th>
+                                <th class="sortable" data-sort="nombre">Nombre <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="precio">Precio <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="stock">Stock <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="categoria">Categoría <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="estado">Estado <span class="sort-ind">↕</span></th>
+                                <th style="width: 260px;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="productos-list">
                             <tr>
-                                <td colspan="5" style="text-align: center; color: #999;">Cargando productos...</td>
+                                <td colspan="8" style="text-align: center; color: #999; padding: 20px;">Cargando productos...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -129,6 +185,65 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- CLIENTES PAGE -->
+            <div id="clientes-page" class="page" style="display: none;">
+                <h1 class="page-title">Gestión de Clientes</h1>
+
+                <!-- BARRA DE ACCIONES -->
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="btnNuevoCliente">+ Nuevo Cliente</button>
+                    <button class="btn btn-secondary" id="btnImportarExcel">📥 Importar Excel</button>
+                    <button class="btn btn-secondary" id="btnExportarExcel">📤 Exportar Excel</button>
+                    <a href="./admin-alertas-config.html" class="btn btn-secondary">🔔 Configurar Alertas</a>
+                </div>
+
+                <!-- BUSCADOR -->
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <input type="text" id="inputBusqueda" placeholder="Buscar por nombre, código, email, DNI..." style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; flex: 1; min-width: 200px;" />
+                    <select id="filtroActivo" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;">
+                        <option value="">Todos</option>
+                        <option value="true">Activos</option>
+                        <option value="false">Inactivos</option>
+                    </select>
+                    <button class="btn btn-secondary" id="btnBuscar">Buscar</button>
+                </div>
+
+                <!-- SECCIÓN IMPORTAR -->
+                <div id="importSection" style="display:none; background: #f8f8f8; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 12px; font-size: 16px;">Importar Clientes desde Excel</h3>
+                    <p style="font-size:13px;color:#666;margin-bottom:12px;">
+                        El archivo Excel debe tener columnas en orden: <strong>Nombre, Email, DNI, WhatsApp, Teléfono, Dirección, Ciudad, Código Postal, Notas</strong>
+                    </p>
+                    <input type="file" id="archivoExcel" accept=".xlsx,.xls" />
+                    <button class="btn btn-primary" id="btnConfirmarImport" style="margin-top:10px;">Importar</button>
+                    <button class="btn btn-secondary" id="btnCancelarImport" style="margin-top:10px;">Cancelar</button>
+                    <div id="importResult" style="display:none; margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px;"></div>
+                </div>
+
+                <!-- TABLA DE CLIENTES -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr id="theadClientes">
+                                <th class="sortable" data-sort="codigo_cliente">Código <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="nombre">Nombre <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="whatsapp">WhatsApp <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="ciudad">Ciudad <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="activo">Estado <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="creado_en">Creado <span class="sort-ind">↕</span></th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaClientes">
+                            <tr><td colspan="7" style="text-align:center;color:#999;">Cargando clientes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                <div style="display: flex; gap: 6px; align-items: center; justify-content: center; margin-top: 20px; flex-wrap: wrap;" id="paginacion"></div>
             </div>
 
             <!-- SETTINGS PAGE -->
@@ -161,11 +276,313 @@
             </div>
         </main>
     </div>
+<script>
+      const API_BASE_URL = 'http://127.0.0.1:3000/api/v1';
+    </script>
+    <script src="../js/admin.js?v=2026052620"></script>
+    <script src="../js/admin-clientes.js?v=2026052602"></script>
+
+    <!-- MODAL DETALLE PRODUCTO -->
+    <div id="productDetailModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" onclick="closeProductDetail()">✕</button>
+            <div id="productDetailContent">
+                <!-- Contenido dinámico aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO/EDITAR CLIENTE -->
+    <div class="modal" id="modalCliente" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button class="modal-close" onclick="cerrarModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
+            <h2 id="modalTitulo" style="margin-bottom: 20px; color: #7f1f6e;">Nuevo Cliente</h2>
+            <div id="codigoDisplay" style="margin-bottom:16px;display:none;">
+                Código: <span class="codigo-badge" id="codigoClienteDisplay" style="display: inline-block; background: #f0e6f6; color: #7f1f6e; font-weight: 700; padding: 4px 12px; border-radius: 8px; font-size: 15px; letter-spacing: 1px;"></span>
+            </div>
+            <form id="formCliente">
+                <input type="hidden" id="clienteId" />
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Nombre *</label>
+                        <input type="text" id="fNombre" placeholder="Juan García" required style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Email *</label>
+                        <input type="email" id="fEmail" placeholder="juan@email.com" required style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">DNI</label>
+                        <input type="text" id="fDni" placeholder="12345678" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">WhatsApp</label>
+                        <input type="text" id="fWhatsapp" placeholder="+5491123456789" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Teléfono</label>
+                        <input type="text" id="fTelefono" placeholder="0221-1234567" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Ciudad</label>
+                        <input type="text" id="fCiudad" placeholder="Mar del Plata" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Dirección</label>
+                        <input type="text" id="fDireccion" placeholder="Av. Colón 1234" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Código Postal</label>
+                        <input type="text" id="fCodigoPostal" placeholder="7600" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    </div>
+                </div>
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Notas</label>
+                    <textarea id="fNotas" placeholder="Observaciones internas..." style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical; min-height: 60px;"></textarea>
+                </div>
+                <div id="activoGroup" style="display:none; margin-bottom: 14px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Estado</label>
+                    <select id="fActivo" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETALLE CLIENTE -->
+    <div class="modal" id="modalDetalle" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button class="modal-close" onclick="cerrarDetalle()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
+            <div id="detalleContenido"></div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN ELIMINAR CLIENTE -->
+    <div class="modal" id="modalConfirmacionEliminar" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; position: relative;">
+            <h2 id="confirmTitulo" style="color: #2c3e50; margin-bottom: 12px; font-size: 18px;"></h2>
+            <p id="confirmMensaje" style="color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.5;"></p>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="cerrarConfirmacion()" style="min-width: 100px;">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmarEliminar()" style="min-width: 100px;">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CREAR/EDITAR PRODUCTO - VERSIÓN SIMPLIFICADA SIN TABS -->
+    <div class="modal" id="modalProducto" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
+        <div style="background: white; border-radius: 16px; width: 100%; max-width: 600px; position: relative; margin: 20px;">
+            <div style="padding: 32px 32px 0; position: relative;">
+                <button type="button" id="closeProductModal" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
+                <h2 id="modalProductoTitle" style="font-size: 20px; margin: 0 0 24px;">Nuevo Producto</h2>
+            </div>
+
+            <form id="formProducto" style="display: flex; flex-direction: column; max-height: 85vh; overflow-y: auto;">
+                <div style="padding: 0 32px; display: flex; flex-direction: column; gap: 16px;">
+
+                    <!-- Nombre -->
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Nombre *</label>
+                        <input type="text" id="productNombre" name="nombre" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                    </div>
+
+                    <!-- Precio y Stock -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Precio *</label>
+                            <input type="number" id="productPrecio" name="precio" required step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Stock *</label>
+                            <input type="number" id="productStock" name="stock_cantidad" required min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                        </div>
+                    </div>
+
+                    <!-- Categoría -->
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Categoría *</label>
+                        <select id="productCategoria" name="categoria" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <option value="">-- Selecciona una categoría --</option>
+                            <option value="1">Cumpleaños</option>
+                            <option value="2">Regalos</option>
+                            <option value="3">Emprendedores</option>
+                        </select>
+                    </div>
+
+                    <!-- Tipo de Stock -->
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Tipo de Stock</label>
+                        <div style="display: flex; gap: 16px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
+                                <input type="radio" name="stockType" value="simple" checked>
+                                Producto simple
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
+                                <input type="radio" name="stockType" value="insumo">
+                                Insumo
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Estado -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="productHabilitado" name="habilitado" checked style="width: 18px; height: 18px;">
+                        <label for="productHabilitado" style="font-weight: 400;">Producto habilitado</label>
+                    </div>
+
+                    <!-- DESCRIPCIÓN COMPLETA -->
+                    <div style="margin-top: 8px; padding-top: 16px; border-top: 1px solid #eee;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Descripción Completa <span style="color: #999; font-weight: 400;">(Opcional)</span></label>
+                        <div id="descripcion-editor" name="descripcion_completa" style="height: 250px; border: 1px solid #ddd; border-radius: 8px; background: white;"></div>
+                    </div>
+
+                    <!-- GALERÍA -->
+                    <div style="margin-top: 8px; padding-top: 16px; border-top: 1px solid #eee;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">Galería de Fotos y Videos</label>
+
+                        <!-- Drop zone -->
+                        <div id="mediaDropZone"
+                            style="border: 2px dashed #9d4cb8; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; background: #faf5ff; transition: background 0.2s; margin-bottom: 10px;"
+                            ondragover="event.preventDefault(); this.style.background='#f0e6f6';"
+                            ondragleave="this.style.background='#faf5ff';"
+                            ondrop="handleMediaDrop(event)">
+                            <div style="font-size: 28px; margin-bottom: 6px;">📷 🎬</div>
+                            <div style="color: #7b2d8e; font-weight: 600; margin-bottom: 4px; font-size: 14px;">Arrastrá fotos y videos aquí</div>
+                            <div style="color: #aaa; font-size: 12px; margin-bottom: 12px;">JPG, PNG, WebP (máx. 5MB) · MP4, WebM (máx. 50MB)</div>
+                            <button type="button" onclick="document.getElementById('mediaFileInput').click()" style="background: linear-gradient(135deg,#7b2d8e,#9d4cb8); color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">Seleccionar archivos...</button>
+                            <div id="mediaNewProductMsg" style="display: none; margin-top: 10px; font-size: 11px; color: #888; font-style: italic;">Los archivos se subirán automáticamente al guardar el producto</div>
+                        </div>
+                        <input type="file" id="mediaFileInput" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" style="display: none;" onchange="handleMediaFileSelect(event)">
+
+                        <!-- Barra de progreso -->
+                        <div id="mediaUploadProgress" style="display: none; margin-bottom: 10px;">
+                            <div style="background: #f0f0f0; border-radius: 4px; overflow: hidden;">
+                                <div id="mediaProgressBar" style="height: 6px; background: linear-gradient(135deg,#7b2d8e,#9d4cb8); width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                            <div id="mediaProgressText" style="font-size: 12px; color: #666; margin-top: 4px; text-align: center;">Subiendo...</div>
+                        </div>
+
+                        <!-- Galería de thumbnails -->
+                        <div id="mediaGallery" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                    </div>
+
+                </div>
+
+                <!-- Botones -->
+                <div style="display: flex; gap: 12px; justify-content: flex-end; padding: 24px 32px; margin-top: 16px; border-top: 1px solid #eee; background: #f9f9f9;">
+                    <button type="button" class="btn btn-secondary" id="cancelProductBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ALERTA ERROR ELIMINAR -->
+    <div class="modal" id="modalAlertaError" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; position: relative;">
+            <h2 style="color: #c5221f; margin-bottom: 12px; font-size: 18px;">⚠️ No se puede eliminar</h2>
+            <p id="alertaMensaje" style="color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.5;"></p>
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="cerrarAlerta()" style="min-width: 100px;">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOTIFICACIÓN PUCHIA (Custom alert) -->
+    <div id="puchiaNotif" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:linear-gradient(135deg,#7b2d8e 0%,#9d4cb8 100%); border-radius:20px; padding:36px 32px; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(123,45,142,0.4); text-align:center; color:white;">
+            <div id="puchiaNotifIcon" style="font-size:56px; margin-bottom:12px;">✅</div>
+            <h2 id="puchiaNotifTitle" style="color:white; font-size:22px; margin:0 0 12px 0; font-weight:600;">Éxito</h2>
+            <p id="puchiaNotifMsg" style="color:rgba(255,255,255,0.92); font-size:15px; margin:0 0 24px 0; line-height:1.5;"></p>
+            <button id="puchiaNotifOk" style="background:white; color:#7b2d8e; border:none; padding:12px 32px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; min-width:120px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN PUCHIA (Custom confirm) -->
+    <div id="puchiaConfirm" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:linear-gradient(135deg,#7b2d8e 0%,#9d4cb8 100%); border-radius:20px; padding:36px 32px; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(123,45,142,0.4); text-align:center; color:white;">
+            <div style="font-size:56px; margin-bottom:12px;">⚠️</div>
+            <h2 id="puchiaConfirmTitle" style="color:white; font-size:22px; margin:0 0 12px 0; font-weight:600;">¿Estás seguro?</h2>
+            <p id="puchiaConfirmMsg" style="color:rgba(255,255,255,0.92); font-size:15px; margin:0 0 24px 0; line-height:1.5;"></p>
+            <div style="display:flex; gap:12px; justify-content:center;">
+                <button id="puchiaConfirmCancel" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.4); padding:12px 28px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; min-width:110px;">Cancelar</button>
+                <button id="puchiaConfirmOk" style="background:white; color:#7b2d8e; border:none; padding:12px 28px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; min-width:110px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GALERÍA COMPLETA (Tarea 2.9) -->
+    <div id="galleryViewModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.93); z-index:9500; flex-direction:column; align-items:center; justify-content:space-between; padding:16px 20px;">
+        <!-- Header -->
+        <div style="width:100%; display:flex; justify-content:space-between; align-items:center; color:white; flex-shrink:0;">
+            <span id="galleryTitle" style="font-size:15px; font-weight:600; color:rgba(255,255,255,0.85);">Galería del Producto</span>
+            <div style="display:flex; gap:8px;">
+                <button onclick="setPortadaFromGallery()" title="Marcar como portada" style="background:rgba(245,158,11,0.85); color:white; border:none; padding:7px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;">📌 Portada</button>
+                <button onclick="deleteFromGallery()" title="Eliminar este archivo" style="background:rgba(220,50,50,0.8); color:white; border:none; padding:7px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;">🗑️ Eliminar</button>
+                <button onclick="closeGalleryViewModal()" style="background:rgba(255,255,255,0.15); color:white; border:none; padding:7px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;">✕ Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Badge portada -->
+        <div id="galleryPortadaBadge" style="display:none; background:#f59e0b; color:white; padding:4px 14px; border-radius:12px; font-size:12px; font-weight:700; margin-top:4px; flex-shrink:0;">★ PORTADA</div>
+
+        <!-- Display principal -->
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; width:100%; position:relative; min-height:0; margin:8px 0;">
+            <button onclick="navigateGallery(-1)" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.18); color:white; border:none; width:42px; height:42px; border-radius:50%; font-size:20px; cursor:pointer; z-index:1; line-height:1;">←</button>
+
+            <div id="galleryMainContainer" style="max-width:85%; max-height:100%; display:flex; align-items:center; justify-content:center;">
+                <img id="galleryMainImg" style="max-width:100%; max-height:62vh; object-fit:contain; border-radius:8px; display:none;">
+                <video id="galleryMainVideo" controls style="max-width:100%; max-height:62vh; border-radius:8px; display:none; background:#000;"></video>
+            </div>
+
+            <button onclick="navigateGallery(1)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.18); color:white; border:none; width:42px; height:42px; border-radius:50%; font-size:20px; cursor:pointer; z-index:1; line-height:1;">→</button>
+        </div>
+
+        <!-- Thumbnails strip -->
+        <div id="galleryThumbs" style="display:flex; gap:8px; overflow-x:auto; padding:6px 0 4px 0; max-width:90%; flex-shrink:0; scrollbar-width:thin; scrollbar-color: rgba(255,255,255,0.3) transparent;"></div>
+
+        <!-- Contador -->
+        <div id="galleryCounter" style="color:rgba(255,255,255,0.5); font-size:12px; margin-top:4px; flex-shrink:0;">1 / 1</div>
+    </div>
 
     <script>
-  const API_BASE_URL = 'http://127.0.0.1:5000/api/v1';
-</script>
-<script src="../js/common.js"></script>
-<script src="../js/admin.js"></script>
+        // Custom modal Puchia (replaces alert/confirm)
+        function puchiaAlert(message, type = 'success', title = null) {
+            const modal = document.getElementById('puchiaNotif');
+            const iconEl = document.getElementById('puchiaNotifIcon');
+            const titleEl = document.getElementById('puchiaNotifTitle');
+            const msgEl = document.getElementById('puchiaNotifMsg');
+            const icons = { success: '✅', error: '⚠️', info: 'ℹ️', warning: '⚠️' };
+            const defaultTitles = { success: '¡Éxito!', error: 'Error', info: 'Información', warning: 'Atención' };
+            iconEl.textContent = icons[type] || '✅';
+            titleEl.textContent = title || defaultTitles[type] || 'Notificación';
+            msgEl.textContent = message;
+            modal.style.display = 'flex';
+            document.getElementById('puchiaNotifOk').onclick = () => { modal.style.display = 'none'; };
+        }
+        function puchiaConfirm(message, title = '¿Estás seguro?') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('puchiaConfirm');
+                document.getElementById('puchiaConfirmTitle').textContent = title;
+                document.getElementById('puchiaConfirmMsg').textContent = message;
+                modal.style.display = 'flex';
+                document.getElementById('puchiaConfirmOk').onclick = () => { modal.style.display = 'none'; resolve(true); };
+                document.getElementById('puchiaConfirmCancel').onclick = () => { modal.style.display = 'none'; resolve(false); };
+            });
+        }
+    </script>
+
 </body>
 </html>

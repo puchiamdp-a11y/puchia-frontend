@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Crear Cuenta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #2c3e50;
+            padding: 30px 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 440px;
+            padding: 40px;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 28px;
+            margin: 0 auto 14px;
+            box-shadow: 0 4px 16px rgba(127,31,110,0.3);
+        }
+
+        .card-header h1 {
+            font-size: 22px;
+            color: #7f1f6e;
+            margin-bottom: 4px;
+        }
+
+        .card-header p {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: #2c3e50;
+            margin-bottom: 6px;
+        }
+
+        label .optional {
+            font-weight: 400;
+            color: #aaa;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            transition: all 0.25s ease;
+            background: #fafafa;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #7f1f6e;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(127,31,110,0.1);
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #999;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .field-error {
+            color: #e74c3c;
+            font-size: 11px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .field-error.show { display: block; }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 6px;
+            background: #eee;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s, background 0.3s;
+            width: 0%;
+        }
+
+        .strength-label {
+            font-size: 11px;
+            margin-top: 3px;
+            color: #aaa;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 4px 0 16px;
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #eee;
+        }
+
+        .alert {
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert.show { display: block; }
+        .alert-error  { background: #fdf0ef; color: #c0392b; border: 1px solid #f5c6c2; }
+        .alert-success { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 4px;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(127,31,110,0.35);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .terms {
+            font-size: 11px;
+            color: #aaa;
+            text-align: center;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        .card-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #777;
+        }
+
+        .card-footer a {
+            color: #7f1f6e;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .card-footer a:hover { text-decoration: underline; }
+
+        .back-home {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.75);
+            font-size: 13px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .back-home:hover { color: white; }
+
+        @media (max-width: 480px) {
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .card { padding: 28px 22px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="logo-icon">P</div>
+            <h1>Crear cuenta</h1>
+            <p>Comenzá a personalizar tus regalos</p>
+        </div>
+
+        <div class="alert alert-error" id="alertError"></div>
+        <div class="alert alert-success" id="alertSuccess"></div>
+
+        <form id="registroForm" novalidate>
+
+            <div class="form-group">
+                <label for="nombre">Nombre completo</label>
+                <input
+                    type="text"
+                    id="nombre"
+                    name="nombre"
+                    placeholder="Tu nombre y apellido"
+                    autocomplete="name"
+                    required
+                >
+                <div class="field-error" id="nombreError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="tu@email.com"
+                    autocomplete="email"
+                    required
+                >
+                <div class="field-error" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="whatsapp">WhatsApp *</label>
+                <input
+                    type="tel"
+                    id="whatsapp"
+                    name="whatsapp"
+                    placeholder="Ej: 2235847353"
+                    autocomplete="tel"
+                    required
+                >
+                <div class="field-error" id="whatsappError"></div>
+            </div>
+
+            <div class="divider">contraseña</div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Mínimo 6 caracteres"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <button type="button" class="toggle-password" onclick="togglePassword('password', this)" title="Mostrar/ocultar">👁️</button>
+                </div>
+                <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                <div class="strength-label" id="strengthLabel"></div>
+                <div class="field-error" id="passwordError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar contraseña</label>
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        placeholder="Repetí tu contraseña"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', this)" title="Mostrar/ocultar">👁️</button>
+                </div>
+                <div class="field-error" id="confirmPasswordError"></div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                Crear mi cuenta
+            </button>
+
+            <p class="terms">Al registrarte aceptás recibir novedades y personalizaciones de Puchia.</p>
+        </form>
+
+        <div class="card-footer">
+            ¿Ya tenés cuenta? <a href="login.html">Iniciá sesión</a>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-home">← Volver al inicio</a>
+
+    <script src="js/auth-cliente.js"></script>
+    <script>
+        if (isClienteLoggedIn()) {
+            window.location.href = 'perfil.html';
+        }
+
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+            btn.textContent = input.type === 'password' ? '👁️' : '🙈';
+        }
+
+        document.getElementById('password').addEventListener('input', function() {
+            const val = this.value;
+            const fill  = document.getElementById('strengthFill');
+            const label = document.getElementById('strengthLabel');
+
+            let strength = 0;
+            if (val.length >= 6)  strength++;
+            if (val.length >= 10) strength++;
+            if (/[A-Z]/.test(val)) strength++;
+            if (/[0-9]/.test(val)) strength++;
+            if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+            const levels = [
+                { pct: '0%',   color: '#eee',    text: '' },
+                { pct: '25%',  color: '#e74c3c', text: 'Muy débil' },
+                { pct: '50%',  color: '#f39c12', text: 'Débil' },
+                { pct: '70%',  color: '#3498db', text: 'Buena' },
+                { pct: '85%',  color: '#27ae60', text: 'Fuerte' },
+                { pct: '100%', color: '#1e8449', text: 'Muy fuerte' },
+            ];
+            const lv = val.length === 0 ? levels[0] : levels[Math.min(strength, 5)];
+            fill.style.width      = lv.pct;
+            fill.style.background = lv.color;
+            label.textContent     = lv.text;
+            label.style.color     = lv.color;
+        });
+
+        function showAlert(type, messageHTML) {
+            const el    = document.getElementById(type === 'error' ? 'alertError' : 'alertSuccess');
+            const other = document.getElementById(type === 'error' ? 'alertSuccess' : 'alertError');
+            other.classList.remove('show');
+            el.innerHTML = messageHTML;
+            el.classList.add('show');
+        }
+
+        function setFieldError(fieldId, message) {
+            const el    = document.getElementById(fieldId + 'Error');
+            const input = document.getElementById(fieldId);
+            if (message) {
+                el.textContent = message;
+                el.classList.add('show');
+                if (input) input.style.borderColor = '#e74c3c';
+            } else {
+                el.classList.remove('show');
+                if (input) input.style.borderColor = '';
+            }
+        }
+
+        function clearErrors() {
+            document.getElementById('alertError').classList.remove('show');
+            document.getElementById('alertSuccess').classList.remove('show');
+            ['nombre','email','whatsapp','password','confirmPassword'].forEach(f => setFieldError(f, ''));
+        }
+
+        document.getElementById('registroForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors();
+
+            const nombre          = document.getElementById('nombre').value.trim();
+            const email           = document.getElementById('email').value.trim();
+            const whatsapp        = document.getElementById('whatsapp').value.trim();
+            const password        = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            let valid = true;
+
+            if (!nombre || nombre.length < 2) {
+                setFieldError('nombre', 'Ingresá tu nombre completo');
+                valid = false;
+            }
+
+            if (!email) {
+                setFieldError('email', 'El email es obligatorio');
+                valid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setFieldError('email', 'Ingresá un email válido');
+                valid = false;
+            }
+
+            if (!password || password.length < 6) {
+                setFieldError('password', 'La contraseña debe tener al menos 6 caracteres');
+                valid = false;
+            }
+
+            if (password !== confirmPassword) {
+                setFieldError('confirmPassword', 'Las contraseñas no coinciden');
+                valid = false;
+            }
+
+            if (!whatsapp) {
+                setFieldError('whatsapp', 'El WhatsApp es obligatorio');
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Verificando datos...';
+
+            // Validar que el WhatsApp no esté ya registrado (obligatorio)
+            try {
+                const check = await apiClienteCheckWhatsapp(whatsapp);
+
+                if (check && check.existe === true) {
+                    setFieldError('whatsapp', 'Este WhatsApp ya está registrado');
+                    showAlert('error',
+                        '<strong>Este WhatsApp ya está registrado.</strong><br>' +
+                        '<a href="login.html" style="color:#7f1f6e;font-weight:600;text-decoration:underline;">Iniciá sesión</a> con tu cuenta existente.'
+                    );
+                    btn.disabled = false;
+                    btn.innerHTML = 'Crear mi cuenta';
+                    return;
+                }
+            } catch (err) {
+                // Backend no disponible — no permitir (WhatsApp es ahora obligatorio)
+                console.warn('Error verificando WhatsApp:', err.message);
+                showAlert('error',
+                    '<strong>No se pudo verificar el WhatsApp.</strong><br>Por favor, intenta de nuevo más tarde.'
+                );
+                btn.disabled = false;
+                btn.innerHTML = 'Crear mi cuenta';
+                return;
+            }
+
+            btn.innerHTML = '<span class="spinner"></span>Creando cuenta...';
+
+            const body = { nombre, email, contraseña: password };
+            if (whatsapp) body.whatsapp = whatsapp;
+
+            try {
+                const data = await apiClientePostNoAuth('/clientes/registro', body);
+
+                saveClienteToken(data.data.token);
+                saveClienteUser(data.data);
+
+                showAlert('success', '¡Cuenta creada! Redirigiendo a tu perfil...');
+                setTimeout(() => { window.location.href = 'perfil.html'; }, 900);
+
+            } catch (err) {
+                const msg = (err.message || '').toLowerCase();
+                const yaExiste = err.status === 409
+                    || /ya existe|ya está|ya esta|duplica|already|exist/.test(msg);
+
+                if (yaExiste) {
+                    showAlert('error',
+                        '<strong>Ya tenés una cuenta con este email.</strong><br>' +
+                        '<a href="login.html" style="color:#7f1f6e;font-weight:600;text-decoration:underline;">Iniciar sesión</a> · ' +
+                        '<a href="recuperacion.html?email=' + encodeURIComponent(email) + '" style="color:#7f1f6e;font-weight:600;text-decoration:underline;">¿Olvidaste la contraseña?</a>'
+                    );
+                    setFieldError('email', 'Este email ya está registrado');
+                } else {
+                    showAlert('error', err.message || 'No se pudo crear la cuenta. Intentá de nuevo.');
+                }
+                btn.disabled = false;
+                btn.innerHTML = 'Crear mi cuenta';
+            }
+        });
+    </script>
+</body>
+</html>

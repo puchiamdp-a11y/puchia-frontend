@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia Admin - Configurar Alertas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .config-card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .config-card h3 { margin-bottom: 16px; color: #7f1f6e; font-size: 16px; border-bottom: 1px solid #f0e6f6; padding-bottom: 10px; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-label { font-size: 14px; font-weight: 500; }
+        .toggle-desc { font-size: 12px; color: #888; }
+        .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; inset: 0; background: #ddd; border-radius: 24px; cursor: pointer; transition: 0.3s; }
+        .toggle-slider:before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+        .toggle input:checked + .toggle-slider { background: #7f1f6e; }
+        .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
+        .form-group textarea { resize: vertical; min-height: 70px; font-size: 13px; }
+        .template-preview { background: #f5f5f5; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #333; white-space: pre-line; margin-top: 8px; }
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .status-ok { background: #e6f4ea; color: #1a7c3a; }
+        .status-sim { background: #fff3cd; color: #856404; }
+        .alert-info { background: #e8f4fd; border-left: 4px solid #2196f3; padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 13px; color: #1565c0; margin-bottom: 16px; }
+        .historial-item { padding: 10px 0; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: flex-start; font-size: 13px; }
+        .historial-item:last-child { border-bottom: none; }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #f3e6f0; border-top-color: #7f1f6e; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <a href="./dashboard.html" class="admin-logo-container">
+            <div class="admin-logo">P</div>
+            <span class="admin-logo-text">Puchia Admin</span>
+        </a>
+        <div class="admin-user-info">
+            <span class="admin-user-name" id="adminUserName">Admin</span>
+            <button class="admin-logout-btn" id="logoutBtn">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <aside class="admin-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="./dashboard.html">📊 Dashboard</a></li>
+                <li><a href="./admin-clientes.html">👥 Clientes</a></li>
+                <li><a href="./admin-alertas-config.html" class="active">🔔 Alertas</a></li>
+            </ul>
+        </aside>
+
+        <main class="admin-content">
+            <h1 class="page-title">Configuración de Alertas WhatsApp</h1>
+
+            <!-- ESTADO DEL SERVICIO -->
+            <div class="config-card">
+                <h3>Estado del Servicio</h3>
+                <div class="alert-info">
+                    Las alertas se envían mediante WhatsApp Cloud API (Meta). En modo desarrollo, los mensajes se simulan y se registran en la consola del servidor.
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span id="servicioStatus" class="status-badge status-sim">Modo Simulación</span>
+                    <span style="font-size:13px;color:#666;" id="servicioDetalle">API Key no configurada — mensajes solo se logean</span>
+                </div>
+            </div>
+
+            <!-- CONFIGURACIÓN DE NÚMERO -->
+            <div class="config-card">
+                <h3>Número Admin</h3>
+                <div class="form-group">
+                    <label>Número WhatsApp del administrador</label>
+                    <input type="text" id="numeroAdmin" placeholder="5491123456789" />
+                    <p style="font-size:12px;color:#888;margin-top:4px;">Formato internacional sin + (ej: 5491123456789)</p>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-primary" id="btnGuardarNumero">Guardar Número</button>
+                    <button class="btn btn-secondary" id="btnEnviarPrueba">Enviar Mensaje de Prueba</button>
+                </div>
+                <div id="pruebaResult" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:13px;"></div>
+            </div>
+
+            <!-- ACTIVAR/DESACTIVAR ALERTAS -->
+            <div class="config-card">
+                <h3>Tipos de Alerta</h3>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Nueva Orden</div>
+                        <div class="toggle-desc">Notificar cuando se recibe una nueva orden</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="alertaOrdenNueva" checked />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Cambio de Estado</div>
+                        <div class="toggle-desc">Notificar cuando cambia el estado de una orden</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="alertaCambioEstado" checked />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Stock Bajo</div>
+                        <div class="toggle-desc">Notificar cuando el stock cae por debajo del umbral</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="alertaStockBajo" checked />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Alertas al Cliente</div>
+                        <div class="toggle-desc">Enviar confirmaciones de orden al WhatsApp del cliente</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="alertasCliente" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div style="margin-top:16px;">
+                    <button class="btn btn-primary" id="btnGuardarAlertas">Guardar Configuración</button>
+                </div>
+            </div>
+
+            <!-- TEMPLATES DE MENSAJES -->
+            <div class="config-card">
+                <h3>Templates de Mensajes</h3>
+
+                <div class="form-group">
+                    <label>Nueva Orden (Admin)</label>
+                    <textarea id="tplOrdenNueva" rows="3">📦 *NUEVA ORDEN - Puchia*
+Orden: #{ordenId}
+Cliente: #{clienteNombre}
+Total: ${total}</textarea>
+                    <div class="template-preview" id="prevOrdenNueva">Vista previa cargando...</div>
+                </div>
+
+                <div class="form-group" style="margin-top:16px;">
+                    <label>Cambio de Estado (Admin)</label>
+                    <textarea id="tplCambioEstado" rows="3">📋 *CAMBIO DE ESTADO - Puchia*
+Orden: #{ordenId}
+#{estadoAnterior} → #{nuevoEstado}</textarea>
+                    <div class="template-preview" id="prevCambioEstado">Vista previa cargando...</div>
+                </div>
+
+                <div class="form-group" style="margin-top:16px;">
+                    <label>Stock Bajo (Admin)</label>
+                    <textarea id="tplStockBajo" rows="2">⚠️ *STOCK BAJO - Puchia*
+Producto: #{productoNombre}
+Stock restante: #{cantidad} unidades</textarea>
+                    <div class="template-preview" id="prevStockBajo">Vista previa cargando...</div>
+                </div>
+
+                <div style="margin-top:16px;">
+                    <button class="btn btn-secondary" id="btnActualizarPrevistas">Actualizar Vista Previa</button>
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE ALERTAS -->
+            <div class="config-card">
+                <h3>Historial de Alertas</h3>
+                <p style="font-size:13px;color:#888;margin-bottom:12px;">Últimos registros de mensajes enviados (almacenados en AdminLog)</p>
+                <div id="historialAlertas">
+                    <div style="text-align:center;padding:20px;color:#999;font-size:13px;">
+                        El historial de alertas WhatsApp se registra en los logs del servidor.<br>
+                        Integración con AdminLog disponible cuando la API esté configurada.
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:3000/api/v1';
+    </script>
+    <script src="../js/admin-alertas-config.js"></script>
+</body>
+</html>

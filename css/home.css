@@ -314,10 +314,18 @@
     box-shadow: 0 20px 50px rgba(127,31,110,0.25);
 }
 
+.category-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+}
+
 .category-card h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
+    font-size: 18px;
+    margin-bottom: 15px;
     font-weight: 600;
+    line-height: 1.2;
+    color: white;
 }
 
 .category-card p {

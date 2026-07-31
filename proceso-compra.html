@@ -22,8 +22,9 @@
             </a>
             <nav>
                 <a href="index.html">Inicio</a>
-                <a href="index.html#categorias">Categorías</a>
-                <a href="proceso-compra.html">Productos y promos</a>
+                <a href="categorias.html">Categorías</a>
+                <a href="proceso-compra.html" onclick="showAllProducts(); return false;">Productos</a>
+                <a href="proceso-compra.html" onclick="showOnlyPromos(); return false;">Promos</a>
                 <a href="contacto.html">Contacto</a>
             </nav>
         </div>
@@ -32,6 +33,7 @@
                 🛒
                 <span class="cart-count" id="cartCount">0</span>
             </button>
+            <a href="perfil.html" class="admin-link" id="clienteNavLink" title="Mi cuenta">👤</a>
             <a href="admin/login.html" class="admin-link" title="Panel administrador">⚙️</a>
         </div>
     </header>
@@ -40,7 +42,7 @@
     <section id="productsSection" class="products-section">
         <h2 class="section-title">Nuestros Productos</h2>
         <p class="section-subtitle">Explora nuestro catálogo completo de productos personalizados</p>
-        
+
         <div class="filters-bar">
             <button class="filter-btn active" onclick="filterProducts('todas')">Todos</button>
             <button class="filter-btn" onclick="filterProducts('cumpleaños')">🎉 Cumpleaños</button>
@@ -55,19 +57,9 @@
     <section id="promosSection" class="products-section" style="display: none;">
         <h2 class="section-title">Promociones Especiales</h2>
         <p class="section-subtitle">Ofertas exclusivas y combos con descuento</p>
-        
+
         <div class="products-grid" id="promosGrid"></div>
     </section>
-
-    <!-- TABS -->
-    <div style="text-align: center; padding: 30px; background: white;">
-        <button id="productosBtn" class="btn btn-primary" onclick="showSection('productos')" style="margin-right: 10px;">
-            📦 Productos
-        </button>
-        <button id="promosBtn" class="btn btn-secondary" onclick="showSection('promos')">
-            🎊 Promociones
-        </button>
-    </div>
 
     <!-- CHECKOUT MODAL -->
     <div class="modal" id="checkoutModal">
@@ -149,8 +141,9 @@
         <div>Regalos personalizados con amor 🤍</div>
     </footer>
 
-    <script src="js/common.js"></script>
-    <script src="js/cliente.js"></script>
+    <script src="js/common.js?v=2026052603"></script>
+    <script src="js/products-data.js?v=2026052603"></script>
+    <script src="js/cliente.js?v=2026052603"></script>
 
 </body>
 </html>

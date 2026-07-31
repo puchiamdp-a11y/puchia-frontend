@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia Admin - Clientes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-bar input, .search-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+        .search-bar input { flex: 1; min-width: 200px; }
+        .actions-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-activo { background: #e6f4ea; color: #1a7c3a; }
+        .badge-inactivo { background: #fce8e6; color: #c5221f; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-box { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-box h2 { margin-bottom: 20px; color: #7f1f6e; }
+        .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .codigo-badge { display: inline-block; background: #f0e6f6; color: #7f1f6e; font-weight: 700; padding: 4px 12px; border-radius: 8px; font-size: 15px; letter-spacing: 1px; }
+        .codigo-badge-p { background: #ede0f7; color: #6b21a8; }
+        .codigo-badge-jk { background: #fef9c3; color: #854d0e; }
+        .import-section { background: #f8f8f8; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .import-section h3 { margin-bottom: 12px; font-size: 16px; }
+        .import-result { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; }
+        .import-result.success { background: #e6f4ea; color: #1a7c3a; }
+        .import-result.error { background: #fce8e6; color: #c5221f; }
+        .pagination { display: flex; gap: 6px; align-items: center; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+        .pagination button { padding: 6px 12px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; }
+        .pagination button.active { background: #7f1f6e; color: white; border-color: #7f1f6e; }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-danger { background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-warning { background: #f39c12; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .detail-row { display: flex; gap: 16px; margin-bottom: 8px; font-size: 14px; }
+        .detail-label { font-weight: 600; color: #666; min-width: 110px; }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid #f3e6f0; border-top-color: #7f1f6e; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        th.sortable { cursor: pointer; user-select: none; position: relative; }
+        th.sortable:hover { background: #f3e6f0; }
+        th.sortable .sort-ind { font-size: 11px; color: #7f1f6e; margin-left: 4px; opacity: 0.4; }
+        th.sortable.sort-active .sort-ind { opacity: 1; font-weight: 700; }
+        .acciones-cell { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center; min-width: 240px; }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="admin-header">
+        <a href="./dashboard.html" class="admin-logo-container">
+            <div class="admin-logo">P</div>
+            <span class="admin-logo-text">Puchia Admin</span>
+        </a>
+        <div class="admin-user-info">
+            <span class="admin-user-name" id="adminUserName">Admin</span>
+            <button class="admin-logout-btn" id="logoutBtn">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="./dashboard.html" data-page="dashboard">📊 Dashboard</a></li>
+                <li><a href="./admin-clientes.html" class="active">👥 Clientes</a></li>
+                <li><a href="./admin-alertas-config.html">🔔 Alertas</a></li>
+            </ul>
+        </aside>
+
+        <!-- CONTENIDO -->
+        <main class="admin-content">
+            <h1 class="page-title">Gestión de Clientes</h1>
+
+            <!-- BARRA DE ACCIONES -->
+            <div class="actions-bar">
+                <button class="btn btn-primary" id="btnNuevoCliente">+ Nuevo Cliente</button>
+                <button class="btn btn-secondary" id="btnImportarExcel">📥 Importar Excel</button>
+                <button class="btn btn-secondary" id="btnExportarExcel">📤 Exportar Excel</button>
+                <a href="./admin-alertas-config.html" class="btn btn-secondary">🔔 Configurar Alertas</a>
+            </div>
+
+            <!-- BUSCADOR -->
+            <div class="search-bar">
+                <input type="text" id="inputBusqueda" placeholder="Buscar por nombre, código, email, DNI..." />
+                <select id="filtroActivo">
+                    <option value="">Todos</option>
+                    <option value="true">Activos</option>
+                    <option value="false">Inactivos</option>
+                </select>
+                <button class="btn btn-secondary" id="btnBuscar">Buscar</button>
+            </div>
+
+            <!-- SECCIÓN IMPORTAR -->
+            <div class="import-section" id="importSection" style="display:none;">
+                <h3>Importar Clientes desde Excel</h3>
+                <p style="font-size:13px;color:#666;margin-bottom:12px;">
+                    El archivo Excel debe tener columnas en orden: <strong>Nombre, Email, DNI, WhatsApp, Teléfono, Dirección, Ciudad, Código Postal, Notas</strong>
+                </p>
+                <input type="file" id="archivoExcel" accept=".xlsx,.xls" />
+                <button class="btn btn-primary" id="btnConfirmarImport" style="margin-top:10px;">Importar</button>
+                <button class="btn btn-secondary" id="btnCancelarImport" style="margin-top:10px;">Cancelar</button>
+                <div id="importResult" style="display:none;" class="import-result"></div>
+            </div>
+
+            <!-- TABLA DE CLIENTES -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr id="theadClientes">
+                            <th class="sortable" data-sort="codigo_cliente">Código <span class="sort-ind">↕</span></th>
+                            <th class="sortable" data-sort="nombre">Nombre <span class="sort-ind">↕</span></th>
+                            <th class="sortable" data-sort="email">Email <span class="sort-ind">↕</span></th>
+                            <th class="sortable" data-sort="whatsapp">WhatsApp <span class="sort-ind">↕</span></th>
+                            <th class="sortable" data-sort="ciudad">Ciudad <span class="sort-ind">↕</span></th>
+                            <th class="sortable" data-sort="activo">Estado <span class="sort-ind">↕</span></th>
+                            <th class="sortable" data-sort="creado_en">Creado <span class="sort-ind">↕</span></th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaClientes">
+                        <tr><td colspan="8" style="text-align:center;color:#999;">Cargando clientes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINACIÓN -->
+            <div class="pagination" id="paginacion"></div>
+        </main>
+    </div>
+
+    <!-- MODAL NUEVO/EDITAR CLIENTE -->
+    <div class="modal" id="modalCliente">
+        <div class="modal-box">
+            <button class="modal-close" onclick="cerrarModal()">✕</button>
+            <h2 id="modalTitulo">Nuevo Cliente</h2>
+            <div id="codigoDisplay" style="margin-bottom:16px;display:none;">
+                Código: <span class="codigo-badge" id="codigoClienteDisplay"></span>
+            </div>
+            <form id="formCliente">
+                <input type="hidden" id="clienteId" />
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" id="fNombre" placeholder="Juan García" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="fEmail" placeholder="juan@email.com" required />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>DNI</label>
+                        <input type="text" id="fDni" placeholder="12345678" />
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp</label>
+                        <input type="text" id="fWhatsapp" placeholder="+5491123456789" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="text" id="fTelefono" placeholder="0221-1234567" />
+                    </div>
+                    <div class="form-group">
+                        <label>Ciudad</label>
+                        <input type="text" id="fCiudad" placeholder="Mar del Plata" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="fDireccion" placeholder="Av. Colón 1234" />
+                    </div>
+                    <div class="form-group">
+                        <label>Código Postal</label>
+                        <input type="text" id="fCodigoPostal" placeholder="7600" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea id="fNotas" placeholder="Observaciones internas..."></textarea>
+                </div>
+                <div id="activoGroup" class="form-group" style="display:none;">
+                    <label>Estado</label>
+                    <select id="fActivo">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETALLE CLIENTE -->
+    <div class="modal" id="modalDetalle">
+        <div class="modal-box">
+            <button class="modal-close" onclick="cerrarDetalle()">✕</button>
+            <div id="detalleContenido"></div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN ELIMINAR -->
+    <div class="modal" id="modalConfirmacionEliminar">
+        <div class="modal-box" style="max-width:420px;">
+            <h2 id="confirmTitulo" style="color:#dc3545;">¿Eliminar cliente?</h2>
+            <p id="confirmMensaje" style="margin:16px 0;font-size:14px;color:#444;white-space:pre-line;"></p>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px;">
+                <button class="btn btn-secondary" onclick="cerrarConfirmacion()">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmarEliminar()">Sí, eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ALERTA ERROR -->
+    <div class="modal" id="modalAlertaError">
+        <div class="modal-box" style="max-width:420px;">
+            <h2 style="color:#dc3545;">No se puede eliminar</h2>
+            <p id="alertaMensaje" style="margin:16px 0;font-size:14px;color:#444;"></p>
+            <div style="display:flex;justify-content:flex-end;margin-top:24px;">
+                <button class="btn btn-secondary" onclick="cerrarAlerta()">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000/api/v1';
+    </script>
+    <script src="../js/admin-clientes.js"></script>
+</body>
+</html>

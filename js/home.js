@@ -1,13 +1,11 @@
 /* HOME.JS - Con ANIMACIÓN DE ESTADÍSTICAS FUNCIONANDO */
 
-const featuredProducts = [
-    { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈', category: 'cumpleaños', badge: 'Más vendido' },
-    { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬', category: 'cumpleaños', badge: 'Nuevo' },
-    { id: 3, name: 'Bolsitas 3D', price: 1050, icon: '📦', category: 'cumpleaños', badge: 'Más vendido' },
-    { id: 4, name: 'Calendarios Negocios', price: 790, icon: '📅', category: 'emprendedores' },
-    { id: 5, name: 'Imágenes Decorativas', price: 1200, icon: '🖼️', category: 'cumpleaños', badge: 'Nuevo' },
-    { id: 6, name: 'Librito para Pintar', price: 990, icon: '🎨', category: 'cumpleaños' },
-];
+const featuredBadges = {
+    1: 'Más vendido',
+    2: 'Nuevo',
+    3: 'Más vendido',
+    5: 'Nuevo'
+};
 
 let currentBanner = 0;
 
@@ -30,30 +28,47 @@ function updateUIWithSettings() {
 function loadAndRenderProducts() {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
-    
-    const html = featuredProducts.map(product => {
+
+    const featured = allProducts.slice(0, 6);
+
+    const html = featured.map(product => {
         let badgeHtml = '';
-        if (product.badge) {
-            const badgeClass = product.badge === 'Nuevo' ? 'badge-new' : 'badge-hot';
-            badgeHtml = `<div class="product-badge ${badgeClass}">${product.badge}</div>`;
+        const badge = featuredBadges[product.id];
+        if (badge) {
+            const badgeClass = badge === 'Nuevo' ? 'badge-new' : 'badge-hot';
+            badgeHtml = `<div class="product-badge ${badgeClass}">${badge}</div>`;
         }
-        
+
         return `
-            <div class="product-card">
+            <div class="product-card" data-product-id="${product.id}">
                 ${badgeHtml}
-                <div class="product-image">${product.icon}</div>
+                <div class="product-image" style="cursor: pointer;">${product.icon}</div>
                 <div class="product-info">
-                    <div class="product-name">${product.name}</div>
+                    <div class="product-name" style="cursor: pointer;">${product.name}</div>
                     <div class="product-price">${formatCurrency(product.price)}</div>
-                    <button class="product-btn" onclick="addProductToCart(${product.id}, '${product.name}', ${product.price})">
+                    <button class="product-btn" onclick="openProductDetail(${product.id})">
                         Agregar al Carrito
                     </button>
                 </div>
             </div>
         `;
     }).join('');
-    
+
     grid.innerHTML = html;
+
+    // Attach click listeners for image and name
+    setTimeout(() => {
+        grid.querySelectorAll('[data-product-id]').forEach(card => {
+            card.querySelector('.product-image')?.addEventListener('click', () => {
+                const productId = parseInt(card.dataset.productId);
+                openProductDetail(productId);
+            });
+            card.querySelector('.product-name')?.addEventListener('click', () => {
+                const productId = parseInt(card.dataset.productId);
+                openProductDetail(productId);
+            });
+        });
+    }, 0);
 }
 
 function addProductToCart(id, name, price) {
@@ -146,17 +161,143 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function goToPromos(category) {
-    localStorage.setItem('selectedCategory', category);
-    window.location.href = 'proceso-compra.html';
+    window.location.href = `proceso-compra.html?category=${encodeURIComponent(category)}`;
 }
 
-window.addEventListener('load', () => {
+/* ════════════════════════════════════════════════════════════════
+   MODAL DETALLE PRODUCTO
+   ════════════════════════════════════════════════════════════════ */
+
+async function openProductDetail(productId) {
+  try {
+    const product = allProducts.find(p => p.id === productId) || promoProducts.find(p => p.id === productId);
+
+    if (!product) {
+      showToast('Producto no encontrado', 'error');
+      return;
+    }
+
+    const oldModal = document.getElementById('productDetailModal');
+    if (oldModal) oldModal.remove();
+
+    const modalHTML = `
+      <div class="product-detail-modal" id="productDetailModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-box">
+          <button class="modal-box-close">✕</button>
+
+          <div class="modal-detail-content">
+            <div class="detail-image">${product.icon}</div>
+
+            <div class="detail-info">
+              <h2>${product.name}</h2>
+              <p class="detail-category">Categoría: ${product.category}</p>
+              <p class="detail-price">${formatCurrency(product.price)}</p>
+
+              <div class="detail-quantity">
+                <button class="qty-decrease">−</button>
+                <input type="number" class="qty-input" value="1" min="1">
+                <button class="qty-increase">+</button>
+              </div>
+
+              <p class="detail-description">
+                ${product.descripcion || 'Sin descripción disponible'}
+              </p>
+            </div>
+
+            <div class="detail-actions">
+              <button class="btn-add-cart modal-add-cart">
+                Agregar al Carrito
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modal = document.getElementById('productDetailModal');
+    if (modal) {
+      modal.style.display = 'flex';
+
+      const qtyInput = modal.querySelector('.qty-input');
+      const decreaseBtn = modal.querySelector('.qty-decrease');
+      const increaseBtn = modal.querySelector('.qty-increase');
+
+      decreaseBtn?.addEventListener('click', () => {
+        if (parseInt(qtyInput.value) > 1) {
+          qtyInput.value = parseInt(qtyInput.value) - 1;
+        }
+      });
+
+      increaseBtn?.addEventListener('click', () => {
+        qtyInput.value = parseInt(qtyInput.value) + 1;
+      });
+
+      modal.querySelector('.modal-overlay')?.addEventListener('click', closeProductDetail);
+      modal.querySelector('.modal-box-close')?.addEventListener('click', closeProductDetail);
+      modal.querySelector('.modal-add-cart')?.addEventListener('click', () => {
+        const qty = parseInt(qtyInput.value) || 1;
+        for (let i = 0; i < qty; i++) {
+          addToCart(product);
+        }
+        qtyInput.value = 1;
+        showToast(`${qty}x ${product.name} agregado al carrito`, 'success');
+        closeProductDetail();
+      });
+    }
+  } catch (error) {
+    console.error('Error abriendo detalle:', error);
+    showToast('Error al cargar el producto', 'error');
+  }
+}
+
+function closeProductDetail() {
+  const modal = document.getElementById('productDetailModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+window.addEventListener('load', async () => {
+    // Load UI immediately with default products
     updateUIWithSettings();
     loadAndRenderProducts();
     updateCartCount();
-    
+    renderCartSidebar();
+
     // Ejecutar animación con delay
     setTimeout(() => {
         animateCounters();
     }, 800);
+
+    // Fetch API data without blocking UI
+    loadProductsFromAPI().then(() => {
+        loadAndRenderProducts();
+        startHomeProductPolling();
+    });
 });
+
+let _lastHomeSnapshot = '';
+let _homePollingInterval = null;
+function _snapshotHome() {
+    return (allProducts || []).map(p => `${p.id}|${p.name}|${p.price}|${p.stock}|${p.habilitado}|${p.category}`).join(';');
+}
+function startHomeProductPolling() {
+    _lastHomeSnapshot = _snapshotHome();
+    if (_homePollingInterval) clearInterval(_homePollingInterval);
+    _homePollingInterval = setInterval(async () => {
+        if (document.hidden) return;
+        try {
+            await loadProductsFromAPI();
+            const newSnapshot = _snapshotHome();
+            if (newSnapshot !== _lastHomeSnapshot) {
+                _lastHomeSnapshot = newSnapshot;
+                loadAndRenderProducts();
+                console.log('[Polling Home] Productos actualizados');
+            }
+        } catch (err) {
+            console.warn('[Polling Home] error:', err.message);
+        }
+    }, 30000);
+}

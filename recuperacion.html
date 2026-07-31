@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Recuperar Contraseña</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #2c3e50;
+            padding: 30px 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 28px;
+            margin: 0 auto 14px;
+            box-shadow: 0 4px 16px rgba(127,31,110,0.3);
+        }
+
+        .card-header h1 {
+            font-size: 22px;
+            color: #7f1f6e;
+            margin-bottom: 4px;
+        }
+
+        .card-header p {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* Stepper */
+        .stepper {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 28px;
+        }
+
+        .step-dot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-dot .num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #eee;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .step-dot.active .num {
+            background: linear-gradient(135deg, #7f1f6e, #a01f8a);
+            color: white;
+            box-shadow: 0 4px 12px rgba(127,31,110,0.3);
+        }
+
+        .step-dot.done .num {
+            background: #27ae60;
+            color: white;
+        }
+
+        .step-line {
+            width: 28px;
+            height: 2px;
+            background: #eee;
+            align-self: center;
+        }
+
+        .step-line.done { background: #27ae60; }
+
+        /* Forms */
+        .step-form { display: none; }
+        .step-form.active { display: block; animation: fadeIn 0.3s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: #2c3e50;
+            margin-bottom: 7px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            background: #fafafa;
+            transition: all 0.25s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #7f1f6e;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(127,31,110,0.1);
+        }
+
+        .codigo-input {
+            text-align: center;
+            font-size: 24px !important;
+            letter-spacing: 12px;
+            font-weight: 700;
+            padding-left: 12px;
+        }
+
+        .password-wrapper { position: relative; }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #999;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .alert {
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .alert.show { display: block; }
+        .alert-error   { background: #fdf0ef; color: #c0392b; border: 1px solid #f5c6c2; }
+        .alert-success { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+        .alert-info    { background: #eaf4fb; color: #1a6fa0; border: 1px solid #aed6f1; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(127,31,110,0.35);
+        }
+
+        .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: #7f1f6e;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 8px;
+            margin-top: 10px;
+            display: block;
+            text-align: center;
+            width: 100%;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .success-icon {
+            font-size: 64px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .card-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #777;
+        }
+
+        .card-footer a {
+            color: #7f1f6e;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .card-footer a:hover { text-decoration: underline; }
+
+        .back-home {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.75);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .back-home:hover { color: white; }
+
+        .email-display {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .email-display strong { color: #7f1f6e; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="logo-icon">🔒</div>
+            <h1>Recuperar contraseña</h1>
+            <p id="stepDescription">Te enviaremos un código a tu email</p>
+        </div>
+
+        <!-- Stepper visual -->
+        <div class="stepper">
+            <div class="step-dot active" id="dot1"><div class="num">1</div></div>
+            <div class="step-line" id="line1"></div>
+            <div class="step-dot" id="dot2"><div class="num">2</div></div>
+            <div class="step-line" id="line2"></div>
+            <div class="step-dot" id="dot3"><div class="num">3</div></div>
+        </div>
+
+        <div class="alert alert-error"   id="alertError"></div>
+        <div class="alert alert-success" id="alertSuccess"></div>
+        <div class="alert alert-info"    id="alertInfo"></div>
+
+        <!-- ── PASO 1: EMAIL ── -->
+        <form id="step1Form" class="step-form active" novalidate>
+            <div class="form-group">
+                <label for="email">Email de tu cuenta</label>
+                <input type="email" id="email" placeholder="tu@email.com" autocomplete="email" required>
+            </div>
+            <button type="submit" class="btn-submit" id="btnStep1">
+                Enviar código
+            </button>
+        </form>
+
+        <!-- ── PASO 2: CÓDIGO ── -->
+        <form id="step2Form" class="step-form" novalidate>
+            <div class="email-display">
+                Código enviado a <strong id="emailEnviado">—</strong>
+            </div>
+            <div class="form-group">
+                <label for="codigo">Código de verificación (6 dígitos)</label>
+                <input
+                    type="text"
+                    id="codigo"
+                    class="codigo-input"
+                    placeholder="······"
+                    maxlength="6"
+                    inputmode="numeric"
+                    pattern="[0-9]{6}"
+                    autocomplete="one-time-code"
+                    required
+                >
+            </div>
+            <button type="submit" class="btn-submit" id="btnStep2">
+                Verificar código
+            </button>
+            <button type="button" class="btn-link" onclick="reenviarCodigo()">Reenviar código</button>
+        </form>
+
+        <!-- ── PASO 3: NUEVA CONTRASEÑA ── -->
+        <form id="step3Form" class="step-form" novalidate>
+            <div class="form-group">
+                <label for="nuevaPassword">Nueva contraseña</label>
+                <div class="password-wrapper">
+                    <input type="password" id="nuevaPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('nuevaPassword', this)">👁️</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmarPassword">Confirmar nueva contraseña</label>
+                <div class="password-wrapper">
+                    <input type="password" id="confirmarPassword" placeholder="Repetí la contraseña" autocomplete="new-password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirmarPassword', this)">👁️</button>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit" id="btnStep3">
+                Cambiar contraseña
+            </button>
+        </form>
+
+        <!-- ── PASO 4: ÉXITO ── -->
+        <div id="step4Success" class="step-form">
+            <div class="success-icon">✅</div>
+            <h2 style="text-align:center;color:#27ae60;font-size:18px;margin-bottom:8px;">¡Contraseña actualizada!</h2>
+            <p style="text-align:center;color:#777;font-size:13px;margin-bottom:24px;">Ya podés iniciar sesión con tu nueva contraseña.</p>
+            <a href="login.html" class="btn-submit" style="display:block;text-align:center;text-decoration:none;">
+                Iniciar sesión
+            </a>
+        </div>
+
+        <div class="card-footer">
+            <a href="login.html">← Volver al login</a>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-home">← Volver al inicio</a>
+
+    <script src="js/auth-cliente.js"></script>
+    <script>
+        // Pre-llenar email si viene en query string
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('email')) {
+            document.getElementById('email').value = params.get('email');
+        }
+
+        let estado = { email: '', codigo: '' };
+
+        function togglePassword(id, btn) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+            btn.textContent = input.type === 'password' ? '👁️' : '🙈';
+        }
+
+        function hideAlerts() {
+            ['alertError','alertSuccess','alertInfo'].forEach(id => document.getElementById(id).classList.remove('show'));
+        }
+
+        function showAlert(type, html) {
+            hideAlerts();
+            const el = document.getElementById('alert' + type.charAt(0).toUpperCase() + type.slice(1));
+            el.innerHTML = html;
+            el.classList.add('show');
+        }
+
+        function irAlPaso(n) {
+            // ocultar todos
+            ['step1Form','step2Form','step3Form','step4Success'].forEach(id => document.getElementById(id).classList.remove('active'));
+            // mostrar el actual
+            const targets = { 1: 'step1Form', 2: 'step2Form', 3: 'step3Form', 4: 'step4Success' };
+            document.getElementById(targets[n]).classList.add('active');
+
+            // Actualizar stepper
+            [1,2,3].forEach(i => {
+                const dot = document.getElementById('dot' + i);
+                dot.classList.remove('active','done');
+                if (i < n) dot.classList.add('done');
+                if (i === n && n <= 3) dot.classList.add('active');
+                if (n === 4) dot.classList.add('done');
+            });
+            [1,2].forEach(i => {
+                const line = document.getElementById('line' + i);
+                line.classList.toggle('done', n > i);
+            });
+
+            const desc = {
+                1: 'Te enviaremos un código a tu email',
+                2: 'Ingresá el código que enviamos',
+                3: 'Elegí una nueva contraseña',
+                4: '¡Listo!'
+            };
+            document.getElementById('stepDescription').textContent = desc[n];
+            hideAlerts();
+        }
+
+        // PASO 1: solicitar código
+        document.getElementById('step1Form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlerts();
+            const email = document.getElementById('email').value.trim();
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showAlert('error', 'Ingresá un email válido');
+                return;
+            }
+            const btn = document.getElementById('btnStep1');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Enviando código...';
+            try {
+                const result = await apiClientePostNoAuth('/clientes/recuperar/solicitar', { email });
+                // En DEMO, el endpoint devuelve demo_codigo
+                if (result.demo_codigo) {
+                    console.log(`[DEMO] Código: ${result.demo_codigo}`);
+                }
+            } catch (err) {
+                // Por seguridad NO revelamos si el email existe o no
+                console.warn('Recuperar:', err);
+            }
+            estado.email = email;
+            document.getElementById('emailEnviado').textContent = email;
+            irAlPaso(2);
+            showAlert('info', '📧 Si el email está registrado, te enviamos un código de 6 dígitos. Revisá tu casilla (y el spam).');
+            btn.disabled = false;
+            btn.innerHTML = 'Enviar código';
+        });
+
+        // PASO 2: verificar código
+        document.getElementById('step2Form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlerts();
+            const codigo = document.getElementById('codigo').value.trim();
+            if (!/^\d{6}$/.test(codigo)) {
+                showAlert('error', 'El código debe tener 6 dígitos');
+                return;
+            }
+            const btn = document.getElementById('btnStep2');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Verificando...';
+            try {
+                await apiClientePostNoAuth('/clientes/recuperar/verificar', { email: estado.email, codigo });
+                estado.codigo = codigo;
+                irAlPaso(3);
+            } catch (err) {
+                if (err.status === 404) {
+                    // Endpoint no implementado todavía → permitir avanzar para demo de UI
+                    estado.codigo = codigo;
+                    irAlPaso(3);
+                    showAlert('info', '⚠️ Modo demo: el endpoint de verificación no está disponible aún.');
+                } else {
+                    showAlert('error', err.message || 'Código incorrecto o expirado. Intentá de nuevo.');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Verificar código';
+            }
+        });
+
+        // PASO 3: cambiar contraseña
+        document.getElementById('step3Form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlerts();
+            const nueva     = document.getElementById('nuevaPassword').value;
+            const confirmar = document.getElementById('confirmarPassword').value;
+
+            if (!nueva || nueva.length < 6) {
+                showAlert('error', 'La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+            if (nueva !== confirmar) {
+                showAlert('error', 'Las contraseñas no coinciden');
+                return;
+            }
+            const btn = document.getElementById('btnStep3');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Cambiando...';
+            try {
+                await apiClientePostNoAuth('/clientes/recuperar/cambiar', {
+                    email: estado.email,
+                    codigo: estado.codigo,
+                    nuevaContraseña: nueva
+                });
+                irAlPaso(4);
+            } catch (err) {
+                if (err.status === 404) {
+                    irAlPaso(4);
+                } else {
+                    showAlert('error', err.message || 'No se pudo cambiar la contraseña. Intentá de nuevo.');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Cambiar contraseña';
+            }
+        });
+
+        async function reenviarCodigo() {
+            if (!estado.email) return;
+            try {
+                await apiClientePostNoAuth('/clientes/recuperar/solicitar', { email: estado.email });
+            } catch {}
+            showAlert('info', '📧 Código reenviado. Revisá tu casilla.');
+        }
+
+        // Solo input numérico en el campo código
+        document.getElementById('codigo').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+        });
+    </script>
+</body>
+</html>

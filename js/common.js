@@ -87,7 +87,8 @@ function clearAdminToken() {
 }
 
 function formatCurrency(amount) {
-    return '$' + amount.toLocaleString('es-AR');
+    if (!amount || isNaN(amount)) return '$0.00';
+    return '$' + parseFloat(amount).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function formatDate(dateString) {
@@ -192,7 +193,7 @@ function renderCartSidebar() {
             <div class="cart-item">
                 <div class="cart-item-icon">${item.icon || '🎁'}</div>
                 <div class="cart-item-info">
-                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-name" style="cursor: pointer; color: #9b2d7d; font-weight: 600;" onclick="openProductFromCart(${item.id})">${item.name}</div>
                     <div class="cart-item-price">${formatCurrency(item.price)}</div>
                     <div class="cart-item-qty">
                         <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
@@ -228,6 +229,17 @@ function removeItem(productId) {
     showToast('Producto removido del carrito');
 }
 
+function openProductFromCart(productId) {
+    closeCart();
+    // Buscar el producto en los datos disponibles
+    const product = allProducts?.find(p => p.id === productId) || promoProducts?.find(p => p.id === productId);
+    if (product && window.openProductDetail) {
+        window.openProductDetail(productId);
+    } else {
+        showToast('Producto no encontrado', 'error');
+    }
+}
+
 function goToCheckout() {
     const cart = getCart();
     if (cart.length === 0) {
@@ -238,9 +250,45 @@ function goToCheckout() {
     if (checkoutModal) {
         closeCart();
         checkoutModal.classList.add('active');
+        prefillCheckoutFromUser();
     } else {
         localStorage.setItem('openCheckout', 'true');
         window.location.href = 'proceso-compra.html';
+    }
+}
+
+function getLoggedCliente() {
+    const saved = localStorage.getItem('puchia_cliente_user');
+    if (!saved) return null;
+    try { return JSON.parse(saved); } catch { return null; }
+}
+
+function prefillCheckoutFromUser() {
+    const user = getLoggedCliente();
+    if (!user) return;
+
+    const fields = {
+        checkoutName:     user.nombre,
+        checkoutEmail:    user.email,
+        checkoutPhone:    user.whatsapp || user.telefono,
+        checkoutDNI:      user.dni,
+        checkoutAddress:  user.direccion,
+        checkoutProvince: user.provincia || user.ciudad,
+    };
+
+    Object.entries(fields).forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el && value) el.value = value;
+    });
+
+    // Banner indicando que los datos fueron pre-cargados
+    const form = document.getElementById('checkoutForm');
+    if (form && !document.getElementById('prefillBanner')) {
+        const banner = document.createElement('div');
+        banner.id = 'prefillBanner';
+        banner.style.cssText = 'background:#eafaf1;border:1px solid #a9dfbf;color:#1e8449;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:18px;';
+        banner.innerHTML = `✓ Hola <strong>${user.nombre || ''}</strong>, pre-cargamos tus datos. Podés editarlos si necesitás.`;
+        form.insertBefore(banner, form.firstChild);
     }
 }
 
