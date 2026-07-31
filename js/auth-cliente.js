@@ -2,7 +2,7 @@
    AUTH-CLIENTE.JS - Autenticación de Clientes
    ═════════════════════════════════════════════════════════════════ */
 
-const API_BASE_URL = 'http://127.0.0.1:3000/api/v1';
+const API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
 const TOKEN_KEY = 'puchia_cliente_token';
 const USER_KEY  = 'puchia_cliente_user';
 
