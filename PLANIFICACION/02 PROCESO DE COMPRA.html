@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Flujo de Compra Completo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #fafbfc;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        :root {
+            --purple: #7f1f6e;
+            --purple-light: #a01f8a;
+            --yellow: #F3E93F;
+            --white: #ffffff;
+            --gray-light: #f5f5f5;
+            --gray-text: #7a8794;
+            --success: #27ae60;
+        }
+
+        header {
+            background-color: var(--white);
+            padding: 18px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(127,31,110,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(127,31,110,0.3);
+        }
+
+        .logo-text {
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--purple);
+        }
+
+        nav {
+            display: flex;
+            gap: 40px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #5a5a5a;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        nav a:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--yellow);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--purple);
+        }
+
+        nav a:hover:after {
+            width: 100%;
+        }
+
+        .cart-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .cart-btn:hover {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--purple);
+            color: var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .announcement-bar {
+            background-color: var(--purple);
+            color: var(--white);
+            text-align: center;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .announcement-bar span {
+            margin: 0 20px;
+            opacity: 0.6;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .banner-carousel {
+            position: relative;
+            width: 100%;
+            height: 580px;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--purple) 0%, #5a1f5c 100%);
+        }
+
+        .banner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            text-align: center;
+            color: white;
+            padding: 60px 40px;
+        }
+
+        .banner.active {
+            opacity: 1;
+        }
+
+        .banner-content {
+            animation: fadeInScale 0.9s ease-in-out;
+        }
+
+        .banner-eyebrow {
+            display: inline-block;
+            background: rgba(243, 233, 63, 0.2);
+            border: 1px solid rgba(243, 233, 63, 0.5);
+            color: var(--yellow);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 6px 18px;
+            border-radius: 50px;
+            margin-bottom: 24px;
+        }
+
+        .banner h1 {
+            font-size: 60px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            line-height: 1.15;
+        }
+
+        .banner p {
+            font-size: 19px;
+            margin-bottom: 40px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 300;
+            max-width: 580px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .banner-btn {
+            background-color: var(--white);
+            color: var(--purple);
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .banner-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
+            background-color: var(--yellow);
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dot.active {
+            background-color: var(--yellow);
+            width: 30px;
+            border-radius: 5px;
+            border-color: var(--yellow);
+        }
+
+        .stats-section {
+            background-color: var(--white);
+            padding: 60px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--purple);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-text);
+        }
+
+        .how-section {
+            padding: 100px 60px;
+            background-color: var(--gray-light);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 40px;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 15px;
+            color: var(--gray-text);
+            margin-bottom: 70px;
+            font-weight: 300;
+        }
+
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .how-grid::before {
+            content: '';
+            position: absolute;
+            top: 36px;
+            left: 20%;
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(to right, #e0e0e0, var(--purple), #e0e0e0);
+            z-index: 0;
+        }
+
+        .how-step {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .how-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 24px;
+            box-shadow: 0 8px 24px rgba(127, 31, 110, 0.2);
+        }
+
+        .how-step h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .how-step p {
+            font-size: 14px;
+            color: var(--gray-text);
+            font-weight: 300;
+            line-height: 1.7;
+        }
+
+        .categories-section {
+            padding: 100px 60px;
+            background-color: var(--white);
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .category-card {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+            border-radius: 20px;
+            padding: 48px 30px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 30px rgba(127, 31, 110, 0.12);
+            min-height: 210px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            transform: translate(20px, 20px);
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(127, 31, 110, 0.25);
+        }
+
+        .category-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .category-card p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.75);
+            font-weight: 300;
+        }
+
+        .featured-products {
+            padding: 100px 60px;
+            background-color: var(--gray-light);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background-color: var(--white);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s ease;
+            border: 1px solid #f0f0f0;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.10);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .badge-hot {
+            background-color: var(--purple);
+            color: var(--white);
+        }
+
+        .badge-new {
+            background-color: #2c3e50;
+            color: var(--white);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #f5eef9 0%, #ecdff5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 75px;
+            transition: background 0.4s ease;
+        }
+
+        .product-card:hover .product-image {
+            background: linear-gradient(135deg, #ecdff5 0%, #e0ccee 100%);
+        }
+
+        .product-info {
+            padding: 22px 20px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .product-price {
+            font-size: 22px;
+            color: var(--purple);
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .btn-add-cart {
+            width: 100%;
+            background-color: var(--purple);
+            color: var(--white);
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+        }
+
+        .btn-add-cart:hover {
+            background-color: #5a1f5c;
+        }
+
+        .testimonials-section {
+            padding: 100px 60px;
+            background: linear-gradient(135deg, var(--purple) 0%, #5a1f5c 100%);
+            color: white;
+        }
+
+        .testimonials-title {
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 16px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .testimonials-subtitle {
+            text-align: center;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 60px;
+            font-weight: 300;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+        }
+
+        .testimonial-card:hover {
+            background-color: rgba(255, 255, 255, 0.13);
+            transform: translateY(-4px);
+        }
+
+        .google-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .google-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--purple);
+        }
+
+        .google-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        .stars {
+            color: var(--yellow);
+            font-size: 13px;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+
+        .testimonial-text {
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        footer {
+            background-color: #111;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 50px 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--purple), var(--purple-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .footer-brand-text {
+            font-weight: 600;
+            color: var(--white);
+            font-size: 15px;
+        }
+
+        .footer-center {
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .footer-right {
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #25d366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 28px rgba(37, 211, 102, 0.35);
+            transition: all 0.3s ease;
+            z-index: 999;
+            text-decoration: none;
+            color: white;
+            font-size: 28px;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.12) rotate(-10deg);
+            box-shadow: 0 10px 40px rgba(37, 211, 102, 0.45);
+        }
+
+        .cart-sidebar {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background: var(--white);
+            z-index: 2000;
+            transition: right 0.3s ease;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .cart-sidebar.open {
+            right: 0;
+        }
+
+        .cart-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--white);
+            position: sticky;
+            top: 0;
+        }
+
+        .cart-header h2 {
+            font-size: 18px;
+            color: var(--purple);
+            margin: 0;
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--purple);
+        }
+
+        .cart-items {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 12px;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            color: var(--purple);
+            font-size: 14px;
+        }
+
+        .cart-item-price {
+            font-size: 13px;
+            color: var(--gray-text);
+        }
+
+        .cart-item-qty {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .qty-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #ddd;
+            background: var(--white);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--purple);
+        }
+
+        .qty-btn:hover {
+            background: var(--gray-light);
+        }
+
+        .remove-item {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .cart-footer {
+            padding: 20px;
+            border-top: 1px solid #f0f0f0;
+            background: var(--white);
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: var(--purple);
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-primary {
+            background-color: var(--white);
+            color: var(--purple);
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--yellow);
+            transform: translateY(-3px);
+        }
+
+        .checkout-form {
+            max-width: 700px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--purple);
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(127, 31, 110, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .order-summary {
+            background: var(--gray-light);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--gray-text);
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            font-weight: 600;
+            color: var(--purple);
+            font-size: 16px;
+        }
+
+        .confirmation-screen {
+            text-align: center;
+            padding: 80px 60px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 40px;
+            color: white;
+        }
+
+        .confirmation-screen h1 {
+            font-size: 40px;
+            color: var(--purple);
+            margin-bottom: 20px;
+        }
+
+        .confirmation-screen p {
+            font-size: 16px;
+            color: var(--gray-text);
+            max-width: 500px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
+        }
+
+        .order-number {
+            background: var(--gray-light);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px auto;
+            max-width: 400px;
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .product-modal {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 700px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--purple);
+        }
+
+        .product-modal h2 {
+            color: var(--purple);
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .product-modal-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #f5eef9 0%, #ecdff5 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            margin-bottom: 20px;
+        }
+
+        .product-modal-price {
+            font-size: 28px;
+            color: var(--purple);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .product-modal-desc {
+            color: var(--gray-text);
+            margin-bottom: 30px;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .variant-selector {
+            margin: 20px 0;
+        }
+
+        .variant-selector label {
+            display: block;
+            font-weight: 500;
+            color: var(--purple);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .variant-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .variant-option {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .variant-option.selected {
+            border-color: var(--purple);
+            background-color: #f5eef9;
+            color: var(--purple);
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .quantity-selector label {
+            font-weight: 500;
+            color: var(--purple);
+            font-size: 14px;
+        }
+
+        .quantity-selector input {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--success);
+            color: var(--white);
+            padding: 16px 24px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(39, 174, 96, 0.3);
+            z-index: 3000;
+            animation: slideInUp 0.3s ease;
+            max-width: 300px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutDown {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+        }
+
+        .toast.out {
+            animation: slideOutDown 0.3s ease;
+        }
+
+        .section {
+            padding: 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .breadcrumb {
+            padding: 15px 60px;
+            font-size: 13px;
+            color: var(--gray-text);
+            background: var(--white);
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .breadcrumb span {
+            cursor: pointer;
+            color: var(--purple);
+            font-weight: 500;
+        }
+
+        .breadcrumb span:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+            }
+
+            .logo-text {
+                display: none;
+            }
+
+            nav {
+                gap: 20px;
+                font-size: 12px;
+            }
+
+            .banner-carousel {
+                height: 400px;
+            }
+
+            .banner h1 {
+                font-size: 36px;
+            }
+
+            .banner p {
+                font-size: 16px;
+            }
+
+            .section {
+                padding: 40px 20px;
+            }
+
+            .section-title {
+                font-size: 28px;
+                margin-bottom: 30px;
+            }
+
+            .stats-grid,
+            .how-grid,
+            .categories-grid,
+            .products-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .how-grid::before {
+                display: none;
+            }
+
+            .cart-sidebar {
+                width: 100%;
+                right: -100%;
+            }
+
+            .checkout-form {
+                padding: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .confirmation-screen {
+                padding: 40px 20px;
+            }
+
+            .confirmation-screen h1 {
+                font-size: 28px;
+            }
+
+            .product-modal {
+                padding: 20px;
+            }
+
+            footer {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-right {
+                text-align: center;
+            }
+
+            .toast {
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="announcement-bar">
+        Envíos a todo el país &nbsp;<span>·</span>&nbsp; Productos personalizados con 7 días de anticipación
+    </div>
+
+    <header>
+        <a href="#" class="logo-container" onclick="goToHome(event)">
+            <div class="logo">P</div>
+            <div class="logo-text">Puchia</div>
+        </a>
+        <nav>
+            <a onclick="goToHome(event)">Inicio</a>
+            <a href="#inicio" onclick="event.preventDefault(); smoothScroll('banner-carousel')">¿Cómo funciona?</a>
+            <a href="#categorias" onclick="event.preventDefault(); smoothScroll('categories-section-home')">Categorías</a>
+            <a onclick="goToProducts(event)">Productos</a>
+        </nav>
+        <button class="cart-btn" onclick="toggleCart()">
+            🛒
+            <div class="cart-count" id="cartCount">0</div>
+        </button>
+    </header>
+
+    <div class="breadcrumb" id="breadcrumb" style="display:none;">
+        <span onclick="goToHome(event)">Inicio</span>
+        <span style="color: #ccc; margin: 0 8px;">→</span>
+        <span id="breadcrumb-text">Productos</span>
+    </div>
+
+    <div id="homeScreen" class="screen active">
+        <div class="banner-carousel" id="banner-carousel">
+            <div class="banner active">
+                <div class="banner-content">
+                    <div class="banner-eyebrow">Regalos que se sienten únicos</div>
+                    <h1>Bienvenidas<br>a Puchia</h1>
+                    <p>Regalos únicos y personalizados que celebran tus momentos más especiales</p>
+                    <button class="banner-btn" onclick="goToProducts(event)">Explorar Catálogo</button>
+                </div>
+            </div>
+            <div class="banner">
+                <div class="banner-content">
+                    <div class="banner-eyebrow">Para cada celebración</div>
+                    <h1>Cumpleaños<br>& Fiestas</h1>
+                    <p>Hacé cada celebración memorable con nuestros productos personalizados</p>
+                    <button class="banner-btn" onclick="filterByCategory('cumpleaños')">Ver Opciones</button>
+                </div>
+            </div>
+            <div class="banner">
+                <div class="banner-content">
+                    <div class="banner-eyebrow">Los primeros momentos</div>
+                    <h1>Bebés &<br>Nacimientos</h1>
+                    <p>Artículos delicados y especiales para los momentos más dulces de la vida</p>
+                    <button class="banner-btn" onclick="filterByCategory('bebés')">Descubrir Más</button>
+                </div>
+            </div>
+            <div class="banner">
+                <div class="banner-content">
+                    <div class="banner-eyebrow">Impulsá tu marca</div>
+                    <h1>Para<br>Emprendedores</h1>
+                    <p>Productos profesionales para darle valor e identidad a tu negocio</p>
+                    <button class="banner-btn" onclick="filterByCategory('emprendedores')">Conocer Más</button>
+                </div>
+            </div>
+            <div class="carousel-dots">
+                <div class="dot active" onclick="changeBanner(0)"></div>
+                <div class="dot" onclick="changeBanner(1)"></div>
+                <div class="dot" onclick="changeBanner(2)"></div>
+                <div class="dot" onclick="changeBanner(3)"></div>
+            </div>
+        </div>
+
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" data-target="1000">0</div>
+                    <div class="stat-label">Pedidos entregados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="5">0</div>
+                    <div class="stat-label">Estrellas en Google</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="100">0</div>
+                    <div class="stat-label">% Personalizados</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-section">
+            <h2 class="section-title">¿Cómo funciona?</h2>
+            <p class="section-subtitle">Simple, rápido y completamente personalizado para vos</p>
+            <div class="how-grid">
+                <div class="how-step">
+                    <div class="how-icon">🛍️</div>
+                    <h3>Elegís</h3>
+                    <p>Navegá nuestro catálogo, seleccioná tus productos favoritos y armá tu pedido</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-icon">✏️</div>
+                    <h3>Personalizamos</h3>
+                    <p>Coordinamos los detalles por WhatsApp y creamos tu pedido con dedicación</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-icon">🚚</div>
+                    <h3>Lo recibís</h3>
+                    <p>Entregamos en tiempo y forma, con la calidad y cuidado que te merecés</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="categories-section" id="categories-section-home">
+            <h2 class="section-title">Nuestras Categorías</h2>
+            <p class="section-subtitle">Explorá nuestra variedad de opciones personalizadas</p>
+            <div class="categories-grid">
+                <div class="category-card" onclick="filterByCategory('cumpleaños')">
+                    <h3>🎉 Cumpleaños y Fiestas</h3>
+                    <p>Decoraciones y regalos únicos para cada celebración</p>
+                </div>
+                <div class="category-card" onclick="filterByCategory('bebés')">
+                    <h3>👶 Bebés y Nacimientos</h3>
+                    <p>Momentos especiales para los primeros días</p>
+                </div>
+                <div class="category-card" onclick="filterByCategory('emprendedores')">
+                    <h3>💼 Para Emprendedores</h3>
+                    <p>Herramientas de negocio con identidad propia</p>
+                </div>
+                <div class="category-card" onclick="filterByCategory('combos')">
+                    <h3>🎁 Combos Puchia</h3>
+                    <p>Paquetes especiales pensados para sorprender</p>
+                </div>
+                <div class="category-card" onclick="filterByCategory('regalos')">
+                    <h3>✨ Regalos Personalizados</h3>
+                    <p>Tu idea, nuestra creación perfecta</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonials-section">
+            <h2 class="testimonials-title">Lo que dicen nuestras clientas</h2>
+            <p class="testimonials-subtitle">Opiniones reales verificadas en Google</p>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="google-badge">
+                        <div class="google-icon">G</div>
+                        <span class="google-label">Google Reviews</span>
+                    </div>
+                    <div class="stars">★★★★★</div>
+                    <div class="testimonial-text">Excelente trabajo, hermosa calidad y presentación. Entrega en tiempo y forma, además la atención excelente. ¡Un gusto!</div>
+                    <div class="testimonial-author">Clienta verificada</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="google-badge">
+                        <div class="google-icon">G</div>
+                        <span class="google-label">Google Reviews</span>
+                    </div>
+                    <div class="stars">★★★★★</div>
+                    <div class="testimonial-text">Son muy amables y comprometidas en su trabajo. Productos de calidad y buen precio. Entregas en tiempo y forma. Super recomendables.</div>
+                    <div class="testimonial-author">Clienta verificada</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="google-badge">
+                        <div class="google-icon">G</div>
+                        <span class="google-label">Google Reviews</span>
+                    </div>
+                    <div class="stars">★★★★★</div>
+                    <div class="testimonial-text">Excelente atención, muy amables, entregaron en tiempo y forma. Super recomiendo a Puchia para cualquier regalo especial.</div>
+                    <div class="testimonial-author">Clienta verificada</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="footer-brand">
+                <div class="footer-logo">P</div>
+                <div class="footer-brand-text">Puchia</div>
+            </div>
+            <div class="footer-center">
+                &copy; 2024 Puchia — Todos los derechos reservados
+            </div>
+            <div class="footer-right">
+                Regalos personalizados con amor 🤍
+            </div>
+        </footer>
+    </div>
+
+    <div id="productsScreen" class="screen">
+        <div class="section">
+            <h2 class="section-title" id="productsTitle">Nuestros Productos</h2>
+            <div class="products-grid" id="productsGrid">
+            </div>
+        </div>
+        <footer>
+            <div class="footer-brand">
+                <div class="footer-logo">P</div>
+                <div class="footer-brand-text">Puchia</div>
+            </div>
+            <div class="footer-center">
+                &copy; 2024 Puchia — Todos los derechos reservados
+            </div>
+            <div class="footer-right">
+                Regalos personalizados con amor 🤍
+            </div>
+        </footer>
+    </div>
+
+    <div id="checkoutScreen" class="screen">
+        <div class="section">
+            <h2 class="section-title">Checkout</h2>
+            <div class="checkout-form">
+                <h3 style="color: var(--purple); margin-bottom: 20px;">Datos de Envío</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre completo</label>
+                        <input type="text" id="fullName" placeholder="Tu nombre">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="tu@email.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Teléfono / WhatsApp</label>
+                        <input type="tel" id="phone" placeholder="+54 9 ...">
+                    </div>
+                    <div class="form-group">
+                        <label>DNI</label>
+                        <input type="text" id="dni" placeholder="12.345.678">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" id="address" placeholder="Calle y número">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Localidad</label>
+                        <input type="text" id="locality" placeholder="Tu ciudad">
+                    </div>
+                    <div class="form-group">
+                        <label>Código Postal</label>
+                        <input type="text" id="postal" placeholder="2000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Notas adicionales</label>
+                    <textarea id="notes" placeholder="Detalles personalizados, instrucciones especiales..." style="min-height: 100px;"></textarea>
+                </div>
+
+                <div class="order-summary">
+                    <h3 style="color: var(--purple); margin-bottom: 15px; font-size: 16px;">Resumen de Orden</h3>
+                    <div id="summaryItems"></div>
+                    <div class="summary-total">
+                        <span>Total:</span>
+                        <span id="totalPrice">$0</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="submitCheckout()" style="width: 100%; padding: 16px;">
+                    Confirmar Orden
+                </button>
+                <button class="btn btn-primary" onclick="goToCart()" style="width: 100%; padding: 16px; margin-top: 10px; background-color: #f0f0f0; color: var(--purple);">
+                    Volver al Carrito
+                </button>
+            </div>
+        </div>
+        <footer>
+            <div class="footer-brand">
+                <div class="footer-logo">P</div>
+                <div class="footer-brand-text">Puchia</div>
+            </div>
+            <div class="footer-center">
+                &copy; 2024 Puchia — Todos los derechos reservados
+            </div>
+            <div class="footer-right">
+                Regalos personalizados con amor 🤍
+            </div>
+        </footer>
+    </div>
+
+    <div id="confirmationScreen" class="screen">
+        <div class="confirmation-screen">
+            <div class="success-icon">✓</div>
+            <h1>¡Orden Confirmada!</h1>
+            <p>
+                Gracias por tu compra. Nos comunicaremos en breve por WhatsApp o email para coordinar los detalles de personalización y envío.
+            </p>
+            <div class="order-number">
+                Nº de Orden: <span id="orderNumber"></span>
+            </div>
+            <p style="color: var(--gray-text); font-size: 14px;">
+                Un email de confirmación ha sido enviado a <strong id="confirmEmail"></strong>
+            </p>
+            <button class="btn btn-primary" onclick="goToHome(event)" style="margin-top: 40px; width: auto;">
+                Volver al Inicio
+            </button>
+        </div>
+        <footer>
+            <div class="footer-brand">
+                <div class="footer-logo">P</div>
+                <div class="footer-brand-text">Puchia</div>
+            </div>
+            <div class="footer-center">
+                &copy; 2024 Puchia — Todos los derechos reservados
+            </div>
+            <div class="footer-right">
+                Regalos personalizados con amor 🤍
+            </div>
+        </footer>
+    </div>
+
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Mi Carrito</h2>
+            <button class="close-cart" onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cartItemsList">
+            <p style="text-align: center; color: var(--gray-text); padding: 20px;">Tu carrito está vacío</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotalPrice">$0</span>
+            </div>
+            <button class="btn btn-primary" onclick="goToCheckout()" style="width: 100%; padding: 14px;">
+                Continuar al Checkout
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="product-modal" id="productDetailModal" onclick="event.stopPropagation()">
+        </div>
+    </div>
+
+    <a href="https://wa.me/549" class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">💬</a>
+
+    <script>
+        const products = [
+            { id: 1, name: 'Banderín Personalizado', price: 4800, category: 'cumpleaños', icon: '🎈', desc: 'Banderín decorativo personalizado con tus colores favoritos. Perfecto para cumpleaños, fiestas temáticas y eventos especiales. Disponible en múltiples diseños y materiales de calidad premium.' },
+            { id: 2, name: 'Bolsitas Golosineras', price: 990, category: 'cumpleaños', icon: '🍬', desc: 'Bolsitas de papel para golosinas, diseño personalizado. Ideales para regalos en fiestas infantiles. Incluye cierre seguro y diseño visualmente atractivo.' },
+            { id: 3, name: 'Bolsitas 3D', price: 1050, category: 'cumpleaños', icon: '📦', desc: 'Bolsitas 3D con diseño especial, perfectas para regalos. Estructura resistente y acabado profesional. Excelente presentación para sorpresas.' },
+            { id: 4, name: 'Calendarios Negocios', price: 790, category: 'emprendedores', icon: '📅', desc: 'Calendario personalizado con logo de tu negocio. Ideal para promoción y branding. Impresión de alta calidad con tus propios diseños.' },
+            { id: 5, name: 'Imágenes Decorativas', price: 1200, category: 'cumpleaños', icon: '🖼️', desc: 'Imágenes decorativas personalizadas para tu espacio. Impresión en alta resolución sobre materiales duraderos. Tamaños variados disponibles.' },
+            { id: 6, name: 'Librito para Pintar', price: 990, category: 'cumpleaños', icon: '🎨', desc: 'Librito para colorear, perfecto para sorpresas infantiles. Diseños temáticos variados. Papel de calidad apto para múltiples técnicas.' },
+            { id: 7, name: 'Librito + Lápices', price: 1290, category: 'cumpleaños', icon: '✏️', desc: 'Combo de librito para pintar + set de lápices. Incluye lápices de colores de buena calidad. Pack perfecto como regalo completo.' },
+            { id: 8, name: 'Llaveros Acrílico', price: 1190, category: 'regalos', icon: '🔑', desc: 'Llaveros acrílicos con tu diseño personalizado. Material resistente y duradero. Excelente regalo corporativo o personal.' },
+            { id: 9, name: 'Mini Toppers x15', price: 3900, category: 'cumpleaños', icon: '🎂', desc: 'Set de 15 mini toppers para cupcakes. Diseños variados y personalizables. Perfectos para decorar postres en eventos.' },
+            { id: 10, name: 'Stickers A4 Común', price: 2000, category: 'cumpleaños', icon: '🔖', desc: 'Lámina de stickers A4 papel común. Impresión nítida y colorida. Ideales para decoración y detalles personalizados.' },
+            { id: 11, name: 'Stickers A4 Vinilo', price: 2500, category: 'cumpleaños', icon: '🏷️', desc: 'Lámina de stickers A4 vinilo resistente. Adhesivo de larga duración. Apto para uso exterior e interior.' },
+            { id: 12, name: 'Tarjetas 230gr', price: 2500, category: 'regalos', icon: '💌', desc: 'Tarjetas de alta calidad 230gr de espesor. Acabado mate o brillante. Perfectas para ocasiones especiales.' },
+            { id: 13, name: 'Tarjetas 120gr', price: 2000, category: 'regalos', icon: '✉️', desc: 'Tarjetas 120gr, opciones de tamaño y diseño. Impresión profesional. Versatilidad de usos.' },
+            { id: 14, name: 'Topper de Torta', price: 5500, category: 'cumpleaños', icon: '🎂', desc: 'Topper personalizado para decorar tu torta. Fabricado en materiales seguros y duraderos. Diseños exclusivos y personalizables.' },
+            { id: 15, name: 'Vasos Tapa Chata', price: 1290, category: 'cumpleaños', icon: '🥤', desc: 'Vasos de 14 colores con tapa chata, personalizables. Material resistente apto para alimentos. Opción ecológica disponible.' },
+            { id: 16, name: 'Pulseras Personalizadas', price: 890, category: 'bebés', icon: '👶', desc: 'Pulseras de silicona personalizadas para bebés. Material seguro y hipoalergénico. Excelente para identificación y recuerdos.' },
+            { id: 17, name: 'Recordatorios Nacimiento', price: 1500, category: 'bebés', icon: '🍼', desc: 'Recordatorios delicados para anunciar nacimientos. Diseño elegante y profesional. Impresión de calidad premium.' },
+            { id: 18, name: 'Álbum Bebé Premium', price: 3200, category: 'bebés', icon: '📸', desc: 'Álbum especial para guardar los primeros momentos. Encuadernación de calidad. Páginas de papel resistente.' },
+            { id: 19, name: 'Etiquetas Bebé', price: 750, category: 'bebés', icon: '🏷️', desc: 'Etiquetas personalizadas para ropa de bebé. Resistentes al lavado. Fácil de aplicar y duraderas.' },
+            { id: 20, name: 'Set Bienvenida Bebé', price: 4500, category: 'bebés', icon: '🎁', desc: 'Combo completo para celebrar la llegada del bebé. Incluye múltiples artículos personalizables. Pack perfecto como regalo.' },
+            { id: 21, name: 'Tarjetas Negocio', price: 1200, category: 'emprendedores', icon: '💼', desc: 'Tarjetas de presentación profesionales personalizadas. Diseño corporativo. Impresión de alta definición.' },
+            { id: 22, name: 'Stickers Logo', price: 950, category: 'emprendedores', icon: '🔖', desc: 'Stickers con tu logo para empaques. Material adhesivo resistente. Ideal para branding de productos.' },
+            { id: 23, name: 'Etiquetas Producto', price: 1100, category: 'emprendedores', icon: '🏷️', desc: 'Etiquetas personalizadas para tus productos. Acabado profesional. Múltiples tamaños disponibles.' },
+            { id: 24, name: 'Banners Personalizados', price: 2800, category: 'emprendedores', icon: '🎨', desc: 'Banners personalizados para tu negocio. Impresión en alta calidad. Ideal para eventos y promociones.' },
+            { id: 25, name: 'Combo Regalo Básico', price: 2500, category: 'combos', icon: '🎁', desc: 'Combo económico: tarjetas + stickers. Perfecto para comenzar. Excelente relación calidad-precio.' },
+            { id: 26, name: 'Combo Premium', price: 5900, category: 'combos', icon: '👑', desc: 'Combo completo: tarjetas + llaveros + stickers. Variedad de productos. Ideal para regalo empresarial.' },
+            { id: 27, name: 'Combo Cumpleaños', price: 7200, category: 'combos', icon: '🎉', desc: 'Todo lo que necesitas para una fiesta. Decoración completa incluida. Pack integral para eventos exitosos.' },
+            { id: 28, name: 'Kit Personalización Completo', price: 9500, category: 'combos', icon: '📦', desc: 'Kit deluxe con todos los productos personalizados. La opción más completa disponible. Perfecto para negocios en expansión.' },
+            { id: 29, name: 'Funda Personalizada', price: 1450, category: 'regalos', icon: '📱', desc: 'Funda de celular personalizada con tu diseño. Protección y estilo. Material duradero y resistente.' },
+            { id: 30, name: 'Portafotos Acrílico', price: 1800, category: 'regalos', icon: '🖼️', desc: 'Marco de acrílico personalizado para fotos. Material transparente de calidad. Ideal para decoración y regalos especiales.' }
+        ];
+
+        let cart = [];
+        let currentFilter = null;
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<span>✓</span> <span>${message}</span>`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('out');
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        function renderProducts(filter = null) {
+            const grid = document.getElementById('productsGrid');
+            const filtered = filter ? products.filter(p => p.category === filter) : products;
+
+            grid.innerHTML = filtered.map(product => `
+                <div class="product-card" onclick="openProductDetail(${product.id})">
+                    <div class="product-image">${product.icon}</div>
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-price">$${product.price.toLocaleString('es-AR')}</div>
+                        <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart(${product.id})">Agregar al Carrito</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openProductDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            const modal = document.getElementById('productDetailModal');
+
+            modal.innerHTML = `
+                <button class="modal-close" onclick="closeModal()">✕</button>
+                <div class="product-modal-image">${product.icon}</div>
+                <h2>${product.name}</h2>
+                <div class="product-modal-price">$${product.price.toLocaleString('es-AR')}</div>
+                <p class="product-modal-desc">${product.desc}</p>
+
+                <div class="variant-selector">
+                    <label>Elige tu variante</label>
+                    <div class="variant-options">
+                        <div class="variant-option selected" onclick="selectVariant(this)">Estándar</div>
+                        <div class="variant-option" onclick="selectVariant(this)">Premium</div>
+                        <div class="variant-option" onclick="selectVariant(this)">Deluxe</div>
+                    </div>
+                </div>
+
+                <div class="quantity-selector">
+                    <label for="qty">Cantidad:</label>
+                    <input type="number" id="qty" min="1" value="1">
+                </div>
+
+                <button class="btn btn-primary" onclick="addToCartFromModal(${product.id}); closeModal();" style="width: 100%; padding: 14px; margin-top: 20px;">
+                    Agregar al Carrito
+                </button>
+            `;
+
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function selectVariant(el) {
+            document.querySelectorAll('.variant-option').forEach(v => v.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+
+            updateCart();
+            showToast(`${product.name} agregado al carrito!`);
+        }
+
+        function addToCartFromModal(productId) {
+            const qty = parseInt(document.getElementById('qty').value) || 1;
+            const product = products.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += qty;
+            } else {
+                cart.push({ ...product, quantity: qty });
+            }
+
+            updateCart();
+        }
+
+        function updateCart() {
+            document.getElementById('cartCount').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+            renderCartItems();
+        }
+
+        function renderCartItems() {
+            const cartList = document.getElementById('cartItemsList');
+            const cartTotalEl = document.getElementById('cartTotalPrice');
+
+            if (cart.length === 0) {
+                cartList.innerHTML = '<p style="text-align: center; color: var(--gray-text); padding: 20px;">Tu carrito está vacío</p>';
+                cartTotalEl.textContent = '$0';
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotalEl.textContent = '$' + total.toLocaleString('es-AR');
+
+            cartList.innerHTML = cart.map((item, idx) => `
+                <div class="cart-item">
+                    <div style="font-size: 24px;">${item.icon}</div>
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-price">$${item.price.toLocaleString('es-AR')} c/u</div>
+                    </div>
+                    <div class="cart-item-qty">
+                        <button class="qty-btn" onclick="updateQuantity(${idx}, -1)">−</button>
+                        <span style="font-weight: 600; color: var(--purple); width: 20px; text-align: center;">${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateQuantity(${idx}, 1)">+</button>
+                    </div>
+                    <button class="remove-item" onclick="removeFromCart(${idx})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function updateQuantity(idx, change) {
+            cart[idx].quantity += change;
+            if (cart[idx].quantity <= 0) {
+                cart.splice(idx, 1);
+            }
+            updateCart();
+        }
+
+        function removeFromCart(idx) {
+            cart.splice(idx, 1);
+            updateCart();
+        }
+
+        function toggleCart() {
+            document.getElementById('cartSidebar').classList.toggle('open');
+        }
+
+        function goToHome(e) {
+            e.preventDefault();
+            showScreen('homeScreen');
+            document.getElementById('breadcrumb').style.display = 'none';
+            currentFilter = null;
+        }
+
+        function goToProducts(e) {
+            if (e) e.preventDefault();
+            currentFilter = null;
+            renderProducts();
+            showScreen('productsScreen');
+            document.getElementById('breadcrumb').style.display = 'block';
+            document.getElementById('breadcrumb-text').textContent = 'Productos';
+            document.getElementById('productsTitle').textContent = 'Nuestros Productos';
+        }
+
+        function filterByCategory(category) {
+            currentFilter = category;
+            const categoryNames = {
+                'cumpleaños': 'Cumpleaños y Fiestas',
+                'bebés': 'Bebés y Nacimientos',
+                'emprendedores': 'Para Emprendedores',
+                'combos': 'Combos Puchia',
+                'regalos': 'Regalos Personalizados'
+            };
+            renderProducts(category);
+            showScreen('productsScreen');
+            document.getElementById('breadcrumb').style.display = 'block';
+            document.getElementById('breadcrumb-text').textContent = categoryNames[category];
+            document.getElementById('productsTitle').textContent = categoryNames[category];
+        }
+
+        function goToCheckout() {
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+            renderSummary();
+            showScreen('checkoutScreen');
+            document.getElementById('cartSidebar').classList.remove('open');
+            document.getElementById('breadcrumb').style.display = 'block';
+            document.getElementById('breadcrumb-text').textContent = 'Checkout';
+        }
+
+        function goToCart() {
+            showScreen('productsScreen');
+            renderProducts(currentFilter);
+            document.getElementById('cartSidebar').classList.add('open');
+        }
+
+        function renderSummary() {
+            const summary = document.getElementById('summaryItems');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('totalPrice').textContent = '$' + total.toLocaleString('es-AR');
+
+            summary.innerHTML = cart.map(item => `
+                <div class="summary-item">
+                    <span>${item.name} x${item.quantity}</span>
+                    <span>$${(item.price * item.quantity).toLocaleString('es-AR')}</span>
+                </div>
+            `).join('');
+        }
+
+        function submitCheckout() {
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+
+            if (!fullName || !email) {
+                alert('Por favor completa los datos requeridos');
+                return;
+            }
+
+            const orderNumber = 'ORD-' + Date.now();
+            document.getElementById('orderNumber').textContent = orderNumber;
+            document.getElementById('confirmEmail').textContent = email;
+
+            cart = [];
+            updateCart();
+            showScreen('confirmationScreen');
+            document.getElementById('breadcrumb').style.display = 'none';
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function smoothScroll(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        let currentBanner = 0;
+        const banners = document.querySelectorAll('.banner');
+        const dots = document.querySelectorAll('.dot');
+
+        function showBanner(index) {
+            banners.forEach(b => b.classList.remove('active'));
+            dots.forEach(d => d.classList.remove('active'));
+            banners[index].classList.add('active');
+            dots[index].classList.add('active');
+        }
+
+        function nextBanner() {
+            currentBanner = (currentBanner + 1) % banners.length;
+            showBanner(currentBanner);
+        }
+
+        function changeBanner(index) {
+            currentBanner = index;
+            showBanner(currentBanner);
+        }
+
+        setInterval(nextBanner, 5000);
+
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseInt(el.dataset.target);
+                    let start = 0;
+                    const duration = 2000;
+                    const step = target / (duration / 16);
+                    const timer = setInterval(() => {
+                        start += step;
+                        if (start >= target) {
+                            start = target;
+                            clearInterval(timer);
+                        }
+                        const val = Math.floor(start);
+                        if (target === 5) {
+                            el.textContent = val + '★';
+                        } else if (target === 100) {
+                            el.textContent = val + '%';
+                        } else {
+                            el.textContent = '+' + val.toLocaleString('es-AR');
+                        }
+                    }, 16);
+                    statsObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 0.3 });
+
+        document.querySelectorAll('.stat-number').forEach(el => statsObserver.observe(el));
+
+        renderProducts();
+    </script>
+
+</body>
+
+</html>

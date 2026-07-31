@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Proyecto Ecommerce Completo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.8;
+            color: #1a1a1a;
+            background: #fafbfc;
+        }
+
+        /* PORTADA */
+        .portada {
+            background: linear-gradient(135deg, #7f1f6e 0%, #5a1f5c 100%);
+            color: white;
+            padding: 80px 60px;
+            text-align: center;
+            page-break-after: always;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .portada h1 {
+            font-size: 72px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+        }
+
+        .portada .tagline {
+            font-size: 28px;
+            font-weight: 300;
+            color: #F3E93F;
+            margin-bottom: 60px;
+        }
+
+        .portada .descripcion {
+            font-size: 18px;
+            max-width: 700px;
+            margin: 0 auto 80px;
+            opacity: 0.9;
+            line-height: 1.8;
+        }
+
+        .portada .fecha {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-top: 60px;
+        }
+
+        /* SECCIONES */
+        .seccion {
+            padding: 80px 60px;
+            page-break-after: always;
+            background: white;
+        }
+
+        .seccion.gris {
+            background: #f5f5f5;
+        }
+
+        .seccion.alerta {
+            background: linear-gradient(135deg, rgba(243, 233, 63, 0.1) 0%, rgba(127, 31, 110, 0.05) 100%);
+            border-left: 4px solid #F3E93F;
+        }
+
+        .seccion h2 {
+            font-size: 48px;
+            color: #7f1f6e;
+            margin-bottom: 40px;
+            font-weight: 700;
+            border-bottom: 3px solid #F3E93F;
+            padding-bottom: 20px;
+        }
+
+        .seccion h3 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin: 40px 0 20px;
+            font-weight: 600;
+        }
+
+        .seccion h4 {
+            font-size: 20px;
+            color: #7f1f6e;
+            margin: 25px 0 12px;
+            font-weight: 600;
+        }
+
+        .seccion p {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.9;
+        }
+
+        /* LISTAS */
+        .lista {
+            list-style: none;
+            margin: 30px 0;
+        }
+
+        .lista li {
+            font-size: 16px;
+            padding: 12px 0 12px 40px;
+            position: relative;
+            color: #555;
+        }
+
+        .lista li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #F3E93F;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .lista.precaucion li:before {
+            content: "⚠";
+            color: #F3E93F;
+        }
+
+        /* CARDS */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(127, 31, 110, 0.2);
+        }
+
+        .card.warning {
+            background: linear-gradient(135deg, #F3E93F 0%, #ffd700 100%);
+            color: #333;
+        }
+
+        .card h4 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: inherit;
+        }
+
+        /* TABLA */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        th {
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        tr:hover {
+            background: #fafbfc;
+        }
+
+        /* ESPECIFICACIONES */
+        .especificaciones {
+            background: #f5f5f5;
+            padding: 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border-left: 4px solid #7f1f6e;
+        }
+
+        .especificaciones h4 {
+            font-size: 18px;
+            color: #7f1f6e;
+            margin: 20px 0 10px;
+            font-weight: 600;
+        }
+
+        .especificaciones p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* TIMELINE */
+        .timeline {
+            position: relative;
+            padding: 40px 0;
+        }
+
+        .timeline-item {
+            padding-left: 50px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .timeline-item:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background: #F3E93F;
+            border-radius: 50%;
+            border: 3px solid #7f1f6e;
+        }
+
+        .timeline-item h4 {
+            font-size: 18px;
+            color: #7f1f6e;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .timeline-item p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* COLORES */
+        .color-swatch {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            margin: 10px 20px 10px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            vertical-align: middle;
+        }
+
+        .color-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* PÁGINA 2 */
+        .pagina-indice {
+            padding: 80px 60px;
+        }
+
+        .pagina-indice h2 {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 60px;
+        }
+
+        .indice-lista {
+            list-style: none;
+            font-size: 18px;
+        }
+
+        .indice-lista li {
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 40px;
+            text-align: center;
+            font-size: 12px;
+            margin-top: 60px;
+            page-break-before: always;
+        }
+
+        /* PRINT */
+        @media print {
+            body {
+                background: white;
+            }
+            .seccion {
+                page-break-after: always;
+            }
+            .portada {
+                page-break-after: always;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            background: #7f1f6e;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .badge.warning {
+            background: #F3E93F;
+            color: #333;
+        }
+
+        .highlight {
+            background: rgba(243, 233, 63, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #7f1f6e;
+            font-weight: 600;
+        }
+
+        .caja-info {
+            background: #f0f0f0;
+            border: 2px solid #7f1f6e;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .caja-info strong {
+            color: #7f1f6e;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PORTADA -->
+    <div class="portada">
+        <h1>PUCHIA</h1>
+        <div class="tagline">Ecommerce Escalable & Profesional</div>
+        <div class="descripcion">
+            Documento Estratégico Completo<br>
+            Base para Continuidad del Proyecto
+        </div>
+        <div class="fecha">Mayo 2024 | Versión 2.0 | DOCUMENTO VIVO</div>
+    </div>
+
+    <!-- PÁGINA ADVERTENCIA -->
+    <div class="seccion alerta">
+        <h2>⚠️ LECTURA IMPORTANTE ANTES DE COMENZAR</h2>
+        
+        <div class="caja-info">
+            <p><strong>Este documento NO es una especificación final cerrada.</strong></p>
+            <p>Es una <span class="highlight">base viva y flexible</span> que puede evolucionar según:</p>
+        </div>
+
+        <ul class="lista precaucion">
+            <li>Aprendizajes durante el desarrollo</li>
+            <li>Feedback de usuarios reales</li>
+            <li>Cambios en prioridades</li>
+            <li>Optimizaciones técnicas</li>
+            <li>Mejoras de UX/UI descubiertas en el camino</li>
+        </ul>
+
+        <h3>Decisiones Tentativas</h3>
+        <p>Muchas decisiones técnicas y de diseño incluidas aquí son:</p>
+        <ul class="lista">
+            <li><strong>Orientativas</strong> - No mandatorias</li>
+            <li><strong>Provisorias</strong> - Sujetas a cambios</li>
+            <li><strong>Debatibles</strong> - Abiertas a mejores ideas</li>
+        </ul>
+
+        <h3>¿Por qué este enfoque?</h3>
+        <p>La realidad es que los proyectos digitales evolucionan. Lo que parece perfecto en papel cambia cuando usuarios reales interactúan con el sistema. Este documento es la <span class="highlight">brújula, no el mapa</span>.</p>
+    </div>
+
+    <!-- REGLAS PARA AGENTES IA -->
+    <div class="seccion gris">
+        <h2>🤖 Reglas Generales para Agentes IA</h2>
+        
+        <p>Si sos un agente IA (Claude, otro LLM, o similar) continuando este proyecto, <strong>debes adherir a estas reglas</strong>:</p>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h4>❌ NO asumir</h4>
+                <p>No asumir información no confirmada explícitamente. Si algo no está claro, preguntar primero.</p>
+            </div>
+            <div class="card">
+                <h4>✅ Priorizar Simplicidad</h4>
+                <p>Simplicidad antes que complejidad técnica. Código limpio > código clever.</p>
+            </div>
+            <div class="card">
+                <h4>💬 Explicar Cambios</h4>
+                <p>Explicar cambios importantes ANTES de implementarlos. Consenso > imposición.</p>
+            </div>
+            <div class="card">
+                <h4>🏠 Hosting Simple</h4>
+                <p>Mantener compatibilidad con Hostinger o similar. Sin capas innecesarias.</p>
+            </div>
+            <div class="card">
+                <h4>👤 Sin Técnicos</h4>
+                <p>Todo debe poder ser administrado por personas sin conocimientos técnicos. Interfaces visuales > configuraciones manuales.</p>
+            </div>
+            <div class="card">
+                <h4>🎨 Coherencia Puchia</h4>
+                <p>Mantener coherencia estética y estructural con identidad Puchia. Ser consistente.</p>
+            </div>
+        </div>
+
+        <h3>Priorización en Conflictos</h3>
+        <table>
+            <tr>
+                <th>Si hay conflicto entre...</th>
+                <th>Priorizar...</th>
+            </tr>
+            <tr>
+                <td>Estética extrema vs Estabilidad</td>
+                <td>✅ Estabilidad</td>
+            </tr>
+            <tr>
+                <td>Velocidad de desarrollo vs Claridad</td>
+                <td>✅ Claridad</td>
+            </tr>
+            <tr>
+                <td>Feature complejo vs Funcionalidad simple</td>
+                <td>✅ Funcionalidad simple</td>
+            </tr>
+            <tr>
+                <td>Tecnología "cool" vs Mantenibilidad</td>
+                <td>✅ Mantenibilidad</td>
+            </tr>
+            <tr>
+                <td>Escalabilidad futura vs MVP ahora</td>
+                <td>✅ MVP ahora (pensar escalabilidad pero no paralizar)</td>
+            </tr>
+        </table>
+
+        <h3>Regla Fundamental</h3>
+        <p style="font-size: 18px; font-weight: 600; color: #7f1f6e; margin-top: 30px;">No inventar funcionalidades, estructuras o significados no confirmados explícitamente.</p>
+    </div>
+
+    <!-- ÍNDICE -->
+    <div class="pagina-indice">
+        <h2>📋 ÍNDICE DE CONTENIDOS</h2>
+        <ul class="indice-lista">
+            <li>1. Aclaraciones Críticas Sobre Tecnología</li>
+            <li>2. Aclaraciones Sobre Logo & Identidad Visual</li>
+            <li>3. Aclaraciones Sobre Estimaciones</li>
+            <li>4. Objetivo Central del Proyecto</li>
+            <li>5. Visión General de Puchia</li>
+            <li>6. Problema Identificado & Solución</li>
+            <li>7. Especificaciones de Marca</li>
+            <li>8. Arquitectura Técnica</li>
+            <li>9. Estructura del Ecommerce</li>
+            <li>10. Especificaciones del Diseño Frontend</li>
+            <li>11. Panel Administrativo</li>
+            <li>12. Catálogo de Productos (15 Items)</li>
+            <li>13. Sistema de Stock Compartido</li>
+            <li>14. Flujos de Usuario</li>
+            <li>15. Integración WhatsApp</li>
+            <li>16. Plan de Deployment</li>
+            <li>17. Mejoras Futuras & Escalabilidad</li>
+            <li>18. Cronograma de Desarrollo</li>
+            <li>19. Conclusiones & Próximos Pasos</li>
+        </ul>
+    </div>
+
+    <!-- 1. ACLARACIONES TECNOLOGÍA -->
+    <div class="seccion">
+        <h2>1️⃣ Aclaraciones Críticas Sobre Tecnología</h2>
+        
+        <div class="caja-info">
+            <p><strong>Las tecnologías mencionadas en este documento son ÚNICAMENTE orientativas.</strong></p>
+            <p>NO representan decisiones definitivas e inamovibles.</p>
+        </div>
+
+        <h3>¿Qué puede cambiar?</h3>
+        <ul class="lista">
+            <li><strong>Base de datos:</strong> SQLite → PostgreSQL o MongoDB si crece</li>
+            <li><strong>Frontend:</strong> Vanilla JS → React/Vue si se complica</li>
+            <li><strong>Backend:</strong> Express → Django/FastAPI si es mejor</li>
+            <li><strong>Hosting:</strong> Hostinger → AWS/Google Cloud si requiere escala</li>
+        </ul>
+
+        <h3>Criterios para Cambios Técnicos</h3>
+        <table>
+            <tr>
+                <th>Se cambia tecnología si...</th>
+                <th>Ejemplo</th>
+            </tr>
+            <tr>
+                <td>Mejora la simplicidad</td>
+                <td>Un framework simplifica el código 50%</td>
+            </tr>
+            <tr>
+                <td>Mejora la estabilidad</td>
+                <td>Una BD relacional garantiza integridad de datos</td>
+            </tr>
+            <tr>
+                <td>Mejora mantenimiento</td>
+                <td>Framework con documentación oficial + comunidad</td>
+            </tr>
+            <tr>
+                <td>Mejora administración</td>
+                <td>Panel admin visual en lugar de configs manual</td>
+            </tr>
+            <tr>
+                <td>Permite escalabilidad futura</td>
+                <td>Arquitectura que aguante 10x de usuarios</td>
+            </tr>
+        </table>
+
+        <h3>Lo que NO cambió</h3>
+        <ul class="lista">
+            <li>✅ Objetivo: ecommerce profesional y escalable</li>
+            <li>✅ Filosofía: simplicidad + estabilidad</li>
+            <li>✅ Identidad: colores, tipografía, estética Puchia</li>
+            <li>✅ Facilidad de administración: Flor puede usarlo sin códigos</li>
+        </ul>
+    </div>
+
+    <!-- 2. ACLARACIONES LOGO -->
+    <div class="seccion gris">
+        <h2>2️⃣ Aclaraciones Sobre Logo & Identidad Visual</h2>
+        
+        <div class="caja-info">
+            <p><strong>La IA no interpreta correctamente el logo original de Puchia.</strong></p>
+            <p>La descripción actual es únicamente <span class="highlight">orientativa y provisoria</span>.</p>
+        </div>
+
+        <h3>Qué NO hacer</h3>
+        <ul class="lista precaucion">
+            <li>❌ NO asumir formas exactas del logo</li>
+            <li>❌ NO asumir significados simbólicos "correctos"</li>
+            <li>❌ NO rediseñar automáticamente el logo</li>
+            <li>❌ NO generar versiones "creativas" sin aprobación manual</li>
+        </ul>
+
+        <h3>Qué SÍ hacer</h3>
+        <ul class="lista">
+            <li>✅ Utilizar únicamente referencias visuales aprobadas manualmente</li>
+            <li>✅ Considerar cualquier descripción textual como TEMPORAL</li>
+            <li>✅ Ante duda sobre logo, preguntar antes de implementar</li>
+            <li>✅ Usar emojis/placeholders para mockups hasta tener logo vectorizado</li>
+        </ul>
+
+        <h3>Cuándo se resuelve esto</h3>
+        <p>Una vez disponibles:</p>
+        <ul class="lista">
+            <li>Archivo vectorial del logo (.svg o .ai)</li>
+            <li>Guía de marca oficial de Puchia</li>
+            <li>Versiones en diferentes formatos (light/dark, en color/gris)</li>
+            <li>Reglas de espaciado y uso correcto</li>
+        </ul>
+    </div>
+
+    <!-- 3. ACLARACIONES ESTIMACIONES -->
+    <div class="seccion">
+        <h2>3️⃣ Aclaraciones Sobre Estimaciones & Proyecciones</h2>
+        
+        <div class="caja-info">
+            <p><strong>Las métricas mencionadas son ASPIRACIONALES, no garantizadas.</strong></p>
+        </div>
+
+        <h3>Qué es estimativo</h3>
+        <ul class="lista precaucion">
+            <li>Crecimiento esperado de ventas (+40-60%)</li>
+            <li>ROI y ahorro de costos</li>
+            <li>Escalabilidad (hasta 100k órdenes/mes)</li>
+            <li>Tiempos de desarrollo (2 semanas, 1 mes, etc)</li>
+            <li>Costos aproximados de hosting</li>
+        </ul>
+
+        <h3>Estos números pueden cambiar según</h3>
+        <table>
+            <tr>
+                <th>Factor</th>
+                <th>Impacto</th>
+            </tr>
+            <tr>
+                <td>Evolución del negocio real</td>
+                <td>Alto</td>
+            </tr>
+            <tr>
+                <td>Decisiones técnicas tomadas</td>
+                <td>Alto</td>
+            </tr>
+            <tr>
+                <td>Presupuesto disponible</td>
+                <td>Medio</td>
+            </tr>
+            <tr>
+                <td>Comportamiento real de usuarios</td>
+                <td>Alto</td>
+            </tr>
+            <tr>
+                <td>Infraestructura utilizada</td>
+                <td>Medio</td>
+            </tr>
+            <tr>
+                <td>Cambios en el mercado</td>
+                <td>Medio</td>
+            </tr>
+        </table>
+
+        <h3>Cómo usar estas estimaciones</h3>
+        <ul class="lista">
+            <li>✅ Como referencia inicial</li>
+            <li>✅ Para planificación general</li>
+            <li>✅ Para comunicar expectativas realistas</li>
+            <li>❌ NO como promesas exactas</li>
+            <li>❌ NO para compromisos legales</li>
+        </ul>
+    </div>
+
+    <!-- 4. OBJETIVO CENTRAL -->
+    <div class="seccion gris">
+        <h2>4️⃣ Objetivo Central del Proyecto</h2>
+        
+        <div class="caja-info">
+            <p><strong>Construir un ecommerce profesional, moderno y escalable que permita a Puchia:</strong></p>
+        </div>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h4>🎨 Profesionalizar</h4>
+                <p>Marca moderna, coherente, diferenciada de competencia genérica.</p>
+            </div>
+            <div class="card">
+                <h4>⚙️ Automatizar</h4>
+                <p>Procesos manuales → Sistemas automáticos. Menos horas, más resultados.</p>
+            </div>
+            <div class="card">
+                <h4>📋 Organizar</h4>
+                <p>Catálogo claro, productos ordenados, información centralizada.</p>
+            </div>
+            <div class="card">
+                <h4>📊 Analizar</h4>
+                <p>Reportes, datos de clientes, patrones de venta. Inteligencia de negocio.</p>
+            </div>
+            <div class="card">
+                <h4>👁️ Visibilidad</h4>
+                <p>Clientes descubren todo lo que vende Puchia, 24/7.</p>
+            </div>
+            <div class="card">
+                <h4>🚀 Crecer</h4>
+                <p>Escalar sin rehacer todo. Arquitectura que aguanta crecimiento.</p>
+            </div>
+        </div>
+
+        <h3>Principio Fundamental</h3>
+        <p style="font-size: 18px; margin-top: 30px;"><strong>Este ecommerce mantiene control total en manos de Puchia.</strong> No depende de terceros (Empretienda, TiendaNube). Es propio, administrable, escalable.</p>
+    </div>
+
+    <!-- 5. VISIÓN GENERAL -->
+    <div class="seccion">
+        <h2>5️⃣ Visión General de Puchia</h2>
+        
+        <h3>¿Qué es Puchia?</h3>
+        <p>Emprendimiento de <span class="highlight">papelería creativa y regalos personalizados</span> dirigido a <span class="highlight">madres de niños</span>. Actualmente manual, busca escalar digitalmente.</p>
+
+        <h3>El Momento Actual</h3>
+        <p>Puchia está en punto de inflexión:</p>
+        <ul class="lista">
+            <li>✅ Tiene producto de calidad comprobada</li>
+            <li>✅ Tiene clientes satisfechos (referencias en Google)</li>
+            <li>✅ Tiene demanda (consultas en WhatsApp)</li>
+            <li>❌ Le falta: presentación profesional, catálogo visible, automatización</li>
+        </ul>
+
+        <h3>Visión a 12 Meses</h3>
+        <p>Puchia es una marca <span class="highlight">moderna, profesional y confiable</span> que vende online sin intermediarios, con procesos automáticos que permiten crecer sin sobrecargar a las founders.</p>
+    </div>
+
+    <!-- 6. ESPECIFICACIONES MARCA -->
+    <div class="seccion gris">
+        <h2>6️⃣ Especificaciones de Marca Puchia</h2>
+        
+        <h3>Identidad Visual - APROBADA</h3>
+        
+        <h4 style="margin-top: 30px;">Paleta de Colores</h4>
+        <div style="margin: 30px 0;">
+            <div style="display: inline-block;">
+                <div class="color-swatch" style="background: #7f1f6e;"></div>
+                <div class="color-info"><strong>#7f1f6e</strong><br>Púrpura Principal</div>
+            </div>
+            <div style="display: inline-block;">
+                <div class="color-swatch" style="background: #a01f8a;"></div>
+                <div class="color-info"><strong>#a01f8a</strong><br>Púrpura Secundario</div>
+            </div>
+            <div style="display: inline-block;">
+                <div class="color-swatch" style="background: #F3E93F;"></div>
+                <div class="color-info"><strong>#F3E93F</strong><br>Amarillo Sutil</div>
+            </div>
+            <div style="display: inline-block;">
+                <div class="color-swatch" style="background: #ffffff; border: 1px solid #ddd;"></div>
+                <div class="color-info"><strong>#ffffff</strong><br>Blanco Limpio</div>
+            </div>
+        </div>
+
+        <h4 style="margin-top: 30px;">Tipografía</h4>
+        <p><strong>Font:</strong> Poppins (weights: 300, 400, 500, 600, 700)</p>
+        <ul class="lista">
+            <li>Moderna, limpia, profesional</li>
+            <li>Excelente en móvil</li>
+            <li>Transmite calidez y accesibilidad</li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">Tono de Comunicación</h4>
+        <ul class="lista">
+            <li>Caloroso pero profesional</li>
+            <li>Dirigido a madres (emocional, cuidadoso)</li>
+            <li>Énfasis en calidad y atención personalizada</li>
+            <li>Mensajes claros y directos</li>
+        </ul>
+    </div>
+
+    <!-- 7. ESTRUCTURA ECOMMERCE -->
+    <div class="seccion">
+        <h2>7️⃣ Estructura del Ecommerce Puchia</h2>
+        
+        <h3>Secciones Principales (APROBADAS)</h3>
+
+        <h4 style="margin-top: 30px;">Header Sticky</h4>
+        <ul class="lista">
+            <li>Logo Puchia</li>
+            <li>Navegación (Inicio, Categorías, Productos, Opiniones)</li>
+            <li>Icono Carrito con contador</li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">Announcement Bar</h4>
+        <p>"Envíos a todo el país - Productos personalizados con 7 días de anticipación"</p>
+
+        <h4 style="margin-top: 30px;">Hero Banner Carousel</h4>
+        <p>4 banners que rotan cada 5 segundos con información de categorías</p>
+
+        <h4 style="margin-top: 30px;">Contador de Logros</h4>
+        <ul class="lista">
+            <li>+1000 Pedidos Entregados</li>
+            <li>5★ Rating Google</li>
+            <li>100% Personalizados</li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">¿Cómo Funciona?</h4>
+        <p>3 pasos visuales: Elegís → Personalizamos → Recibís</p>
+
+        <h4 style="margin-top: 30px;">Categorías (5 Cards)</h4>
+        <ul class="lista">
+            <li>🎉 Cumpleaños y Fiestas</li>
+            <li>👶 Bebés y Nacimientos</li>
+            <li>💼 Para Emprendedores</li>
+            <li>🎁 Combos Puchia</li>
+            <li>✨ Regalos Personalizados</li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">Grid de Productos</h4>
+        <p>3 columnas (centradas, responsive), cada producto con nombre, precio, botón agregar</p>
+
+        <h4 style="margin-top: 30px;">Testimonios</h4>
+        <p>3 cards de Google Maps con ratings y opiniones verificadas</p>
+
+        <h4 style="margin-top: 30px;">WhatsApp Flotante</h4>
+        <p>Icono fijo abajo-izquierda para consultas rápidas</p>
+
+        <h4 style="margin-top: 30px;">Footer</h4>
+        <p>Información de contacto y copyright</p>
+    </div>
+
+    <!-- 8. PRODUCTOS ACTUALES -->
+    <div class="seccion gris">
+        <h2>8️⃣ Catálogo de Productos Actuales (15 Items)</h2>
+        
+        <table>
+            <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Categoría</th>
+                <th>Variantes</th>
+            </tr>
+            <tr>
+                <td>AAA1</td>
+                <td>Banderín Personalizado</td>
+                <td>$4.800</td>
+                <td>Cumpleaños</td>
+                <td>Temática</td>
+            </tr>
+            <tr>
+                <td>AAA2</td>
+                <td>Bolsitas Golosineras</td>
+                <td>$990</td>
+                <td>Cumpleaños</td>
+                <td>Diseño</td>
+            </tr>
+            <tr>
+                <td>AAA3</td>
+                <td>Bolsitas 3D</td>
+                <td>$1.050</td>
+                <td>Cumpleaños</td>
+                <td>Diseño</td>
+            </tr>
+            <tr>
+                <td>AAA4</td>
+                <td>Calendarios Negocios</td>
+                <td>$790</td>
+                <td>Emprendedores</td>
+                <td>Tamaño</td>
+            </tr>
+            <tr>
+                <td>AAA5</td>
+                <td>Imágenes Decorativas</td>
+                <td>$1.200</td>
+                <td>Cumpleaños</td>
+                <td>Tema</td>
+            </tr>
+            <tr>
+                <td>AAA6</td>
+                <td>Librito para Pintar</td>
+                <td>$990</td>
+                <td>Cumpleaños</td>
+                <td>Diseño</td>
+            </tr>
+            <tr>
+                <td>AAA7</td>
+                <td>Librito + Lápices</td>
+                <td>$1.290 / $1.550</td>
+                <td>Cumpleaños</td>
+                <td>3 o 6 Lápices</td>
+            </tr>
+            <tr>
+                <td>AAA8</td>
+                <td>Llaveros Acrílico</td>
+                <td>$1.190</td>
+                <td>Regalos</td>
+                <td>Diseño</td>
+            </tr>
+            <tr>
+                <td>AAA9</td>
+                <td>Mini Toppers x15</td>
+                <td>$3.900</td>
+                <td>Cumpleaños</td>
+                <td>Tema</td>
+            </tr>
+            <tr>
+                <td>AAA10</td>
+                <td>Stickers A4 Común</td>
+                <td>$2.000</td>
+                <td>Cumpleaños</td>
+                <td>Forma</td>
+            </tr>
+            <tr>
+                <td>AAA11</td>
+                <td>Stickers A4 Vinilo</td>
+                <td>$2.500</td>
+                <td>Cumpleaños</td>
+                <td>Forma</td>
+            </tr>
+            <tr>
+                <td>AAA12</td>
+                <td>Tarjetas 230gr</td>
+                <td>$2.500</td>
+                <td>Cumpleaños</td>
+                <td>Tipo</td>
+            </tr>
+            <tr>
+                <td>AAA13</td>
+                <td>Tarjetas 120gr</td>
+                <td>$2.000</td>
+                <td>Cumpleaños</td>
+                <td>Tipo</td>
+            </tr>
+            <tr>
+                <td>AAA14</td>
+                <td>Topper de Torta</td>
+                <td>$5.500</td>
+                <td>Cumpleaños</td>
+                <td>Tema</td>
+            </tr>
+            <tr>
+                <td>AAA15</td>
+                <td>Vasos Tapa Chata</td>
+                <td>$1.290</td>
+                <td>Cumpleaños</td>
+                <td>14 Colores</td>
+            </tr>
+        </table>
+
+        <h3>Notas sobre el Catálogo</h3>
+        <ul class="lista">
+            <li>Lista será expandida según crecimiento del negocio</li>
+            <li>Fase 2 incluirá productos de cotillón revendido</li>
+            <li>Fotos actuales serán editadas/optimizadas por Puchia</li>
+            <li>Precios son actuales y pueden cambiar</li>
+        </ul>
+    </div>
+
+    <!-- 9. PANEL ADMIN -->
+    <div class="seccion">
+        <h2>9️⃣ Panel Administrativo para Flor</h2>
+        
+        <h3>Acceso</h3>
+        <p><strong>URL:</strong> /admin | <strong>Contraseña:</strong> Puchia1209</p>
+
+        <h3>Funcionalidades Principales</h3>
+
+        <h4 style="margin-top: 30px;">Dashboard</h4>
+        <ul class="lista">
+            <li>Estadísticas de ventas</li>
+            <li>Órdenes pendientes/completadas</li>
+            <li>Productos más vendidos</li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">Gestión de Productos</h4>
+        <p><strong>Opción A - Manual:</strong> Formulario simple (Nombre, Precio, Stock, Descripción)</p>
+        <p><strong>Opción B - Importar Excel (RECOMENDADO):</strong> Subir .xlsx → Sistema procesa automáticamente</p>
+
+        <h4 style="margin-top: 30px;">Gestión de Órdenes</h4>
+        <ul class="lista">
+            <li>Tabla con todas las órdenes recibidas</li>
+            <li>Ver detalles completos (cliente, productos, total)</li>
+            <li>Cambiar estado (Pendiente → Completada)</li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">Reportes</h4>
+        <ul class="lista">
+            <li>Botón "Descargar Reporte de Ventas"</li>
+            <li>Excel con datos: Cliente, Email, DNI, WhatsApp, Total, Fecha</li>
+            <li>Listo para análisis</li>
+        </ul>
+
+        <h3>Diseño del Panel</h3>
+        <p>Interfaz limpia, colores Puchia, 100% responsive, sin jerga técnica</p>
+    </div>
+
+    <!-- 10. DEPLOYMENT -->
+    <div class="seccion gris">
+        <h2>🔟 Plan de Deployment a Hostinger</h2>
+        
+        <h3>Opción Elegida: Node.js Hosting</h3>
+        <p><strong>Por qué:</strong> Más fácil, automático, sin configuración avanzada</p>
+
+        <h3>Pasos (Simplificados)</h3>
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4>1. Registrarse en Hostinger</h4>
+                <p>Crear cuenta y plan Node.js</p>
+            </div>
+            <div class="timeline-item">
+                <h4>2. Crear aplicación</h4>
+                <p>Panel → Aplicaciones → Node.js → Nueva</p>
+            </div>
+            <div class="timeline-item">
+                <h4>3. Conectar repositorio</h4>
+                <p>GitHub/GitLab con código del proyecto</p>
+            </div>
+            <div class="timeline-item">
+                <h4>4. Configurar variables</h4>
+                <p>.env con ADMIN_PASSWORD, WHATSAPP_NUMBER</p>
+            </div>
+            <div class="timeline-item">
+                <h4>5. Deploy</h4>
+                <p>Click botón → Hostinger despliega automáticamente</p>
+            </div>
+            <div class="timeline-item">
+                <h4>6. Obtener dominio provisorio</h4>
+                <p>puchia123.hostinger.com (mientras tanto)</p>
+            </div>
+            <div class="timeline-item">
+                <h4>7. Testear desde otros dispositivos</h4>
+                <p>Acceso desde celular, tablet, otra ciudad</p>
+            </div>
+            <div class="timeline-item">
+                <h4>8. Comprar dominio propio (opcional)</h4>
+                <p>puchia.com.ar → Conectar cuando esté listo</p>
+            </div>
+        </div>
+
+        <h3>Costo Aproximado</h3>
+        <table>
+            <tr>
+                <th>Concepto</th>
+                <th>Costo</th>
+            </tr>
+            <tr>
+                <td>Hosting Hostinger (Node.js)</td>
+                <td>~$200-350 ARS/mes</td>
+            </tr>
+            <tr>
+                <td>Dominio (.com.ar)</td>
+                <td>~$500-800 ARS/año</td>
+            </tr>
+            <tr>
+                <td><strong>TOTAL ANUAL</strong></td>
+                <td><strong>~$2.000-4.000 ARS</strong></td>
+            </tr>
+        </table>
+
+        <p style="margin-top: 20px;"><strong>vs Empretienda:</strong> $9.900 ARS/mes = $118.800/año. Ahorro: ~$114.000/año</p>
+    </div>
+
+    <!-- 11. CONCLUSIÓN -->
+    <div class="seccion">
+        <h2>1️⃣1️⃣ Conclusiones & Próximos Pasos</h2>
+        
+        <h3>Este Documento es...</h3>
+        <ul class="lista">
+            <li>✅ Una brújula, no un mapa</li>
+            <li>✅ Una base flexible para evolucionar</li>
+            <li>✅ Una herramienta de comunicación clara</li>
+            <li>✅ Una guía para agentes IA que continúen el proyecto</li>
+        </ul>
+
+        <h3>Lo que no cambió</h3>
+        <ul class="lista">
+            <li>✅ Visión: Ecommerce profesional para Puchia</li>
+            <li>✅ Estética: Colores púrpura-amarillo-blanco, Poppins</li>
+            <li>✅ Filosofía: Simplicidad + Estabilidad</li>
+            <li>✅ Control: 100% en manos de Puchia</li>
+        </ul>
+
+        <h3>Próximos Pasos Inmediatos</h3>
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4>Esta Semana</h4>
+                <p>Aprobación final del documento. GO/NO-GO.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Próxima Semana</h4>
+                <p>Cargar productos, fotos optimizadas, testeo local.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Semana 3</h4>
+                <p>Deploy a Hostinger, capacitar a Flor, lanzamiento soft.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Semana 4</h4>
+                <p>Lanzamiento público, feedback inicial, primeros ajustes.</p>
+            </div>
+        </div>
+
+        <h3>Recomendación Final</h3>
+        <p style="font-size: 18px; font-weight: 600; color: #7f1f6e; margin-top: 30px;">No esperar a perfección. Lanzar MVP ahora, iterar rápido con feedback real.</p>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p>Proyecto Puchia Ecommerce | Versión 2.0 | DOCUMENTO VIVO</p>
+        <p>Base para continuidad del proyecto con agentes IA y equipos futuros</p>
+        <p style="margin-top: 20px; font-size: 10px;">© 2024 Puchia - Todos los derechos reservados</p>
+        <p style="margin-top: 10px; font-size: 10px; opacity: 0.7;">Este documento puede y debe evolucionar según aprendizajes, feedback y cambios en el proyecto.</p>
+    </div>
+
+</body>
+</html>

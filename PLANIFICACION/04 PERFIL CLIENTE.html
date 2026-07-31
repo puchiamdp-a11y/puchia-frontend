@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Mi Cuenta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #fafbfc;
+            color: #2c3e50;
+        }
+
+        :root {
+            --purple: #7f1f6e;
+            --purple-light: #a01f8a;
+            --yellow: #F3E93F;
+            --white: #ffffff;
+            --gray-light: #f5f5f5;
+            --gray-text: #7a8794;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* HEADER STICKY */
+        /* ════════════════════════════════════════════════════════════════ */
+        header {
+            background-color: var(--white);
+            padding: 18px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--purple);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--gray-light);
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--purple);
+            transition: all 0.3s ease;
+        }
+
+        .user-button:hover {
+            background: #e0e0e0;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--white);
+            border: 1px solid #eee;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            min-width: 200px;
+            display: none;
+            margin-top: 10px;
+            z-index: 1001;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--gray-text);
+            font-size: 14px;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: var(--gray-light);
+            color: var(--purple);
+        }
+
+        .dropdown-item.logout {
+            color: var(--danger);
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* PANTALLAS / SCREENS */
+        /* ════════════════════════════════════════════════════════════════ */
+        .screen {
+            display: none;
+            min-height: calc(100vh - 80px);
+            padding: 40px 60px;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* LOGIN & REGISTRO */
+        /* ════════════════════════════════════════════════════════════════ */
+        .auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--purple) 0%, #5a1f5c 100%);
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 50px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .auth-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 28px;
+            margin: 0 auto 30px;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            color: var(--purple);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .auth-subtitle {
+            text-align: center;
+            color: var(--gray-text);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: var(--purple);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(127,31,110,0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: var(--purple);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--purple-light);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--gray-text);
+        }
+
+        .auth-toggle a {
+            color: var(--purple);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* PERFIL */
+        /* ════════════════════════════════════════════════════════════════ */
+        .page-title {
+            font-size: 32px;
+            color: var(--purple);
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab {
+            padding: 15px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray-text);
+            font-size: 14px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--purple);
+        }
+
+        .tab.active {
+            color: var(--purple);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--purple);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .profile-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .profile-header {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 30px;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 50px;
+            box-shadow: 0 4px 16px rgba(127,31,110,0.2);
+        }
+
+        .profile-info h2 {
+            color: var(--purple);
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+
+        .profile-info p {
+            color: var(--gray-text);
+            font-size: 14px;
+            margin: 3px 0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-light);
+            color: var(--gray-text);
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background-color: #ddd;
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* ÓRDENES */
+        /* ════════════════════════════════════════════════════════════════ */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .order-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--purple);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .order-number {
+            font-weight: 700;
+            color: var(--purple);
+            font-size: 16px;
+        }
+
+        .order-date {
+            color: var(--gray-text);
+            font-size: 13px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-in-progress {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .order-items {
+            margin-bottom: 15px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-total {
+            font-weight: 700;
+            color: var(--purple);
+            font-size: 16px;
+        }
+
+        .btn-view {
+            background-color: var(--purple);
+            color: var(--white);
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-view:hover {
+            background-color: var(--purple-light);
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* FAVORITOS */
+        /* ════════════════════════════════════════════════════════════════ */
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .favorite-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .favorite-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            transform: translateY(-4px);
+        }
+
+        .favorite-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #f5eef9 0%, #ecdff5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            position: relative;
+        }
+
+        .favorite-remove {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .favorite-info {
+            padding: 15px;
+        }
+
+        .favorite-name {
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .favorite-price {
+            color: var(--gray-text);
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .btn-buy {
+            width: 100%;
+            background-color: var(--purple);
+            color: var(--white);
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .btn-buy:hover {
+            background-color: var(--purple-light);
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* DIRECCIONES */
+        /* ════════════════════════════════════════════════════════════════ */
+        .addresses-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .address-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .address-card:hover {
+            border-color: var(--purple);
+            box-shadow: 0 4px 12px rgba(127,31,110,0.1);
+        }
+
+        .address-default {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--yellow);
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .address-name {
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .address-text {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .address-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background-color: #e7f3ff;
+            color: var(--purple);
+        }
+
+        .btn-edit:hover {
+            background-color: var(--purple);
+            color: var(--white);
+        }
+
+        .btn-delete {
+            background-color: #ffe7e7;
+            color: var(--danger);
+        }
+
+        .btn-delete:hover {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+
+        .add-address-btn {
+            grid-column: 1 / -1;
+            background: var(--purple);
+            color: var(--white);
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .add-address-btn:hover {
+            background-color: var(--purple-light);
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* MODAL */
+        /* ════════════════════════════════════════════════════════════════ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            margin: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-text);
+        }
+
+        .modal-title {
+            color: var(--purple);
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        /* ════════════════════════════════════════════════════════════════ */
+        /* TOAST */
+        /* ════════════════════════════════════════════════════════════════ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--success);
+            color: var(--white);
+            padding: 16px 24px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(39, 174, 96, 0.3);
+            z-index: 3000;
+            animation: slideInUp 0.3s ease;
+            max-width: 300px;
+            font-weight: 500;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutDown {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+        }
+
+        .toast.out {
+            animation: slideOutDown 0.3s ease;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: var(--gray-text);
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .addresses-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .favorites-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+            }
+
+            .screen {
+                padding: 20px;
+            }
+
+            .profile-header {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .favorites-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+
+            .tab {
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- LOGIN SCREEN -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <div id="loginScreen" class="screen active">
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="auth-logo">P</div>
+                <h1 class="auth-title">Bienvenida a Puchia</h1>
+                <p class="auth-subtitle">Inicia sesión en tu cuenta</p>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="tu@email.com" value="cliente@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPassword" placeholder="Tu contraseña" value="puchia123">
+                </div>
+
+                <button class="btn btn-primary" onclick="handleLogin()">Iniciar Sesión</button>
+
+                <div class="auth-toggle">
+                    ¿No tienes cuenta? <a onclick="switchToRegister()">Regístrate aquí</a>
+                </div>
+
+                <p style="text-align: center; color: var(--gray-text); font-size: 12px; margin-top: 20px;">
+                    Demo: <strong>cliente@email.com</strong> / <strong>puchia123</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- REGISTRO SCREEN -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <div id="registerScreen" class="screen">
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="auth-logo">P</div>
+                <h1 class="auth-title">Crear Cuenta</h1>
+                <p class="auth-subtitle">Únete a la comunidad Puchia</p>
+
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="regName" placeholder="Tu nombre">
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" placeholder="tu@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" id="regPhone" placeholder="+54 9 223 123-4567">
+                </div>
+
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres">
+                </div>
+
+                <div class="form-group">
+                    <label>Confirmar Contraseña</label>
+                    <input type="password" id="regPasswordConfirm" placeholder="Confirma tu contraseña">
+                </div>
+
+                <button class="btn btn-primary" onclick="handleRegister()">Crear Cuenta</button>
+
+                <div class="auth-toggle">
+                    ¿Ya tienes cuenta? <a onclick="switchToLogin()">Inicia sesión aquí</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- HEADER (después de login) -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <header id="appHeader" style="display: none;">
+        <div class="logo-container" onclick="goToHome()">
+            <div class="logo">P</div>
+            <div class="logo-text">Puchia</div>
+        </div>
+
+        <div class="header-right">
+            <div class="user-menu">
+                <button class="user-button" onclick="toggleDropdown()">
+                    👤 <span id="userDisplayName">Usuario</span> ▼
+                </button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <div class="dropdown-item" onclick="showTab('profile')">Mi Perfil</div>
+                    <div class="dropdown-item" onclick="showTab('orders')">Mis Órdenes</div>
+                    <div class="dropdown-item" onclick="showTab('favorites')">Favoritos</div>
+                    <div class="dropdown-item" onclick="showTab('addresses')">Mis Direcciones</div>
+                    <div class="dropdown-item logout" onclick="handleLogout()">Cerrar Sesión</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- MAIN ACCOUNT SCREEN -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <div id="accountScreen" class="screen">
+        <h1 class="page-title">Mi Cuenta</h1>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('profile', event)">Perfil</button>
+            <button class="tab" onclick="showTab('orders', event)">Mis Órdenes</button>
+            <button class="tab" onclick="showTab('favorites', event)">Favoritos</button>
+            <button class="tab" onclick="showTab('addresses', event)">Direcciones</button>
+        </div>
+
+        <!-- TAB: PERFIL -->
+        <div id="profileTab" class="tab-content active">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar">👤</div>
+                    <div class="profile-info">
+                        <h2 id="profileName">María García</h2>
+                        <p id="profileEmail">maria@email.com</p>
+                        <p id="profilePhone">+54 9 223 123-4567</p>
+                        <p style="color: var(--success); font-weight: 600; margin-top: 10px;">✓ Cuenta verificada</p>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--purple); margin-bottom: 20px; font-size: 16px; font-weight: 600;">Editar Información</h3>
+
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="editName" value="María García">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="editEmail" value="maria@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" id="editPhone" value="+54 9 223 123-4567">
+                    </div>
+                </div>
+
+                <div class="form-buttons">
+                    <button class="btn btn-secondary" onclick="resetProfileForm()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="saveProfileChanges()" style="flex: 1;">Guardar Cambios</button>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h3 style="color: var(--purple); margin-bottom: 20px; font-size: 16px; font-weight: 600;">Cambiar Contraseña</h3>
+
+                <div class="form-group">
+                    <label>Contraseña Actual</label>
+                    <input type="password" id="currentPassword" placeholder="Tu contraseña actual">
+                </div>
+
+                <div class="form-group">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" id="newPassword" placeholder="Mínimo 6 caracteres">
+                </div>
+
+                <div class="form-group">
+                    <label>Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirmNewPassword" placeholder="Confirma tu nueva contraseña">
+                </div>
+
+                <div class="form-buttons">
+                    <button class="btn btn-secondary" onclick="resetPasswordForm()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="changePassword()" style="flex: 1;">Cambiar Contraseña</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ÓRDENES -->
+        <div id="ordersTab" class="tab-content">
+            <div id="ordersList" class="orders-list">
+            </div>
+        </div>
+
+        <!-- TAB: FAVORITOS -->
+        <div id="favoritesTab" class="tab-content">
+            <div id="favoritesList" class="favorites-grid">
+            </div>
+        </div>
+
+        <!-- TAB: DIRECCIONES -->
+        <div id="addressesTab" class="tab-content">
+            <div id="addressesList" class="addresses-grid">
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: VER ORDEN -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="orderModal" onclick="closeOrderModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeOrderModal()">✕</button>
+            <div class="modal-title">Detalle de Orden</div>
+            <div id="orderDetail"></div>
+        </div>
+    </div>
+
+    <script>
+        // ════════════════════════════════════════════════════════════════
+        // DATA
+        // ════════════════════════════════════════════════════════════════
+        let currentUser = null;
+
+        const sampleUsers = {
+            'cliente@email.com': {
+                id: 1,
+                name: 'María García',
+                email: 'cliente@email.com',
+                phone: '+54 9 223 123-4567',
+                password: 'puchia123'
+            }
+        };
+
+        const userOrders = {
+            1: [
+                { id: 'ORD-1715000000001', date: '2024-05-10', total: 5890, status: 'Completada', items: [{name: 'Banderín Personalizado', qty: 1, price: 4800}, {name: 'Bolsitas Golosineras', qty: 1, price: 1090}] },
+                { id: 'ORD-1715000000003', date: '2024-05-12', total: 2500, status: 'En Preparación', items: [{name: 'Tarjetas 230gr', qty: 1, price: 2500}] },
+                { id: 'ORD-1715000000005', date: '2024-05-08', total: 7200, status: 'Pendiente', items: [{name: 'Combo Cumpleaños', qty: 1, price: 7200}] },
+            ]
+        };
+
+        const userFavorites = {
+            1: [
+                { id: 1, name: 'Banderín Personalizado', price: 4800, icon: '🎈' },
+                { id: 2, name: 'Bolsitas Golosineras', price: 990, icon: '🍬' },
+                { id: 8, name: 'Llaveros Acrílico', price: 1190, icon: '🔑' },
+            ]
+        };
+
+        const userAddresses = {
+            1: [
+                { id: 1, name: 'Casa', street: 'Av. San Martín 123', city: 'Mar del Plata', province: 'Buenos Aires', zipcode: '7600', default: true },
+                { id: 2, name: 'Trabajo', street: 'Calle Mitre 456', city: 'Mar del Plata', province: 'Buenos Aires', zipcode: '7600', default: false },
+            ]
+        };
+
+        // ════════════════════════════════════════════════════════════════
+        // FUNCIONES PRINCIPALES
+        // ════════════════════════════════════════════════════════════════
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = '✓ ' + message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('out');
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        function switchToRegister() {
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('registerScreen').classList.add('active');
+        }
+
+        function switchToLogin() {
+            document.getElementById('registerScreen').classList.remove('active');
+            document.getElementById('loginScreen').classList.add('active');
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showToast('Completa todos los campos');
+                return;
+            }
+
+            const user = sampleUsers[email];
+            if (user && user.password === password) {
+                currentUser = user;
+                document.getElementById('loginScreen').classList.remove('active');
+                document.getElementById('accountScreen').classList.add('active');
+                document.getElementById('appHeader').style.display = 'flex';
+                document.getElementById('userDisplayName').textContent = user.name;
+                renderProfileData();
+                showToast('¡Bienvenida ' + user.name + '!');
+            } else {
+                showToast('Email o contraseña incorrectos');
+            }
+        }
+
+        function handleRegister() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const phone = document.getElementById('regPhone').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regPasswordConfirm').value;
+
+            if (!name || !email || !phone || !password || !confirmPassword) {
+                showToast('Completa todos los campos');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showToast('Las contraseñas no coinciden');
+                return;
+            }
+
+            if (sampleUsers[email]) {
+                showToast('Este email ya está registrado');
+                return;
+            }
+
+            const newUser = {
+                id: Object.keys(sampleUsers).length + 1,
+                name,
+                email,
+                phone,
+                password
+            };
+
+            sampleUsers[email] = newUser;
+            currentUser = newUser;
+            userOrders[newUser.id] = [];
+            userFavorites[newUser.id] = [];
+            userAddresses[newUser.id] = [];
+
+            document.getElementById('registerScreen').classList.remove('active');
+            document.getElementById('accountScreen').classList.add('active');
+            document.getElementById('appHeader').style.display = 'flex';
+            document.getElementById('userDisplayName').textContent = newUser.name;
+            renderProfileData();
+            showToast('¡Cuenta creada exitosamente!');
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('accountScreen').classList.remove('active');
+            document.getElementById('loginScreen').classList.add('active');
+            document.getElementById('appHeader').style.display = 'none';
+            document.getElementById('loginEmail').value = 'cliente@email.com';
+            document.getElementById('loginPassword').value = 'puchia123';
+            showToast('Sesión cerrada');
+        }
+
+        function toggleDropdown() {
+            document.getElementById('dropdownMenu').classList.toggle('active');
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('dropdownMenu');
+            const userBtn = document.querySelector('.user-button');
+            if (!e.target.closest('.user-menu')) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        function showTab(tabName, event) {
+            if (event) event.preventDefault();
+
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tabName === 'profile') {
+                document.querySelector('[onclick*="profile"]').classList.add('active');
+                document.getElementById('profileTab').classList.add('active');
+                renderProfileData();
+            } else if (tabName === 'orders') {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('ordersTab').classList.add('active');
+                renderOrders();
+            } else if (tabName === 'favorites') {
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                document.getElementById('favoritesTab').classList.add('active');
+                renderFavorites();
+            } else if (tabName === 'addresses') {
+                document.querySelectorAll('.tab')[3].classList.add('active');
+                document.getElementById('addressesTab').classList.add('active');
+                renderAddresses();
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // RENDER FUNCTIONS
+        // ════════════════════════════════════════════════════════════════
+        function renderProfileData() {
+            if (!currentUser) return;
+
+            document.getElementById('profileName').textContent = currentUser.name;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profilePhone').textContent = currentUser.phone;
+            document.getElementById('editName').value = currentUser.name;
+            document.getElementById('editEmail').value = currentUser.email;
+            document.getElementById('editPhone').value = currentUser.phone;
+        }
+
+        function renderOrders() {
+            if (!currentUser) return;
+
+            const orders = userOrders[currentUser.id] || [];
+            let html = '';
+
+            if (orders.length === 0) {
+                html = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <p><strong>No tienes órdenes aún</strong></p>
+                        <p style="font-size: 14px;">¡Comienza a comprar en Puchia!</p>
+                    </div>
+                `;
+            } else {
+                orders.forEach(order => {
+                    const statusClass = order.status === 'Completada' ? 'status-completed' : 
+                                       order.status === 'En Preparación' ? 'status-in-progress' : 'status-pending';
+                    
+                    html += `
+                        <div class="order-card" onclick="viewOrderDetail('${order.id}')">
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-number">${order.id}</div>
+                                    <div class="order-date">${order.date}</div>
+                                </div>
+                                <span class="status-badge ${statusClass}">${order.status}</span>
+                            </div>
+
+                            <div class="order-items">
+                    `;
+                    
+                    order.items.forEach(item => {
+                        html += `<div class="order-item"><span>${item.name}</span><span>$${item.price.toLocaleString('es-AR')}</span></div>`;
+                    });
+
+                    html += `
+                            </div>
+
+                            <div class="order-footer">
+                                <div class="order-total">$${order.total.toLocaleString('es-AR')}</div>
+                                <button class="btn-view">Ver Detalle →</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('ordersList').innerHTML = html;
+        }
+
+        function renderFavorites() {
+            if (!currentUser) return;
+
+            const favorites = userFavorites[currentUser.id] || [];
+            let html = '';
+
+            if (favorites.length === 0) {
+                html = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-state-icon">❤️</div>
+                        <p><strong>No tienes favoritos aún</strong></p>
+                        <p style="font-size: 14px;">Marca productos como favoritos para guardarlos aquí</p>
+                    </div>
+                `;
+                document.getElementById('favoritesList').innerHTML = html;
+            } else {
+                favorites.forEach(fav => {
+                    html += `
+                        <div class="favorite-card">
+                            <div class="favorite-image">
+                                ${fav.icon}
+                                <button class="favorite-remove" onclick="removeFavorite(${fav.id})">✕</button>
+                            </div>
+                            <div class="favorite-info">
+                                <div class="favorite-name">${fav.name}</div>
+                                <div class="favorite-price">$${fav.price.toLocaleString('es-AR')}</div>
+                                <button class="btn-buy" onclick="addToCart(${fav.id})">Agregar al Carrito</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.getElementById('favoritesList').innerHTML = html;
+            }
+        }
+
+        function renderAddresses() {
+            if (!currentUser) return;
+
+            const addresses = userAddresses[currentUser.id] || [];
+            let html = '';
+
+            addresses.forEach(addr => {
+                html += `
+                    <div class="address-card">
+                        ${addr.default ? '<div class="address-default">Por defecto</div>' : ''}
+                        <div class="address-name">${addr.name}</div>
+                        <div class="address-text">
+                            ${addr.street}<br>
+                            ${addr.city}, ${addr.province}<br>
+                            C.P. ${addr.zipcode}
+                        </div>
+                        <div class="address-actions">
+                            <button class="btn-small btn-edit" onclick="editAddress(${addr.id})">Editar</button>
+                            <button class="btn-small btn-delete" onclick="deleteAddress(${addr.id})">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `<button class="add-address-btn" onclick="addNewAddress()">+ Agregar Nueva Dirección</button>`;
+
+            document.getElementById('addressesList').innerHTML = html;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // PERFIL ACTIONS
+        // ════════════════════════════════════════════════════════════════
+        function saveProfileChanges() {
+            const name = document.getElementById('editName').value;
+            const email = document.getElementById('editEmail').value;
+            const phone = document.getElementById('editPhone').value;
+
+            if (!name || !email || !phone) {
+                showToast('Completa todos los campos');
+                return;
+            }
+
+            currentUser.name = name;
+            currentUser.email = email;
+            currentUser.phone = phone;
+            document.getElementById('userDisplayName').textContent = name;
+            renderProfileData();
+            showToast('Perfil actualizado correctamente');
+        }
+
+        function resetProfileForm() {
+            renderProfileData();
+            showToast('Cambios cancelados');
+        }
+
+        function changePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmNewPassword').value;
+
+            if (!current || !newPass || !confirmPass) {
+                showToast('Completa todos los campos');
+                return;
+            }
+
+            if (current !== currentUser.password) {
+                showToast('La contraseña actual es incorrecta');
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                showToast('Las contraseñas no coinciden');
+                return;
+            }
+
+            currentUser.password = newPass;
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            showToast('Contraseña cambiada exitosamente');
+        }
+
+        function resetPasswordForm() {
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            showToast('Cambios cancelados');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // ÓRDENES
+        // ════════════════════════════════════════════════════════════════
+        function viewOrderDetail(orderId) {
+            const orders = userOrders[currentUser.id] || [];
+            const order = orders.find(o => o.id === orderId);
+
+            if (!order) return;
+
+            let itemsHtml = '';
+            order.items.forEach(item => {
+                itemsHtml += `
+                    <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">${item.name}</td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; text-align: right;">$${item.price.toLocaleString('es-AR')}</td>
+                    </tr>
+                `;
+            });
+
+            const statusClass = order.status === 'Completada' ? 'status-completed' : 
+                               order.status === 'En Preparación' ? 'status-in-progress' : 'status-pending';
+
+            const html = `
+                <table style="width: 100%; margin-bottom: 20px; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 8px 0; color: var(--purple); font-weight: 600;">Nº Orden:</td>
+                        <td style="padding: 8px 0; text-align: right;">${order.id}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: var(--purple); font-weight: 600;">Fecha:</td>
+                        <td style="padding: 8px 0; text-align: right;">${order.date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: var(--purple); font-weight: 600;">Estado:</td>
+                        <td style="padding: 8px 0; text-align: right;"><span class="status-badge ${statusClass}">${order.status}</span></td>
+                    </tr>
+                </table>
+
+                <h3 style="color: var(--purple); margin: 20px 0 10px; font-size: 14px; font-weight: 600;">Productos Ordenados:</h3>
+                <table style="width: 100%; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #f0f0f0;">
+                            <th style="text-align: left; padding: 10px 0; color: var(--purple); font-weight: 600;">Producto</th>
+                            <th style="text-align: right; padding: 10px 0; color: var(--purple); font-weight: 600;">Precio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                        <tr style="border-top: 2px solid #ddd;">
+                            <td style="padding: 12px 0; color: var(--purple); font-weight: 700;">TOTAL</td>
+                            <td style="padding: 12px 0; text-align: right; color: var(--purple); font-weight: 700; font-size: 16px;">$${order.total.toLocaleString('es-AR')}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('orderDetail').innerHTML = html;
+            document.getElementById('orderModal').classList.add('active');
+        }
+
+        function closeOrderModal(e) {
+            if (e && e.target.id !== 'orderModal') return;
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // FAVORITOS
+        // ════════════════════════════════════════════════════════════════
+        function removeFavorite(productId) {
+            userFavorites[currentUser.id] = userFavorites[currentUser.id].filter(f => f.id !== productId);
+            renderFavorites();
+            showToast('Removido de favoritos');
+        }
+
+        function addToCart(productId) {
+            showToast('Producto agregado al carrito');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // DIRECCIONES
+        // ════════════════════════════════════════════════════════════════
+        function editAddress(addressId) {
+            showToast('Edición de dirección próximamente');
+        }
+
+        function deleteAddress(addressId) {
+            if (confirm('¿Estás segura de que quieres eliminar esta dirección?')) {
+                userAddresses[currentUser.id] = userAddresses[currentUser.id].filter(a => a.id !== addressId);
+                renderAddresses();
+                showToast('Dirección eliminada');
+            }
+        }
+
+        function addNewAddress() {
+            showToast('Agregar nueva dirección próximamente');
+        }
+
+        function goToHome() {
+            showToast('Redirect a home (conectar con DEMO 1)');
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia - Informe Técnico v3.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #1a1a1a;
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 50%, #5a1f5c 100%);
+            color: white;
+            padding: 120px 60px;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(243,233,63,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+
+        .hero .badge-hero {
+            display: inline-block;
+            background: rgba(243,233,63,0.2);
+            border: 2px solid #F3E93F;
+            color: #F3E93F;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .hero p {
+            font-size: 24px;
+            font-weight: 300;
+            max-width: 700px;
+            margin: 0 auto 50px;
+            opacity: 0.95;
+        }
+
+        .hero .meta {
+            font-size: 13px;
+            opacity: 0.7;
+            margin-top: 60px;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* SECCIONES */
+        .seccion {
+            background: white;
+            padding: 100px 60px;
+            margin: 40px auto;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 1200px;
+        }
+
+        .seccion-gris {
+            background: #f8f9fa;
+            border-left: 6px solid #7f1f6e;
+        }
+
+        .seccion-highlight {
+            background: linear-gradient(135deg, rgba(243,233,63,0.05) 0%, rgba(127,31,110,0.05) 100%);
+            border: 2px solid #F3E93F;
+        }
+
+        .seccion h2 {
+            font-size: 48px;
+            color: #7f1f6e;
+            margin-bottom: 40px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .seccion h2 span {
+            font-size: 48px;
+        }
+
+        .seccion h3 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin: 50px 0 25px;
+            font-weight: 700;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #F3E93F;
+        }
+
+        .seccion h4 {
+            font-size: 18px;
+            color: #7f1f6e;
+            margin: 25px 0 15px;
+            font-weight: 600;
+        }
+
+        .seccion p {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.9;
+        }
+
+        /* GRID DE CARDS */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(127,31,110,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(127,31,110,0.35);
+        }
+
+        .card h4 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .card p {
+            color: rgba(255,255,255,0.95);
+            font-size: 14px;
+        }
+
+        .card.warning {
+            background: linear-gradient(135deg, #F3E93F 0%, #ffd700 100%);
+            color: #333;
+        }
+
+        .card.warning h4,
+        .card.warning p {
+            color: #333;
+        }
+
+        /* TABLA */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 40px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        th {
+            background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
+            color: white;
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        tr:hover {
+            background: #fafbfc;
+        }
+
+        /* LISTA */
+        .lista {
+            list-style: none;
+            margin: 30px 0;
+        }
+
+        .lista li {
+            padding: 14px 0 14px 45px;
+            position: relative;
+            color: #555;
+            font-size: 15px;
+        }
+
+        .lista li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #F3E93F;
+            font-weight: bold;
+            font-size: 20px;
+            width: 30px;
+            height: 30px;
+            background: rgba(243,233,63,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lista.warning li:before {
+            content: "⚠";
+        }
+
+        /* CAJA INFO */
+        .caja-info {
+            background: linear-gradient(135deg, #f0e5f5 0%, #f5e8f5 100%);
+            border: 2px solid #7f1f6e;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .caja-info strong {
+            color: #7f1f6e;
+            font-weight: 700;
+        }
+
+        /* DIAGRAMA ASCII MEJORADO */
+        .diagrama {
+            background: #1a1a1a;
+            color: #F3E93F;
+            padding: 30px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 30px 0;
+            line-height: 1.6;
+        }
+
+        /* FLUJOS */
+        .flujo {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border-left: 4px solid #7f1f6e;
+        }
+
+        .flujo strong {
+            color: #7f1f6e;
+        }
+
+        /* TIMELINE */
+        .timeline {
+            position: relative;
+            padding: 40px 0;
+            margin: 40px 0;
+        }
+
+        .timeline-item {
+            padding-left: 60px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .timeline-item:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 24px;
+            height: 24px;
+            background: #7f1f6e;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 0 0 2px #7f1f6e;
+        }
+
+        .timeline-item h4 {
+            color: #7f1f6e;
+            margin-bottom: 8px;
+        }
+
+        /* INDICE */
+        .indice-lista {
+            list-style: none;
+            columns: 2;
+            gap: 40px;
+        }
+
+        .indice-lista li {
+            padding: 12px 0;
+            break-inside: avoid;
+            color: #555;
+        }
+
+        .indice-lista li:before {
+            content: "→ ";
+            color: #F3E93F;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 60px;
+            text-align: center;
+            margin-top: 100px;
+            border-top: 6px solid #7f1f6e;
+        }
+
+        .footer p {
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            background: #7f1f6e;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 0 4px 4px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.success {
+            background: #2ecc71;
+        }
+
+        .badge.warning {
+            background: #F3E93F;
+            color: #333;
+        }
+
+        .badge.danger {
+            background: #e74c3c;
+        }
+
+        /* HIGHLIGHT */
+        .highlight {
+            background: rgba(243,233,63,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #7f1f6e;
+            font-weight: 600;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 30px;
+            }
+
+            .hero h1 {
+                font-size: 42px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .seccion {
+                padding: 60px 30px;
+                margin: 20px;
+            }
+
+            .seccion h2 {
+                font-size: 36px;
+            }
+
+            .indice-lista {
+                columns: 1;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            td, th {
+                padding: 12px;
+            }
+        }
+
+        /* PRINT */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .hero {
+                page-break-after: always;
+            }
+
+            .seccion {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-content">
+            <div class="badge-hero">INFORME TÉCNICO v3.0</div>
+            <h1>PUCHIA</h1>
+            <p>Ecommerce Profesional, Escalable y Fácil de Administrar</p>
+            <div class="meta">
+                <p>Mayo 2024 | LISTO PARA DESARROLLO</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- ÍNDICE -->
+        <div class="seccion">
+            <h2><span>📋</span> Índice de Contenidos</h2>
+            <ul class="indice-lista">
+                <li>1. Introducción y Visión</li>
+                <li>2. Arquitectura General del Sistema</li>
+                <li>3. Tipos de Usuarios y Permisos</li>
+                <li>4. Entidades Principales</li>
+                <li>5. Flujos del Sistema</li>
+                <li>6. Priorización de Desarrollo</li>
+                <li>7. Seguridad, Performance, Escalabilidad</li>
+                <li>8. Próximos Pasos</li>
+            </ul>
+        </div>
+
+        <!-- 1. INTRODUCCIÓN -->
+        <div class="seccion">
+            <h2><span>🎯</span> Introducción y Visión</h2>
+            
+            <h3>Objetivo Principal</h3>
+            <p>Crear un ecommerce profesional, escalable y fácil de administrar que permita a <span class="highlight">Flor</span> vender productos personalizados sin depender de terceros.</p>
+
+            <h3>Filosofía del Proyecto</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>✓ Simplicidad</h4>
+                    <p>Simplicidad antes que complejidad técnica</p>
+                </div>
+                <div class="card">
+                    <h4>✓ Código Limpio</h4>
+                    <p>Código limpio > código "clever"</p>
+                </div>
+                <div class="card">
+                    <h4>✓ Estabilidad</h4>
+                    <p>Estabilidad > features "cool"</p>
+                </div>
+                <div class="card">
+                    <h4>✓ Admin Intuitivo</h4>
+                    <p>Sin conocimientos técnicos necesarios</p>
+                </div>
+                <div class="card">
+                    <h4>✓ Control Total</h4>
+                    <p>100% control en manos de Puchia</p>
+                </div>
+                <div class="card">
+                    <h4>✓ Mantenibilidad</h4>
+                    <p>Fácil de mantener y actualizar</p>
+                </div>
+            </div>
+
+            <h3>Estimación de Tiempo</h3>
+            <p><strong>2-3 semanas</strong> para MVP (Producto Mínimo Viable)</p>
+
+            <h3>Stack Tecnológico Sugerido</h3>
+            <ul class="lista">
+                <li><strong>Frontend:</strong> React o Vue.js</li>
+                <li><strong>Backend:</strong> Node.js + Express (o Python + FastAPI)</li>
+                <li><strong>Base de datos:</strong> PostgreSQL</li>
+                <li><strong>Hosting:</strong> Hostinger (Node.js)</li>
+            </ul>
+        </div>
+
+        <!-- 2. ARQUITECTURA -->
+        <div class="seccion seccion-gris">
+            <h2><span>🏗️</span> Arquitectura General del Sistema</h2>
+            
+            <p>El sistema consta de <span class="highlight">TRES aplicaciones web</span> independientes pero conectadas:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>1. TIENDA CLIENTE</h4>
+                    <p><strong>Estado:</strong> 90% funcional<br><strong>Función:</strong> Vitrina, carrito, checkout<br><strong>URL:</strong> puchia.com.ar</p>
+                </div>
+                <div class="card">
+                    <h4>2. PANEL ADMIN</h4>
+                    <p><strong>Estado:</strong> 85% funcional<br><strong>Función:</strong> Gestión productos/stock/órdenes<br><strong>URL:</strong> /admin</p>
+                </div>
+                <div class="card warning">
+                    <h4>3. BACKEND API</h4>
+                    <p><strong>Estado:</strong> NO INICIADO - PRIORIDAD MÁXIMA<br><strong>Función:</strong> Procesa datos, BD, lógica<br><strong>URL:</strong> api.puchia.com.ar</p>
+                </div>
+                <div class="card warning">
+                    <h4>4. BASE DE DATOS</h4>
+                    <p><strong>Estado:</strong> NO INICIADO<br><strong>Tipo:</strong> PostgreSQL<br><strong>Función:</strong> Persistencia de datos</p>
+                </div>
+            </div>
+
+            <h3>Flujo de Datos</h3>
+            <div class="diagrama">
+Cliente                  Servidor                    Admin
+  |                          |                         |
+  |---(consulta producto)---->|                         |
+  |<------(JSON)-------------|                         |
+  |---(agrega carrito)------->|                         |
+  |        (localStorage)      |                         |
+  |---(checkout)------------->|---(crea orden)-------->|
+  |                           |                        |
+  |<------(confirmación)------|---(notifica)--------->|
+  |                   (email/WhatsApp)  (actualiza panel)
+  |                           |                        |
+  |                      [BASE DE DATOS]              |
+  |                        (persistencia)             |
+            </div>
+        </div>
+
+        <!-- 3. USUARIOS Y PERMISOS -->
+        <div class="seccion">
+            <h2><span>👥</span> Tipos de Usuarios y Permisos</h2>
+            
+            <h3>A. Cliente Anónimo</h3>
+            <div class="caja-info">
+                <p><strong>✓ Acciones permitidas:</strong></p>
+            </div>
+            <ul class="lista">
+                <li>Ver catálogo de productos</li>
+                <li>Filtrar por categoría</li>
+                <li>Ver detalle de producto</li>
+                <li>Agregar/quitar items del carrito</li>
+                <li>Realizar checkout</li>
+                <li>Pagar sin registrarse</li>
+            </ul>
+
+            <h3>B. Cliente Registrado</h3>
+            <p>Todas las acciones del anónimo + </p>
+            <ul class="lista">
+                <li>Ver historial de órdenes</li>
+                <li>Guardar datos de envío</li>
+                <li>Recibir notificaciones de estado</li>
+                <li>Calificar productos (futuro)</li>
+            </ul>
+
+            <h3>C. Administrador (Flor)</h3>
+            <ul class="lista">
+                <li>Crear/editar/eliminar productos</li>
+                <li>Cargar productos en masa (importar Excel)</li>
+                <li>Gestionar stock (productos e insumos)</li>
+                <li>Ver/filtrar órdenes</li>
+                <li>Cambiar estado de órdenes</li>
+                <li>Exportar órdenes con filtros</li>
+                <li>Ver dashboard con estadísticas</li>
+                <li>Cambiar contraseña</li>
+            </ul>
+
+            <h3>Credenciales Admin</h3>
+            <div class="caja-info">
+                <p><strong>Usuario:</strong> admin<br><strong>Contraseña:</strong> Puchia1209<br><strong>Nota:</strong> Debe ser cambiable en el backend</p>
+            </div>
+        </div>
+
+        <!-- 4. ENTIDADES -->
+        <div class="seccion seccion-gris">
+            <h2><span>🗂️</span> Entidades Principales</h2>
+            
+            <h3>PRODUCTO</h3>
+            <ul class="lista">
+                <li>ID, nombre, precio, descripción HTML</li>
+                <li>Múltiples categorías</li>
+                <li>Estado (habilitado/deshabilitado)</li>
+                <li>Media (imágenes, videos)</li>
+                <li>Stock Type: "simple" o "insumo"</li>
+                <li>Atributos: tamaño, color, etc.</li>
+            </ul>
+
+            <h3>INSUMO</h3>
+            <ul class="lista">
+                <li>ID, nombre, stock actual</li>
+                <li>Descripción opcional</li>
+                <li>Vinculado a múltiples productos</li>
+                <li>Mapeado por colores</li>
+            </ul>
+
+            <h3>ORDEN</h3>
+            <ul class="lista">
+                <li>ID único (ej: ORD-1715800000000)</li>
+                <li>Datos del cliente (nombre, email, DNI, teléfono)</li>
+                <li>Items ordenados con atributos</li>
+                <li>Total y estado</li>
+                <li>Notas personalizadas</li>
+            </ul>
+
+            <h3>Ejemplo Producto con Insumo</h3>
+            <div class="diagrama">
+{
+  "id": 1,
+  "nombre": "Vaso Personalizado",
+  "precio": 1290,
+  "stockType": "insumo",
+  "insumoId": 2,  // ← Vaso Plástico Rojo
+  "atributos": {
+    "tamaño": ["Chico", "Mediano", "Grande"],
+    "color": [
+      {name: "Rojo", hex: "#FF0000"},
+      {name: "Azul", hex: "#0000FF"}
+    ]
+  },
+  "colorInsumoMap": {
+    "Rojo": 1,   // Vaso Plástico Rojo
+    "Azul": 2    // Vaso Plástico Azul
+  }
+}
+            </div>
+        </div>
+
+        <!-- 5. PRIORIZACIÓN -->
+        <div class="seccion">
+            <h2><span>🎯</span> Priorización de Desarrollo (MVP)</h2>
+            
+            <h3>PRIORIDAD 1 - ABSOLUTAMENTE ESENCIAL</h3>
+            <ul class="lista">
+                <li><span class="badge success">✓</span> Home con catálogo de productos</li>
+                <li><span class="badge success">✓</span> Carrito funcionando</li>
+                <li><span class="badge success">✓</span> Checkout y crear orden</li>
+                <li><span class="badge success">✓</span> Panel admin con CRUD productos</li>
+                <li><span class="badge success">✓</span> Gestión de stock</li>
+                <li><span class="badge success">✓</span> Tabla de órdenes</li>
+                <li><span class="badge success">✓</span> Cambiar estado de orden</li>
+                <li><span class="badge danger">⚠</span> Backend + BD PostgreSQL</li>
+            </ul>
+
+            <h3>PRIORIDAD 2 - IMPORTANTE PERO PUEDE ESPERAR</h3>
+            <ul class="lista">
+                <li>Login de cliente</li>
+                <li>Historial de compras (cliente registrado)</li>
+                <li>Notificaciones por email</li>
+                <li>Exportar/Importar Excel</li>
+                <li>Media upload (imágenes/videos)</li>
+                <li>Editor rich text en descripción</li>
+            </ul>
+
+            <h3>PRIORIDAD 3 - FUTURO (NO MVP)</h3>
+            <ul class="lista">
+                <li>MercadoPago integrado</li>
+                <li>Notificaciones por WhatsApp</li>
+                <li>Dashboard analytics avanzado</li>
+                <li>Cupones y descuentos</li>
+                <li>Rating de productos</li>
+                <li>Búsqueda avanzada</li>
+            </ul>
+        </div>
+
+        <!-- 6. SEGURIDAD Y PERFORMANCE -->
+        <div class="seccion seccion-gris">
+            <h2><span>🛡️</span> Seguridad, Performance, Escalabilidad</h2>
+            
+            <h3>Seguridad</h3>
+            <ul class="lista warning">
+                <li>HTTPS obligatorio en producción</li>
+                <li>Validación de datos en BACKEND (nunca confiar en frontend)</li>
+                <li>SQL Injection: Usar ORM (Sequelize) o prepared statements</li>
+                <li>CSRF tokens en formularios</li>
+                <li>Rate limiting en API (evitar ataques DDoS)</li>
+                <li>Contraseñas hasheadas con bcrypt</li>
+                <li>JWT con expiración de tokens</li>
+                <li>CORS configurado correctamente</li>
+                <li>Variables de entorno (.env) para secretos</li>
+            </ul>
+
+            <h3>Performance</h3>
+            <ul class="lista">
+                <li>Lazy loading de imágenes/videos</li>
+                <li>Caché en cliente (HTTP cache headers)</li>
+                <li>Compresión Gzip en servidor</li>
+                <li>CDN para media (Cloudflare, AWS CloudFront)</li>
+                <li>Índices en BD en campos búsquedos frecuentemente</li>
+                <li>Paginación en grandes listas</li>
+                <li>Queries optimizadas (evitar N+1 queries)</li>
+            </ul>
+
+            <h3>Escalabilidad</h3>
+            <ul class="lista">
+                <li>Arquitectura modular (componentes React independientes)</li>
+                <li>API RESTful estándar</li>
+                <li>BD normalizada para evitar redundancia</li>
+                <li>Desacoplamiento frontend-backend</li>
+                <li>Versionamiento de API (/api/v1/)</li>
+            </ul>
+        </div>
+
+        <!-- 7. PRÓXIMOS PASOS -->
+        <div class="seccion">
+            <h2><span>📅</span> Próximos Pasos</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4>1. Revisar este informe</h4>
+                    <p>Aprobación de la arquitectura y prioridades</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>2. Crear estructura del proyecto</h4>
+                    <p>Repositorio Git, carpetas base, configuración</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>3. Modelar BD en PostgreSQL</h4>
+                    <p>Crear tablas, relaciones, índices</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>4. Implementar backend API</h4>
+                    <p>Endpoints CRUD, validaciones, lógica</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>5. Desarrollar frontend tienda</h4>
+                    <p>Integrar con API, catálogo, carrito</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>6. Desarrollar panel admin</h4>
+                    <p>Integrar con API, gestión de productos/órdenes</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>7. Testing integral</h4>
+                    <p>Unit tests, integration tests, E2E</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>8. Deploy a Hostinger</h4>
+                    <p>Configuración, variables de entorno, backups</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>9. Go live</h4>
+                    <p>Monitoreo, feedback inicial, ajustes</p>
+                </div>
+            </div>
+
+            <h3>Cambios Pendientes Solicitados</h3>
+            <ul class="lista">
+                <li><span class="badge warning">PENDIENTE</span> Importar productos en masa (Excel)</li>
+                <li><span class="badge warning">PENDIENTE</span> Exportar stock completo</li>
+                <li><span class="badge warning">PENDIENTE</span> Filtrar órdenes por rango de fechas</li>
+                <li><span class="badge warning">PENDIENTE</span> Cambiar estado orden con confirmación animada</li>
+            </ul>
+        </div>
+
+        <!-- ESTADO FINAL -->
+        <div class="seccion seccion-highlight">
+            <h2><span>✅</span> Estado del Proyecto</h2>
+            
+            <h3>LISTO PARA DESARROLLO</h3>
+            <p>Este informe contiene la especificación técnica completa necesaria para que cualquier equipo de desarrollo pueda comenzar a construir Puchia sin ambigüedades.</p>
+
+            <h3>Documento Preparado Para</h3>
+            <p>Programador/Equipo de desarrollo</p>
+
+            <h3>Versión</h3>
+            <p>3.0 Final - Mayo 2024</p>
+
+            <h3>Punto de Contacto</h3>
+            <p><strong>Flor</strong> (dueña de Puchia)</p>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p style="font-size: 18px; margin-bottom: 20px; font-weight: 600;">PUCHIA - INFORME TÉCNICO v3.0</p>
+        <p>Documento técnico profesional para el desarrollo de ecommerce</p>
+        <p>Mayo 2024 | LISTO PARA DESARROLLO</p>
+        <p style="margin-top: 30px; opacity: 0.6; font-size: 12px;">© 2024 Puchia - Todos los derechos reservados</p>
+    </div>
+
+</body>
+</html>
