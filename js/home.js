@@ -158,6 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Renderizar categorías dinámicamente
+    renderCategoriesHome();
 });
 
 function goToPromos(category) {
@@ -300,4 +303,21 @@ function startHomeProductPolling() {
             console.warn('[Polling Home] error:', err.message);
         }
     }, 30000);
+}
+
+// ==================== CATEGORÍAS DINÁMICAS ====================
+
+function renderCategoriesHome() {
+  const categoriasGrid = document.getElementById('categorias-grid');
+  if (!categoriasGrid || !categories || categories.length === 0) return;
+
+  const categoriesHTML = categories.map(cat => `
+    <div class="category-card" onclick="goToPromos('${cat.id}')">
+      <div class="category-icon">${cat.icon}</div>
+      <h3>${cat.name}</h3>
+      <p>${cat.description}</p>
+    </div>
+  `).join('');
+
+  categoriasGrid.innerHTML = categoriesHTML;
 }
