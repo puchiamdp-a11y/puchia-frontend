@@ -554,11 +554,7 @@ async function loadAllOrders() {
           <td>$${orden.total}</td>
           <td>
             <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 4px; border-radius: 4px;">
-              <option value="pendiente" ${orden.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-              <option value="en_edicion" ${orden.estado === 'en_edicion' ? 'selected' : ''}>En Edición</option>
-              <option value="preparandose" ${orden.estado === 'preparandose' ? 'selected' : ''}>Preparándose</option>
-              <option value="listo_retirar" ${orden.estado === 'listo_retirar' ? 'selected' : ''}>Listo Retirar</option>
-              <option value="entregado" ${orden.estado === 'entregado' ? 'selected' : ''}>Entregado</option>
+              ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
             </select>
           </td>
           <td>${new Date(orden.creado_en).toLocaleDateString()}</td>
