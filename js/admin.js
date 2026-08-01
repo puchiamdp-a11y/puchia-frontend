@@ -73,6 +73,8 @@ function setupEventListeners() {
           loadAllOrders();
         } else if (page === 'clientes') {
           listarClientes();
+        } else if (page === 'categorias') {
+          loadCategorias();
         } else if (page === 'settings') {
           loadSettings();
         }
