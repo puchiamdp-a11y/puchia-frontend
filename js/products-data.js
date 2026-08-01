@@ -40,9 +40,9 @@ async function loadProductsFromAPI() {
         };
       }).filter(p => p.habilitado);
 
-      const promoIds = [10, 11, 12, 23, 24, 25];
-      allProducts = products.filter(p => !promoIds.includes(p.id));
-      promoProducts = products.filter(p => promoIds.includes(p.id));
+      // Filtrar por categoría "Promos" en lugar de IDs hardcodeados
+      promoProducts = products.filter(p => p.categorias && p.categorias.some(cat => cat.nombre === 'Promos'));
+      allProducts = products.filter(p => !p.categorias || !p.categorias.some(cat => cat.nombre === 'Promos'));
     } else {
       allProducts = [];
       promoProducts = [];
