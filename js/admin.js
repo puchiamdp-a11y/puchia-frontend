@@ -1596,3 +1596,148 @@ document.addEventListener('DOMContentLoaded', () => {
   if (exportBtn) exportBtn.addEventListener('click', exportarProductos);
   if (importBtn) importBtn.addEventListener('click', importarProductos);
 });
+
+// ==================== CATEGORÍAS CRUD ====================
+
+async function loadCategorias() {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/categorias`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await response.json();
+    renderCategorias(data.data || []);
+  } catch (error) {
+    console.error('Error cargando categorías:', error);
+    puchiaAlert('Error al cargar categorías', 'error');
+  }
+}
+
+function renderCategorias(categorias) {
+  const tbody = document.getElementById('categorias-list');
+  if (!categorias || categorias.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999; padding: 20px;">Sin categorías registradas</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = categorias.map(cat => `
+    <tr>
+      <td>${cat.id}</td>
+      <td><strong>${cat.nombre}</strong></td>
+      <td style="color: #666; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${cat.descripcion || '—'}</td>
+      <td>
+        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}')" title="Editar">✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="eliminarCategoria(${cat.id})" title="Eliminar">🗑️ Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function guardarCategoria() {
+  const nombre = document.getElementById('categoriaNombre').value.trim();
+  const descripcion = document.getElementById('categoriaDescripcion').value.trim();
+  const categoriaId = document.getElementById('categoriaId').value;
+
+  // Validar nombre
+  if (!nombre) {
+    puchiaAlert('El nombre de la categoría es requerido', 'error');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const method = categoriaId ? 'PUT' : 'POST';
+    const url = categoriaId
+      ? `${API_BASE_URL}/admin/categorias/${categoriaId}`
+      : `${API_BASE_URL}/admin/categorias`;
+
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        nombre: nombre,
+        descripcion: descripcion || null
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      const accion = categoriaId ? 'actualizada' : 'creada';
+      puchiaAlert(`Categoría ${accion} exitosamente`, 'success');
+
+      // Limpiar formulario
+      document.getElementById('categoriaId').value = '';
+      document.getElementById('categoriaNombre').value = '';
+      document.getElementById('categoriaDescripcion').value = '';
+      document.getElementById('cancelarCategoriaBtn').style.display = 'none';
+
+      // Recargar tabla
+      loadCategorias();
+    } else {
+      puchiaAlert(data.message || 'Error al guardar la categoría', 'error');
+    }
+  } catch (error) {
+    console.error('Error en guardarCategoria:', error);
+    puchiaAlert('Error al conectar con el servidor: ' + error.message, 'error');
+  }
+}
+
+function editarCategoria(id, nombre, descripcion) {
+  document.getElementById('categoriaId').value = id;
+  document.getElementById('categoriaNombre').value = nombre;
+  document.getElementById('categoriaDescripcion').value = descripcion;
+  document.getElementById('cancelarCategoriaBtn').style.display = 'inline-block';
+  document.getElementById('categoriaNombre').focus();
+}
+
+async function eliminarCategoria(id) {
+  const confirmar = await puchiaConfirm('¿Estás seguro de que quieres eliminar esta categoría?', '⚠️ Eliminar Categoría');
+
+  if (!confirmar) return;
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/categorias/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response.ok || response.status === 204) {
+      puchiaAlert('Categoría eliminada exitosamente', 'success');
+      loadCategorias();
+    } else {
+      const data = await response.json();
+      puchiaAlert(data.message || 'Error al eliminar la categoría', 'error');
+    }
+  } catch (error) {
+    console.error('Error en eliminarCategoria:', error);
+    puchiaAlert('Error al conectar con el servidor: ' + error.message, 'error');
+  }
+}
+
+// Agregar event listeners para categorías
+document.addEventListener('DOMContentLoaded', () => {
+  const guardarBtn = document.getElementById('guardarCategoriaBtn');
+  const cancelarBtn = document.getElementById('cancelarCategoriaBtn');
+
+  if (guardarBtn) {
+    guardarBtn.addEventListener('click', guardarCategoria);
+  }
+
+  if (cancelarBtn) {
+    cancelarBtn.addEventListener('click', () => {
+      document.getElementById('categoriaId').value = '';
+      document.getElementById('categoriaNombre').value = '';
+      document.getElementById('categoriaDescripcion').value = '';
+      cancelarBtn.style.display = 'none';
+    });
+  }
+});
