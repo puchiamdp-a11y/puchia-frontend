@@ -84,7 +84,7 @@ function loadAndRenderProducts() {
         return;
     }
 
-    const BACKEND = 'http://127.0.0.1:3000';
+    const BACKEND = 'https://puchia-backend-production.up.railway.app';
     const html = filtered.map(product => {
         const imgContent = product.portada
             ? `<img src="${BACKEND}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
@@ -140,7 +140,7 @@ function loadAndRenderPromos() {
         return;
     }
 
-    const BACKEND_PROMO = 'http://127.0.0.1:3000';
+    const BACKEND_PROMO = 'https://puchia-backend-production.up.railway.app';
     const html = promoProducts.map(product => {
         const imgContent = product.portada
             ? `<img src="${BACKEND_PROMO}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
@@ -372,7 +372,7 @@ async function openProductDetail(productId) {
     const oldModal = document.getElementById('productDetailModal');
     if (oldModal) oldModal.remove();
 
-    const BK = 'http://127.0.0.1:3000';
+    const BK = 'https://puchia-backend-production.up.railway.app';
     const mediaList = product.media || [];
     window._currentDetailMedia = mediaList;
     const portadaItem = mediaList.find(m => m.es_portada) || mediaList[0] || null;
@@ -519,7 +519,7 @@ function changeDetailMedia(idx) {
   const item = media[idx];
   if (!item) return;
 
-  const BK = 'http://127.0.0.1:3000';
+  const BK = 'https://puchia-backend-production.up.railway.app';
   const mainEl = document.getElementById('detailMainMedia');
   if (!mainEl) return;
 
