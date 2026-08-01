@@ -1,8 +1,37 @@
 // API_BASE_URL ya está definido en el HTML
 
+// ==================== CATEGORÍAS DINÁMICAS ====================
+let adminCategories = [];
+
+async function loadAdminCategories() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/categorias`);
+    const data = await response.json();
+    adminCategories = data.data || [];
+    console.log('[Admin] Categorías cargadas:', adminCategories);
+  } catch (error) {
+    console.error('[Admin] Error cargando categorías:', error);
+  }
+}
+
+function populateProductCategoryDropdown() {
+  const select = document.getElementById('productCategoria');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">-- Selecciona una categoría --</option>';
+
+  adminCategories.forEach(cat => {
+    const option = document.createElement('option');
+    option.value = cat.id;
+    option.textContent = cat.nombre;
+    select.appendChild(option);
+  });
+}
+
 // Verificar autenticación al cargar
 document.addEventListener('DOMContentLoaded', () => {
   checkAdminAuth();
+  loadAdminCategories();
   loadDashboardStats();
   loadRecentOrders();
   setupEventListeners();
@@ -348,6 +377,7 @@ function duplicarProducto(id) {
   document.getElementById('productDescripcion').value = original.descripcion || '';
   document.getElementById('productPrecio').value = original.precio;
   document.getElementById('productStock').value = original.stock_cantidad || 0;
+  populateProductCategoryDropdown();
   document.getElementById('productCategoria').value = original.categorias?.[0]?.id || '';
   const st = document.querySelector(`input[name="stockType"][value="${original.stock_type || 'simple'}"]`);
   if (st) st.checked = true;
@@ -361,6 +391,7 @@ function openNewProductModal() {
   document.getElementById('modalProductoTitle').textContent = 'Nuevo Producto';
   document.getElementById('formProducto').reset();
   document.getElementById('productHabilitado').checked = true;
+  populateProductCategoryDropdown();
   document.getElementById('modalProducto').style.display = 'flex';
   initMediaSection(null);
 }
@@ -373,6 +404,7 @@ function editProduct(id) {
   document.getElementById('productNombre').value = productoActualEnEdicion.nombre;
   document.getElementById('productPrecio').value = productoActualEnEdicion.precio;
   document.getElementById('productStock').value = productoActualEnEdicion.stock_cantidad || 0;
+  populateProductCategoryDropdown();
   document.getElementById('productCategoria').value = productoActualEnEdicion.categorias?.[0]?.id || '';
   document.querySelector(`input[name="stockType"][value="${productoActualEnEdicion.stock_type}"]`).checked = true;
   document.getElementById('productHabilitado').checked = productoActualEnEdicion.habilitado !== false;
