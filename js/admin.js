@@ -32,6 +32,7 @@ function populateProductCategoryDropdown() {
 document.addEventListener('DOMContentLoaded', () => {
   checkAdminAuth();
   loadAdminCategories();
+  loadOrderStatuses();
   loadDashboardStats();
   loadRecentOrders();
   setupEventListeners();
@@ -1775,3 +1776,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ==================== ESTATUS DE ÓRDENES ====================
+
+let orderStatuses = [];
+
+async function loadOrderStatuses() {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch('https://puchia-backend-production.up.railway.app/api/v1/admin/order-statuses', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await response.json();
+    orderStatuses = data.data || [];
+    console.log('Estados de orden cargados:', orderStatuses);
+  } catch (error) {
+    console.error('Error cargando estados:', error);
+  }
+}
+
+function getStatusBadge(status) {
+  const statusObj = orderStatuses.find(s => s.nombre === status);
+  if (!statusObj) return `<span class="badge">${status}</span>`;
+
+  const colors = {
+    'Pendiente': '#FFA500',
+    'En Edición': '#1E90FF',
+    'Preparándose': '#9370DB',
+    'Listo para Retirar': '#32CD32',
+    'Entregado': '#228B22'
+  };
+
+  return `<span class="badge" style="background-color: ${colors[status] || '#666'}">${status}</span>`;
+}
