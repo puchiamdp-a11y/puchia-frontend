@@ -226,7 +226,7 @@ function renderProductos(lista) {
 
     const portada = p.media?.find(m => m.es_portada) || p.media?.[0] || null;
     const fotoCell = portada
-      ? `<td style="padding:6px;"><img src="http://127.0.0.1:3000${portada.url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid #ddd;display:block;" onclick="openProductGallery(${p.id})" title="Ver galería" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'"></td>`
+      ? `<td style="padding:6px;"><img src="${BACKEND_URL}${portada.url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid #ddd;display:block;" onclick="openProductGallery(${p.id})" title="Ver galería" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'"></td>`
       : `<td style="padding:6px;text-align:center;"><span style="font-size:22px;" title="Sin fotos">${emoji}</span></td>`;
 
     return `<tr>
@@ -679,7 +679,7 @@ async function saveSettings() {
 
 // ==================== MEDIA MANAGEMENT (Fase 2) ====================
 
-const BACKEND_URL = 'http://127.0.0.1:3000';
+const BACKEND_URL = 'https://puchia-backend-production.up.railway.app';
 let mediaCurrentProductoId = null;
 let mediaQueuedFiles = [];
 let mediaItems = [];
