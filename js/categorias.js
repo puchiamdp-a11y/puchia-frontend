@@ -1,25 +1,34 @@
 /* CATEGORIAS.JS - Lógica de Categorías */
 
-const categories = [
-    {
-        id: 'cumpleanos',
-        name: 'Cumpleaños',
-        icon: '🎉',
-        description: 'Productos especiales para celebrar cumpleaños'
-    },
-    {
-        id: 'regalos',
-        name: 'Regalos',
-        icon: '🎁',
-        description: 'Regalos personalizados para cualquier ocasión'
-    },
-    {
-        id: 'emprendedores',
-        name: 'Emprendedores',
-        icon: '💼',
-        description: 'Productos corporativos y empresariales'
-    }
-];
+let categories = [];
+
+async function loadCategoriasFromAPI() {
+  try {
+    const response = await fetch('https://puchia-backend-production.up.railway.app/api/v1/categorias');
+    const data = await response.json();
+
+    categories = data.data.map(cat => ({
+      id: cat.nombre.toLowerCase().replace(/ñ/g, 'n'),
+      name: cat.nombre,
+      icon: getIconoCategoria(cat.nombre),
+      description: cat.descripcion || ''
+    }));
+
+    console.log('Categorías cargadas:', categories);
+  } catch (error) {
+    console.error('Error cargando categorías:', error);
+  }
+}
+
+function getIconoCategoria(nombre) {
+  const iconos = {
+    'CUMPLEAÑOS': '🎉',
+    'REGALOS': '🎁',
+    'EMPRENDEDORES': '💼',
+    'PROMOS': '🎊'
+  };
+  return iconos[nombre] || '📦';
+}
 
 let currentCategory = null;
 
@@ -151,6 +160,9 @@ window.addEventListener('load', async () => {
     updateUIWithSettings();
     updateCartCount();
     renderCartSidebar();
+
+    // Cargar categorías desde API
+    await loadCategoriasFromAPI();
     renderCategories();
 
     // Fetch API data without blocking UI
@@ -158,3 +170,6 @@ window.addEventListener('load', async () => {
         renderCategories();
     });
 });
+
+// Cargar categorías cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', loadCategoriasFromAPI);
