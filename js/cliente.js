@@ -304,6 +304,7 @@ function goToHome() {
 window.addEventListener('load', async () => {
     // Load defaults immediately, then fetch API in background
     loadInterface();
+    renderCategoryFilters();
     updateCartCount();
     renderCartSidebar();
 
@@ -551,4 +552,22 @@ function changeDetailMedia(idx) {
       mainEl.replaceWith(img);
     }
   }
+}
+
+// ==================== FILTROS DE CATEGORÍAS DINÁMICOS ====================
+
+function renderCategoryFilters() {
+  const filtersBar = document.getElementById('filters-bar');
+  if (!filtersBar) return;
+
+  // Crear botón para cada categoría
+  const categoryButtons = (categories || []).map(cat =>
+    `<button class="filter-btn" onclick="filterProducts('${cat.id}')">${cat.icon} ${cat.name}</button>`
+  ).join('');
+
+  // Agregar después del botón "Todos"
+  filtersBar.innerHTML = `
+    <button class="filter-btn active" onclick="filterProducts('todas')">Todos</button>
+    ${categoryButtons}
+  `;
 }
