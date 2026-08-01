@@ -31,6 +31,7 @@ async function loadProductsFromAPI() {
           price: parseFloat(p.precio) || 0,
           icon: ICONOS_CATEGORIA[categoryName] || '📦',
           category: categoryName,
+          categorias: p.categorias,
           descripcion: p.descripcion || 'Sin descripción disponible',
           descripcion_completa: p.descripcion || 'Sin descripción disponible',
           stock: p.stock_cantidad || 0,
