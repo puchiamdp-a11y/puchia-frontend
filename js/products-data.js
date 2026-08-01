@@ -40,9 +40,9 @@ async function loadProductsFromAPI() {
         };
       }).filter(p => p.habilitado);
 
-      // Filtrar por categoría "Promos" en lugar de IDs hardcodeados
-      promoProducts = products.filter(p => p.categorias && p.categorias.some(cat => cat.nombre === 'Promos'));
-      allProducts = products.filter(p => !p.categorias || !p.categorias.some(cat => cat.nombre === 'Promos'));
+      // Filtrar por categoría "PROMOS" en lugar de IDs hardcodeados
+      promoProducts = products.filter(p => p.categorias && p.categorias.some(cat => cat.nombre === 'PROMOS'));
+      allProducts = products.filter(p => !p.categorias || !p.categorias.some(cat => cat.nombre === 'PROMOS'));
     } else {
       allProducts = [];
       promoProducts = [];
