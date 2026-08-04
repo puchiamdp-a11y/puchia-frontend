@@ -579,6 +579,7 @@ async function loadAllOrders() {
 let ordenManualProductos = [];
 let ordenManualClientes = [];
 let ordenManualRowCounter = 0;
+let ordenCreadaId = null; // Almacenar ID de orden para descargar ticket
 
 async function abrirModalCrearOrden() {
   document.getElementById('formCrearOrden').reset();
@@ -725,6 +726,7 @@ async function guardarOrden(e) {
   const selectCliente = document.getElementById('selectCliente');
   const nuevoClienteForm = document.getElementById('nuevoClienteForm');
   const notas = document.getElementById('ordenNotas').value.trim();
+  const fechaEntrega = document.getElementById('ordenFechaEntrega').value;
 
   const esNuevoCliente = nuevoClienteForm.style.display !== 'none';
   let clienteId = selectCliente.value;
@@ -822,15 +824,22 @@ async function guardarOrden(e) {
       body: JSON.stringify({
         cliente_id: parseInt(clienteId),
         items,
-        notas: notas || null
+        notas: notas || null,
+        fecha_entrega: fechaEntrega || null
       })
     });
 
     const data = await response.json();
 
     if (data.success) {
-      puchiaAlert('Orden creada exitosamente', 'success');
+      // Guardar ID de orden para descargar ticket
+      ordenCreadaId = data.data.id;
+
+      // Cerrar modal de crear orden y mostrar modal de éxito
       cerrarModalOrden();
+      document.getElementById('modalSucesoOrden').style.display = 'flex';
+
+      // Recargar órdenes en background (sin cerrar modal de éxito)
       loadAllOrders();
       loadRecentOrders();
     } else {
@@ -850,6 +859,63 @@ function cerrarModalOrden() {
   document.getElementById('formCrearOrden').reset();
   document.getElementById('nuevoClienteForm').style.display = 'none';
   document.getElementById('selectCliente').disabled = false;
+}
+
+function cerrarModalSucesoOrden() {
+  document.getElementById('modalSucesoOrden').style.display = 'none';
+  ordenCreadaId = null;
+}
+
+async function descargarTicket() {
+  if (!ordenCreadaId) {
+    puchiaAlert('No hay orden para descargar', 'error');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenCreadaId}/ticket`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      puchiaAlert('Error al descargar ticket', 'error');
+      return;
+    }
+
+    // Descargar como archivo PNG
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ticket-orden.png`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    puchiaAlert('Ticket descargado exitosamente', 'success');
+  } catch (error) {
+    console.error('Error descargando ticket:', error);
+    puchiaAlert('Error de conexión al descargar ticket', 'error');
+  }
+}
+
+function copiarLinkSeguimiento() {
+  if (!ordenCreadaId) {
+    puchiaAlert('No hay orden para obtener link', 'error');
+    return;
+  }
+
+  // Crear link de seguimiento (puedes ajustar la ruta según tu app)
+  const enlaceSeguimiento = `${window.location.origin}/ordenes/${ordenCreadaId}`;
+
+  // Copiar al portapapeles
+  navigator.clipboard.writeText(enlaceSeguimiento).then(() => {
+    puchiaAlert('Link de seguimiento copiado al portapapeles', 'success');
+  }).catch(() => {
+    puchiaAlert('Error al copiar link', 'error');
+  });
 }
 
 async function updateOrderStatus(orderId, newStatus) {
