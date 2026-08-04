@@ -208,9 +208,11 @@ async function submitOrder(e) {
     
     // Deshabilitar botón para evitar clicks duplicados
     const confirmBtn = document.getElementById("confirmOrderBtn");
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = "Procesando...";
-    confirmBtn.style.opacity = "0.6";
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Procesando...";
+        confirmBtn.style.opacity = "0.6";
+    }
     const name     = document.getElementById('checkoutName').value;
     const email    = document.getElementById('checkoutEmail').value;
     const phone    = document.getElementById('checkoutPhone').value;
