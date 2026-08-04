@@ -580,6 +580,7 @@ let ordenManualProductos = [];
 let ordenManualClientes = [];
 let ordenManualRowCounter = 0;
 let ordenCreadaId = null; // Almacenar ID de orden para descargar ticket
+let ordenCreadaIdUnico = null; // Almacenar ID_UNICO para link de seguimiento
 
 async function abrirModalCrearOrden() {
   document.getElementById('formCrearOrden').reset();
@@ -832,8 +833,9 @@ async function guardarOrden(e) {
     const data = await response.json();
 
     if (data.success) {
-      // Guardar ID de orden para descargar ticket
+      // Guardar ID de orden para descargar ticket y link de seguimiento
       ordenCreadaId = data.data.id;
+      ordenCreadaIdUnico = data.data.id_unico;
 
       // Cerrar modal de crear orden y mostrar modal de éxito
       cerrarModalOrden();
@@ -864,6 +866,7 @@ function cerrarModalOrden() {
 function cerrarModalSucesoOrden() {
   document.getElementById('modalSucesoOrden').style.display = 'none';
   ordenCreadaId = null;
+  ordenCreadaIdUnico = null;
 }
 
 async function descargarTicket() {
@@ -902,17 +905,17 @@ async function descargarTicket() {
 }
 
 function copiarLinkSeguimiento() {
-  if (!ordenCreadaId) {
+  if (!ordenCreadaIdUnico) {
     puchiaAlert('No hay orden para obtener link', 'error');
     return;
   }
 
-  // Crear link de seguimiento (puedes ajustar la ruta según tu app)
-  const enlaceSeguimiento = `${window.location.origin}/ordenes/${ordenCreadaId}`;
+  // Crear link de seguimiento público
+  const enlaceSeguimiento = `${window.location.origin}/seguimiento.html?id=${ordenCreadaIdUnico}`;
 
   // Copiar al portapapeles
   navigator.clipboard.writeText(enlaceSeguimiento).then(() => {
-    puchiaAlert('Link de seguimiento copiado al portapapeles', 'success');
+    puchiaAlert('Link de seguimiento copiado: ' + enlaceSeguimiento, 'success');
   }).catch(() => {
     puchiaAlert('Error al copiar link', 'error');
   });
@@ -998,6 +1001,7 @@ async function viewOrder(id) {
 
       // Guardar ID de orden para usar en botones
       ordenCreadaId = orden.id;
+      ordenCreadaIdUnico = orden.id_unico;
 
       modalContent.innerHTML = `
         <h2>Detalle de Orden</h2>

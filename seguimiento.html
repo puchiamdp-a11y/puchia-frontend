@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Orden - Puchia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 48px;
+            color: #7f1f6e;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #7f1f6e;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            padding: 20px;
+            color: #c33;
+            text-align: center;
+        }
+
+        .order-info {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #666;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pendiente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-en_edicion {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-preparandose {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-listo_retirar {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-entregado {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .items-section {
+            margin: 30px 0;
+        }
+
+        .items-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .item {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-detail {
+            flex: 1;
+        }
+
+        .item-cantidad {
+            color: #7f1f6e;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .item-precio {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .item-subtotal {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+            text-align: right;
+        }
+
+        .total-section {
+            background: linear-gradient(135deg, #7f1f6e 0%, #5a1550 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .total-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .total-amount {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .delivery-info {
+            background: #f0f4ff;
+            border-left: 4px solid #7f1f6e;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 24px 0;
+        }
+
+        .delivery-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #7f1f6e;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .delivery-date {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .footer {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .footer a {
+            color: #7f1f6e;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🌸 PUCHIA</div>
+            <h1>Seguimiento de Orden</h1>
+            <p class="subtitle">Consulta el estado de tu pedido</p>
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Cargando información de tu orden...</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>¿Preguntas? Contáctanos por <a href="#">WhatsApp</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Obtener ID de orden desde query params
+        const urlParams = new URLSearchParams(window.location.search);
+        const ordenId = urlParams.get('id');
+
+        const API_BASE_URL = 'https://api.puchia.com.ar'; // O cambiar a variable de entorno
+
+        async function cargarOrden() {
+            if (!ordenId) {
+                mostrarError('ID de orden no especificado');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/ordenes/${ordenId}/publico`);
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    mostrarError('Orden no encontrada');
+                    return;
+                }
+
+                mostrarOrden(data.data);
+            } catch (error) {
+                console.error('Error cargando orden:', error);
+                mostrarError('Error al cargar la orden. Por favor, intenta más tarde.');
+            }
+        }
+
+        function mostrarOrden(orden) {
+            const statusMap = {
+                'pendiente': 'Pendiente de preparación',
+                'en_edicion': 'En edición',
+                'preparandose': 'Preparándose',
+                'listo_retirar': 'Listo para retirar',
+                'entregado': 'Entregado'
+            };
+
+            const fechaEntrega = orden.fecha_entrega
+                ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }).toUpperCase()
+                : 'A confirmar';
+
+            const total = parseFloat(orden.total) || 0;
+
+            const html = `
+                <div class="order-info">
+                    <div class="info-row">
+                        <span class="info-label">Número de Orden</span>
+                        <span class="info-value"><strong>${orden.id_unico}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Estado</span>
+                        <span class="info-value">
+                            <span class="status-badge status-${orden.estado}">
+                                ${statusMap[orden.estado] || orden.estado}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Cliente</span>
+                        <span class="info-value">${orden.cliente_nombre}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Contacto</span>
+                        <span class="info-value">${orden.cliente_whatsapp || 'No disponible'}</span>
+                    </div>
+                </div>
+
+                ${orden.items && orden.items.length > 0 ? `
+                    <div class="items-section">
+                        <h3>Productos</h3>
+                        ${orden.items.map((item, idx) => `
+                            <div class="item">
+                                <div class="item-detail">
+                                    <div class="item-cantidad">Producto ${idx + 1}</div>
+                                    <div class="item-precio">Cantidad: ${item.cantidad} × $${parseFloat(item.precio_unitario).toFixed(2)}</div>
+                                </div>
+                                <div class="item-subtotal">$${parseFloat(item.subtotal || 0).toFixed(2)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                <div class="total-section">
+                    <div class="total-label">Total de la Orden</div>
+                    <div class="total-amount">$${total.toFixed(2)}</div>
+                </div>
+
+                ${orden.fecha_entrega ? `
+                    <div class="delivery-info">
+                        <div class="delivery-label">📅 Fecha Estimada de Entrega</div>
+                        <div class="delivery-date">${fechaEntrega}</div>
+                    </div>
+                ` : ''}
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <p style="color: #999; font-size: 13px;">
+                        Última actualización: ${new Date().toLocaleDateString('es-AR')}
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById('content').innerHTML = `
+                <div class="error">
+                    <strong>⚠️ Error</strong>
+                    <p style="margin-top: 8px;">${mensaje}</p>
+                </div>
+            `;
+        }
+
+        // Cargar orden cuando el documento esté listo
+        cargarOrden();
+    </script>
+</body>
+</html>
