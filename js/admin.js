@@ -995,7 +995,10 @@ async function viewOrder(id) {
     if (data.success) {
       const orden = data.data;
       const modalContent = document.getElementById('productDetailContent');
-      
+
+      // Guardar ID de orden para usar en botones
+      ordenCreadaId = orden.id;
+
       modalContent.innerHTML = `
         <h2>Detalle de Orden</h2>
         <div style="margin-top: 20px;">
@@ -1007,7 +1010,7 @@ async function viewOrder(id) {
           <p><strong>Total:</strong> $${orden.total}</p>
           <p><strong>Estado:</strong> ${orden.estado}</p>
           <p><strong>Fecha:</strong> ${new Date(orden.creado_en).toLocaleDateString()}</p>
-          
+
           <h3 style="margin-top: 20px;">Items:</h3>
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
@@ -1027,9 +1030,19 @@ async function viewOrder(id) {
               `).join('')}
             </tbody>
           </table>
+
+          <!-- Botones de Acciones -->
+          <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary" onclick="descargarTicket()" style="display: flex; align-items: center; gap: 8px;">
+              📋 Descargar Ticket (Imagen)
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="copiarLinkSeguimiento()" style="display: flex; align-items: center; gap: 8px;">
+              🔗 Copiar Link de Seguimiento
+            </button>
+          </div>
         </div>
       `;
-      
+
       openProductDetail();
     }
   } catch (error) {
