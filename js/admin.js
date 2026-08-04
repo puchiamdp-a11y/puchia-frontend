@@ -536,43 +536,128 @@ async function deleteProduct(id) {
 }
 
 // ==================== ÓRDENES ====================
+let allOrdersData = [];
+let filteredOrdersData = [];
+let currentPage = 1;
+const ORDERS_PER_PAGE = 20;
 
 async function loadAllOrders() {
   try {
     const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/ordenes`, {
+    // Cargar 100 órdenes (modificar limite para cargar más si es necesario)
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes?limite=100&pagina=1`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
     const data = await response.json();
-    const tbody = document.getElementById('all-orders');
-
-    if (data.success && data.data.length > 0) {
-      tbody.innerHTML = data.data.map(orden => `
-        <tr>
-          <td>${orden.id_unico || orden.id}</td>
-          <td>${orden.cliente_nombre}</td>
-          <td>$${orden.total}</td>
-          <td>
-            <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 4px; border-radius: 4px;">
-              ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
-            </select>
-          </td>
-          <td>${new Date(orden.creado_en).toLocaleDateString()}</td>
-          <td>
-            <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
-            <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')">Eliminar</button>
-          </td>
-        </tr>
-      `).join('');
-    } else {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin órdenes</td></tr>';
+    if (data.success && data.data) {
+      allOrdersData = data.data;
+      filteredOrdersData = [...allOrdersData];
+      currentPage = 1;
+      renderOrders();
+      console.log(`Órdenes cargadas: ${allOrdersData.length}`);
     }
   } catch (error) {
     console.error('Error cargando órdenes:', error);
   }
+}
+
+function renderOrders() {
+  const tbody = document.getElementById('all-orders');
+
+  if (filteredOrdersData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin órdenes</td></tr>';
+    document.getElementById('ordersPagination').style.display = 'none';
+    return;
+  }
+
+  // Calcular paginación
+  const totalPages = Math.ceil(filteredOrdersData.length / ORDERS_PER_PAGE);
+  const startIdx = (currentPage - 1) * ORDERS_PER_PAGE;
+  const endIdx = startIdx + ORDERS_PER_PAGE;
+  const paginatedOrders = filteredOrdersData.slice(startIdx, endIdx);
+
+  tbody.innerHTML = paginatedOrders.map(orden => `
+    <tr>
+      <td>${orden.id_unico || orden.id}</td>
+      <td>${orden.cliente_nombre}</td>
+      <td>$${orden.total}</td>
+      <td>
+        <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 4px; border-radius: 4px;">
+          ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
+        </select>
+      </td>
+      <td>${new Date(orden.creado_en).toLocaleDateString()}</td>
+      <td>
+        <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
+        <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')">Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+
+  // Mostrar paginación si hay múltiples páginas
+  updatePaginationControls(totalPages);
+}
+
+function updatePaginationControls(totalPages) {
+  const paginationDiv = document.getElementById('ordersPagination');
+
+  if (totalPages <= 1) {
+    paginationDiv.style.display = 'none';
+    return;
+  }
+
+  paginationDiv.style.display = 'flex';
+  paginationDiv.innerHTML = `
+    <button class="btn btn-sm btn-secondary" ${currentPage === 1 ? 'disabled' : ''} onclick="previousOrderPage()">← Anterior</button>
+    <span style="margin: 0 15px; align-self: center; color: #666;">Página ${currentPage} de ${totalPages}</span>
+    <button class="btn btn-sm btn-secondary" ${currentPage === totalPages ? 'disabled' : ''} onclick="nextOrderPage()">Siguiente →</button>
+  `;
+}
+
+function previousOrderPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    renderOrders();
+    window.scrollTo(0, 0);
+  }
+}
+
+function nextOrderPage() {
+  const totalPages = Math.ceil(filteredOrdersData.length / ORDERS_PER_PAGE);
+  if (currentPage < totalPages) {
+    currentPage++;
+    renderOrders();
+    window.scrollTo(0, 0);
+  }
+}
+
+function filterOrdersByStatus(estado) {
+  currentPage = 1;
+  if (estado === 'todos') {
+    filteredOrdersData = [...allOrdersData];
+  } else {
+    filteredOrdersData = allOrdersData.filter(orden => orden.estado === estado);
+  }
+  renderOrders();
+}
+
+function searchOrders(query) {
+  currentPage = 1;
+  const searchLower = query.toLowerCase().trim();
+
+  if (!searchLower) {
+    filteredOrdersData = [...allOrdersData];
+  } else {
+    filteredOrdersData = allOrdersData.filter(orden =>
+      orden.id_unico.toLowerCase().includes(searchLower) ||
+      orden.cliente_nombre.toLowerCase().includes(searchLower)
+    );
+  }
+
+  renderOrders();
 }
 
 // ==================== CREAR ORDEN MANUAL ====================

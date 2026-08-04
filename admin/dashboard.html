@@ -170,6 +170,28 @@
                 <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                     <button class="btn btn-primary" id="btnCrearOrdenManual" onclick="abrirModalCrearOrden()">➕ Crear Orden Manual</button>
                 </div>
+
+                <!-- FILTROS Y BÚSQUEDA -->
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+                    <!-- Buscador -->
+                    <div style="flex: 1; min-width: 250px;">
+                        <input type="text" id="ordersSearchInput" placeholder="🔍 Buscar por código o cliente..."
+                               style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"
+                               oninput="searchOrders(this.value)">
+                    </div>
+
+                    <!-- Filtro por estado -->
+                    <select id="ordersStatusFilter" style="padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"
+                            onchange="filterOrdersByStatus(this.value)">
+                        <option value="todos">Todos los estados</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en_edicion">En Edición</option>
+                        <option value="preparandose">Preparándose</option>
+                        <option value="listo_retirar">Listo para Retirar</option>
+                        <option value="entregado">Entregado</option>
+                    </select>
+                </div>
+
                 <div class="table-container">
                     <table>
                         <thead>
@@ -188,6 +210,11 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                <div id="ordersPagination" style="display: none; justify-content: center; gap: 10px; margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 6px;">
+                    <!-- Se actualiza dinámicamente con JavaScript -->
                 </div>
             </div>
 
