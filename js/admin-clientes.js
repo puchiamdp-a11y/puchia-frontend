@@ -156,7 +156,7 @@ function renderClientes() {
       <td>${c.whatsapp || '-'}</td>
       <td>${c.ciudad || '-'}</td>
       <td><button class="badge badge-${c.activo ? 'activo' : 'inactivo'}" onclick="toggleClienteEstado(${c.id}, ${c.activo}, '${c.nombre.replace(/'/g, "\\'")}');" style="border: none; cursor: pointer; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">${c.activo ? 'Activo' : 'Inactivo'}</button></td>
-      <td style="font-size:12px;">${new Date(c.created_at).toLocaleDateString('es-AR')}</td>
+      <td style="font-size:12px;">${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</td>
       <td><div class="acciones-cell">
         <button class="btn btn-sm btn-secondary" onclick="verCliente(${c.id})">Ver</button>
         <button class="btn btn-sm btn-warning" onclick="editarCliente(${c.id})">Editar</button>
@@ -227,7 +227,7 @@ async function verCliente(id) {
           <div class="detail-row" style="background:#fff;padding:8px;border-radius:4px;margin-top:8px;"><span class="detail-label">Todos los pedidos:</span> <strong style="font-size:16px;color:#7f1f6e;">${totalPedidos}</strong></div>
         </div>
         <div class="detail-row"><span class="detail-label">Notas:</span> ${c.notas || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Creado:</span> ${new Date(c.created_at).toLocaleDateString('es-AR')}</div>
+        <div class="detail-row"><span class="detail-label">Creado:</span> ${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
         <button class="btn btn-warning" onclick="cerrarDetalle();editarCliente(${c.id})">Editar</button>
