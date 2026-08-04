@@ -560,6 +560,7 @@ async function loadAllOrders() {
           <td>${new Date(orden.creado_en).toLocaleDateString()}</td>
           <td>
             <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
+            <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')">Eliminar</button>
           </td>
         </tr>
       `).join('');
@@ -589,6 +590,48 @@ async function updateOrderStatus(orderId, newStatus) {
     }
   } catch (error) {
     console.error('Error actualizando estado:', error);
+  }
+}
+
+let deleteOrderId = null;
+function showDeleteConfirm(orderId, ordenIdUnico) {
+  deleteOrderId = orderId;
+  document.getElementById('deleteOrderId').textContent = ordenIdUnico || orderId;
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeDeleteConfirm() {
+  deleteOrderId = null;
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function confirmarEliminarOrden() {
+  if (!deleteOrderId) return;
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes/${deleteOrderId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      puchiaAlert('Orden eliminada exitosamente', 'success');
+      closeDeleteConfirm();
+      loadAllOrders();
+    } else {
+      const errorData = await response.json();
+      puchiaAlert(errorData.mensaje || 'Error al eliminar la orden', 'error');
+    }
+  } catch (error) {
+    console.error('Error eliminando orden:', error);
+    puchiaAlert('Error al eliminar la orden', 'error');
   }
 }
 

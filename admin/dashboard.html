@@ -559,6 +559,20 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRMAR ELIMINACIÓN DE ORDEN -->
+    <div id="deleteConfirmModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:linear-gradient(135deg,#7b2d8e 0%,#9d4cb8 100%); border-radius:20px; padding:36px 32px; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(123,45,142,0.4); text-align:center; color:white;">
+            <div style="font-size:56px; margin-bottom:12px;">🗑️</div>
+            <h2 style="color:white; font-size:22px; margin:0 0 12px 0; font-weight:600;">Confirmar eliminación</h2>
+            <p style="color:rgba(255,255,255,0.92); font-size:15px; margin:0 0 8px 0; line-height:1.5;">¿Estás seguro de que deseas eliminar la orden <strong id="deleteOrderId"></strong>?</p>
+            <p style="color:rgba(255,255,255,0.7); font-size:12px; margin:0 0 24px 0;">Esta acción no se puede deshacer.</p>
+            <div style="display:flex; gap:12px; justify-content:center;">
+                <button onclick="closeDeleteConfirm()" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.4); padding:12px 28px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; min-width:110px;">Cancelar</button>
+                <button onclick="confirmarEliminarOrden()" style="background:#dc3545; color:white; border:none; padding:12px 28px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; min-width:110px; box-shadow:0 4px 12px rgba(220,53,69,0.3);">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL GALERÍA COMPLETA (Tarea 2.9) -->
     <div id="galleryViewModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.93); z-index:9500; flex-direction:column; align-items:center; justify-content:space-between; padding:16px 20px;">
         <!-- Header -->
