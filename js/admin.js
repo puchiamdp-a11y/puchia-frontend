@@ -118,6 +118,9 @@ function setupEventListeners() {
 
   // Modal Producto
   document.getElementById('formProducto')?.addEventListener('submit', saveProduct);
+
+  // Modal Crear Orden Manual
+  document.getElementById('formCrearOrden')?.addEventListener('submit', guardarOrden);
   document.getElementById('cancelProductBtn')?.addEventListener('click', () => {
     cleanupQuillAutosave();
     document.getElementById('modalProducto').style.display = 'none';
@@ -570,6 +573,272 @@ async function loadAllOrders() {
   } catch (error) {
     console.error('Error cargando órdenes:', error);
   }
+}
+
+// ==================== CREAR ORDEN MANUAL ====================
+let ordenManualProductos = [];
+let ordenManualClientes = [];
+let ordenManualRowCounter = 0;
+
+async function abrirModalCrearOrden() {
+  document.getElementById('formCrearOrden').reset();
+  document.getElementById('nuevoClienteForm').style.display = 'none';
+  document.getElementById('selectCliente').disabled = false;
+  document.getElementById('ordenItemsTable').innerHTML = '';
+  document.getElementById('ordenTotal').textContent = '$0.00';
+  ordenManualRowCounter = 0;
+
+  await cargarClientesEnDropdown();
+  await cargarProductosParaOrden();
+
+  agregarProductoRow();
+
+  document.getElementById('modalCrearOrden').style.display = 'flex';
+}
+
+async function cargarClientesEnDropdown() {
+  const select = document.getElementById('selectCliente');
+  select.innerHTML = '<option value="">-- Cargando clientes --</option>';
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/clientes?limite=1000`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    ordenManualClientes = data.data || [];
+
+    select.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
+    ordenManualClientes.forEach(cliente => {
+      const option = document.createElement('option');
+      option.value = cliente.id;
+      option.textContent = `${cliente.codigo_cliente} - ${cliente.nombre}`;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error cargando clientes:', error);
+    select.innerHTML = '<option value="">Error al cargar clientes</option>';
+  }
+}
+
+async function cargarProductosParaOrden() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/productos`);
+    const data = await response.json();
+    ordenManualProductos = (data.data || []).filter(p => p.habilitado);
+  } catch (error) {
+    console.error('Error cargando productos:', error);
+    ordenManualProductos = [];
+  }
+}
+
+function toggleNuevoCliente() {
+  const form = document.getElementById('nuevoClienteForm');
+  const select = document.getElementById('selectCliente');
+
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    select.value = '';
+    select.disabled = true;
+  } else {
+    form.style.display = 'none';
+    select.disabled = false;
+  }
+}
+
+function agregarProductoRow() {
+  const rowId = ordenManualRowCounter++;
+  const tbody = document.getElementById('ordenItemsTable');
+
+  const opciones = ordenManualProductos.map(p =>
+    `<option value="${p.id}" data-precio="${p.precio}">${p.nombre} - $${p.precio}</option>`
+  ).join('');
+
+  const tr = document.createElement('tr');
+  tr.id = `ordenRow_${rowId}`;
+  tr.innerHTML = `
+    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+      <select id="productoSelect_${rowId}" onchange="actualizarFilaProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+        <option value="">-- Selecciona producto --</option>
+        ${opciones}
+      </select>
+    </td>
+    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+      <input type="number" id="cantidadInput_${rowId}" value="1" min="1" onchange="actualizarFilaProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: right; font-size: 13px;">
+    </td>
+    <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right; font-size: 13px;" id="precioCell_${rowId}">$0.00</td>
+    <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right; font-size: 13px; font-weight: 600;" id="subtotalCell_${rowId}">$0.00</td>
+    <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">
+      <button type="button" onclick="eliminarProductoRow(${rowId})" style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 18px;">×</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function actualizarFilaProducto(rowId) {
+  const select = document.getElementById(`productoSelect_${rowId}`);
+  const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
+  const precioCell = document.getElementById(`precioCell_${rowId}`);
+  const subtotalCell = document.getElementById(`subtotalCell_${rowId}`);
+  if (!select || !cantidadInput) return;
+
+  const selectedOption = select.options[select.selectedIndex];
+  const precio = selectedOption ? parseFloat(selectedOption.dataset.precio || 0) : 0;
+  const cantidad = parseInt(cantidadInput.value) || 0;
+  const subtotal = precio * cantidad;
+
+  precioCell.textContent = `$${precio.toFixed(2)}`;
+  subtotalCell.textContent = `$${subtotal.toFixed(2)}`;
+
+  actualizarTotalOrden();
+}
+
+function eliminarProductoRow(rowId) {
+  const row = document.getElementById(`ordenRow_${rowId}`);
+  if (row) row.remove();
+  actualizarTotalOrden();
+}
+
+function actualizarTotalOrden() {
+  const tbody = document.getElementById('ordenItemsTable');
+  let total = 0;
+
+  tbody.querySelectorAll('tr').forEach(row => {
+    const rowId = row.id.replace('ordenRow_', '');
+    const select = document.getElementById(`productoSelect_${rowId}`);
+    const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
+    if (!select || !cantidadInput) return;
+
+    const selectedOption = select.options[select.selectedIndex];
+    const precio = selectedOption ? parseFloat(selectedOption.dataset.precio || 0) : 0;
+    const cantidad = parseInt(cantidadInput.value) || 0;
+    total += precio * cantidad;
+  });
+
+  document.getElementById('ordenTotal').textContent = `$${total.toFixed(2)}`;
+}
+
+async function guardarOrden(e) {
+  e.preventDefault();
+
+  const btnGuardar = document.getElementById('btnGuardarOrden');
+  const selectCliente = document.getElementById('selectCliente');
+  const nuevoClienteForm = document.getElementById('nuevoClienteForm');
+  const notas = document.getElementById('ordenNotas').value.trim();
+
+  const esNuevoCliente = nuevoClienteForm.style.display !== 'none';
+  let clienteId = selectCliente.value;
+
+  if (!esNuevoCliente && !clienteId) {
+    puchiaAlert('Selecciona un cliente o crea uno nuevo', 'warning');
+    return;
+  }
+
+  let nuevoClienteNombre, nuevoClienteEmail, nuevoClienteWhatsapp, nuevoClienteTelefono;
+  if (esNuevoCliente) {
+    nuevoClienteNombre = document.getElementById('nuevoClienteNombre').value.trim();
+    nuevoClienteEmail = document.getElementById('nuevoClienteEmail').value.trim();
+    nuevoClienteWhatsapp = document.getElementById('nuevoClienteWhatsapp').value.trim();
+    nuevoClienteTelefono = document.getElementById('nuevoClienteTelefono').value.trim();
+
+    if (!nuevoClienteNombre || !nuevoClienteEmail) {
+      puchiaAlert('Nombre y Email son requeridos para el nuevo cliente', 'warning');
+      return;
+    }
+  }
+
+  // Recopilar items válidos
+  const tbody = document.getElementById('ordenItemsTable');
+  const items = [];
+
+  tbody.querySelectorAll('tr').forEach(row => {
+    const rowId = row.id.replace('ordenRow_', '');
+    const select = document.getElementById(`productoSelect_${rowId}`);
+    const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
+    if (!select || !cantidadInput) return;
+
+    const productoId = select.value;
+    const cantidad = parseInt(cantidadInput.value);
+
+    if (productoId && cantidad > 0) {
+      items.push({ producto_id: parseInt(productoId), cantidad });
+    }
+  });
+
+  if (items.length === 0) {
+    puchiaAlert('Agrega al menos 1 producto con cantidad válida', 'warning');
+    return;
+  }
+
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = 'Guardando...';
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+
+    // Si es cliente nuevo, crearlo primero
+    if (esNuevoCliente) {
+      const resCliente = await fetch(`${API_BASE_URL}/admin/clientes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nombre: nuevoClienteNombre,
+          email: nuevoClienteEmail,
+          whatsapp: nuevoClienteWhatsapp || null,
+          telefono: nuevoClienteTelefono || null
+        })
+      });
+      const dataCliente = await resCliente.json();
+      if (!dataCliente.success) {
+        puchiaAlert('Error al crear cliente: ' + (dataCliente.error || 'desconocido'), 'error');
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = 'Guardar Orden';
+        return;
+      }
+      clienteId = dataCliente.data.id;
+    }
+
+    // Crear orden
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes/manual`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        cliente_id: parseInt(clienteId),
+        items,
+        notas: notas || null
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      puchiaAlert('Orden creada exitosamente', 'success');
+      cerrarModalOrden();
+      loadAllOrders();
+      loadRecentOrders();
+    } else {
+      puchiaAlert('Error al crear orden: ' + (data.error || 'desconocido'), 'error');
+    }
+  } catch (error) {
+    console.error('Error guardando orden:', error);
+    puchiaAlert('Error de conexión: ' + error.message, 'error');
+  } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = 'Guardar Orden';
+  }
+}
+
+function cerrarModalOrden() {
+  document.getElementById('modalCrearOrden').style.display = 'none';
+  document.getElementById('formCrearOrden').reset();
+  document.getElementById('nuevoClienteForm').style.display = 'none';
+  document.getElementById('selectCliente').disabled = false;
 }
 
 async function updateOrderStatus(orderId, newStatus) {

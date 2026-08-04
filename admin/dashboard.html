@@ -167,6 +167,9 @@
             <!-- ÓRDENES PAGE -->
             <div id="ordenes-page" class="page" style="display: none;">
                 <h1 class="page-title">Órdenes</h1>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="btnCrearOrdenManual" onclick="abrirModalCrearOrden()">➕ Crear Orden Manual</button>
+                </div>
                 <div class="table-container">
                     <table>
                         <thead>
@@ -520,6 +523,92 @@
                 <div style="display: flex; gap: 12px; justify-content: flex-end; padding: 24px 32px; margin-top: 16px; border-top: 1px solid #eee; background: #f9f9f9;">
                     <button type="button" class="btn btn-secondary" id="cancelProductBtn">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CREAR ORDEN MANUAL -->
+    <div class="modal" id="modalCrearOrden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
+        <div style="background: white; border-radius: 16px; width: 100%; max-width: 800px; position: relative; margin: 20px;">
+            <div style="padding: 32px 32px 0; position: relative;">
+                <button type="button" onclick="cerrarModalOrden()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
+                <h2 style="font-size: 20px; margin: 0 0 24px; color: #7f1f6e;">Crear Orden Manual</h2>
+            </div>
+
+            <form id="formCrearOrden" style="display: flex; flex-direction: column; max-height: 85vh; overflow-y: auto;">
+                <div style="padding: 0 32px; display: flex; flex-direction: column; gap: 16px;">
+
+                    <!-- CLIENTE -->
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Cliente *</label>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="selectCliente" required style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                <option value="">-- Selecciona un cliente --</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary" onclick="toggleNuevoCliente()" style="white-space: nowrap;">+ Nuevo</button>
+                        </div>
+                    </div>
+
+                    <!-- NUEVO CLIENTE (expandible) -->
+                    <div id="nuevoClienteForm" style="display: none; padding: 16px; border: 1px solid #eee; border-radius: 8px; background: #fafafa;">
+                        <h4 style="margin: 0 0 12px; color: #333;">Datos del nuevo cliente</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Nombre *</label>
+                                <input type="text" id="nuevoClienteNombre" placeholder="Juan Pérez" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Email *</label>
+                                <input type="email" id="nuevoClienteEmail" placeholder="juan@example.com" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">WhatsApp</label>
+                                <input type="text" id="nuevoClienteWhatsapp" placeholder="+54 9 1234567890" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Teléfono</label>
+                                <input type="text" id="nuevoClienteTelefono" placeholder="+54 11 1234567890" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PRODUCTOS -->
+                    <div style="margin-top: 8px; padding-top: 16px; border-top: 1px solid #eee;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">Productos *</label>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: #f5f5f5; border-bottom: 2px solid #ddd;">
+                                <tr>
+                                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #333;">Producto</th>
+                                    <th style="padding: 10px; text-align: right; width: 90px; font-size: 13px; color: #333;">Cantidad</th>
+                                    <th style="padding: 10px; text-align: right; width: 100px; font-size: 13px; color: #333;">Precio</th>
+                                    <th style="padding: 10px; text-align: right; width: 100px; font-size: 13px; color: #333;">Subtotal</th>
+                                    <th style="padding: 10px; text-align: center; width: 50px; font-size: 13px; color: #333;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordenItemsTable"></tbody>
+                        </table>
+                        <button type="button" class="btn btn-secondary" onclick="agregarProductoRow()" style="margin-top: 12px;">+ Agregar Producto</button>
+                    </div>
+
+                    <!-- TOTAL Y NOTAS -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #eee;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Notas</label>
+                            <textarea id="ordenNotas" placeholder="Notas especiales..." style="width: 100%; height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Total</label>
+                            <div style="font-size: 28px; font-weight: bold; color: #7f1f6e;" id="ordenTotal">$0.00</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Botones -->
+                <div style="display: flex; gap: 12px; justify-content: flex-end; padding: 24px 32px; margin-top: 16px; border-top: 1px solid #eee; background: #f9f9f9;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalOrden()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarOrden">Guardar Orden</button>
                 </div>
             </form>
         </div>
