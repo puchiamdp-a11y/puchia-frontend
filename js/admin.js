@@ -544,8 +544,8 @@ const ORDERS_PER_PAGE = 20;
 async function loadAllOrders() {
   try {
     const token = localStorage.getItem('puchia_admin_token');
-    // Cargar 100 órdenes (modificar limite para cargar más si es necesario)
-    const response = await fetch(`${API_BASE_URL}/admin/ordenes?limite=100&pagina=1`, {
+    // Cargar 5000 órdenes (suficiente para ~7 años con 700 órdenes/año)
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes?limite=5000&pagina=1`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
