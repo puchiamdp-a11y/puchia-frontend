@@ -581,6 +581,7 @@ let ordenManualClientes = [];
 let ordenManualRowCounter = 0;
 let ordenCreadaId = null; // Almacenar ID de orden para descargar ticket
 let ordenCreadaIdUnico = null; // Almacenar ID_UNICO para link de seguimiento
+let ordenCreadaData = null; // Almacenar datos completos para generar ticket HTML
 
 async function abrirModalCrearOrden() {
   document.getElementById('formCrearOrden').reset();
@@ -833,9 +834,10 @@ async function guardarOrden(e) {
     const data = await response.json();
 
     if (data.success) {
-      // Guardar ID de orden para descargar ticket y link de seguimiento
+      // Guardar datos completos de orden para descargar ticket
       ordenCreadaId = data.data.id;
       ordenCreadaIdUnico = data.data.id_unico;
+      ordenCreadaData = data.data;
 
       // Cerrar modal de crear orden y mostrar modal de éxito
       cerrarModalOrden();
@@ -867,40 +869,205 @@ function cerrarModalSucesoOrden() {
   document.getElementById('modalSucesoOrden').style.display = 'none';
   ordenCreadaId = null;
   ordenCreadaIdUnico = null;
+  ordenCreadaData = null;
 }
 
 async function descargarTicket() {
-  if (!ordenCreadaId) {
+  if (!ordenCreadaId || !ordenCreadaData) {
     puchiaAlert('No hay orden para descargar', 'error');
     return;
   }
 
+  const btn = event.target;
+  const textOriginal = btn.textContent;
+  btn.textContent = '⏳ Generando...';
+  btn.disabled = true;
+
   try {
-    const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenCreadaId}/ticket`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const orden = ordenCreadaData;
+    const total = parseFloat(orden.total) || 0;
+    const sena = total / 2;
+
+    // Crear HTML del ticket
+    const ticketHTML = `
+      <div style="
+        width: 400px;
+        background: white;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        box-sizing: border-box;
+        color: #333;
+      ">
+        <!-- HEADER PÚRPURA -->
+        <div style="
+          background: #7f1f6e;
+          padding: 20px 15px;
+          text-align: center;
+          color: white;
+        ">
+          <div style="font-size: 32px; font-weight: bold; margin-bottom: 8px;">🌸 PUCHIA</div>
+          <div style="font-size: 12px; opacity: 0.9;">Tu orden personalizada</div>
+        </div>
+
+        <!-- CONTENIDO -->
+        <div style="padding: 18px 15px;">
+          <!-- CÓDIGO DE ORDEN (AMARILLO) -->
+          <div style="
+            background: #F3E93F;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 18px;
+            text-align: center;
+          ">
+            <div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600;">Código de orden</div>
+            <div style="font-size: 18px; color: #7f1f6e; font-weight: 700; font-family: monospace; letter-spacing: 1px;">${orden.id_unico}</div>
+          </div>
+
+          <!-- ESTADO -->
+          <div style="margin-bottom: 15px;">
+            <div style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600;">Estado</div>
+            <div style="
+              display: inline-block;
+              background: #e8f5e9;
+              color: #2e7d32;
+              padding: 5px 10px;
+              border-radius: 20px;
+              font-size: 11px;
+              font-weight: 600;
+            ">${orden.estado || 'Pendiente'}</div>
+          </div>
+
+          <!-- CLIENTE -->
+          <div style="margin-bottom: 15px; background: #f9f9f9; padding: 12px; border-radius: 6px;">
+            <div style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600;">Cliente</div>
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px;">
+              <span style="color: #666; font-weight: 500;">Nombre</span>
+              <span style="color: #333; font-weight: 600;">${orden.cliente_nombre || 'N/A'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px;">
+              <span style="color: #666; font-weight: 500;">Teléfono</span>
+              <span style="color: #333; font-weight: 600;">${orden.cliente_whatsapp || 'N/A'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px;">
+              <span style="color: #666; font-weight: 500;">Ciudad</span>
+              <span style="color: #333; font-weight: 600;">${orden.cliente_ciudad || 'N/A'}</span>
+            </div>
+          </div>
+
+          <!-- PRODUCTOS (si existen) -->
+          ${orden.items && orden.items.length > 0 ? `
+            <div style="margin-bottom: 15px;">
+              <div style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600;">Productos</div>
+              ${orden.items.map((item, idx) => {
+                const precio = parseFloat(item.precio_unitario) || 0;
+                const cantidad = item.cantidad || 0;
+                const subtotal = precio * cantidad;
+                return `
+                  <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 12px;">
+                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Producto ${idx + 1}</div>
+                    <div style="display: flex; justify-content: space-between; color: #666; font-size: 11px;">
+                      <span>Cant: ${cantidad} × $${precio.toFixed(2)}</span>
+                      <span style="color: #7f1f6e; font-weight: 700;">$${subtotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+
+          <!-- TOTAL -->
+          <div style="background: #fafafa; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #666; font-size: 13px;">
+              <span>Subtotal</span>
+              <span>$${total.toFixed(2)}</span>
+            </div>
+            <div style="
+              display: flex;
+              justify-content: space-between;
+              border-top: 2px solid #ddd;
+              padding-top: 8px;
+              font-size: 16px;
+              font-weight: 700;
+              color: #7f1f6e;
+            ">
+              <span>Total</span>
+              <span>$${total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <!-- SEÑA (50%) -->
+          <div style="
+            background: #fffbf0;
+            border: 2px solid #F3E93F;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+          ">
+            <div style="font-size: 10px; color: #7f1f6e; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Seña (50%)</div>
+            <div style="font-size: 20px; color: #7f1f6e; font-weight: 700;">$${sena.toFixed(2)}</div>
+            <div style="font-size: 11px; color: #666; margin-top: 4px;">Transferencia bancaria</div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div style="
+          padding: 15px;
+          text-align: center;
+          border-top: 1px solid #eee;
+          background: #fafafa;
+          font-style: italic;
+          color: #7f1f6e;
+          font-size: 18px;
+          font-weight: 700;
+        ">
+          ¡Muchas gracias por tu compra!
+        </div>
+      </div>
+    `;
+
+    // Crear contenedor temporal
+    const tempDiv = document.createElement('div');
+    tempDiv.id = 'ticketTemporal';
+    tempDiv.style.cssText = 'position: fixed; left: -9999px; top: -9999px; background: white;';
+    tempDiv.innerHTML = ticketHTML;
+    document.body.appendChild(tempDiv);
+
+    // Usar html2canvas para convertir a imagen
+    const canvas = await html2canvas(tempDiv.querySelector('div'), {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      allowTaint: true,
+      useCORS: true
     });
 
-    if (!response.ok) {
-      puchiaAlert('Error al descargar ticket', 'error');
-      return;
-    }
+    // Crear descarga
+    canvas.toBlob((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ticket-${orden.id_unico}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-    // Descargar como archivo PNG
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ticket-orden.png`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+      // Limpiar
+      document.body.removeChild(tempDiv);
 
-    puchiaAlert('Ticket descargado exitosamente', 'success');
+      btn.textContent = '✅ ¡Descargado!';
+      setTimeout(() => {
+        btn.textContent = textOriginal;
+        btn.disabled = false;
+      }, 2000);
+
+      puchiaAlert('Ticket descargado exitosamente', 'success');
+    });
+
   } catch (error) {
     console.error('Error descargando ticket:', error);
-    puchiaAlert('Error de conexión al descargar ticket', 'error');
+    puchiaAlert('Error al generar ticket: ' + error.message, 'error');
+    btn.textContent = textOriginal;
+    btn.disabled = false;
   }
 }
 
