@@ -204,6 +204,8 @@ function closeCheckout() {
 }
 
 async function submitOrder(e) {
+    console.log('submitOrder() INICIADO - Timestamp:', new Date().toISOString());
+    console.log('Stack trace:', new Error().stack);
     e.preventDefault();
     
     // Deshabilitar botón para evitar clicks duplicados
@@ -258,6 +260,7 @@ async function submitOrder(e) {
 
     // Enviar al backend — asocia por WhatsApp si ya existe, actualiza email si faltaba
     try {
+        console.log('Preparando fetch a /ordenes...');
         const backendPayload = {
             cliente_nombre:   name,
             cliente_email:    email,
@@ -275,11 +278,13 @@ async function submitOrder(e) {
         const token = typeof getClienteToken === 'function' ? getClienteToken() : null;
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
+        console.log('Enviando fetch a /ordenes...');
         const res = await fetch(`${API_BASE_URL}/ordenes`, {
             method: 'POST',
             headers,
             body: JSON.stringify(backendPayload)
         });
+        console.log('Fetch completado. Status:', res.status, 'OK:', res.ok);
         if (res.ok) {
             const data = await res.json();
             if (data?.data?.id_unico) {
