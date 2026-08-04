@@ -284,24 +284,45 @@
         const API_BASE_URL = 'https://api.puchia.com.ar'; // O cambiar a variable de entorno
 
         async function cargarOrden() {
+            console.log('=== DEBUGGING SEGUIMIENTO ===');
+            console.log('Parámetro ID:', ordenId);
+            console.log('API Base URL:', API_BASE_URL);
+
             if (!ordenId) {
+                console.error('ERROR: ID de orden no especificado');
                 mostrarError('ID de orden no especificado');
                 return;
             }
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/ordenes/${ordenId}/publico`);
-                const data = await response.json();
+            const url = `${API_BASE_URL}/api/v1/ordenes/${ordenId}/publico`;
+            console.log('Haciendo fetch a:', url);
 
-                if (!response.ok || !data.success) {
-                    mostrarError('Orden no encontrada');
+            try {
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+
+                const data = await response.json();
+                console.log('Respuesta del backend:', data);
+
+                if (!response.ok) {
+                    console.error('ERROR: Status no OK', response.status);
+                    mostrarError(`Error ${response.status}: Orden no encontrada`);
                     return;
                 }
 
+                if (!data.success) {
+                    console.error('ERROR: data.success es false', data.error);
+                    mostrarError('Orden no encontrada: ' + (data.error || 'desconocido'));
+                    return;
+                }
+
+                console.log('✅ Datos recibidos correctamente, mostrando orden...');
                 mostrarOrden(data.data);
             } catch (error) {
-                console.error('Error cargando orden:', error);
-                mostrarError('Error al cargar la orden. Por favor, intenta más tarde.');
+                console.error('ERROR en fetch/parse:', error.message);
+                console.error('Stack:', error.stack);
+                mostrarError('Error al cargar la orden: ' + error.message);
             }
         }
 
