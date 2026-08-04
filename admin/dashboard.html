@@ -554,21 +554,40 @@
                     <div id="nuevoClienteForm" style="display: none; padding: 16px; border: 1px solid #eee; border-radius: 8px; background: #fafafa;">
                         <h4 style="margin: 0 0 12px; color: #333;">Datos del nuevo cliente</h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <!-- CAMPO OBLIGATORIO: Nombre -->
                             <div>
                                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Nombre *</label>
                                 <input type="text" id="nuevoClienteNombre" placeholder="Juan Pérez" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
                             </div>
+                            <!-- CAMPO OBLIGATORIO: WhatsApp -->
                             <div>
-                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Email *</label>
-                                <input type="email" id="nuevoClienteEmail" placeholder="juan@example.com" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">WhatsApp</label>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">WhatsApp *</label>
                                 <input type="text" id="nuevoClienteWhatsapp" placeholder="+54 9 1234567890" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
                             </div>
+                            <!-- CAMPOS OPCIONALES -->
                             <div>
-                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Teléfono</label>
-                                <input type="text" id="nuevoClienteTelefono" placeholder="+54 11 1234567890" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">DNI</label>
+                                <input type="text" id="nuevoClienteDni" placeholder="12345678" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Dirección</label>
+                                <input type="text" id="nuevoClienteDireccion" placeholder="Calle 1234, Dpto. 5" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Código Postal</label>
+                                <input type="text" id="nuevoClienteCP" placeholder="1425" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Localidad</label>
+                                <input type="text" id="nuevoClienteCiudad" placeholder="Buenos Aires" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Provincia</label>
+                                <input type="text" id="nuevoClienteProvincia" placeholder="Buenos Aires" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Email</label>
+                                <input type="email" id="nuevoClienteEmail" placeholder="juan@example.com" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
                             </div>
                         </div>
                     </div>

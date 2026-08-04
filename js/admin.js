@@ -734,15 +734,22 @@ async function guardarOrden(e) {
     return;
   }
 
-  let nuevoClienteNombre, nuevoClienteEmail, nuevoClienteWhatsapp, nuevoClienteTelefono;
+  let nuevoClienteNombre, nuevoClienteWhatsapp, nuevoClienteDni, nuevoClienteDireccion, nuevoClienteCP, nuevoClienteCiudad, nuevoClienteProvincia, nuevoClienteEmail;
   if (esNuevoCliente) {
+    // Campos obligatorios
     nuevoClienteNombre = document.getElementById('nuevoClienteNombre').value.trim();
-    nuevoClienteEmail = document.getElementById('nuevoClienteEmail').value.trim();
     nuevoClienteWhatsapp = document.getElementById('nuevoClienteWhatsapp').value.trim();
-    nuevoClienteTelefono = document.getElementById('nuevoClienteTelefono').value.trim();
 
-    if (!nuevoClienteNombre || !nuevoClienteEmail) {
-      puchiaAlert('Nombre y Email son requeridos para el nuevo cliente', 'warning');
+    // Campos opcionales
+    nuevoClienteDni = document.getElementById('nuevoClienteDni').value.trim();
+    nuevoClienteDireccion = document.getElementById('nuevoClienteDireccion').value.trim();
+    nuevoClienteCP = document.getElementById('nuevoClienteCP').value.trim();
+    nuevoClienteCiudad = document.getElementById('nuevoClienteCiudad').value.trim();
+    nuevoClienteProvincia = document.getElementById('nuevoClienteProvincia').value.trim();
+    nuevoClienteEmail = document.getElementById('nuevoClienteEmail').value.trim();
+
+    if (!nuevoClienteNombre || !nuevoClienteWhatsapp) {
+      puchiaAlert('Nombre y WhatsApp son requeridos para el nuevo cliente', 'warning');
       return;
     }
   }
@@ -786,9 +793,13 @@ async function guardarOrden(e) {
         },
         body: JSON.stringify({
           nombre: nuevoClienteNombre,
-          email: nuevoClienteEmail,
-          whatsapp: nuevoClienteWhatsapp || null,
-          telefono: nuevoClienteTelefono || null
+          whatsapp: nuevoClienteWhatsapp,
+          dni: nuevoClienteDni || null,
+          direccion: nuevoClienteDireccion || null,
+          codigo_postal: nuevoClienteCP || null,
+          ciudad: nuevoClienteCiudad || null,
+          provincia: nuevoClienteProvincia || null,
+          email: nuevoClienteEmail || null
         })
       });
       const dataCliente = await resCliente.json();
