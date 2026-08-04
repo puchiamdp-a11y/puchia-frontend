@@ -963,7 +963,7 @@ async function descargarTicket() {
                 const subtotal = precio * cantidad;
                 return `
                   <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 12px;">
-                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Producto ${idx + 1}</div>
+                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${item.producto?.nombre || 'Producto sin nombre'}</div>
                     <div style="display: flex; justify-content: space-between; color: #666; font-size: 11px;">
                       <span>Cant: ${cantidad} × $${precio.toFixed(2)}</span>
                       <span style="color: #7f1f6e; font-weight: 700;">$${subtotal.toFixed(2)}</span>
