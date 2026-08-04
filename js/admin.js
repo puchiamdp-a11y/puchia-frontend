@@ -174,14 +174,34 @@ async function loadDashboardStats() {
     const data = await response.json();
 
     if (data.success) {
-      document.getElementById('stat-pending').textContent = data.data.ordenes_pendientes || 0;
-      document.getElementById('stat-completed').textContent = data.data.ordenes_completadas || 0;
+      // Usar allOrdersData si está disponible, sino usar datos del backend
+      if (allOrdersData && allOrdersData.length > 0) {
+        updateDashboardStatsFromOrders();
+      } else {
+        // Fallback al backend si allOrdersData no está cargado
+        document.getElementById('stat-pending').textContent = data.data.ordenes_pendientes || 0;
+        document.getElementById('stat-completed').textContent = data.data.ordenes_completadas || 0;
+      }
       document.getElementById('stat-sales').textContent = `$${(data.data.total_ventas || 0).toLocaleString()}`;
       document.getElementById('stat-products').textContent = data.data.productos_habilitados || 0;
     }
   } catch (error) {
     console.error('Error cargando stats:', error);
   }
+}
+
+function updateDashboardStatsFromOrders() {
+  // Contar órdenes: pendientes = TODAS excepto "Entregado"
+  const pendientes = allOrdersData.filter(o => o.estado !== 'entregado').length;
+  const completadas = allOrdersData.filter(o => o.estado === 'entregado').length;
+
+  const statPendingEl = document.getElementById('stat-pending');
+  const statCompletedEl = document.getElementById('stat-completed');
+
+  if (statPendingEl) statPendingEl.textContent = pendientes;
+  if (statCompletedEl) statCompletedEl.textContent = completadas;
+
+  console.log(`Dashboard stats actualizados: Pendientes=${pendientes}, Completadas=${completadas}`);
 }
 
 async function loadRecentOrders() {
@@ -557,6 +577,7 @@ async function loadAllOrders() {
       filteredOrdersData = [...allOrdersData];
       currentPage = 1;
       renderOrders();
+      updateDashboardStatsFromOrders(); // Actualizar stats del dashboard
       console.log(`Órdenes cargadas: ${allOrdersData.length}`);
     }
   } catch (error) {
