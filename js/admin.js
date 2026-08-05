@@ -1016,7 +1016,8 @@ async function descargarTicket() {
 
   try {
     const total = parseFloat(orden.total) || 0;
-    const sena = total / 2;
+    const sena = parseFloat(orden.sena) || (total / 2);
+    const restoPagar = total - sena;
 
     // Crear HTML del ticket
     const ticketHTML = `
@@ -1097,7 +1098,7 @@ async function descargarTicket() {
                     <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${item.producto?.nombre || 'Producto sin nombre'}</div>
                     <div style="display: flex; justify-content: space-between; color: #666; font-size: 12px;">
                       <span>Cant: ${cantidad} × $${precio.toFixed(2)}</span>
-                      <span style="color: #7f1f6e; font-weight: 700;">$${subtotal.toFixed(2)}</span>
+                      <span style="color: #333; font-weight: 700;">$${subtotal.toFixed(2)}</span>
                     </div>
                   </div>
                 `;
@@ -1105,38 +1106,43 @@ async function descargarTicket() {
             </div>
           ` : ''}
 
-          <!-- TOTAL -->
-          <div style="background: #fafafa; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #666; font-size: 13px;">
-              <span>Subtotal</span>
-              <span>$${total.toFixed(2)}</span>
-            </div>
-            <div style="
-              display: flex;
-              justify-content: space-between;
-              border-top: 2px solid #ddd;
-              padding-top: 8px;
-              font-size: 16px;
-              font-weight: 700;
-              color: #7f1f6e;
-            ">
-              <span>Total</span>
-              <span>$${total.toFixed(2)}</span>
-            </div>
-          </div>
-
-          <!-- SEÑA (50%) -->
+          <!-- TOTAL (PÚRPURA DESTACADO) -->
           <div style="
-            background: #fffbf0;
-            border: 2px solid #F3E93F;
+            background: linear-gradient(135deg, #7f1f6e 0%, #5a1550 100%);
+            color: white;
             border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 15px;
+            padding: 16px 12px;
+            margin-bottom: 12px;
             text-align: center;
           ">
-            <div style="font-size: 10px; color: #7f1f6e; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Seña (50%)</div>
-            <div style="font-size: 20px; color: #7f1f6e; font-weight: 700;">$${sena.toFixed(2)}</div>
-            <div style="font-size: 11px; color: #666; margin-top: 4px;">Transferencia bancaria</div>
+            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; opacity: 0.9;">Total de Orden</div>
+            <div style="font-size: 32px; font-weight: 700;">$${total.toFixed(2)}</div>
+          </div>
+
+          <!-- SEÑA (gris oscuro) -->
+          <div style="
+            background: #f9f9f9;
+            border-left: 4px solid #333;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+          ">
+            <div style="font-size: 10px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Seña</div>
+            <div style="font-size: 18px; color: #333; font-weight: 700;">$${sena.toFixed(2)}</div>
+            <div style="font-size: 11px; color: #999; margin-top: 4px;">Monto a depositar</div>
+          </div>
+
+          <!-- RESTO A PAGAR (gris oscuro, MÁS GRANDE) -->
+          <div style="
+            background: #f0f0f0;
+            border-left: 4px solid #666;
+            border-radius: 6px;
+            padding: 14px 12px;
+            margin-bottom: 15px;
+          ">
+            <div style="font-size: 10px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Resto a Pagar</div>
+            <div style="font-size: 28px; color: #333; font-weight: 700;">$${restoPagar.toFixed(2)}</div>
+            <div style="font-size: 11px; color: #999; margin-top: 4px;">Al retiro/entrega</div>
           </div>
         </div>
 

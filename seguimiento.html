@@ -492,6 +492,19 @@
                     <div class="total-amount">$${total.toFixed(2)}</div>
                 </div>
 
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0;">
+                    <div style="background: #f9f9f9; border-left: 4px solid #333; padding: 16px; border-radius: 8px;">
+                        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; font-weight: 600; margin-bottom: 8px;">Seña</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #333;">$${(orden.sena || (total / 2)).toFixed(2)}</div>
+                        <div style="font-size: 11px; color: #999; margin-top: 4px;">Monto a depositar</div>
+                    </div>
+                    <div style="background: #f0f0f0; border-left: 4px solid #666; padding: 16px; border-radius: 8px;">
+                        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; font-weight: 600; margin-bottom: 8px;">Resto a Pagar</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #333;">$${(total - (orden.sena || (total / 2))).toFixed(2)}</div>
+                        <div style="font-size: 11px; color: #999; margin-top: 4px;">Al retiro/entrega</div>
+                    </div>
+                </div>
+
                 <div class="dates-section">
                     <div class="date-box">
                         <div class="date-label">📅 Fecha de Compra</div>
