@@ -760,7 +760,20 @@ function renderOrders() {
   const endIdx = startIdx + ORDERS_PER_PAGE;
   const paginatedOrders = filteredOrdersData.slice(startIdx, endIdx);
 
-  tbody.innerHTML = paginatedOrders.map(orden => {
+  tbody.innerHTML = paginatedOrders.map((orden, idx) => {
+    // DEBUG: Mostrar campos de fecha de la primera orden
+    if (idx === 0) {
+      console.log('🔍 DEBUG Orden #1:', {
+        id: orden.id,
+        id_unico: orden.id_unico,
+        created_at: orden.created_at,
+        updated_at: orden.updated_at,
+        creado_en: orden.creado_en,
+        fecha_entrega: orden.fecha_entrega,
+        allFields: Object.keys(orden)
+      });
+    }
+
     const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
     const fechaCompra = formatDateShort(orden.created_at || orden.updated_at);
     const fechaEntrega = formatDateShort(orden.fecha_entrega);
