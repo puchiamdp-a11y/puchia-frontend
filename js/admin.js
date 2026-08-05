@@ -655,7 +655,8 @@ function updateSortIndicators() {
       'Cliente': 'cliente_nombre',
       'Resto': 'resto_a_pagar',
       'Total': 'total',
-      'Estado': 'estado'
+      'Estado': 'estado',
+      'Entrega': 'fecha_entrega'
     };
 
     const field = fieldMap[thText];
@@ -699,9 +700,10 @@ function renderOrders() {
           </select>
         </td>
         <td style="padding: 8px 12px; font-size: 12px; color: #999; text-align: center; white-space: nowrap;">${fechaEntrega}</td>
-        <td style="padding: 8px 12px; display: flex; gap: 4px; justify-content: center; align-items: center; white-space: nowrap;">
-          <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})" style="padding: 4px 10px; font-size: 11px;" title="Ver">Ver</button>
-          <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" style="padding: 4px 8px; font-size: 11px;" title="Eliminar">✕</button>
+        <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap;">
+          <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})" style="padding: 4px 8px; font-size: 11px;" title="Ver">👁️</button>
+          <button class="btn btn-sm btn-primary" onclick="abrirEditarOrden(${orden.id})" style="padding: 4px 8px; font-size: 11px;" title="Editar">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" style="padding: 4px 8px; font-size: 11px;" title="Eliminar">🗑️</button>
         </td>
       </tr>
     `;
