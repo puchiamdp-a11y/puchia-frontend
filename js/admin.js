@@ -1010,15 +1010,16 @@ async function descargarTicket() {
           text-align: center;
           color: white;
         ">
-          <img src="/assets/logo.png" style="height: 80px; margin-bottom: 8px;">
+          <img src="/assets/logo.png" style="height: 55px; margin-bottom: 8px;">
           <div style="font-size: 12px; opacity: 0.9;">Tu orden personalizada</div>
         </div>
 
         <!-- CONTENIDO -->
         <div style="padding: 18px 15px;">
-          <!-- CÓDIGO DE ORDEN (AMARILLO) -->
+          <!-- CÓDIGO DE ORDEN (AMARILLO SUTIL) -->
           <div style="
-            background: #F3E93F;
+            background: #FFF8DC;
+            border-left: 4px solid #F3E93F;
             border-radius: 6px;
             padding: 12px;
             margin-bottom: 18px;
@@ -1044,16 +1045,16 @@ async function descargarTicket() {
 
           <!-- CLIENTE -->
           <div style="margin-bottom: 15px; background: #f9f9f9; padding: 12px; border-radius: 6px;">
-            <div style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600;">Cliente</div>
-            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px;">
+            <div style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">Cliente</div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #eee; font-size: 12px;">
               <span style="color: #666; font-weight: 500;">Nombre</span>
               <span style="color: #333; font-weight: 600;">${orden.cliente_nombre || 'N/A'}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #eee; font-size: 12px;">
               <span style="color: #666; font-weight: 500;">Teléfono</span>
               <span style="color: #333; font-weight: 600;">${orden.cliente_whatsapp || 'N/A'}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px;">
               <span style="color: #666; font-weight: 500;">Ciudad</span>
               <span style="color: #333; font-weight: 600;">${orden.cliente_ciudad || 'N/A'}</span>
             </div>
@@ -1068,9 +1069,9 @@ async function descargarTicket() {
                 const cantidad = item.cantidad || 0;
                 const subtotal = precio * cantidad;
                 return `
-                  <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 12px;">
+                  <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 14px;">
                     <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${item.producto?.nombre || 'Producto sin nombre'}</div>
-                    <div style="display: flex; justify-content: space-between; color: #666; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; color: #666; font-size: 12px;">
                       <span>Cant: ${cantidad} × $${precio.toFixed(2)}</span>
                       <span style="color: #7f1f6e; font-weight: 700;">$${subtotal.toFixed(2)}</span>
                     </div>
