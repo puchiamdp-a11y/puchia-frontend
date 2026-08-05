@@ -368,7 +368,7 @@ function renderProductos(lista) {
       ${fotoCell}
       <td>${p.nombre}</td>
       <td>$${precio}</td>
-      <td>${stockVal}</td>
+      <td id="stock-cell-${p.id}" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s;" onclick="editarStock(${p.id}, ${p.stock_cantidad || 0})" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background=''">${stockVal}</td>
       <td>${categoria}</td>
       <td><button class="toggle-estado-btn ${habilitado ? 'activo' : 'inactivo'}" onclick="toggleHabilitadoProducto(${p.id}, ${habilitado})">${habilitado ? '✅ Activo' : '❌ Inactivo'}</button></td>
       <td class="acciones-cell">
@@ -2949,4 +2949,45 @@ function getStatusBadge(status) {
   };
 
   return `<span class="badge" style="background-color: ${colors[status] || '#666'}">${status}</span>`;
+}
+// ==================== EDITAR STOCK DE PRODUCTOS ====================
+async function editarStock(productoId, stockActual) {
+  const nuevoStock = prompt(`Ingresa el nuevo stock (actual: ${stockActual}):`, stockActual);
+  
+  if (nuevoStock === null) return; // Cancelado
+  
+  const stock = parseInt(nuevoStock);
+  if (isNaN(stock) || stock < 0) {
+    puchiaAlert('Stock debe ser un número no negativo', 'error');
+    return;
+  }
+  
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/productos/${productoId}/stock`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ stock_cantidad: stock })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Actualizar la celda en la tabla
+      const cell = document.getElementById(`stock-cell-${productoId}`);
+      if (cell) {
+        cell.textContent = stock;
+      }
+      puchiaAlert('Stock actualizado exitosamente', 'success');
+      console.log('Stock actualizado:', data.data);
+    } else {
+      puchiaAlert(data.error || 'Error al actualizar stock', 'error');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    puchiaAlert('Error al actualizar stock: ' + error.message, 'error');
+  }
 }
