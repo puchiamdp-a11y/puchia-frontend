@@ -1,5 +1,58 @@
 // API_BASE_URL ya está definido en el HTML
 
+// ==================== DATE UTILITIES ====================
+/**
+ * Parsea fecha de forma robusta desde varios formatos posibles
+ * Soporta: ISO 8601, YYYY-MM-DD, timestamps, etc.
+ */
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+
+  // Si es una cadena, trimear espacios
+  if (typeof dateStr === 'string') {
+    dateStr = dateStr.trim();
+  }
+
+  // Intentar parsear con Date constructor
+  const date = new Date(dateStr);
+
+  // Validar que sea una fecha válida
+  if (isNaN(date.getTime())) {
+    console.warn('Invalid date:', dateStr);
+    return null;
+  }
+
+  return date;
+}
+
+/**
+ * Formatea fecha a string español: DD/MM/YY
+ */
+function formatDateShort(dateStr) {
+  const date = parseDate(dateStr);
+  if (!date) return '—';
+
+  return date.toLocaleDateString('es-AR', {
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
+
+/**
+ * Formatea fecha a string español: DD/MM/YYYY
+ */
+function formatDateLong(dateStr) {
+  const date = parseDate(dateStr);
+  if (!date) return '—';
+
+  return date.toLocaleDateString('es-AR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
+
 // ==================== CATEGORÍAS DINÁMICAS ====================
 let adminCategories = [];
 
@@ -223,7 +276,7 @@ async function loadRecentOrders() {
           <td>${orden.cliente_nombre}</td>
           <td>$${orden.total}</td>
           <td><span style="background: #f0e6f6; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${orden.estado}</span></td>
-          <td>${new Date(orden.creado_en).toLocaleDateString()}</td>
+          <td>${formatDateShort(orden.creado_en)}</td>
           <td>
             <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
           </td>
@@ -683,8 +736,8 @@ function renderOrders() {
 
   tbody.innerHTML = paginatedOrders.map(orden => {
     const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
-    const fechaCompra = new Date(orden.creado_en).toLocaleDateString('es-AR', { year: '2-digit', month: '2-digit', day: '2-digit' });
-    const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR', { year: '2-digit', month: '2-digit', day: '2-digit' }) : '—';
+    const fechaCompra = formatDateShort(orden.creado_en);
+    const fechaEntrega = formatDateShort(orden.fecha_entrega);
     const shortId = formatShortOrderId(orden);
 
     return `
@@ -793,8 +846,8 @@ function exportarOrdenesToExcel() {
     // Preparar datos para Excel
     const excelData = filteredOrdersData.map(orden => {
       const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
-      const fechaCompra = new Date(orden.creado_en).toLocaleDateString('es-AR');
-      const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : '—';
+      const fechaCompra = formatDateLong(orden.creado_en);
+      const fechaEntrega = formatDateLong(orden.fecha_entrega);
       const shortId = formatShortOrderId(orden);
 
       return {
@@ -1569,8 +1622,8 @@ async function viewOrder(id) {
       const total = parseFloat(orden.total) || 0;
       const sena = parseFloat(orden.sena) || (total / 2);
       const restoPagar = total - sena;
-      const fechaCompra = new Date(orden.creado_en).toLocaleDateString('es-AR');
-      const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : 'No especificada';
+      const fechaCompra = formatDateLong(orden.creado_en);
+      const fechaEntrega = formatDateLong(orden.fecha_entrega) !== '—' ? formatDateLong(orden.fecha_entrega) : 'No especificada';
       const shortId = formatShortOrderId(orden);
 
       modalContent.innerHTML = `
