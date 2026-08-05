@@ -1081,6 +1081,7 @@ function actualizarTotalOrden() {
   const tbody = document.getElementById('ordenItemsTable');
   let total = 0;
 
+  // PASO 1: Calcular total sumando todos los productos × cantidades
   tbody.querySelectorAll('tr').forEach(row => {
     const rowId = row.id.replace('ordenRow_', '');
     const select = document.getElementById(`productoSelect_${rowId}`);
@@ -1093,16 +1094,17 @@ function actualizarTotalOrden() {
     total += precio * cantidad;
   });
 
+  // PASO 2: Mostrar total
   document.getElementById('ordenTotal').textContent = `$${total.toFixed(2)}`;
 
-  // Actualizar seña al 50% del total (por defecto)
+  // PASO 3: Calcular SEÑA = TOTAL * 0.5 AUTOMÁTICAMENTE (SIEMPRE)
   const senaPorDefecto = (total / 2).toFixed(2);
   const inputSena = document.getElementById('ordenSena');
-  if (inputSena && !inputSena.value) {
+  if (inputSena) {
     inputSena.value = senaPorDefecto;
   }
 
-  // Actualizar resto a pagar
+  // PASO 4: Actualizar RESTO = TOTAL - SEÑA
   actualizarRestoAPagar();
 }
 
