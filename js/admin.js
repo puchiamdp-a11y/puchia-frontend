@@ -689,18 +689,18 @@ function renderOrders() {
 
     return `
       <tr style="border-bottom: 1px solid #eee; height: 44px;">
-        <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap;" title="${orden.id_unico}">${shortId}</td>
-        <td style="padding: 8px 12px; font-size: 13px; white-space: nowrap;">${fechaCompra}</td>
-        <td style="padding: 8px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
-        <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap;">$${restoPagar.toFixed(2)}</td>
-        <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap;">$${parseFloat(orden.total).toFixed(2)}</td>
+        <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${orden.id_unico}">${shortId}</td>
+        <td style="padding: 8px 12px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaCompra}</td>
+        <td style="padding: 8px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
+        <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${restoPagar.toFixed(2)}</td>
+        <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${parseFloat(orden.total).toFixed(2)}</td>
         <td style="padding: 8px 12px;">
-          <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px; width: 100%;">
+          <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px; width: 100%; overflow: hidden; text-overflow: ellipsis;">
             ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
           </select>
         </td>
-        <td style="padding: 8px 12px; font-size: 12px; color: #999; text-align: center; white-space: nowrap;">${fechaEntrega}</td>
-        <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap;">
+        <td style="padding: 8px 12px; font-size: 13px; color: #1a1a1a; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaEntrega}</td>
+        <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})" style="padding: 4px 8px; font-size: 11px;" title="Ver">👁️</button>
           <button class="btn btn-sm btn-primary" onclick="abrirEditarOrden(${orden.id})" style="padding: 4px 8px; font-size: 11px;" title="Editar">✏️</button>
           <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" style="padding: 4px 8px; font-size: 11px;" title="Eliminar">🗑️</button>
