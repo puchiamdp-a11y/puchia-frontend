@@ -442,8 +442,8 @@
             const estadoActual = orden.estado || 'pendiente';
             const numEstado = estadoANumero[estadoActual] || 1;
 
-            const fechaCreacion = (orden.created_at || orden.updated_at)
-                ? new Date(orden.created_at || orden.updated_at).toLocaleDateString('es-AR')
+            const fechaCreacion = orden.creado_en
+                ? new Date(orden.creado_en).toLocaleDateString('es-AR')
                 : 'N/A';
 
             const fechaEntrega = orden.fecha_entrega
