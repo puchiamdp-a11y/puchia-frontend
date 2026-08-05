@@ -25,7 +25,7 @@
             background: white;
             border-radius: 16px;
             padding: 40px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
@@ -37,20 +37,27 @@
 
         .logo {
             font-size: 48px;
-            color: #7f1f6e;
-            font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 28px;
             color: #333;
             margin-bottom: 8px;
         }
 
+        .order-code {
+            font-size: 20px;
+            font-weight: bold;
+            color: #7f1f6e;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+
         .subtitle {
             color: #999;
-            font-size: 14px;
+            font-size: 13px;
+            margin-top: 8px;
         }
 
         .loading {
@@ -82,6 +89,96 @@
             text-align: center;
         }
 
+        /* PROGRESS BAR */
+        .progress-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #eee;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #999;
+            margin-bottom: 8px;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-circle {
+            background: #7f1f6e;
+            color: white;
+            border-color: #7f1f6e;
+            box-shadow: 0 4px 12px rgba(127, 31, 110, 0.3);
+        }
+
+        .step.completed .step-circle {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .step-line {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: #ddd;
+            z-index: -1;
+        }
+
+        .step.completed .step-line,
+        .step.active .step-line {
+            background: #7f1f6e;
+        }
+
+        .step-name {
+            font-size: 11px;
+            text-align: center;
+            color: #666;
+            font-weight: 500;
+            max-width: 70px;
+        }
+
+        .step.active .step-name {
+            color: #7f1f6e;
+            font-weight: 600;
+        }
+
+        /* ORDER INFO */
         .order-info {
             background: #f9f9f9;
             border-radius: 12px;
@@ -94,6 +191,7 @@
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid #eee;
+            font-size: 14px;
         }
 
         .info-row:last-child {
@@ -102,107 +200,76 @@
 
         .info-label {
             font-weight: 600;
-            color: #333;
-            font-size: 13px;
+            color: #666;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .info-value {
-            color: #666;
-            font-size: 14px;
+            color: #333;
+            font-weight: 500;
             text-align: right;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+        /* PRODUCTS */
+        .items-section {
+            margin: 24px 0;
+        }
+
+        .items-section h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 16px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .status-pendiente {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-en_edicion {
-            background: #cce5ff;
-            color: #004085;
-        }
-
-        .status-preparandose {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .status-listo_retirar {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-entregado {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .items-section {
-            margin: 30px 0;
-        }
-
-        .items-section h3 {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
         .item {
             background: #f9f9f9;
             border-radius: 8px;
-            padding: 16px;
+            padding: 12px;
             margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 13px;
         }
 
         .item-detail {
             flex: 1;
         }
 
-        .item-cantidad {
-            color: #7f1f6e;
+        .item-name {
+            color: #333;
             font-weight: 600;
             margin-bottom: 4px;
         }
 
-        .item-precio {
+        .item-specs {
             color: #999;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .item-subtotal {
             font-weight: 600;
-            color: #333;
-            font-size: 16px;
+            color: #7f1f6e;
             text-align: right;
         }
 
+        /* TOTAL */
         .total-section {
             background: linear-gradient(135deg, #7f1f6e 0%, #5a1550 100%);
             color: white;
             border-radius: 12px;
             padding: 24px;
             text-align: center;
-            margin: 30px 0;
+            margin: 24px 0;
         }
 
         .total-label {
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
             opacity: 0.9;
@@ -210,33 +277,71 @@
         }
 
         .total-amount {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: bold;
         }
 
-        .delivery-info {
-            background: #f0f4ff;
-            border-left: 4px solid #7f1f6e;
-            border-radius: 8px;
-            padding: 16px;
+        /* DATES */
+        .dates-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin: 24px 0;
         }
 
-        .delivery-label {
-            font-size: 12px;
+        .date-box {
+            background: #f0f4ff;
+            border-left: 4px solid #7f1f6e;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .date-label {
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #7f1f6e;
             font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .date-value {
+            font-size: 13px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* CLIENT INFO */
+        .client-info {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .client-info-title {
+            font-weight: 600;
+            color: #999;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
 
-        .delivery-date {
-            font-size: 18px;
-            font-weight: bold;
+        .client-detail {
+            margin-bottom: 6px;
+        }
+
+        .client-detail strong {
             color: #333;
         }
 
+        /* FOOTER */
         .footer {
             text-align: center;
             color: #999;
@@ -259,8 +364,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🌸 PUCHIA</div>
+            <div class="logo">🌸</div>
             <h1>Seguimiento de Orden</h1>
+            <div id="orderCodeDisplay" class="order-code"></div>
             <p class="subtitle">Consulta el estado de tu pedido</p>
         </div>
 
@@ -272,139 +378,181 @@
         </div>
 
         <div class="footer">
-            <p>¿Preguntas? Contáctanos por <a href="#">WhatsApp</a></p>
+            <p>¿Preguntas? Contáctanos por <a href="https://wa.me/5491234567890" target="_blank">WhatsApp</a></p>
         </div>
     </div>
 
     <script>
-        // Obtener ID de orden desde query params
+        // Configuración
         const urlParams = new URLSearchParams(window.location.search);
         const ordenId = urlParams.get('id');
+        const API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
 
-        const API_BASE_URL = 'https://api.puchia.com.ar'; // O cambiar a variable de entorno
+        // Estado a número para barra de progreso
+        const estadoANumero = {
+            'pendiente': 1,
+            'en_edicion': 2,
+            'preparandose': 3,
+            'listo_retirar': 4,
+            'entregado': 5
+        };
+
+        const estadoNombre = {
+            'pendiente': 'Pendiente',
+            'en_edicion': 'En Edición',
+            'preparandose': 'Preparándose',
+            'listo_retirar': 'Listo Retirar',
+            'entregado': 'Entregado'
+        };
+
+        const estadoEmoji = {
+            'pendiente': '📋',
+            'en_edicion': '✏️',
+            'preparandose': '🔧',
+            'listo_retirar': '📦',
+            'entregado': '✅'
+        };
 
         async function cargarOrden() {
-            console.log('=== DEBUGGING SEGUIMIENTO ===');
-            console.log('Parámetro ID:', ordenId);
-            console.log('API Base URL:', API_BASE_URL);
-
             if (!ordenId) {
-                console.error('ERROR: ID de orden no especificado');
                 mostrarError('ID de orden no especificado');
                 return;
             }
 
-            const url = `${API_BASE_URL}/api/v1/ordenes/${ordenId}/publico`;
-            console.log('Haciendo fetch a:', url);
+            const url = `${API_BASE_URL}/ordenes/${ordenId}/publico`;
 
             try {
                 const response = await fetch(url);
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-
                 const data = await response.json();
-                console.log('Respuesta del backend:', data);
 
-                if (!response.ok) {
-                    console.error('ERROR: Status no OK', response.status);
-                    mostrarError(`Error ${response.status}: Orden no encontrada`);
+                if (!response.ok || !data.success) {
+                    mostrarError('Orden no encontrada');
                     return;
                 }
 
-                if (!data.success) {
-                    console.error('ERROR: data.success es false', data.error);
-                    mostrarError('Orden no encontrada: ' + (data.error || 'desconocido'));
-                    return;
-                }
-
-                console.log('✅ Datos recibidos correctamente, mostrando orden...');
                 mostrarOrden(data.data);
             } catch (error) {
-                console.error('ERROR en fetch/parse:', error.message);
-                console.error('Stack:', error.stack);
+                console.error('Error:', error);
                 mostrarError('Error al cargar la orden: ' + error.message);
             }
         }
 
         function mostrarOrden(orden) {
-            const statusMap = {
-                'pendiente': 'Pendiente de preparación',
-                'en_edicion': 'En edición',
-                'preparandose': 'Preparándose',
-                'listo_retirar': 'Listo para retirar',
-                'entregado': 'Entregado'
-            };
+            const total = parseFloat(orden.total) || 0;
+            const estadoActual = orden.estado || 'pendiente';
+            const numEstado = estadoANumero[estadoActual] || 1;
+
+            const fechaCreacion = orden.creado_en
+                ? new Date(orden.creado_en).toLocaleDateString('es-AR')
+                : 'N/A';
 
             const fechaEntrega = orden.fecha_entrega
-                ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }).toUpperCase()
+                ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR')
                 : 'A confirmar';
 
-            const total = parseFloat(orden.total) || 0;
+            // Mostrar código en header
+            document.getElementById('orderCodeDisplay').textContent = orden.id_unico;
+
+            // Barra de progreso
+            const progressHTML = generarBarraProgreso(numEstado);
+
+            // Productos
+            const productosHTML = orden.items && orden.items.length > 0
+                ? `<div class="items-section">
+                    <h3>Productos</h3>
+                    ${orden.items.map(item => `
+                        <div class="item">
+                            <div class="item-detail">
+                                <div class="item-name">${item.producto?.nombre || 'Producto'}</div>
+                                <div class="item-specs">Cantidad: ${item.cantidad} × $${parseFloat(item.precio_unitario).toFixed(2)}</div>
+                            </div>
+                            <div class="item-subtotal">$${parseFloat(item.subtotal || 0).toFixed(2)}</div>
+                        </div>
+                    `).join('')}
+                </div>`
+                : '';
+
+            // Cliente (pequeño al final)
+            const clienteHTML = `
+                <div class="client-info">
+                    <div class="client-info-title">Datos del Cliente</div>
+                    <div class="client-detail"><strong>${orden.cliente_nombre}</strong></div>
+                    <div class="client-detail">${orden.cliente_whatsapp || 'N/A'}</div>
+                    <div class="client-detail">${orden.cliente_ciudad || 'N/A'}</div>
+                </div>
+            `;
 
             const html = `
+                ${progressHTML}
+
                 <div class="order-info">
-                    <div class="info-row">
-                        <span class="info-label">Número de Orden</span>
-                        <span class="info-value"><strong>${orden.id_unico}</strong></span>
-                    </div>
                     <div class="info-row">
                         <span class="info-label">Estado</span>
                         <span class="info-value">
-                            <span class="status-badge status-${orden.estado}">
-                                ${statusMap[orden.estado] || orden.estado}
-                            </span>
+                            <strong>${estadoEmoji[estadoActual]} ${estadoNombre[estadoActual]}</strong>
                         </span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Cliente</span>
-                        <span class="info-value">${orden.cliente_nombre}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Contacto</span>
-                        <span class="info-value">${orden.cliente_whatsapp || 'No disponible'}</span>
+                        <span class="info-label">Total</span>
+                        <span class="info-value"><strong>$${total.toFixed(2)}</strong></span>
                     </div>
                 </div>
 
-                ${orden.items && orden.items.length > 0 ? `
-                    <div class="items-section">
-                        <h3>Productos</h3>
-                        ${orden.items.map((item, idx) => `
-                            <div class="item">
-                                <div class="item-detail">
-                                    <div class="item-cantidad">Producto ${idx + 1}</div>
-                                    <div class="item-precio">Cantidad: ${item.cantidad} × $${parseFloat(item.precio_unitario).toFixed(2)}</div>
-                                </div>
-                                <div class="item-subtotal">$${parseFloat(item.subtotal || 0).toFixed(2)}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
+                ${productosHTML}
 
                 <div class="total-section">
                     <div class="total-label">Total de la Orden</div>
                     <div class="total-amount">$${total.toFixed(2)}</div>
                 </div>
 
-                ${orden.fecha_entrega ? `
-                    <div class="delivery-info">
-                        <div class="delivery-label">📅 Fecha Estimada de Entrega</div>
-                        <div class="delivery-date">${fechaEntrega}</div>
+                <div class="dates-section">
+                    <div class="date-box">
+                        <div class="date-label">📅 Fecha de Orden</div>
+                        <div class="date-value">${fechaCreacion}</div>
                     </div>
-                ` : ''}
-
-                <div style="text-align: center; margin-top: 30px;">
-                    <p style="color: #999; font-size: 13px;">
-                        Última actualización: ${new Date().toLocaleDateString('es-AR')}
-                    </p>
+                    <div class="date-box">
+                        <div class="date-label">📅 Entrega Estimada</div>
+                        <div class="date-value">${fechaEntrega}</div>
+                    </div>
                 </div>
+
+                ${clienteHTML}
             `;
 
             document.getElementById('content').innerHTML = html;
+        }
+
+        function generarBarraProgreso(estadoActual) {
+            const pasos = [
+                { numero: 1, nombre: 'Pendiente' },
+                { numero: 2, nombre: 'En Edición' },
+                { numero: 3, nombre: 'Preparándose' },
+                { numero: 4, nombre: 'Listo Retirar' },
+                { numero: 5, nombre: 'Entregado' }
+            ];
+
+            const stepsHTML = pasos.map((paso, idx) => {
+                const isActive = paso.numero === estadoActual;
+                const isCompleted = paso.numero < estadoActual;
+                const statusClass = isActive ? 'active' : (isCompleted ? 'completed' : '');
+
+                return `
+                    <div class="step ${statusClass}">
+                        <div class="step-circle">${paso.numero}</div>
+                        <div class="step-line"></div>
+                        <div class="step-name">${paso.nombre}</div>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="progress-container">
+                    <div class="progress-label">📊 Estado del Pedido</div>
+                    <div class="progress-steps">
+                        ${stepsHTML}
+                    </div>
+                </div>
+            `;
         }
 
         function mostrarError(mensaje) {
@@ -416,7 +564,7 @@
             `;
         }
 
-        // Cargar orden cuando el documento esté listo
+        // Cargar orden al iniciar
         cargarOrden();
     </script>
 </body>
