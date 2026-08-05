@@ -688,6 +688,7 @@ let ordenManualRowCounter = 0;
 let ordenCreadaId = null; // Almacenar ID de orden para descargar ticket
 let ordenCreadaIdUnico = null; // Almacenar ID_UNICO para link de seguimiento
 let ordenCreadaData = null; // Almacenar datos completos para generar ticket HTML
+let ordenActualData = null; // Almacenar datos de cualquier orden (nueva o pasada) para descargar ticket
 
 async function abrirModalCrearOrden() {
   document.getElementById('formCrearOrden').reset();
@@ -979,7 +980,10 @@ function cerrarModalSucesoOrden() {
 }
 
 async function descargarTicket() {
-  if (!ordenCreadaId || !ordenCreadaData) {
+  // Usar ordenActualData si está disponible (orden pasada o nueva), sino usar ordenCreadaData
+  const orden = ordenActualData || ordenCreadaData;
+
+  if (!orden) {
     puchiaAlert('No hay orden para descargar', 'error');
     return;
   }
@@ -990,7 +994,6 @@ async function descargarTicket() {
   btn.disabled = true;
 
   try {
-    const orden = ordenCreadaData;
     const total = parseFloat(orden.total) || 0;
     const sena = total / 2;
 
@@ -1273,9 +1276,10 @@ async function viewOrder(id) {
       const orden = data.data;
       const modalContent = document.getElementById('productDetailContent');
 
-      // Guardar ID de orden para usar en botones
+      // Guardar datos de orden (nueva o pasada) para usar en botones
       ordenCreadaId = orden.id;
       ordenCreadaIdUnico = orden.id_unico;
+      ordenActualData = orden; // Guardar datos completos para descargar ticket
 
       modalContent.innerHTML = `
         <h2>Detalle de Orden</h2>
