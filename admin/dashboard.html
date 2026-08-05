@@ -192,21 +192,23 @@
                     </select>
                 </div>
 
-                <div class="table-container">
-                    <table>
+                <div class="table-container" style="overflow-x: auto;">
+                    <table style="min-width: 1200px;">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Cliente</th>
-                                <th>Total</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
-                                <th>Acciones</th>
+                            <tr style="background: #f9f9f9; border-bottom: 2px solid #ddd;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; width: 90px;">Número</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; width: 100px;">Fecha Compra</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #333;">Cliente</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; width: 100px;">Resto</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; width: 100px;">Total</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; width: 110px;">Estado</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; width: 90px;">Entrega</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; width: 120px;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="all-orders">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: #999;">Cargando órdenes...</td>
+                                <td colspan="8" style="text-align: center; color: #999; padding: 20px;">Cargando órdenes...</td>
                             </tr>
                         </tbody>
                     </table>

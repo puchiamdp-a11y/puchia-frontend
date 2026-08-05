@@ -561,6 +561,19 @@ let filteredOrdersData = [];
 let currentPage = 1;
 const ORDERS_PER_PAGE = 20;
 
+// Sorting state
+let orderSortConfig = {
+  field: 'creado_en', // Default sort by date
+  direction: 'desc'   // Descending (newest first)
+};
+
+// Formatear ID de orden corto: ORD-0001, ORD-0002, etc
+function formatShortOrderId(orden) {
+  // Usar el ID de la BD como número secuencial
+  const num = String(orden.id).padStart(4, '0');
+  return `ORD-${num}`;
+}
+
 async function loadAllOrders() {
   try {
     const token = localStorage.getItem('puchia_admin_token');
@@ -576,6 +589,7 @@ async function loadAllOrders() {
       allOrdersData = data.data;
       filteredOrdersData = [...allOrdersData];
       currentPage = 1;
+      orderSortConfig = { field: 'creado_en', direction: 'desc' }; // Reset sort
       renderOrders();
       updateDashboardStatsFromOrders(); // Actualizar stats del dashboard
       console.log(`Órdenes cargadas: ${allOrdersData.length}`);
@@ -585,11 +599,55 @@ async function loadAllOrders() {
   }
 }
 
+// Función para ordenar
+function sortOrders(field) {
+  // Si es el mismo campo, cambiar dirección
+  if (orderSortConfig.field === field) {
+    orderSortConfig.direction = orderSortConfig.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    orderSortConfig.field = field;
+    orderSortConfig.direction = 'desc'; // Default descending para campo nuevo
+  }
+
+  // Ordenar datos filtrados
+  filteredOrdersData.sort((a, b) => {
+    let aVal = a[field];
+    let bVal = b[field];
+
+    // Manejo especial para fechas
+    if (field === 'creado_en' || field === 'fecha_entrega') {
+      aVal = new Date(aVal || 0).getTime();
+      bVal = new Date(bVal || 0).getTime();
+    }
+
+    // Manejo especial para números
+    if (field === 'total' || field === 'sena' || field === 'resto_a_pagar') {
+      aVal = parseFloat(aVal) || 0;
+      bVal = parseFloat(bVal) || 0;
+    }
+
+    if (aVal === bVal) return 0;
+
+    const comparison = aVal > bVal ? 1 : -1;
+    return orderSortConfig.direction === 'asc' ? comparison : -comparison;
+  });
+
+  currentPage = 1; // Volver a página 1
+  renderOrders();
+}
+
+// Función helper para mostrar indicador de sort
+function getSortIndicator(field) {
+  if (orderSortConfig.field !== field) return '⇅';
+  return orderSortConfig.direction === 'asc' ? '↑' : '↓';
+}
+
 function renderOrders() {
   const tbody = document.getElementById('all-orders');
+  const thead = document.querySelector('thead tr');
 
   if (filteredOrdersData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin órdenes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999; padding: 20px;">Sin órdenes</td></tr>';
     document.getElementById('ordersPagination').style.display = 'none';
     return;
   }
@@ -600,24 +658,52 @@ function renderOrders() {
   const endIdx = startIdx + ORDERS_PER_PAGE;
   const paginatedOrders = filteredOrdersData.slice(startIdx, endIdx);
 
-  tbody.innerHTML = paginatedOrders.map(orden => `
-    <tr>
-      <td>${orden.id_unico || orden.id}</td>
-      <td>${orden.cliente_nombre}</td>
-      <td>$${orden.total}</td>
-      <td>
-        <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 4px; border-radius: 4px;">
-          ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
-        </select>
-      </td>
-      <td>${new Date(orden.creado_en).toLocaleDateString()}</td>
-      <td style="display: flex; gap: 6px; flex-wrap: wrap;">
-        <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
-        <button class="btn btn-sm btn-primary" onclick="abrirEditarOrden(${orden.id})" title="Editar seña y fecha">✏️ Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')">Eliminar</button>
-      </td>
-    </tr>
-  `).join('');
+  // Actualizar headers con indicadores de sort (si thead existe)
+  if (thead) {
+    const headers = thead.querySelectorAll('th');
+    headers.forEach((th, idx) => {
+      const fieldMap = ['id', 'creado_en', 'cliente_nombre', 'resto_a_pagar', 'total', 'estado', 'fecha_entrega'];
+      const field = fieldMap[idx];
+      if (field && ['id', 'creado_en', 'cliente_nombre', 'resto_a_pagar', 'total', 'estado'].includes(field)) {
+        th.style.cursor = 'pointer';
+        th.style.userSelect = 'none';
+        th.title = `Ordenar por ${th.textContent}`;
+        const currentIndicator = getSortIndicator(field);
+        th.textContent = th.textContent.split(' ')[0] + ' ' + currentIndicator;
+        th.onclick = () => sortOrders(field);
+      }
+    });
+  }
+
+  tbody.innerHTML = paginatedOrders.map(orden => {
+    const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
+    const fechaCompra = new Date(orden.creado_en).toLocaleDateString('es-AR');
+    const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : '—';
+    const shortId = formatShortOrderId(orden);
+
+    return `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 10px; font-weight: 600; color: #7f1f6e;">
+          <span title="${orden.id_unico}">${shortId}</span>
+        </td>
+        <td style="padding: 10px; font-size: 13px;">${fechaCompra}</td>
+        <td style="padding: 10px; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${orden.cliente_nombre}</td>
+        <td style="padding: 10px; text-align: right; font-weight: 600; color: #333;">$${restoPagar.toFixed(2)}</td>
+        <td style="padding: 10px; text-align: right; font-weight: 700; color: #7f1f6e;">$${parseFloat(orden.total).toFixed(2)}</td>
+        <td style="padding: 10px;">
+          <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;">
+            ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
+          </select>
+        </td>
+        <td style="padding: 10px; font-size: 12px; color: #999;">${fechaEntrega}</td>
+        <td style="padding: 10px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
+          <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})" title="Ver detalles">Ver</button>
+          <button class="btn btn-sm btn-primary" onclick="abrirEditarOrden(${orden.id})" title="Editar seña y fecha">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" title="Eliminar">✕</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 
   // Mostrar paginación si hay múltiples páginas
   updatePaginationControls(totalPages);
@@ -658,6 +744,7 @@ function nextOrderPage() {
 
 function filterOrdersByStatus(estado) {
   currentPage = 1;
+  orderSortConfig = { field: 'creado_en', direction: 'desc' }; // Reset sort
   if (estado === 'todos') {
     filteredOrdersData = [...allOrdersData];
   } else {
@@ -668,6 +755,7 @@ function filterOrdersByStatus(estado) {
 
 function searchOrders(query) {
   currentPage = 1;
+  orderSortConfig = { field: 'creado_en', direction: 'desc' }; // Reset sort
   const searchLower = query.toLowerCase().trim();
 
   if (!searchLower) {
@@ -1401,40 +1489,110 @@ async function viewOrder(id) {
       ordenCreadaIdUnico = orden.id_unico;
       ordenActualData = orden; // Guardar datos completos para descargar ticket
 
+      const total = parseFloat(orden.total) || 0;
+      const sena = parseFloat(orden.sena) || (total / 2);
+      const restoPagar = total - sena;
+      const fechaCompra = new Date(orden.creado_en).toLocaleDateString('es-AR');
+      const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : 'No especificada';
+      const shortId = formatShortOrderId(orden);
+
       modalContent.innerHTML = `
         <h2>Detalle de Orden</h2>
         <div style="margin-top: 20px;">
-          <p><strong>ID Orden:</strong> ${orden.id_unico || orden.id}</p>
-          <p><strong>Cliente:</strong> ${orden.cliente_nombre}</p>
-          <p><strong>Email:</strong> ${orden.cliente_email}</p>
-          <p><strong>Teléfono:</strong> ${orden.cliente_whatsapp}</p>
-          <p><strong>Dirección:</strong> ${orden.cliente_direccion}</p>
-          <p><strong>Total:</strong> $${orden.total}</p>
-          <p><strong>Estado:</strong> ${orden.estado}</p>
-          <p><strong>Fecha:</strong> ${new Date(orden.creado_en).toLocaleDateString()}</p>
 
-          <h3 style="margin-top: 20px;">Items:</h3>
-          <table style="width: 100%; border-collapse: collapse;">
+          <!-- INFO PRINCIPAL -->
+          <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+              <div>
+                <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Número de Orden</div>
+                <div style="font-size: 16px; font-weight: 700; color: #7f1f6e;" title="${orden.id_unico}">${shortId}</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Estado</div>
+                <div style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; font-weight: 600;">${orden.estado}</div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div>
+                <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Fecha de Compra</div>
+                <div style="font-size: 14px; color: #333;">${fechaCompra}</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Entrega Estimada</div>
+                <div style="font-size: 14px; color: #333;">${fechaEntrega}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CLIENTE -->
+          <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #333;">Cliente</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+              <div><strong>Nombre:</strong> ${orden.cliente_nombre}</div>
+              <div><strong>Email:</strong> ${orden.cliente_email || '—'}</div>
+              <div><strong>WhatsApp:</strong> ${orden.cliente_whatsapp || '—'}</div>
+              <div><strong>DNI:</strong> ${orden.cliente_dni || '—'}</div>
+              <div style="grid-column: 1 / -1;"><strong>Dirección:</strong> ${orden.cliente_direccion || '—'}</div>
+              <div><strong>Ciudad:</strong> ${orden.cliente_ciudad || '—'}</div>
+              <div><strong>CP:</strong> ${orden.cliente_cp || '—'}</div>
+            </div>
+          </div>
+
+          <!-- MONTOS -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+            <div style="background: linear-gradient(135deg, #7f1f6e 0%, #5a1550 100%); color: white; padding: 16px; border-radius: 8px; text-align: center;">
+              <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; margin-bottom: 6px;">Total</div>
+              <div style="font-size: 24px; font-weight: 700;">$${total.toFixed(2)}</div>
+            </div>
+            <div style="background: #f9f9f9; border-left: 4px solid #333; padding: 16px; border-radius: 8px; text-align: center;">
+              <div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;">Seña Pagada</div>
+              <div style="font-size: 20px; font-weight: 700; color: #333;">$${sena.toFixed(2)}</div>
+            </div>
+            <div style="background: #f0f0f0; border-left: 4px solid #666; padding: 16px; border-radius: 8px; text-align: center;">
+              <div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;">Resto a Pagar</div>
+              <div style="font-size: 20px; font-weight: 700; color: #333;">$${restoPagar.toFixed(2)}</div>
+            </div>
+          </div>
+
+          <!-- ITEMS -->
+          <h3 style="margin: 20px 0 12px 0; font-size: 14px; color: #333;">Productos</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
-              <tr style="border-bottom: 1px solid #ddd;">
-                <th style="text-align: left; padding: 10px;">Producto</th>
-                <th style="text-align: center; padding: 10px;">Cantidad</th>
-                <th style="text-align: right; padding: 10px;">Precio</th>
+              <tr style="border-bottom: 2px solid #ddd; background: #f9f9f9;">
+                <th style="text-align: left; padding: 12px; font-weight: 600; color: #333;">Producto</th>
+                <th style="text-align: center; padding: 12px; font-weight: 600; color: #333; width: 80px;">Cantidad</th>
+                <th style="text-align: right; padding: 12px; font-weight: 600; color: #333; width: 100px;">Precio Unit.</th>
+                <th style="text-align: right; padding: 12px; font-weight: 600; color: #333; width: 100px;">Subtotal</th>
               </tr>
             </thead>
             <tbody>
-              ${orden.items.map(item => `
-                <tr style="border-bottom: 1px solid #eee;">
-                  <td style="padding: 10px;">${item.nombre || 'Producto'}</td>
-                  <td style="text-align: center; padding: 10px;">${item.cantidad}</td>
-                  <td style="text-align: right; padding: 10px;">$${item.precio_unitario}</td>
-                </tr>
-              `).join('')}
+              ${orden.items.map(item => {
+                const precio = parseFloat(item.precio_unitario) || 0;
+                const cantidad = item.cantidad || 0;
+                const subtotal = precio * cantidad;
+                return `
+                  <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px;">${item.producto?.nombre || item.nombre || 'Producto'}</td>
+                    <td style="text-align: center; padding: 12px;">${cantidad}</td>
+                    <td style="text-align: right; padding: 12px;">$${precio.toFixed(2)}</td>
+                    <td style="text-align: right; padding: 12px; font-weight: 600;">$${subtotal.toFixed(2)}</td>
+                  </tr>
+                `;
+              }).join('')}
             </tbody>
           </table>
 
-          <!-- Botones de Acciones -->
-          <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+          <!-- NOTAS -->
+          ${orden.notas ? `
+            <div style="background: #fffbf0; padding: 16px; border-left: 4px solid #F3E93F; border-radius: 8px; margin-bottom: 20px;">
+              <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Notas</div>
+              <div style="font-size: 13px; color: #333; line-height: 1.6;">${orden.notas}</div>
+            </div>
+          ` : ''}
+
+          <!-- BOTONES DE ACCIONES -->
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
             <button type="button" class="btn btn-primary" onclick="descargarTicket()" style="display: flex; align-items: center; gap: 8px;">
               📋 Descargar Ticket (Imagen)
             </button>
