@@ -101,8 +101,21 @@ function generateId(prefix = 'ORD') {
 }
 
 function addToCart(product) {
+    // Validar stock disponible
+    if (!product.stock_cantidad || product.stock_cantidad <= 0) {
+        alert('Este producto está agotado y no se puede agregar al carrito');
+        return null;
+    }
+    
     let cart = getCart();
     const existingItem = cart.find(item => item.id === product.id);
+    
+    // Validar que no se agregue más cantidad que stock disponible
+    const cantidadActual = existingItem ? existingItem.qty : 0;
+    if (cantidadActual + 1 > product.stock_cantidad) {
+        alert(`Solo hay ${product.stock_cantidad} unidade(s) disponible(s) de este producto`);
+        return cart;
+    }
     
     if (existingItem) {
         existingItem.qty++;
