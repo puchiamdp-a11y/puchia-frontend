@@ -642,12 +642,34 @@ function getSortIndicator(field) {
   return orderSortConfig.direction === 'asc' ? '↑' : '↓';
 }
 
+function updateSortIndicators() {
+  // Actualizar indicadores de sort en headers
+  const sortIndicators = document.querySelectorAll('.sort-indicator');
+  sortIndicators.forEach(indicator => {
+    const th = indicator.parentElement;
+    const thText = th.textContent.split('⇅')[0].split('↑')[0].split('↓')[0].trim();
+
+    const fieldMap = {
+      'Número': 'id',
+      'Fecha': 'creado_en',
+      'Cliente': 'cliente_nombre',
+      'Resto': 'resto_a_pagar',
+      'Total': 'total',
+      'Estado': 'estado'
+    };
+
+    const field = fieldMap[thText];
+    if (field) {
+      indicator.textContent = getSortIndicator(field);
+    }
+  });
+}
+
 function renderOrders() {
   const tbody = document.getElementById('all-orders');
-  const thead = document.querySelector('thead tr');
 
   if (filteredOrdersData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999; padding: 20px;">Sin órdenes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999; padding: 20px;">Sin órdenes</td></tr>';
     document.getElementById('ordersPagination').style.display = 'none';
     return;
   }
@@ -658,52 +680,35 @@ function renderOrders() {
   const endIdx = startIdx + ORDERS_PER_PAGE;
   const paginatedOrders = filteredOrdersData.slice(startIdx, endIdx);
 
-  // Actualizar headers con indicadores de sort (si thead existe)
-  if (thead) {
-    const headers = thead.querySelectorAll('th');
-    headers.forEach((th, idx) => {
-      const fieldMap = ['id', 'creado_en', 'cliente_nombre', 'resto_a_pagar', 'total', 'estado', 'fecha_entrega'];
-      const field = fieldMap[idx];
-      if (field && ['id', 'creado_en', 'cliente_nombre', 'resto_a_pagar', 'total', 'estado'].includes(field)) {
-        th.style.cursor = 'pointer';
-        th.style.userSelect = 'none';
-        th.title = `Ordenar por ${th.textContent}`;
-        const currentIndicator = getSortIndicator(field);
-        th.textContent = th.textContent.split(' ')[0] + ' ' + currentIndicator;
-        th.onclick = () => sortOrders(field);
-      }
-    });
-  }
-
   tbody.innerHTML = paginatedOrders.map(orden => {
     const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
-    const fechaCompra = new Date(orden.creado_en).toLocaleDateString('es-AR');
-    const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : '—';
+    const fechaCompra = new Date(orden.creado_en).toLocaleDateString('es-AR', { year: '2-digit', month: '2-digit', day: '2-digit' });
+    const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR', { year: '2-digit', month: '2-digit', day: '2-digit' }) : '—';
     const shortId = formatShortOrderId(orden);
 
     return `
-      <tr style="border-bottom: 1px solid #eee;">
-        <td style="padding: 10px; font-weight: 600; color: #7f1f6e;">
-          <span title="${orden.id_unico}">${shortId}</span>
-        </td>
-        <td style="padding: 10px; font-size: 13px;">${fechaCompra}</td>
-        <td style="padding: 10px; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${orden.cliente_nombre}</td>
-        <td style="padding: 10px; text-align: right; font-weight: 600; color: #333;">$${restoPagar.toFixed(2)}</td>
-        <td style="padding: 10px; text-align: right; font-weight: 700; color: #7f1f6e;">$${parseFloat(orden.total).toFixed(2)}</td>
-        <td style="padding: 10px;">
-          <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;">
+      <tr style="border-bottom: 1px solid #eee; height: 44px;">
+        <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap;" title="${orden.id_unico}">${shortId}</td>
+        <td style="padding: 8px 12px; font-size: 13px; white-space: nowrap;">${fechaCompra}</td>
+        <td style="padding: 8px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
+        <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap;">$${restoPagar.toFixed(2)}</td>
+        <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap;">$${parseFloat(orden.total).toFixed(2)}</td>
+        <td style="padding: 8px 12px;">
+          <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px; width: 100%;">
             ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
           </select>
         </td>
-        <td style="padding: 10px; font-size: 12px; color: #999;">${fechaEntrega}</td>
-        <td style="padding: 10px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
-          <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})" title="Ver detalles">Ver</button>
-          <button class="btn btn-sm btn-primary" onclick="abrirEditarOrden(${orden.id})" title="Editar seña y fecha">✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" title="Eliminar">✕</button>
+        <td style="padding: 8px 12px; font-size: 12px; color: #999; text-align: center; white-space: nowrap;">${fechaEntrega}</td>
+        <td style="padding: 8px 12px; display: flex; gap: 4px; justify-content: center; align-items: center; white-space: nowrap;">
+          <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})" style="padding: 4px 10px; font-size: 11px;" title="Ver">Ver</button>
+          <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" style="padding: 4px 8px; font-size: 11px;" title="Eliminar">✕</button>
         </td>
       </tr>
     `;
   }).join('');
+
+  // Actualizar indicadores de sort
+  updateSortIndicators();
 
   // Mostrar paginación si hay múltiples páginas
   updatePaginationControls(totalPages);
@@ -768,6 +773,76 @@ function searchOrders(query) {
   }
 
   renderOrders();
+}
+
+// Exportar órdenes filtradas a Excel
+function exportarOrdenesToExcel() {
+  if (filteredOrdersData.length === 0) {
+    puchiaAlert('No hay órdenes para exportar', 'warning');
+    return;
+  }
+
+  const btn = event.target.closest('button');
+  const textOriginal = btn.textContent;
+  btn.textContent = '⏳ Exportando...';
+  btn.disabled = true;
+
+  try {
+    // Preparar datos para Excel
+    const excelData = filteredOrdersData.map(orden => {
+      const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
+      const fechaCompra = new Date(orden.creado_en).toLocaleDateString('es-AR');
+      const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : '—';
+      const shortId = formatShortOrderId(orden);
+
+      return {
+        'Número': shortId,
+        'Fecha Compra': fechaCompra,
+        'Cliente': orden.cliente_nombre,
+        'Resto a Pagar': `$${restoPagar.toFixed(2)}`,
+        'Total': `$${parseFloat(orden.total).toFixed(2)}`,
+        'Estado': orden.estado,
+        'Entrega Estimada': fechaEntrega
+      };
+    });
+
+    // Crear workbook y worksheet
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Órdenes');
+
+    // Ajustar anchos de columna
+    ws['!cols'] = [
+      { wch: 12 }, // Número
+      { wch: 14 }, // Fecha Compra
+      { wch: 20 }, // Cliente
+      { wch: 13 }, // Resto a Pagar
+      { wch: 13 }, // Total
+      { wch: 15 }, // Estado
+      { wch: 14 }  // Entrega
+    ];
+
+    // Generar nombre de archivo con fecha
+    const ahora = new Date();
+    const fecha = ahora.toLocaleDateString('es-AR').replace(/\//g, '-');
+    const nombreArchivo = `puchia_ordenes_${fecha}.xlsx`;
+
+    // Descargar archivo
+    XLSX.writeFile(wb, nombreArchivo);
+
+    btn.textContent = '✅ ¡Exportado!';
+    setTimeout(() => {
+      btn.textContent = textOriginal;
+      btn.disabled = false;
+    }, 2000);
+
+    puchiaAlert(`Exportadas ${excelData.length} órdenes`, 'success');
+  } catch (error) {
+    console.error('Error exportando Excel:', error);
+    puchiaAlert('Error al exportar: ' + error.message, 'error');
+    btn.textContent = textOriginal;
+    btn.disabled = false;
+  }
 }
 
 // ==================== CREAR ORDEN MANUAL ====================
