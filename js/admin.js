@@ -184,6 +184,8 @@ function setupEventListeners() {
           listarClientes();
         } else if (page === 'categorias') {
           loadCategorias();
+        } else if (page === 'stocks') {
+          initStocks();
         } else if (page === 'settings') {
           loadSettings();
         }
@@ -200,6 +202,10 @@ function setupEventListeners() {
 
   // Modal Crear Orden Manual
   document.getElementById('formCrearOrden')?.addEventListener('submit', guardarOrden);
+
+  // Modal Stock
+  document.getElementById('formStock')?.addEventListener('submit', guardarStock);
+
   document.getElementById('cancelProductBtn')?.addEventListener('click', () => {
     cleanupQuillAutosave();
     document.getElementById('modalProducto').style.display = 'none';
@@ -2950,44 +2956,388 @@ function getStatusBadge(status) {
 
   return `<span class="badge" style="background-color: ${colors[status] || '#666'}">${status}</span>`;
 }
-// ==================== EDITAR STOCK DE PRODUCTOS ====================
-async function editarStock(productoId, stockActual) {
-  const nuevoStock = prompt(`Ingresa el nuevo stock (actual: ${stockActual}):`, stockActual);
-  
-  if (nuevoStock === null) return; // Cancelado
-  
-  const stock = parseInt(nuevoStock);
-  if (isNaN(stock) || stock < 0) {
-    puchiaAlert('Stock debe ser un número no negativo', 'error');
-    return;
-  }
-  
+
+// ==================== STOCKS (VARIANTES) ====================
+
+let productosStock = []; // Productos que tienen variantes
+let currentStockPage = 1;
+const STOCKS_PER_PAGE = 20;
+
+/**
+ * Carga productos que tienen variantes (tiene_variantes_stock = true)
+ */
+async function cargarProductosConVariantes() {
   try {
     const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/productos/${productoId}/stock`, {
+    const response = await fetch(`${API_BASE_URL}/productos?limite=1000`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await response.json();
+    productosStock = (data.data || []).filter(p => p.tiene_variantes_stock === true);
+    console.log('[Stocks] Productos con variantes:', productosStock);
+  } catch (error) {
+    console.error('[Stocks] Error cargando productos:', error);
+    puchiaAlert('Error al cargar productos', 'error');
+  }
+}
+
+/**
+ * Abre modal para agregar nuevo stock
+ */
+function abrirModalAgregarStock() {
+  document.getElementById('stockId').value = '';
+  document.getElementById('formStock').reset();
+  document.getElementById('stockModalTitulo').textContent = 'Agregar Stock';
+
+  // Llenar dropdown de productos
+  const selectProducto = document.getElementById('stockProducto');
+  selectProducto.innerHTML = '<option value="">-- Selecciona un producto --</option>';
+  productosStock.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p.id;
+    option.textContent = `${p.nombre} (ID: ${p.id})`;
+    selectProducto.appendChild(option);
+  });
+
+  // Limpiar variantes
+  document.getElementById('variantesRows').innerHTML = '';
+  agregarVarianteRow();
+
+  document.getElementById('modalStock').style.display = 'flex';
+}
+
+/**
+ * Cierra modal de stock
+ */
+function cerrarModalStock() {
+  document.getElementById('modalStock').style.display = 'none';
+}
+
+/**
+ * Agrega una fila para ingresar una variante (tipo + valor)
+ */
+function agregarVarianteRow() {
+  const container = document.getElementById('variantesRows');
+  const rowId = Date.now();
+
+  const row = document.createElement('div');
+  row.id = `variant-row-${rowId}`;
+  row.style.cssText = 'display: flex; gap: 8px; align-items: center;';
+  row.innerHTML = `
+    <input type="text" placeholder="Tipo (e.g., Color)" class="variant-tipo" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
+    <input type="text" placeholder="Valor (e.g., Rojo)" class="variant-valor" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
+    <button type="button" class="btn btn-danger" onclick="eliminarVarianteRow('${rowId}')" style="padding: 6px 10px; font-size: 12px;">−</button>
+  `;
+  container.appendChild(row);
+}
+
+/**
+ * Elimina una fila de variante
+ */
+function eliminarVarianteRow(rowId) {
+  const row = document.getElementById(`variant-row-${rowId}`);
+  if (row) row.remove();
+}
+
+/**
+ * Guarda un nuevo stock o edita uno existente
+ */
+async function guardarStock(e) {
+  e.preventDefault();
+
+  const stockId = document.getElementById('stockId').value;
+  const productoId = document.getElementById('stockProducto').value;
+  const cantidad = parseInt(document.getElementById('stockCantidad').value);
+
+  // Recopilar variantes
+  const variantesRows = document.querySelectorAll('#variantesRows > div');
+  const variantes = Array.from(variantesRows)
+    .map(row => {
+      const tipo = row.querySelector('.variant-tipo').value.trim();
+      const valor = row.querySelector('.variant-valor').value.trim();
+      return tipo && valor ? { tipo, valor } : null;
+    })
+    .filter(v => v !== null);
+
+  if (!productoId || !cantidad || variantes.length === 0) {
+    puchiaAlert('Por favor completa todos los campos y agrega al menos una variante', 'error');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const payload = {
+      producto_id: parseInt(productoId),
+      cantidad,
+      variantes
+    };
+
+    const method = stockId ? 'PATCH' : 'POST';
+    const endpoint = stockId ? `/admin/stocks/${stockId}` : '/admin/stocks';
+    const url = `${API_BASE_URL}${endpoint}`;
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      puchiaAlert(data.message || 'Error al guardar stock', 'error');
+      return;
+    }
+
+    puchiaAlert(stockId ? 'Stock actualizado' : 'Stock creado exitosamente', 'success');
+    cerrarModalStock();
+    currentStockPage = 1; // Reset pagination
+    cargarStocks();
+  } catch (error) {
+    console.error('[Stocks] Error guardando stock:', error);
+    puchiaAlert('Error al guardar stock: ' + error.message, 'error');
+  }
+}
+
+/**
+ * Carga y muestra los stocks con paginación
+ */
+async function cargarStocks(page = 1) {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const offset = (page - 1) * STOCKS_PER_PAGE;
+
+    const response = await fetch(`${API_BASE_URL}/admin/stocks?limite=${STOCKS_PER_PAGE}&offset=${offset}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      puchiaAlert('Error cargando stocks', 'error');
+      return;
+    }
+
+    const stocks = data.data || [];
+    const total = data.total || 0;
+    currentStockPage = page;
+
+    renderStocks(stocks);
+    renderStocksPagination(total);
+  } catch (error) {
+    console.error('[Stocks] Error cargando stocks:', error);
+    puchiaAlert('Error al cargar stocks: ' + error.message, 'error');
+  }
+}
+
+/**
+ * Renderiza la tabla de stocks
+ */
+function renderStocks(stocks) {
+  const tbody = document.getElementById('stocks-list');
+
+  if (stocks.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999; padding: 20px;">No hay stocks registrados</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = stocks.map(stock => {
+    // Obtener nombre del producto
+    const producto = productosStock.find(p => p.id === stock.producto_id);
+    const nombreProducto = producto?.nombre || `Producto ${stock.producto_id}`;
+
+    // Formatear variantes
+    const variantesStr = stock.variantes && stock.variantes.length > 0
+      ? stock.variantes.map(v => `${v.tipo}: ${v.valor}`).join(', ')
+      : 'Sin variantes';
+
+    return `
+      <tr>
+        <td>${nombreProducto}</td>
+        <td>${variantesStr}</td>
+        <td>
+          <input type="number" value="${stock.cantidad}" onchange="actualizarCantidadStock(${stock.id}, this.value)" style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" />
+        </td>
+        <td>
+          <div class="acciones-cell">
+            <button class="btn btn-sm btn-secondary" onclick="editarStock(${stock.id})">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="eliminarStock(${stock.id})">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/**
+ * Actualiza la cantidad de un stock (inline)
+ */
+async function actualizarCantidadStock(stockId, nuevaCantidad) {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const cantidad = parseInt(nuevaCantidad);
+
+    if (isNaN(cantidad) || cantidad < 1) {
+      puchiaAlert('La cantidad debe ser mayor a 0', 'error');
+      cargarStocks(currentStockPage);
+      return;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/stocks/${stockId}`, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ stock_cantidad: stock })
+      body: JSON.stringify({ cantidad })
     });
-    
+
     const data = await response.json();
-    
-    if (data.success) {
-      // Actualizar la celda en la tabla
-      const cell = document.getElementById(`stock-cell-${productoId}`);
-      if (cell) {
-        cell.textContent = stock;
-      }
-      puchiaAlert('Stock actualizado exitosamente', 'success');
-      console.log('Stock actualizado:', data.data);
-    } else {
-      puchiaAlert(data.error || 'Error al actualizar stock', 'error');
+    if (!response.ok) {
+      puchiaAlert(data.message || 'Error al actualizar', 'error');
+      cargarStocks(currentStockPage);
+      return;
     }
+
+    puchiaAlert('Cantidad actualizada', 'success');
   } catch (error) {
-    console.error('Error:', error);
-    puchiaAlert('Error al actualizar stock: ' + error.message, 'error');
+    console.error('[Stocks] Error actualizando cantidad:', error);
+    puchiaAlert('Error al actualizar: ' + error.message, 'error');
   }
+}
+
+/**
+ * Edita un stock existente
+ */
+async function editarStock(stockId) {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/stocks/${stockId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      puchiaAlert('Error cargando stock', 'error');
+      return;
+    }
+
+    const stock = data.data;
+    document.getElementById('stockId').value = stock.id;
+    document.getElementById('stockProducto').value = stock.producto_id;
+    document.getElementById('stockCantidad').value = stock.cantidad;
+    document.getElementById('stockModalTitulo').textContent = 'Editar Stock';
+
+    // Cargar variantes
+    const variantesContainer = document.getElementById('variantesRows');
+    variantesContainer.innerHTML = '';
+
+    if (stock.variantes && stock.variantes.length > 0) {
+      stock.variantes.forEach(v => {
+        const rowId = Date.now() + Math.random();
+        const row = document.createElement('div');
+        row.id = `variant-row-${rowId}`;
+        row.style.cssText = 'display: flex; gap: 8px; align-items: center;';
+        row.innerHTML = `
+          <input type="text" value="${v.tipo}" class="variant-tipo" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
+          <input type="text" value="${v.valor}" class="variant-valor" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
+          <button type="button" class="btn btn-danger" onclick="eliminarVarianteRow('${rowId}')" style="padding: 6px 10px; font-size: 12px;">−</button>
+        `;
+        variantesContainer.appendChild(row);
+      });
+    }
+
+    document.getElementById('modalStock').style.display = 'flex';
+  } catch (error) {
+    console.error('[Stocks] Error cargando stock:', error);
+    puchiaAlert('Error al cargar stock: ' + error.message, 'error');
+  }
+}
+
+/**
+ * Elimina un stock con confirmación
+ */
+async function eliminarStock(stockId) {
+  const confirmar = await puchiaConfirm(
+    '¿Estás seguro de que deseas eliminar este stock?',
+    'Confirmar eliminación'
+  );
+
+  if (!confirmar) return;
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/stocks/${stockId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      puchiaAlert(data.message || 'Error al eliminar', 'error');
+      return;
+    }
+
+    puchiaAlert('Stock eliminado exitosamente', 'success');
+    cargarStocks(currentStockPage);
+  } catch (error) {
+    console.error('[Stocks] Error eliminando stock:', error);
+    puchiaAlert('Error al eliminar: ' + error.message, 'error');
+  }
+}
+
+/**
+ * Renderiza controles de paginación
+ */
+function renderStocksPagination(total) {
+  const paginationDiv = document.getElementById('stocksPagination');
+  const totalPages = Math.ceil(total / STOCKS_PER_PAGE);
+
+  if (totalPages <= 1) {
+    paginationDiv.innerHTML = '';
+    return;
+  }
+
+  let html = '';
+
+  // Botón anterior
+  if (currentStockPage > 1) {
+    html += `<button class="btn btn-secondary" onclick="cargarStocks(${currentStockPage - 1})">← Anterior</button>`;
+  }
+
+  // Números de página
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === currentStockPage) {
+      html += `<button class="btn btn-primary" disabled>${i}</button>`;
+    } else if (i <= 5 || i > totalPages - 2 || Math.abs(i - currentStockPage) <= 1) {
+      html += `<button class="btn btn-secondary" onclick="cargarStocks(${i})">${i}</button>`;
+    } else if (i === 6) {
+      html += `<span style="padding: 0 8px; align-self: center;">...</span>`;
+    }
+  }
+
+  // Botón siguiente
+  if (currentStockPage < totalPages) {
+    html += `<button class="btn btn-secondary" onclick="cargarStocks(${currentStockPage + 1})">Siguiente →</button>`;
+  }
+
+  paginationDiv.innerHTML = html;
+}
+
+/**
+ * Inicializa la sección de stocks
+ */
+async function initStocks() {
+  await cargarProductosConVariantes();
+  await cargarStocks(1);
 }
