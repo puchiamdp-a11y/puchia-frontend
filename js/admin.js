@@ -276,7 +276,7 @@ async function loadRecentOrders() {
           <td>${orden.cliente_nombre}</td>
           <td>$${orden.total}</td>
           <td><span style="background: #f0e6f6; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${orden.estado}</span></td>
-          <td>${formatDateShort(orden.creado_en)}</td>
+          <td>${formatDateShort(orden.created_at)}</td>
           <td>
             <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
           </td>
@@ -616,7 +616,7 @@ const ORDERS_PER_PAGE = 20;
 
 // Sorting state
 let orderSortConfig = {
-  field: 'creado_en', // Default sort by date
+  field: 'created_at', // Default sort by date
   direction: 'desc'   // Descending (newest first)
 };
 
@@ -642,7 +642,7 @@ async function loadAllOrders() {
       allOrdersData = data.data;
       filteredOrdersData = [...allOrdersData];
       currentPage = 1;
-      orderSortConfig = { field: 'creado_en', direction: 'desc' }; // Reset sort
+      orderSortConfig = { field: 'created_at', direction: 'desc' }; // Reset sort
       renderOrders();
       updateDashboardStatsFromOrders(); // Actualizar stats del dashboard
       console.log(`Órdenes cargadas: ${allOrdersData.length}`);
@@ -668,7 +668,7 @@ function sortOrders(field) {
     let bVal = b[field];
 
     // Manejo especial para fechas
-    if (field === 'creado_en' || field === 'fecha_entrega') {
+    if (field === 'created_at' || field === 'fecha_entrega') {
       aVal = new Date(aVal || 0).getTime();
       bVal = new Date(bVal || 0).getTime();
     }
@@ -704,7 +704,7 @@ function updateSortIndicators() {
 
     const fieldMap = {
       'Número': 'id',
-      'Fecha': 'creado_en',
+      'Fecha': 'created_at',
       'Cliente': 'cliente_nombre',
       'Resto': 'resto_a_pagar',
       'Total': 'total',
@@ -736,7 +736,7 @@ function renderOrders() {
 
   tbody.innerHTML = paginatedOrders.map(orden => {
     const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
-    const fechaCompra = formatDateShort(orden.creado_en);
+    const fechaCompra = formatDateShort(orden.created_at);
     const fechaEntrega = formatDateShort(orden.fecha_entrega);
     const shortId = formatShortOrderId(orden);
 
@@ -804,7 +804,7 @@ function nextOrderPage() {
 
 function filterOrdersByStatus(estado) {
   currentPage = 1;
-  orderSortConfig = { field: 'creado_en', direction: 'desc' }; // Reset sort
+  orderSortConfig = { field: 'created_at', direction: 'desc' }; // Reset sort
   if (estado === 'todos') {
     filteredOrdersData = [...allOrdersData];
   } else {
@@ -815,7 +815,7 @@ function filterOrdersByStatus(estado) {
 
 function searchOrders(query) {
   currentPage = 1;
-  orderSortConfig = { field: 'creado_en', direction: 'desc' }; // Reset sort
+  orderSortConfig = { field: 'created_at', direction: 'desc' }; // Reset sort
   const searchLower = query.toLowerCase().trim();
 
   if (!searchLower) {
@@ -846,7 +846,7 @@ function exportarOrdenesToExcel() {
     // Preparar datos para Excel
     const excelData = filteredOrdersData.map(orden => {
       const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
-      const fechaCompra = formatDateLong(orden.creado_en);
+      const fechaCompra = formatDateLong(orden.created_at);
       const fechaEntrega = formatDateLong(orden.fecha_entrega);
       const shortId = formatShortOrderId(orden);
 
@@ -1622,7 +1622,7 @@ async function viewOrder(id) {
       const total = parseFloat(orden.total) || 0;
       const sena = parseFloat(orden.sena) || (total / 2);
       const restoPagar = total - sena;
-      const fechaCompra = formatDateLong(orden.creado_en);
+      const fechaCompra = formatDateLong(orden.created_at);
       const fechaEntrega = formatDateLong(orden.fecha_entrega) !== '—' ? formatDateLong(orden.fecha_entrega) : 'No especificada';
       const shortId = formatShortOrderId(orden);
 
