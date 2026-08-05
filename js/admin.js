@@ -664,6 +664,11 @@ async function loadAllOrders() {
     });
 
     const data = await response.json();
+    // DEBUG API: Ver respuesta completa
+    console.log('API RESPONSE COMPLETO (loadAllOrders):', data);
+    if (data.data && data.data.length > 0) {
+      console.log('Primera orden:', data.data[0]);
+    }
     if (data.success && data.data) {
       allOrdersData = data.data;
       filteredOrdersData = [...allOrdersData];
