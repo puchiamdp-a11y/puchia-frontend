@@ -368,7 +368,7 @@ function renderProductos(lista) {
       ${fotoCell}
       <td>${p.nombre}</td>
       <td>$${precio}</td>
-      <td id="stock-cell-${p.id}" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s;" onclick="editarStock(${p.id}, ${p.stock_cantidad || 0})" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background=''">${stockVal}</td>
+      <td id="stock-cell-${p.id}" style="cursor: pointer; padding: 8px; border-radius: 4px; background-color: transparent; transition: background 0.2s;" onclick="editarStock(${p.id}, ${p.stock_cantidad || 0})" onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">${stockVal}</td>
       <td>${categoria}</td>
       <td><button class="toggle-estado-btn ${habilitado ? 'activo' : 'inactivo'}" onclick="toggleHabilitadoProducto(${p.id}, ${habilitado})">${habilitado ? '✅ Activo' : '❌ Inactivo'}</button></td>
       <td class="acciones-cell">
