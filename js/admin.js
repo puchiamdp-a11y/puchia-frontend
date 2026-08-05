@@ -1106,44 +1106,40 @@ async function descargarTicket() {
             </div>
           ` : ''}
 
-          <!-- TOTAL (PÚRPURA DESTACADO) -->
+          <!-- DESGLOSE DE PAGO (MODERNO) -->
+          <div style="
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e0e0e0;
+          ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+              <div>
+                <div style="font-size: 10px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Seña (50%)</div>
+                <div style="font-size: 16px; font-weight: 700; color: #7f1f6e;">$${sena.toFixed(2)}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 10px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Resto a pagar</div>
+                <div style="font-size: 16px; font-weight: 700; color: #333;">$${(total - sena).toFixed(2)}</div>
+              </div>
+            </div>
+            <div style="text-align: center; font-size: 11px; color: #999;">Transferencia bancaria</div>
+          </div>
+
+          <!-- TOTAL GRANDE -->
           <div style="
             background: linear-gradient(135deg, #7f1f6e 0%, #5a1550 100%);
             color: white;
             border-radius: 6px;
-            padding: 16px 12px;
+            padding: 14px;
             margin-bottom: 12px;
             text-align: center;
           ">
-            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; opacity: 0.9;">Total de Orden</div>
-            <div style="font-size: 32px; font-weight: 700;">$${total.toFixed(2)}</div>
+            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600; opacity: 0.9;">Total de Orden</div>
+            <div style="font-size: 28px; font-weight: 700;">$${total.toFixed(2)}</div>
           </div>
 
-          <!-- SEÑA (gris oscuro) -->
-          <div style="
-            background: #f9f9f9;
-            border-left: 4px solid #333;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 12px;
-          ">
-            <div style="font-size: 10px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Seña</div>
-            <div style="font-size: 18px; color: #333; font-weight: 700;">$${sena.toFixed(2)}</div>
-            <div style="font-size: 11px; color: #999; margin-top: 4px;">Monto a depositar</div>
-          </div>
-
-          <!-- RESTO A PAGAR (gris oscuro, MÁS GRANDE) -->
-          <div style="
-            background: #f0f0f0;
-            border-left: 4px solid #666;
-            border-radius: 6px;
-            padding: 14px 12px;
-            margin-bottom: 15px;
-          ">
-            <div style="font-size: 10px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Resto a Pagar</div>
-            <div style="font-size: 28px; color: #333; font-weight: 700;">$${restoPagar.toFixed(2)}</div>
-            <div style="font-size: 11px; color: #999; margin-top: 4px;">Al retiro/entrega</div>
-          </div>
         </div>
 
         <!-- FOOTER -->
