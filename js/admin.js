@@ -302,7 +302,7 @@ async function loadRecentOrders() {
           <td>${orden.cliente_nombre}</td>
           <td>$${orden.total}</td>
           <td><span style="background: #f0e6f6; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${orden.estado}</span></td>
-          <td>${formatDateShort(orden.created_at || orden.updated_at)}</td>
+          <td>${formatDateShort(getOrderCreatedDate(orden))}</td>
           <td>
             <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
           </td>
@@ -744,6 +744,11 @@ function updateSortIndicators() {
     }
   });
 }
+// Obtener fecha de creación robusta - busca múltiples campos posibles
+function getOrderCreatedDate(orden) {
+  return orden.created_at || orden.updated_at || orden.creado_en || orden.fecha_compra;
+}
+
 
 function renderOrders() {
   const tbody = document.getElementById('all-orders');
@@ -775,7 +780,7 @@ function renderOrders() {
     }
 
     const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
-    const fechaCompra = formatDateShort(orden.created_at || orden.updated_at);
+    const fechaCompra = formatDateShort(getOrderCreatedDate(orden));
     const fechaEntrega = formatDateShort(orden.fecha_entrega);
     const shortId = formatShortOrderId(orden);
 
@@ -885,7 +890,7 @@ function exportarOrdenesToExcel() {
     // Preparar datos para Excel
     const excelData = filteredOrdersData.map(orden => {
       const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
-      const fechaCompra = formatDateLong(orden.created_at || orden.updated_at);
+      const fechaCompra = formatDateLong(getOrderCreatedDate(orden));
       const fechaEntrega = formatDateLong(orden.fecha_entrega);
       const shortId = formatShortOrderId(orden);
 
@@ -1661,7 +1666,7 @@ async function viewOrder(id) {
       const total = parseFloat(orden.total) || 0;
       const sena = parseFloat(orden.sena) || (total / 2);
       const restoPagar = total - sena;
-      const fechaCompra = formatDateLong(orden.created_at || orden.updated_at);
+      const fechaCompra = formatDateLong(getOrderCreatedDate(orden));
       const fechaEntrega = formatDateLong(orden.fecha_entrega) !== '—' ? formatDateLong(orden.fecha_entrega) : 'No especificada';
       const shortId = formatShortOrderId(orden);
 
