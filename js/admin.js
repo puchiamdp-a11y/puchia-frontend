@@ -537,6 +537,9 @@ function editProduct(id) {
 async function saveProduct(e) {
   e.preventDefault();
 
+  // NUEVO: Extraer variantes si tiene_variantes_stock
+  const tieneVariantes = document.getElementById('tieneVariantes').checked;
+  const variantes = tieneVariantes ? extraerVariantesProducto() : null;
   const nombre = document.getElementById('productNombre').value;
   const precio = document.getElementById('productPrecio').value;
   const stock = document.getElementById('productStock').value;
@@ -550,6 +553,10 @@ async function saveProduct(e) {
     return;
   }
   if (!precio || !categoriaId) {
+  if (tieneVariantes && !variantes) {
+    puchiaAlert('Debes definir al menos una variante', 'warning');
+    return;
+  }
     puchiaAlert('Por favor completa los campos requeridos (Precio y Categoría)', 'warning');
     return;
   }
@@ -575,12 +582,23 @@ async function saveProduct(e) {
       nombre,
       descripcion: descripcion_completa && descripcion_completa !== '<p><br></p>' ? descripcion_completa : null,
       precio: Number(precio),
-      stock_cantidad: Number(stock),
       stock_type: stockType,
+      tiene_variantes_stock: tieneVariantes,
       categorias: [Number(categoriaId)],
       habilitado
     };
     console.log('DEBUG saveProduct - requestPayload:', requestPayload);
+
+    // Solo agregar stock si NO tiene variantes
+    if (!tieneVariantes) {
+      const stock = document.getElementById('productStock').value;
+      requestPayload.stock_cantidad = Number(stock);
+    }
+
+    // Agregar variantes si tiene
+    if (tieneVariantes && variantes) {
+      requestPayload.variantes = variantes;
+    }
 
     const response = await fetch(url, {
       method,
@@ -3340,4 +3358,116 @@ function renderStocksPagination(total) {
 async function initStocks() {
   await cargarProductosConVariantes();
   await cargarStocks(1);
+}
+
+// ==================== GESTIÓN DE VARIANTES EN PRODUCTOS ====================
+
+/**
+ * Alterna visibilidad de sección de variantes
+ */
+function toggleVariantesSection() {
+  const checkbox = document.getElementById('tieneVariantes');
+  const section = document.getElementById('variantesSection');
+  const container = document.getElementById('variantesContainer');
+
+  if (checkbox.checked) {
+    section.style.display = 'block';
+    if (container.children.length === 0) {
+      agregarVarianteProducto();
+    }
+  } else {
+    section.style.display = 'none';
+    container.innerHTML = '';
+  }
+}
+
+/**
+ * Agrega una fila para definir una variante (tipo + valores)
+ */
+function agregarVarianteProducto() {
+  const container = document.getElementById('variantesContainer');
+  const rowId = Date.now();
+
+  const row = document.createElement('div');
+  row.id = `variante-row-${rowId}`;
+  row.style.cssText = 'display: grid; grid-template-columns: 150px 1fr 30px; gap: 8px; align-items: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #e0e0e0;';
+  row.innerHTML = `
+    <input type="text" placeholder="Tipo" class="var-tipo" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
+    <input type="text" placeholder="Valores: Rojo, Verde, Azul" class="var-valores" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
+    <button type="button" class="btn btn-danger" onclick="eliminarVarianteProducto('${rowId}')" style="padding: 4px 8px; font-size: 11px; height: 30px;">−</button>
+  `;
+  container.appendChild(row);
+}
+
+/**
+ * Elimina una fila de variante
+ */
+function eliminarVarianteProducto(rowId) {
+  const row = document.getElementById(`variante-row-${rowId}`);
+  if (row) row.remove();
+}
+
+/**
+ * Extrae variantes del formulario como array de objetos
+ */
+function extraerVariantesProducto() {
+  const tieneVariantes = document.getElementById('tieneVariantes').checked;
+
+  if (!tieneVariantes) {
+    return null;
+  }
+
+  const rows = document.querySelectorAll('#variantesContainer > div');
+  const variantes = [];
+
+  rows.forEach(row => {
+    const tipo = row.querySelector('.var-tipo').value.trim();
+    const valoresStr = row.querySelector('.var-valores').value.trim();
+
+    if (tipo && valoresStr) {
+      // Parsear valores: "Rojo, Verde, Azul" → ["Rojo", "Verde", "Azul"]
+      const valores = valoresStr.split(',').map(v => v.trim()).filter(v => v);
+
+      if (valores.length > 0) {
+        variantes.push({
+          tipo,
+          valores
+        });
+      }
+    }
+  });
+
+  return variantes.length > 0 ? variantes : null;
+}
+
+/**
+ * Carga variantes existentes en el formulario (edición)
+ */
+function cargarVariantesEnFormulario(variantes) {
+  if (!variantes || variantes.length === 0) {
+    document.getElementById('tieneVariantes').checked = false;
+    document.getElementById('variantesSection').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('tieneVariantes').checked = true;
+  document.getElementById('variantesSection').style.display = 'block';
+
+  const container = document.getElementById('variantesContainer');
+  container.innerHTML = '';
+
+  variantes.forEach(v => {
+    const rowId = Date.now() + Math.random();
+    const row = document.createElement('div');
+    row.id = `variante-row-${rowId}`;
+    row.style.cssText = 'display: grid; grid-template-columns: 150px 1fr 30px; gap: 8px; align-items: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #e0e0e0;';
+
+    const valoresStr = (v.valores || []).join(', ');
+    row.innerHTML = `
+      <input type="text" value="${v.tipo}" class="var-tipo" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
+      <input type="text" value="${valoresStr}" class="var-valores" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
+      <button type="button" class="btn btn-danger" onclick="eliminarVarianteProducto('${rowId}')" style="padding: 4px 8px; font-size: 11px; height: 30px;">−</button>
+    `;
+    container.appendChild(row);
+  });
 }
