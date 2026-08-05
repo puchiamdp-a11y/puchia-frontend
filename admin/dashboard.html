@@ -653,11 +653,26 @@
                         </div>
                     </div>
 
-                    <!-- TOTAL -->
-                    <div style="display: flex; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #eee;">
-                        <div style="text-align: right;">
-                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Total</label>
-                            <div style="font-size: 28px; font-weight: bold; color: #7f1f6e;" id="ordenTotal">$0.00</div>
+                    <!-- TOTAL, SEÑA Y RESTO -->
+                    <div style="padding-top: 16px; border-top: 1px solid #eee;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                            <!-- TOTAL (solo lectura) -->
+                            <div style="text-align: center;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">TOTAL</label>
+                                <div style="font-size: 22px; font-weight: bold; color: #7f1f6e;" id="ordenTotal">$0.00</div>
+                            </div>
+
+                            <!-- SEÑA (editable) -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">SEÑA (50%)</label>
+                                <input type="number" id="ordenSena" min="0" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; color: #F3E93F;" oninput="actualizarRestoAPagar()">
+                            </div>
+
+                            <!-- RESTO A PAGAR (solo lectura) -->
+                            <div style="text-align: center;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">RESTO A PAGAR</label>
+                                <div style="font-size: 22px; font-weight: bold; color: #4caf50;" id="ordenRestoAPagar">$0.00</div>
+                            </div>
                         </div>
                     </div>
 

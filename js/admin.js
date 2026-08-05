@@ -826,6 +826,24 @@ function actualizarTotalOrden() {
   });
 
   document.getElementById('ordenTotal').textContent = `$${total.toFixed(2)}`;
+
+  // Actualizar seña al 50% del total (por defecto)
+  const senaPorDefecto = (total / 2).toFixed(2);
+  const inputSena = document.getElementById('ordenSena');
+  if (inputSena && !inputSena.value) {
+    inputSena.value = senaPorDefecto;
+  }
+
+  // Actualizar resto a pagar
+  actualizarRestoAPagar();
+}
+
+function actualizarRestoAPagar() {
+  const total = parseFloat(document.getElementById('ordenTotal').textContent.replace('$', '')) || 0;
+  const sena = parseFloat(document.getElementById('ordenSena').value) || 0;
+  const resto = total - sena;
+
+  document.getElementById('ordenRestoAPagar').textContent = `$${Math.max(0, resto).toFixed(2)}`;
 }
 
 async function guardarOrden(e) {
@@ -836,6 +854,7 @@ async function guardarOrden(e) {
   const nuevoClienteForm = document.getElementById('nuevoClienteForm');
   const notas = document.getElementById('ordenNotas').value.trim();
   const fechaEntrega = document.getElementById('ordenFechaEntrega').value;
+  const sena = parseFloat(document.getElementById('ordenSena').value) || 0;
 
   const esNuevoCliente = nuevoClienteForm.style.display !== 'none';
   let clienteId = selectCliente.value;
@@ -934,7 +953,8 @@ async function guardarOrden(e) {
         cliente_id: parseInt(clienteId),
         items,
         notas: notas || null,
-        fecha_entrega: fechaEntrega || null
+        fecha_entrega: fechaEntrega || null,
+        sena: sena || null
       })
     });
 
