@@ -611,8 +611,9 @@ function renderOrders() {
         </select>
       </td>
       <td>${new Date(orden.creado_en).toLocaleDateString()}</td>
-      <td>
+      <td style="display: flex; gap: 6px; flex-wrap: wrap;">
         <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
+        <button class="btn btn-sm btn-primary" onclick="abrirEditarOrden(${orden.id})" title="Editar seña y fecha">✏️ Editar</button>
         <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')">Eliminar</button>
       </td>
     </tr>
@@ -1216,6 +1217,103 @@ function copiarLinkSeguimiento() {
   }).catch(() => {
     puchiaAlert('Error al copiar link', 'error');
   });
+}
+
+// ==================== EDITAR ORDEN ====================
+let ordenEditandoId = null;
+
+async function abrirEditarOrden(id) {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      puchiaAlert('Error al cargar orden', 'error');
+      return;
+    }
+
+    const orden = data.data;
+    ordenEditandoId = orden.id;
+
+    // Llenar modal con datos
+    document.getElementById('editSena').value = orden.sena || (orden.total / 2);
+    document.getElementById('editFechaEntrega').value = orden.fecha_entrega ? orden.fecha_entrega.split('T')[0] : '';
+    document.getElementById('editTotal').textContent = `$${parseFloat(orden.total).toFixed(2)}`;
+    document.getElementById('editOrdenCode').textContent = orden.id_unico;
+
+    // Actualizar resto a pagar
+    actualizarRestoEditarOrden();
+
+    // Mostrar modal
+    document.getElementById('modalEditarOrden').style.display = 'flex';
+  } catch (error) {
+    console.error('Error:', error);
+    puchiaAlert('Error al cargar orden', 'error');
+  }
+}
+
+function actualizarRestoEditarOrden() {
+  const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', '')) || 0;
+  const sena = parseFloat(document.getElementById('editSena').value) || 0;
+  const resto = total - sena;
+  document.getElementById('editRestoAPagar').textContent = `$${Math.max(0, resto).toFixed(2)}`;
+}
+
+function cerrarEditarOrden() {
+  document.getElementById('modalEditarOrden').style.display = 'none';
+  ordenEditandoId = null;
+}
+
+async function guardarEditarOrden() {
+  if (!ordenEditandoId) return;
+
+  const sena = parseFloat(document.getElementById('editSena').value);
+  const fechaEntrega = document.getElementById('editFechaEntrega').value;
+  const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
+
+  if (!sena || sena < 0 || sena > total) {
+    puchiaAlert('Seña inválida', 'warning');
+    return;
+  }
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sena,
+        resto_a_pagar: total - sena,
+        fecha_entrega: fechaEntrega || null
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      puchiaAlert('Orden actualizada exitosamente', 'success');
+      cerrarEditarOrden();
+      loadAllOrders(); // Recargar tabla
+    } else {
+      puchiaAlert('Error al actualizar: ' + (data.error || 'desconocido'), 'error');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    puchiaAlert('Error de conexión', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Guardar Cambios';
+  }
 }
 
 async function updateOrderStatus(orderId, newStatus) {

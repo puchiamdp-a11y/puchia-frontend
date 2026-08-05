@@ -706,6 +706,45 @@
         </div>
     </div>
 
+    <!-- MODAL EDITAR ORDEN -->
+    <div class="modal" id="modalEditarOrden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 100%; position: relative;">
+            <button type="button" onclick="cerrarEditarOrden()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
+
+            <h2 style="color: #7f1f6e; margin-bottom: 8px; font-size: 22px;">✏️ Editar Orden</h2>
+            <p id="editOrdenCode" style="color: #666; font-size: 14px; margin-bottom: 24px; font-weight: 600; font-family: monospace;"></p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <!-- TOTAL (solo lectura) -->
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">TOTAL</label>
+                    <div id="editTotal" style="font-size: 18px; font-weight: bold; color: #7f1f6e;">$0.00</div>
+                </div>
+
+                <!-- SEÑA (editable) -->
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">SEÑA (editable)</label>
+                    <input type="number" id="editSena" min="0" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: 600;" oninput="actualizarRestoEditarOrden()">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">RESTO A PAGAR</label>
+                <div id="editRestoAPagar" style="font-size: 18px; font-weight: bold; color: #4caf50;">$0.00</div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Fecha de Entrega</label>
+                <input type="date" id="editFechaEntrega" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="cerrarEditarOrden()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarEditarOrden()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL ALERTA ERROR ELIMINAR -->
     <div class="modal" id="modalAlertaError" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; position: relative;">
