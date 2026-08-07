@@ -26,11 +26,8 @@ async function loadProductsFromAPI() {
         const mediaList = (p.media || []).map(m => ({ ...m, tipo: m.tipo === 'video' ? 'video' : 'foto' }));
         const portadaItem = mediaList.find(m => m.es_portada) || mediaList[0] || null;
 
-        // Para productos 'insumo', obtener stock de la variante
-        let effectiveStock = p.stock_cantidad || 0;
-        if (p.stock_type === 'insumo' && p.product_insumo_variant?.insumo_variant) {
-          effectiveStock = p.product_insumo_variant.insumo_variant.cantidad_en_stock || 0;
-        }
+        // Usar stock_disponible del backend (calculado para 'insumo' y 'simple')
+        const effectiveStock = p.stock_disponible || 0;
 
         return {
           id: p.id,
