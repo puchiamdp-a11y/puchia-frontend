@@ -229,13 +229,61 @@ async function submitOrder(e) {
     const address  = document.getElementById('checkoutAddress').value;
     const notes    = document.getElementById('checkoutNotes').value;
 
+    // 🔍 VALIDACIONES EN CLIENTE
+    console.log('🔍 Validando formulario...');
     if (!name || !email || !phone || !dni || !province || !address) {
-        showToast('Completa todos los campos obligatorios', 'error');
+        console.log('❌ Campos vacíos detectados');
+        showToast('❌ Completa todos los campos obligatorios', 'error');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirmar Orden";
+            confirmBtn.style.opacity = "1";
+        }
         return;
     }
 
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        console.log('❌ Email inválido:', email);
+        showToast('❌ Email inválido', 'error');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirmar Orden";
+            confirmBtn.style.opacity = "1";
+        }
+        return;
+    }
+
+    // Validar teléfono (mínimo 10 dígitos)
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+        console.log('❌ Teléfono inválido:', phone);
+        showToast('❌ Teléfono debe tener al menos 10 dígitos', 'error');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirmar Orden";
+            confirmBtn.style.opacity = "1";
+        }
+        return;
+    }
+
+    // Validar carrito
+    const cart = getCart();
+    if (!cart || cart.length === 0) {
+        console.log('❌ Carrito vacío');
+        showToast('❌ Agrega productos al carrito', 'error');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirmar Orden";
+            confirmBtn.style.opacity = "1";
+        }
+        return;
+    }
+
+    console.log('✅ Validaciones pasadas');
+
     const orderId = generateId('ORD');
-    const cart    = getCart();
     const total   = getCartTotal();
     const today   = new Date().toISOString().split('T')[0];
 
@@ -264,42 +312,65 @@ async function submitOrder(e) {
     orders.push(order);
     saveOrders(orders);
 
-    // Enviar al backend — asocia por WhatsApp si ya existe, actualiza email si faltaba
+    // 📤 ENVIAR AL BACKEND - STOCK PUCHIA V2.0 - Endpoint Transaccional
+    console.log('📤 Enviando orden al backend (Stock Puchia v2.0)...');
     try {
-        console.log('Preparando fetch a /ordenes...');
+        console.log('📍 Validando carrito:', cart);
+        if (cart.length === 0) {
+            throw new Error('El carrito está vacío');
+        }
+
+        // Preparar payload para endpoint transaccional
         const backendPayload = {
             cliente_nombre:   name,
             cliente_email:    email,
-            cliente_dni:      dni,
             cliente_whatsapp: phone,
-            cliente_direccion: address,
-            cliente_ciudad:   province,
             notas: notes,
             items: cart.map(item => ({
                 producto_id:   item.id,
-                cantidad:      item.qty,
-                atributos_json: item.atributos || {}
+                cantidad:      item.qty
             }))
         };
+
+        console.log('📍 Payload a enviar:', JSON.stringify(backendPayload, null, 2));
+
         const token = typeof getClienteToken === 'function' ? getClienteToken() : null;
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        console.log('Enviando fetch a /ordenes...');
-        const res = await fetch(`${API_BASE_URL}/ordenes`, {
+
+        // 🚀 POST al endpoint transaccional
+        console.log('🚀 POST a /ordenes/transaccion/simple...');
+        const endpoint = `${API_BASE_URL}/ordenes/transaccion/simple`;
+        console.log('🔗 URL completa:', endpoint);
+
+        const res = await fetch(endpoint, {
             method: 'POST',
             headers,
             body: JSON.stringify(backendPayload)
         });
-        console.log('Fetch completado. Status:', res.status, 'OK:', res.ok);
-        if (res.ok) {
-            const data = await res.json();
+
+        console.log('✅ Respuesta del servidor - Status:', res.status);
+        const data = await res.json();
+        console.log('📦 Datos recibidos:', JSON.stringify(data, null, 2));
+
+        if (res.status === 201 || res.ok) {
+            console.log('✅✅ ORDEN CREADA EN BACKEND');
             if (data?.data?.id_unico) {
+                console.log('📋 Número de orden:', data.data.id_unico);
+                console.log('💰 Total:', data.data.total);
                 localStorage.setItem('lastBackendOrderId', data.data.id_unico);
+                localStorage.setItem('lastBackendOrderTotal', data.data.total);
+                localStorage.setItem('lastBackendOrderState', data.data.estado);
             }
+            showToast('✅ Orden enviada a backend correctamente', 'success');
+        } else {
+            console.warn('⚠️ Respuesta no exitosa:', data);
+            showToast(`⚠️ ${data?.error || 'Error al procesar la orden'}`, 'error');
         }
     } catch (err) {
-        // Backend no disponible — la orden local sigue siendo válida
-        console.warn('Orden no enviada al backend:', err.message);
+        console.error('❌ ERROR al enviar al backend:', err.message);
+        console.error('❌ Stack:', err.stack);
+        showToast(`❌ Error: ${err.message}`, 'error');
     }
 
     closeCheckout();
