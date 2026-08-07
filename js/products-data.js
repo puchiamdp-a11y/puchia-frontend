@@ -25,6 +25,10 @@ async function loadProductsFromAPI() {
           : 'otras';
         const mediaList = (p.media || []).map(m => ({ ...m, tipo: m.tipo === 'video' ? 'video' : 'foto' }));
         const portadaItem = mediaList.find(m => m.es_portada) || mediaList[0] || null;
+
+        // Usar stock_disponible del backend (calculado para 'insumo' y 'simple')
+        const effectiveStock = p.stock_disponible || 0;
+
         return {
           id: p.id,
           name: p.nombre,
@@ -34,7 +38,10 @@ async function loadProductsFromAPI() {
           categorias: p.categorias,
           descripcion: p.descripcion || 'Sin descripción disponible',
           descripcion_completa: p.descripcion || 'Sin descripción disponible',
-          stock: p.stock_cantidad || 0,
+          stock_cantidad: effectiveStock,
+          stock: effectiveStock,
+          stock_type: p.stock_type,
+          product_insumo_variant: p.product_insumo_variant,
           habilitado: p.habilitado !== false,
           media: mediaList,
           portada: portadaItem ? portadaItem.url : null
