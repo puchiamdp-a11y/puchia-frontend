@@ -27,6 +27,103 @@ function showToast(message, type = 'info', duration = 3000) {
     setTimeout(() => toast.remove(), duration);
 }
 
+/**
+ * 🎨 Modal Elegante Puchia - Reemplaza alert()
+ * @param {string} titulo - Título del modal
+ * @param {string} mensaje - Mensaje a mostrar
+ * @param {array} botones - [{texto: "...", clase: "primary|secondary", callback: () => {}}]
+ */
+function showPuchiaModal(titulo, mensaje, botones = []) {
+    // Remover modal anterior si existe
+    const modalAnterior = document.getElementById('puchiaModal');
+    if (modalAnterior) modalAnterior.remove();
+
+    const modalId = 'puchiaModal';
+    const botonesHTML = botones.map((btn, idx) => `
+        <button
+            class="modal-btn ${btn.clase || 'secondary'}"
+            onclick="document.getElementById('${modalId}')?.remove(); ${btn.callback || ''}"
+            style="flex: 1; padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+            ${btn.texto}
+        </button>
+    `).join('');
+
+    const modalHTML = `
+        <div id="${modalId}" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        ">
+            <div style="
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+                max-width: 500px;
+                width: 90%;
+                padding: 32px;
+                text-align: center;
+                animation: slideUp 0.3s ease;
+            ">
+                <h2 style="color: #9b2d7d; font-size: 24px; margin: 0 0 16px; font-weight: 700;">
+                    ${titulo}
+                </h2>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 28px;">
+                    ${mensaje}
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    ${botonesHTML}
+                </div>
+            </div>
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(30px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                .modal-btn.primary {
+                    background: #9b2d7d;
+                    color: white;
+                }
+                .modal-btn.primary:hover {
+                    background: #7a2062;
+                    transform: scale(1.05);
+                }
+                .modal-btn.secondary {
+                    background: #f0f0f0;
+                    color: #333;
+                    border: 1px solid #ddd;
+                }
+                .modal-btn.secondary:hover {
+                    background: #e8e8e8;
+                    transform: scale(1.05);
+                }
+                .modal-btn:active {
+                    transform: scale(0.98);
+                }
+            </style>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Cerrar al clickear fuera del modal
+    const backdrop = document.getElementById(modalId);
+    backdrop?.addEventListener('click', (e) => {
+        if (e.target === backdrop) backdrop.remove();
+    });
+}
+
 async function apiGet(endpoint) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -100,10 +197,42 @@ function generateId(prefix = 'ORD') {
     return prefix + '-' + Date.now();
 }
 
+/**
+ * ➕ Agregar producto al carrito forzadamente (último disponible)
+ */
+function addToCartForced(productId) {
+    const allProds = [...(allProducts || []), ...(promoProducts || [])];
+    const product = allProds.find(p => p.id === productId);
+    if (!product) {
+        showToast('Producto no encontrado', 'error');
+        return;
+    }
+
+    let cart = getCart();
+    const existingItem = cart.find(item => item.id === product.id);
+
+    if (existingItem) {
+        existingItem.qty++;
+    } else {
+        cart.push({ ...product, qty: 1 });
+    }
+
+    saveCart(cart);
+    updateCartCount();
+    renderCartSidebar();
+    showToast(`✅ ${product.name} agregado al carrito`, 'success');
+}
+
 function addToCart(product) {
     // Validar stock disponible
     if (!product.stock_cantidad || product.stock_cantidad <= 0) {
-        alert('Este producto está agotado y no se puede agregar al carrito');
+        showPuchiaModal(
+            '⚠️ Producto Agotado',
+            `Lamentablemente <strong>${product.name}</strong> no tiene stock disponible en este momento.`,
+            [
+                { texto: 'Cerrar', clase: 'secondary', callback: '' }
+            ]
+        );
         return null;
     }
     
@@ -113,7 +242,19 @@ function addToCart(product) {
     // Validar que no se agregue más cantidad que stock disponible
     const cantidadActual = existingItem ? existingItem.qty : 0;
     if (cantidadActual + 1 > product.stock_cantidad) {
-        alert(`Solo hay ${product.stock_cantidad} unidade(s) disponible(s) de este producto`);
+        const stockDisponible = product.stock_cantidad - cantidadActual;
+        showPuchiaModal(
+            '⚠️ Stock Limitado',
+            `Ya tienes ${cantidadActual} en el carrito. Solo hay ${stockDisponible} más disponible(s) de <strong>${product.name}</strong>.`,
+            [
+                {
+                    texto: `Agregar 1 más (Total: ${cantidadActual + 1})`,
+                    clase: 'primary',
+                    callback: 'addToCartForced(' + product.id + ')'
+                },
+                { texto: 'Cancelar', clase: 'secondary', callback: '' }
+            ]
+        );
         return cart;
     }
     
