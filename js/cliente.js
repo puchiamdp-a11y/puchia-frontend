@@ -338,9 +338,19 @@ async function submitOrder(e) {
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
+        // 🔍 DETECTAR TIPO DE PRODUCTO PARA USAR ENDPOINT CORRECTO
+        let endpoint = `${API_BASE_URL}/ordenes/transaccion/simple`;
+        const tieneInsumo = cart.some(item => item.stock_type === 'insumo');
+
+        if (tieneInsumo) {
+          console.log('📍 Producto tipo INSUMO detectado - usando endpoint con-insumo');
+          endpoint = `${API_BASE_URL}/ordenes/transaccion/con-insumo`;
+        } else {
+          console.log('📍 Productos tipo SIMPLE - usando endpoint simple');
+        }
+
         // 🚀 POST al endpoint transaccional
-        console.log('🚀 POST a /ordenes/transaccion/simple...');
-        const endpoint = `${API_BASE_URL}/ordenes/transaccion/simple`;
+        console.log('🚀 POST a ' + endpoint.split('/api/v1')[1] + '...');
         console.log('🔗 URL completa:', endpoint);
 
         const res = await fetch(endpoint, {
