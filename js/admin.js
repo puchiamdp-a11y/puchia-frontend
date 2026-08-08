@@ -537,12 +537,8 @@ function editProduct(id) {
 async function saveProduct(e) {
   e.preventDefault();
 
-  // NUEVO: Extraer variantes si tiene_variantes_stock
-  const tieneVariantes = document.getElementById('tieneVariantes').checked;
-  const variantes = tieneVariantes ? extraerVariantesProducto() : null;
   const nombre = document.getElementById('productNombre').value;
   const precio = document.getElementById('productPrecio').value;
-  const stock = document.getElementById('productStock').value;
   const categoriaId = document.getElementById('productCategoria').value;
   const stockType = document.querySelector('input[name="stockType"]:checked').value;
   const habilitado = document.getElementById('productHabilitado').checked;
@@ -553,13 +549,26 @@ async function saveProduct(e) {
     return;
   }
   if (!precio || !categoriaId) {
-  if (tieneVariantes && !variantes) {
-    puchiaAlert('Debes definir al menos una variante', 'warning');
-    return;
-  }
     puchiaAlert('Por favor completa los campos requeridos (Precio y Categoría)', 'warning');
     return;
   }
+
+  // Validar según tipo de producto
+  if (stockType === 'simple') {
+    const stock = document.getElementById('productStock').value;
+    if (!stock || stock < 0) {
+      puchiaAlert('Debes ingresar un stock válido para producto simple', 'warning');
+      return;
+    }
+  } else if (stockType === 'insumo') {
+    const insumoId = document.getElementById('productInsumo')?.value;
+    const cantidadRequerida = document.getElementById('productCantidadRequerida')?.value;
+    if (!insumoId || !cantidadRequerida || cantidadRequerida < 1) {
+      puchiaAlert('Debes seleccionar un insumo y cantidad requerida', 'warning');
+      return;
+    }
+  }
+  // Si es 'infinito' no necesita validación de stock
 
   // Asegurar que quillEditor está inicializado
   if (!quillEditor) {
@@ -583,21 +592,25 @@ async function saveProduct(e) {
       descripcion: descripcion_completa && descripcion_completa !== '<p><br></p>' ? descripcion_completa : null,
       precio: Number(precio),
       stock_type: stockType,
-      tiene_variantes_stock: tieneVariantes,
       categorias: [Number(categoriaId)],
       habilitado
     };
     console.log('DEBUG saveProduct - requestPayload:', requestPayload);
 
-    // Solo agregar stock si NO tiene variantes
-    if (!tieneVariantes) {
+    // Agregar datos según tipo de producto
+    if (stockType === 'simple') {
       const stock = document.getElementById('productStock').value;
       requestPayload.stock_cantidad = Number(stock);
-    }
-
-    // Agregar variantes si tiene
-    if (tieneVariantes && variantes) {
-      requestPayload.variantes = variantes;
+      requestPayload.tiene_variantes_stock = false;
+    } else if (stockType === 'insumo') {
+      const insumoId = document.getElementById('productInsumo')?.value;
+      const cantidadRequerida = document.getElementById('productCantidadRequerida')?.value;
+      requestPayload.insumo_id = Number(insumoId);
+      requestPayload.tiene_variantes_stock = false;
+      // cantidad_requerida se maneja en ProductInsumoVariant, no aquí
+    } else if (stockType === 'infinito') {
+      requestPayload.stock_cantidad = null;
+      requestPayload.tiene_variantes_stock = false;
     }
 
     const response = await fetch(url, {
@@ -3421,8 +3434,17 @@ function extraerVariantesProducto() {
   const variantes = [];
 
   rows.forEach(row => {
-    const tipo = row.querySelector('.var-tipo').value.trim();
-    const valoresStr = row.querySelector('.var-valores').value.trim();
+    const tipoEl = row.querySelector('.var-tipo');
+    const valoresEl = row.querySelector('.var-valores');
+
+    // Proteger contra null si los elementos no existen
+    if (!tipoEl || !valoresEl) {
+      console.warn('⚠️ Elemento de variante no encontrado, saltando fila');
+      return;
+    }
+
+    const tipo = tipoEl.value.trim();
+    const valoresStr = valoresEl.value.trim();
 
     if (tipo && valoresStr) {
       // Parsear valores: "Rojo, Verde, Azul" → ["Rojo", "Verde", "Azul"]
