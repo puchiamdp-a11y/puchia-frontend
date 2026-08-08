@@ -830,14 +830,21 @@ function openNewInsumoModal() {
     return;
   }
 
+  console.log('📍 [openNewInsumoModal] Abriendo modal para nuevo insumo');
+
   document.getElementById('insumoTitle').textContent = 'Nuevo Insumo';
   document.getElementById('formInsumo').reset();
   document.getElementById('insumoId').value = '';
 
-  // Limpiar variantes existentes
+  // IMPORTANTE: Inicializar variantes vacías
+  insumoVariantesEdit = [];
+  console.log('📍 [openNewInsumoModal] insumoVariantesEdit inicializado:', insumoVariantesEdit);
+
+  // Limpiar y renderizar contenedor
   const variantesContainer = document.getElementById('insumoVariantesContainer');
   if (variantesContainer) {
     variantesContainer.innerHTML = '';
+    renderInsumoVariants();
   }
 
   modal.style.display = 'block';
@@ -845,6 +852,8 @@ function openNewInsumoModal() {
 
 async function editInsumo(id) {
   try {
+    console.log('📍 [editInsumo] Cargando insumo:', id);
+
     const token = localStorage.getItem('puchia_admin_token');
     const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
       headers: {
@@ -854,25 +863,36 @@ async function editInsumo(id) {
     const data = await response.json();
     const insumo = data.data;
 
+    console.log('📍 [editInsumo] Insumo cargado:', insumo.nombre);
+    console.log('📍 [editInsumo] Variantes en BD:', JSON.stringify(insumo.insumo_variants, null, 2));
+
     document.getElementById('insumoTitle').textContent = `Editar Insumo: ${insumo.nombre}`;
     document.getElementById('insumoId').value = insumo.id;
     document.getElementById('insumoNombre').value = insumo.nombre;
     document.getElementById('insumoDescripcion').value = insumo.descripcion || '';
 
-    const variantesContainer = document.getElementById('insumoVariantesContainer');
-    if (variantesContainer && Array.isArray(insumo.insumo_variants)) {
-      variantesContainer.innerHTML = insumo.insumo_variants.map((v, idx) => `
-        <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
-          <input type="text" placeholder="Nombre variante" value="${v.nombre}" onchange="updateVariantField(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
-          <input type="number" placeholder="Stock" value="${v.cantidad_en_stock}" onchange="updateVariantField(${idx}, 'stock', this.value)" style="width: 100px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
-          <button type="button" class="btn btn-sm btn-danger" onclick="removeVariant(${idx})">×</button>
-        </div>
-      `).join('');
+    // IMPORTANTE: Cargar variantes en variable global
+    if (Array.isArray(insumo.insumo_variants)) {
+      insumoVariantesEdit = insumo.insumo_variants.map(v => ({
+        id: v.id,
+        nombre: v.nombre,
+        cantidad_en_stock: v.cantidad_en_stock || 0,
+        cantidad_minima: v.cantidad_minima || 0
+      }));
+      console.log('📍 [editInsumo] insumoVariantesEdit cargado:', JSON.stringify(insumoVariantesEdit, null, 2));
+    } else {
+      insumoVariantesEdit = [];
+      console.log('📍 [editInsumo] Sin variantes en BD');
     }
 
+    // Renderizar variantes
+    renderInsumoVariants();
+
     document.getElementById('modalInsumo').style.display = 'block';
+    console.log('✅ [editInsumo] Modal abierto');
   } catch (error) {
-    console.error('Error editando insumo:', error);
+    console.error('❌ [editInsumo] Error:', error);
+    console.error('❌ [editInsumo] Stack:', error.stack);
     puchiaAlert('Error cargando insumo', 'error');
   }
 }
@@ -884,6 +904,11 @@ async function saveInsumo(e) {
   const nombre = document.getElementById('insumoNombre').value?.trim();
   const descripcion = document.getElementById('insumoDescripcion').value?.trim();
 
+  console.log('📍 [saveInsumo] Iniciando guardado de insumo');
+  console.log('📍 [saveInsumo] ID:', id || 'NUEVO');
+  console.log('📍 [saveInsumo] Nombre:', nombre);
+  console.log('📍 [saveInsumo] Variantes en insumoVariantesEdit:', JSON.stringify(insumoVariantesEdit, null, 2));
+
   if (!nombre) {
     puchiaAlert('El nombre del insumo es requerido', 'error');
     return;
@@ -894,28 +919,41 @@ async function saveInsumo(e) {
     const url = id ? `${API_BASE_URL}/insumos/${id}` : `${API_BASE_URL}/insumos`;
     const method = id ? 'PUT' : 'POST';
 
+    const payload = {
+      nombre,
+      descripcion,
+      variantes: insumoVariantesEdit || []
+    };
+
+    console.log('📍 [saveInsumo] Payload completo:', JSON.stringify(payload, null, 2));
+    console.log('📍 [saveInsumo] Enviando a:', url);
+
     const response = await fetch(url, {
       method,
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        nombre,
-        descripcion
-      })
+      body: JSON.stringify(payload)
     });
 
+    console.log('📍 [saveInsumo] Response status:', response.status);
     const data = await response.json();
+    console.log('📍 [saveInsumo] Response data:', JSON.stringify(data, null, 2));
+
     if (data.success) {
+      console.log('✅ [saveInsumo] Guardado exitoso');
       puchiaAlert(id ? 'Insumo actualizado' : 'Insumo creado', 'success');
       document.getElementById('modalInsumo').style.display = 'none';
+      insumoVariantesEdit = [];
       loadInsumos();
     } else {
+      console.log('❌ [saveInsumo] Error en respuesta:', data.message);
       puchiaAlert(data.message || 'Error guardando insumo', 'error');
     }
   } catch (error) {
-    console.error('Error guardando insumo:', error);
+    console.error('❌ [saveInsumo] Error:', error);
+    console.error('❌ [saveInsumo] Stack:', error.stack);
     puchiaAlert('Error guardando insumo', 'error');
   }
 }
