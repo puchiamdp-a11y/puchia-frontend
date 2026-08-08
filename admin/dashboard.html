@@ -67,6 +67,7 @@
             <ul class="sidebar-nav">
                 <li><a href="#" class="active" data-page="dashboard">📊 Dashboard</a></li>
                 <li><a href="#" data-page="productos">📦 Productos</a></li>
+                <li><a href="#" data-page="insumos">🧪 Insumos</a></li>
                 <li><a href="#" data-page="ordenes">📋 Órdenes</a></li>
                 <li><a href="#" data-page="clientes">👥 Clientes</a></li>
                 <li><a href="#" data-page="categorias">📁 Categorías</a></li>
@@ -159,6 +160,35 @@
                         <tbody id="productos-list">
                             <tr>
                                 <td colspan="8" style="text-align: center; color: #999; padding: 20px;">Cargando productos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- INSUMOS PAGE -->
+            <div id="insumos-page" class="page" style="display: none;">
+                <h1 class="page-title">Gestión de Insumos</h1>
+                <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                    <button class="btn btn-primary" id="newInsumoBtn">+ Nuevo Insumo</button>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <input type="text" id="insumoSearchInput" placeholder="🔍 Buscar insumo..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit;">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Variantes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="insumos-list">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999; padding: 20px;">Cargando insumos...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -949,6 +979,45 @@
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #eee; padding-top: 16px;">
                     <button type="button" class="btn btn-secondary" onclick="cerrarModalStock()">Cancelar</button>
                     <button type="submit" class="btn btn-primary" id="btnGuardarStock">Guardar Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR/EDITAR INSUMO -->
+    <div class="modal" id="modalInsumo" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; margin: 20px auto; position: relative;">
+            <button class="modal-close" onclick="document.getElementById('modalInsumo').style.display = 'none';" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
+            <h2 id="insumoTitle" style="font-size: 20px; margin: 0 0 24px;">Nuevo Insumo</h2>
+
+            <form id="formInsumo" style="display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="insumoId" />
+
+                <!-- NOMBRE -->
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Nombre *</label>
+                    <input type="text" id="insumoNombre" placeholder="Ej: Tela Premium" required style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                </div>
+
+                <!-- DESCRIPCIÓN -->
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Descripción</label>
+                    <textarea id="insumoDescripcion" placeholder="Descripción del insumo" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
+                </div>
+
+                <!-- VARIANTES -->
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Variantes</label>
+                    <div id="insumoVariantesContainer" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #f9f9f9; max-height: 250px; overflow-y: auto;">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addInsumoVariant()" style="font-size: 13px;">+ Agregar Variante</button>
+                </div>
+
+                <!-- BOTONES -->
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #eee; padding-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalInsumo').style.display = 'none';">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Insumo</button>
                 </div>
             </form>
         </div>
