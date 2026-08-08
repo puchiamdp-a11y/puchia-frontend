@@ -186,6 +186,8 @@ function setupEventListeners() {
           loadCategorias();
         } else if (page === 'stocks') {
           initStocks();
+        } else if (page === 'insumos') {
+          loadInsumos();
         } else if (page === 'settings') {
           loadSettings();
         }
@@ -226,6 +228,14 @@ function setupEventListeners() {
   document.getElementById('productSearchInput')?.addEventListener('input', (e) => {
     productosFiltroTexto = e.target.value;
     aplicarFiltrosProductos();
+  });
+
+  // Insumos
+  document.getElementById('newInsumoBtn')?.addEventListener('click', openNewInsumoModal);
+  document.getElementById('formInsumo')?.addEventListener('submit', saveInsumo);
+  document.getElementById('insumoSearchInput')?.addEventListener('input', (e) => {
+    insumosFiltroTexto = e.target.value;
+    aplyInsumoFilters();
   });
 
   // Ordenar columnas productos
@@ -753,6 +763,226 @@ async function deleteProduct(id) {
   } catch (error) {
     console.error('Error eliminando producto:', error);
     puchiaAlert('Error eliminando producto', 'error');
+  }
+}
+
+// ==================== INSUMOS ====================
+let insumosGlobal = [];
+let insumosFiltroTexto = '';
+
+async function loadInsumos() {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/insumos`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await response.json();
+    insumosGlobal = data.data || [];
+    renderInsumos(insumosGlobal);
+  } catch (error) {
+    console.error('Error cargando insumos:', error);
+    document.getElementById('insumos-list').innerHTML = '<tr><td colspan="5" style="text-align: center; color: #c5221f; padding: 20px;">Error cargando insumos</td></tr>';
+  }
+}
+
+function renderInsumos(lista) {
+  const tbody = document.getElementById('insumos-list');
+  if (!lista || lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">Sin insumos creados</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(i => {
+    const variantes = Array.isArray(i.insumo_variants) ? i.insumo_variants.length : 0;
+    const descripcion = (i.descripcion || '').substring(0, 50) + (i.descripcion && i.descripcion.length > 50 ? '...' : '');
+    return `<tr>
+      <td>${i.id}</td>
+      <td><strong>${i.nombre}</strong></td>
+      <td>${descripcion}</td>
+      <td><span style="background:#e8f5e9;color:#2e7d32;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">${variantes} variantes</span></td>
+      <td class="acciones-cell">
+        <button class="btn btn-sm btn-secondary" onclick="editInsumo(${i.id})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteInsumo(${i.id})">Eliminar</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function aplyInsumoFilters() {
+  let lista = [...insumosGlobal];
+
+  if (insumosFiltroTexto) {
+    const txt = insumosFiltroTexto.toLowerCase();
+    lista = lista.filter(i =>
+      (i.nombre || '').toLowerCase().includes(txt) ||
+      (i.descripcion || '').toLowerCase().includes(txt)
+    );
+  }
+
+  renderInsumos(lista);
+}
+
+function openNewInsumoModal() {
+  const modal = document.getElementById('modalInsumo');
+  if (!modal) {
+    console.warn('Modal modalInsumo no encontrado');
+    return;
+  }
+
+  document.getElementById('insumoTitle').textContent = 'Nuevo Insumo';
+  document.getElementById('formInsumo').reset();
+  document.getElementById('insumoId').value = '';
+
+  // Limpiar variantes existentes
+  const variantesContainer = document.getElementById('insumoVariantesContainer');
+  if (variantesContainer) {
+    variantesContainer.innerHTML = '';
+  }
+
+  modal.style.display = 'block';
+}
+
+async function editInsumo(id) {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await response.json();
+    const insumo = data.data;
+
+    document.getElementById('insumoTitle').textContent = `Editar Insumo: ${insumo.nombre}`;
+    document.getElementById('insumoId').value = insumo.id;
+    document.getElementById('insumoNombre').value = insumo.nombre;
+    document.getElementById('insumoDescripcion').value = insumo.descripcion || '';
+
+    const variantesContainer = document.getElementById('insumoVariantesContainer');
+    if (variantesContainer && Array.isArray(insumo.insumo_variants)) {
+      variantesContainer.innerHTML = insumo.insumo_variants.map((v, idx) => `
+        <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
+          <input type="text" placeholder="Nombre variante" value="${v.nombre}" onchange="updateVariantField(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+          <input type="number" placeholder="Stock" value="${v.cantidad_en_stock}" onchange="updateVariantField(${idx}, 'stock', this.value)" style="width: 100px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+          <button type="button" class="btn btn-sm btn-danger" onclick="removeVariant(${idx})">×</button>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('modalInsumo').style.display = 'block';
+  } catch (error) {
+    console.error('Error editando insumo:', error);
+    puchiaAlert('Error cargando insumo', 'error');
+  }
+}
+
+async function saveInsumo(e) {
+  e.preventDefault();
+
+  const id = document.getElementById('insumoId').value;
+  const nombre = document.getElementById('insumoNombre').value?.trim();
+  const descripcion = document.getElementById('insumoDescripcion').value?.trim();
+
+  if (!nombre) {
+    puchiaAlert('El nombre del insumo es requerido', 'error');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const url = id ? `${API_BASE_URL}/insumos/${id}` : `${API_BASE_URL}/insumos`;
+    const method = id ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nombre,
+        descripcion
+      })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      puchiaAlert(id ? 'Insumo actualizado' : 'Insumo creado', 'success');
+      document.getElementById('modalInsumo').style.display = 'none';
+      loadInsumos();
+    } else {
+      puchiaAlert(data.message || 'Error guardando insumo', 'error');
+    }
+  } catch (error) {
+    console.error('Error guardando insumo:', error);
+    puchiaAlert('Error guardando insumo', 'error');
+  }
+}
+
+async function deleteInsumo(id) {
+  if (!confirm('¿Estás seguro de que deseas eliminar este insumo?')) {
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      puchiaAlert('Insumo eliminado', 'success');
+      loadInsumos();
+    } else {
+      puchiaAlert(data.message || 'Error eliminando insumo', 'error');
+    }
+  } catch (error) {
+    console.error('Error eliminando insumo:', error);
+    puchiaAlert('Error eliminando insumo', 'error');
+  }
+}
+
+// Helper functions para variantes de insumos
+let insumoVariantesEdit = [];
+
+function addInsumoVariant() {
+  const container = document.getElementById('insumoVariantesContainer');
+  const idx = insumoVariantesEdit.length;
+  const variantHtml = `
+    <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; align-items: flex-end;">
+      <input type="text" placeholder="Nombre variante" data-variant-idx="${idx}" data-variant-field="nombre" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+      <input type="number" placeholder="Stock" min="0" data-variant-idx="${idx}" data-variant-field="stock" style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+      <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', variantHtml);
+  insumoVariantesEdit.push({ nombre: '', cantidad_en_stock: 0 });
+}
+
+function removeInsumoVariant(idx) {
+  insumoVariantesEdit.splice(idx, 1);
+  renderInsumoVariants();
+}
+
+function renderInsumoVariants() {
+  const container = document.getElementById('insumoVariantesContainer');
+  container.innerHTML = insumoVariantesEdit.map((v, idx) => `
+    <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; align-items: flex-end;">
+      <input type="text" placeholder="Nombre variante" value="${v.nombre || ''}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+      <input type="number" placeholder="Stock" min="0" value="${v.cantidad_en_stock || 0}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+      <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
+    </div>
+  `).join('');
+}
+
+function updateInsumoVariant(idx, field, value) {
+  if (insumoVariantesEdit[idx]) {
+    insumoVariantesEdit[idx][field] = field === 'cantidad_en_stock' ? parseInt(value) : value;
   }
 }
 
