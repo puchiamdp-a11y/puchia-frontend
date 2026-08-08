@@ -543,17 +543,49 @@
 
                     <!-- Tipo de Stock -->
                     <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Tipo</label>
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Tipo de Producto</label>
                         <div style="display: flex; gap: 16px;">
                             <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
-                                <input type="radio" name="stockType" value="simple" checked>
+                                <input type="radio" name="stockType" value="simple" checked onchange="toggleProductTypeFields()">
                                 Producto simple
                             </label>
                             <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
-                                <input type="radio" name="stockType" value="insumo">
+                                <input type="radio" name="stockType" value="insumo" onchange="toggleProductTypeFields()">
                                 Insumo
                             </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
+                                <input type="radio" name="stockType" value="infinito" onchange="toggleProductTypeFields()">
+                                Infinito
+                            </label>
                         </div>
+                    </div>
+
+                    <!-- SIMPLE: Stock Cantidad -->
+                    <div id="simpleStockSection" style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Stock Cantidad *</label>
+                        <input type="number" id="productStock" name="stock" min="0" step="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                    </div>
+
+                    <!-- INSUMO: Selector de Insumo -->
+                    <div id="insumoSection" style="display: none; flex-direction: column; gap: 8px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Insumo *</label>
+                        <select id="productInsumo" onchange="loadInsumoVariantes()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <option value="">-- Cargando insumos --</option>
+                        </select>
+                    </div>
+
+                    <!-- INSUMO: Selector de Variante -->
+                    <div id="insumoVarianteSection" style="display: none; flex-direction: column; gap: 8px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Variante del Insumo *</label>
+                        <select id="productInsumoVariante" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <option value="">-- Selecciona variante --</option>
+                        </select>
+                    </div>
+
+                    <!-- INSUMO: Cantidad Requerida -->
+                    <div id="insumoQuantitySection" style="display: none; flex-direction: column; gap: 8px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Cantidad Requerida *</label>
+                        <input type="number" id="productCantidadRequerida" min="1" step="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
                     </div>
 
                     <!-- Estado -->

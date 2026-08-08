@@ -501,6 +501,8 @@ function openNewProductModal() {
   document.getElementById('formProducto').reset();
   document.getElementById('productHabilitado').checked = true;
   populateProductCategoryDropdown();
+  loadInsumosForForm();
+  toggleProductTypeFields();
   document.getElementById('modalProducto').style.display = 'flex';
   initMediaSection(null);
 }
@@ -514,8 +516,10 @@ function editProduct(id) {
   document.getElementById('productPrecio').value = productoActualEnEdicion.precio;
   document.getElementById('productStock').value = productoActualEnEdicion.stock_cantidad || 0;
   populateProductCategoryDropdown();
+  loadInsumosForForm();
   document.getElementById('productCategoria').value = productoActualEnEdicion.categorias?.[0]?.id || '';
   document.querySelector(`input[name="stockType"][value="${productoActualEnEdicion.stock_type}"]`).checked = true;
+  toggleProductTypeFields();
   document.getElementById('productHabilitado').checked = productoActualEnEdicion.habilitado !== false;
 
   document.getElementById('modalProducto').style.display = 'flex';
@@ -532,6 +536,87 @@ function editProduct(id) {
       quillEditor.setContents([]);
     }
   }, 100);
+}
+
+/**
+ * Muestra/oculta campos según tipo de producto seleccionado
+ */
+function toggleProductTypeFields() {
+  const stockType = document.querySelector('input[name="stockType"]:checked').value;
+
+  // Ocultar todas las secciones
+  document.getElementById('simpleStockSection').style.display = 'none';
+  document.getElementById('insumoSection').style.display = 'none';
+  document.getElementById('insumoVarianteSection').style.display = 'none';
+  document.getElementById('insumoQuantitySection').style.display = 'none';
+
+  // Mostrar según tipo
+  if (stockType === 'simple') {
+    document.getElementById('simpleStockSection').style.display = 'flex';
+  } else if (stockType === 'insumo') {
+    document.getElementById('insumoSection').style.display = 'flex';
+    document.getElementById('insumoVarianteSection').style.display = 'flex';
+    document.getElementById('insumoQuantitySection').style.display = 'flex';
+  }
+  // Si es 'infinito' no muestra nada de stock
+}
+
+/**
+ * Carga variantes del insumo seleccionado
+ */
+async function loadInsumoVariantes() {
+  const insumoId = document.getElementById('productInsumo').value;
+  if (!insumoId) {
+    document.getElementById('productInsumoVariante').innerHTML = '<option value="">-- Selecciona insumo primero --</option>';
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/insumos/${insumoId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+
+    if (data.data && data.data.variantes) {
+      const varianteSelect = document.getElementById('productInsumoVariante');
+      varianteSelect.innerHTML = '<option value="">-- Selecciona variante --</option>';
+      data.data.variantes.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.textContent = v.nombre;
+        varianteSelect.appendChild(opt);
+      });
+    }
+  } catch (error) {
+    console.error('Error cargando variantes:', error);
+  }
+}
+
+/**
+ * Carga lista de insumos disponibles
+ */
+async function loadInsumosForForm() {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/insumos`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+
+    if (data.data && Array.isArray(data.data)) {
+      const insumoSelect = document.getElementById('productInsumo');
+      insumoSelect.innerHTML = '<option value="">-- Selecciona insumo --</option>';
+      data.data.forEach(insumo => {
+        const opt = document.createElement('option');
+        opt.value = insumo.id;
+        opt.textContent = insumo.nombre;
+        insumoSelect.appendChild(opt);
+      });
+    }
+  } catch (error) {
+    console.error('Error cargando insumos:', error);
+  }
 }
 
 async function saveProduct(e) {
