@@ -3493,3 +3493,5 @@ function cargarVariantesEnFormulario(variantes) {
     container.appendChild(row);
   });
 }
+
+// FUERZA UPDATE: 2026-08-08 17:51
