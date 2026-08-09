@@ -558,7 +558,6 @@ function toggleProductTypeFields() {
   document.getElementById('simpleStockSection').style.display = 'none';
   document.getElementById('insumoSection').style.display = 'none';
   document.getElementById('insumoVarianteSection').style.display = 'none';
-  document.getElementById('insumoQuantitySection').style.display = 'none';
 
   // Mostrar según tipo
   if (stockType === 'simple') {
@@ -566,7 +565,6 @@ function toggleProductTypeFields() {
   } else if (stockType === 'insumo') {
     document.getElementById('insumoSection').style.display = 'flex';
     document.getElementById('insumoVarianteSection').style.display = 'flex';
-    document.getElementById('insumoQuantitySection').style.display = 'flex';
     loadInsumosForForm();
   }
   // Si es 'infinito' no muestra nada de stock
@@ -663,9 +661,9 @@ async function saveProduct(e) {
     }
   } else if (stockType === 'insumo') {
     const insumoId = document.getElementById('productInsumo')?.value;
-    const cantidadRequerida = document.getElementById('productCantidadRequerida')?.value;
-    if (!insumoId || !cantidadRequerida || cantidadRequerida < 1) {
-      puchiaAlert('Debes seleccionar un insumo y cantidad requerida', 'warning');
+    const varianteId = document.getElementById('productInsumoVariante')?.value;
+    if (!insumoId || !varianteId) {
+      puchiaAlert('Debes seleccionar un insumo y su variante', 'warning');
       return;
     }
   }
@@ -705,10 +703,8 @@ async function saveProduct(e) {
       requestPayload.tiene_variantes_stock = false;
     } else if (stockType === 'insumo') {
       const insumoId = document.getElementById('productInsumo')?.value;
-      const cantidadRequerida = document.getElementById('productCantidadRequerida')?.value;
       requestPayload.insumo_id = Number(insumoId);
       requestPayload.tiene_variantes_stock = false;
-      // cantidad_requerida se maneja en ProductInsumoVariant, no aquí
     } else if (stockType === 'infinito') {
       requestPayload.stock_cantidad = null;
       requestPayload.tiene_variantes_stock = false;
