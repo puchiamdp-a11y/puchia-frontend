@@ -164,16 +164,27 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
 // ==================== NAVEGACIÓN ====================
 
 function setupEventListeners() {
+  // Menu toggle handler para Stock
+  const menuToggle = document.querySelector('.menu-toggle');
+  if (menuToggle) {
+    menuToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      const toggleItem = menuToggle.closest('.menu-toggle-item');
+      toggleItem.classList.toggle('expanded');
+      console.log('Stock menu toggled:', toggleItem.classList.contains('expanded'));
+    });
+  }
+
   // Navegación sidebar
-  const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+  const sidebarLinks = document.querySelectorAll('.sidebar-nav a:not(.menu-toggle)');
   console.log('Links encontrados:', sidebarLinks.length);
-  
+
   sidebarLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const page = link.dataset.page;
       console.log('Navegando a:', page);
-      
+
       // Remover activo de todos
       document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
       link.classList.add('active');
