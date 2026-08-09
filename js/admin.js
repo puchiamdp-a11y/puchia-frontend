@@ -567,6 +567,7 @@ function toggleProductTypeFields() {
     document.getElementById('insumoSection').style.display = 'flex';
     document.getElementById('insumoVarianteSection').style.display = 'flex';
     document.getElementById('insumoQuantitySection').style.display = 'flex';
+    loadInsumosForForm();
   }
   // Si es 'infinito' no muestra nada de stock
 }
@@ -582,24 +583,27 @@ async function loadInsumoVariantes() {
   }
 
   try {
-    const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/insumos/${insumoId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const response = await fetch(`${API_BASE_URL}/insumos/${insumoId}`);
     const data = await response.json();
 
-    if (data.data && data.data.variantes) {
+    console.log('📍 [loadInsumoVariantes] Insumo cargado:', data);
+
+    if (data.data && data.data.insumo_variants) {
       const varianteSelect = document.getElementById('productInsumoVariante');
       varianteSelect.innerHTML = '<option value="">-- Selecciona variante --</option>';
-      data.data.variantes.forEach(v => {
+      data.data.insumo_variants.forEach(v => {
         const opt = document.createElement('option');
         opt.value = v.id;
-        opt.textContent = v.nombre;
+        opt.textContent = `${v.nombre} (Stock: ${v.cantidad_en_stock})`;
         varianteSelect.appendChild(opt);
       });
+      console.log('✅ [loadInsumoVariantes] Variantes cargadas:', data.data.insumo_variants.length);
+    } else {
+      console.warn('⚠️ [loadInsumoVariantes] Insumo sin variantes:', data.data?.nombre);
+      document.getElementById('productInsumoVariante').innerHTML = '<option value="">-- Este insumo no tiene variantes --</option>';
     }
   } catch (error) {
-    console.error('Error cargando variantes:', error);
+    console.error('❌ [loadInsumoVariantes] Error cargando variantes:', error);
   }
 }
 
@@ -608,11 +612,10 @@ async function loadInsumoVariantes() {
  */
 async function loadInsumosForForm() {
   try {
-    const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/insumos`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const response = await fetch(`${API_BASE_URL}/insumos`);
     const data = await response.json();
+
+    console.log('📍 [loadInsumosForForm] Insumos cargados:', data);
 
     if (data.data && Array.isArray(data.data)) {
       const insumoSelect = document.getElementById('productInsumo');
@@ -620,12 +623,15 @@ async function loadInsumosForForm() {
       data.data.forEach(insumo => {
         const opt = document.createElement('option');
         opt.value = insumo.id;
-        opt.textContent = insumo.nombre;
+        opt.textContent = `${insumo.nombre} (${insumo.insumo_variants ? insumo.insumo_variants.length : 0} variantes)`;
         insumoSelect.appendChild(opt);
       });
+      console.log('✅ [loadInsumosForForm] Dropdown de insumos actualizado con', data.data.length, 'insumos');
+    } else {
+      console.warn('⚠️ [loadInsumosForForm] Respuesta sin datos:', data);
     }
   } catch (error) {
-    console.error('Error cargando insumos:', error);
+    console.error('❌ [loadInsumosForForm] Error cargando insumos:', error);
   }
 }
 
