@@ -84,12 +84,14 @@ let adminCategories = [];
 
 async function loadAdminCategories() {
   try {
+    console.log('📍 [loadAdminCategories] Iniciando carga de categorías...');
     const response = await fetch(`${API_BASE_URL}/categorias`);
     const data = await response.json();
     adminCategories = data.data || [];
-    console.log('[Admin] Categorías cargadas:', adminCategories);
+    console.log('✅ [loadAdminCategories] Categorías cargadas:', adminCategories.length, 'categorías');
+    adminCategories.forEach(cat => console.log('  -', cat.nombre));
   } catch (error) {
-    console.error('[Admin] Error cargando categorías:', error);
+    console.error('❌ [loadAdminCategories] Error cargando categorías:', error);
   }
 }
 
@@ -97,7 +99,16 @@ function populateProductCategoryDropdown() {
   const select = document.getElementById('productCategoria');
   if (!select) return;
 
+  console.log('📍 [populateProductCategoryDropdown] Llenando dropdown con', adminCategories.length, 'categorías');
+
+  if (adminCategories.length === 0) {
+    select.innerHTML = '<option value="">-- Sin categorías disponibles --</option>';
+    select.disabled = true;
+    return;
+  }
+
   select.innerHTML = '<option value="">-- Selecciona una categoría --</option>';
+  select.disabled = false;
 
   adminCategories.forEach(cat => {
     const option = document.createElement('option');
@@ -108,10 +119,10 @@ function populateProductCategoryDropdown() {
 }
 
 // Verificar autenticación al cargar
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   checkAdminAuth();
-  loadAdminCategories();
-  loadOrderStatuses();
+  await loadAdminCategories();
+  await loadOrderStatuses();
   loadDashboardStats();
   loadRecentOrders();
   setupEventListeners();
