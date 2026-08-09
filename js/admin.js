@@ -914,6 +914,20 @@ async function saveInsumo(e) {
     return;
   }
 
+  // Validar que todas las variantes sean válidas: nombre no vacío Y cantidad > 0
+  const variantesValidas = insumoVariantesEdit.filter(v =>
+    v.nombre && v.nombre.trim() && v.cantidad_en_stock > 0
+  );
+
+  console.log('📍 [saveInsumo] Variantes válidas:', variantesValidas.length, 'de', insumoVariantesEdit.length);
+
+  // Si hay variantes inválidas, mostrar error
+  if (insumoVariantesEdit.length > 0 && variantesValidas.length < insumoVariantesEdit.length) {
+    const invalidas = insumoVariantesEdit.length - variantesValidas.length;
+    puchiaAlert(`No se pueden guardar ${invalidas} variante(s) sin nombre o cantidad. Cada variante debe tener nombre y cantidad > 0`, 'error');
+    return;
+  }
+
   try {
     const token = localStorage.getItem('puchia_admin_token');
     const url = id ? `${API_BASE_URL}/insumos/${id}` : `${API_BASE_URL}/insumos`;
@@ -922,7 +936,7 @@ async function saveInsumo(e) {
     const payload = {
       nombre,
       descripcion,
-      variantes: insumoVariantesEdit || []
+      variantes: variantesValidas
     };
 
     console.log('📍 [saveInsumo] Payload completo:', JSON.stringify(payload, null, 2));
@@ -989,17 +1003,8 @@ async function deleteInsumo(id) {
 let insumoVariantesEdit = [];
 
 function addInsumoVariant() {
-  const container = document.getElementById('insumoVariantesContainer');
-  const idx = insumoVariantesEdit.length;
-  const variantHtml = `
-    <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; align-items: flex-end;">
-      <input type="text" placeholder="Nombre variante" data-variant-idx="${idx}" data-variant-field="nombre" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
-      <input type="number" placeholder="Stock" min="0" data-variant-idx="${idx}" data-variant-field="stock" style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
-      <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
-    </div>
-  `;
-  container.insertAdjacentHTML('beforeend', variantHtml);
-  insumoVariantesEdit.push({ nombre: '', cantidad_en_stock: 0 });
+  insumoVariantesEdit.push({ nombre: '', cantidad_en_stock: 0, cantidad_minima: 0 });
+  renderInsumoVariants();
 }
 
 function removeInsumoVariant(idx) {
@@ -1009,13 +1014,28 @@ function removeInsumoVariant(idx) {
 
 function renderInsumoVariants() {
   const container = document.getElementById('insumoVariantesContainer');
-  container.innerHTML = insumoVariantesEdit.map((v, idx) => `
-    <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; align-items: flex-end;">
-      <input type="text" placeholder="Nombre variante" value="${v.nombre || ''}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
-      <input type="number" placeholder="Stock" min="0" value="${v.cantidad_en_stock || 0}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+
+  const validVariants = insumoVariantesEdit.filter(v => v.nombre && v.nombre.trim() && v.cantidad_en_stock > 0);
+  const invalidVariants = insumoVariantesEdit.filter(v => !v.nombre || !v.nombre.trim() || v.cantidad_en_stock <= 0);
+
+  container.innerHTML = insumoVariantesEdit.map((v, idx) => {
+    const isValid = v.nombre && v.nombre.trim() && v.cantidad_en_stock > 0;
+    const borderColor = isValid ? '#ddd' : '#ffcccc';
+    const bgColor = isValid ? '#fafafa' : '#fff5f5';
+
+    return `
+    <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 4px; align-items: flex-end;">
+      <input type="text" placeholder="Nombre variante *" value="${v.nombre || ''}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
+      <input type="number" placeholder="Stock *" min="1" value="${v.cantidad_en_stock || ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" style="width: 80px; padding: 6px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
       <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
+      ${!isValid ? `<span style="font-size: 12px; color: #d32f2f; white-space: nowrap;">⚠️ Incompleta</span>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('') + `
+    <div style="font-size: 12px; color: #666; margin-top: 8px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
+      📋 ${validVariants.length} variante(s) válida(s)${invalidVariants.length > 0 ? ` | ⚠️ ${invalidVariants.length} incompleta(s)` : ''}
+    </div>
+  `;
 }
 
 function updateInsumoVariant(idx, field, value) {
