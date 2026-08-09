@@ -749,16 +749,20 @@ async function saveProduct(e) {
     } else if (stockType === 'insumo') {
       const insumoId = document.getElementById('productInsumo')?.value;
       const insumoVarianteId = document.getElementById('productInsumoVariante')?.value;
+      console.log('📍 [saveProduct] INSUMO - insumoId:', insumoId, 'type:', typeof insumoId);
+      console.log('📍 [saveProduct] INSUMO - insumoVarianteId:', insumoVarianteId, 'type:', typeof insumoVarianteId);
       requestPayload.insumo_id = Number(insumoId);
       if (insumoVarianteId) {
         requestPayload.insumo_variant_id = Number(insumoVarianteId);
       }
       requestPayload.tiene_variantes_stock = false;
+      console.log('📍 [saveProduct] INSUMO - requestPayload COMPLETO:', JSON.stringify(requestPayload, null, 2));
     } else if (stockType === 'infinito') {
       requestPayload.stock_cantidad = null;
       requestPayload.tiene_variantes_stock = false;
     }
 
+    console.log('📍 [saveProduct] Enviando petición:', method, url);
     const response = await fetch(url, {
       method,
       headers: {
@@ -769,6 +773,9 @@ async function saveProduct(e) {
     });
 
     const data = await response.json();
+
+    console.log('📍 [saveProduct] Respuesta status:', response.status, response.ok);
+    console.log('📍 [saveProduct] Respuesta data:', JSON.stringify(data, null, 2));
 
     if (response.ok && data.success) {
       const savedProductId = data.data?.id || productoActualEnEdicion?.id;
