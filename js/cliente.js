@@ -532,6 +532,12 @@ async function openProductDetail(productId) {
               <div class="detail-description" id="product-desc-${product.id}" style="color: #666; font-size: 15px; line-height: 1.6; margin: 0 0 20px; text-align: left;">
               </div>
 
+              <!-- VARIANTES DE INSUMO -->
+              <div class="detail-insumo-variants" id="product-variants-${product.id}" style="display: none; margin: 20px 0; padding: 16px 0; border-top: 1px solid #eee; text-align: left;">
+                <h3 style="color: #333; font-size: 16px; margin: 0 0 12px; font-weight: 600;">🔧 Variantes Disponibles</h3>
+                <div id="variants-list-${product.id}" style="color: #666; font-size: 14px; line-height: 1.6;"></div>
+              </div>
+
               <!-- ESPECIFICACIONES -->
               <div class="detail-specifications" id="product-spec-${product.id}" style="display: none; margin: 20px 0; padding: 16px 0; border-top: 1px solid #eee; text-align: left;">
                 <h3 style="color: #333; font-size: 16px; margin: 0 0 12px; font-weight: 600;">⚙️ Especificaciones Técnicas</h3>
@@ -576,6 +582,53 @@ async function openProductDetail(productId) {
         instrDiv.style.display = 'block';
         instrDiv.querySelector('div:last-child').innerHTML = product.instrucciones;
       }
+
+      // Variantes de Insumo
+      if (product.stock_type === 'insumo' && product.producto_insumo) {
+        const variantsDiv = document.getElementById(`product-variants-${product.id}`);
+        const variantsListDiv = document.getElementById(`variants-list-${product.id}`);
+        if (variantsDiv && variantsListDiv) {
+          variantsDiv.style.display = 'block';
+
+          if (product.producto_insumo.insumo_variant) {
+            // Variante específica seleccionada
+            const variant = product.producto_insumo.insumo_variant;
+            variantsListDiv.innerHTML = `
+              <div style="padding: 12px; background: #f5f5f5; border-radius: 6px; border-left: 4px solid #9b2d7d;">
+                <strong style="color: #333;">${variant.nombre}</strong><br>
+                <span style="font-size: 12px; color: #666;">Stock disponible: ${variant.cantidad_en_stock}</span>
+              </div>
+            `;
+          } else if (product.producto_insumo.insumo_id) {
+            // Todas las variantes disponibles - necesitamos fetchear desde la API
+            const API_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
+            fetch(`${API_URL}/insumos/${product.producto_insumo.insumo_id}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.success && data.data && data.data.variantes) {
+                  const variants = data.data.variantes;
+                  if (variants.length > 0) {
+                    variantsListDiv.innerHTML = `
+                      <div style="display: grid; gap: 10px;">
+                        ${variants.map(v => `
+                          <label style="display: flex; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 6px; cursor: pointer; border: 2px solid #ddd; transition: all 0.2s;">
+                            <input type="radio" name="product-variant-${product.id}" value="${v.id}" style="margin-right: 10px; cursor: pointer;">
+                            <div style="flex: 1;">
+                              <strong style="color: #333;">${v.nombre}</strong><br>
+                              <span style="font-size: 12px; color: #666;">Stock: ${v.cantidad_en_stock}</span>
+                            </div>
+                          </label>
+                        `).join('')}
+                      </div>
+                    `;
+                  }
+                }
+              })
+              .catch(err => console.error('Error fetching insumo variants:', err));
+          }
+        }
+      }
+
       const qtyInput = modal.querySelector('.qty-input');
       const decreaseBtn = modal.querySelector('.qty-decrease');
       const increaseBtn = modal.querySelector('.qty-increase');
