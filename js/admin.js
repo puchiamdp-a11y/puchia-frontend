@@ -572,7 +572,7 @@ function editProduct(id) {
     }
   });
 
-  toggleProductTypeFields();
+  toggleProductTypeFields(true);  // true = estamos editando, no cargar insumos nuevamente
 
   document.getElementById('modalProducto').style.display = 'flex';
   initMediaSection(id);
@@ -593,7 +593,7 @@ function editProduct(id) {
 /**
  * Muestra/oculta campos según tipo de producto seleccionado
  */
-function toggleProductTypeFields() {
+function toggleProductTypeFields(isEditing = false) {
   const stockType = document.querySelector('input[name="stockType"]:checked').value;
 
   // Ocultar todas las secciones
@@ -607,7 +607,10 @@ function toggleProductTypeFields() {
   } else if (stockType === 'insumo') {
     document.getElementById('insumoSection').style.display = 'flex';
     document.getElementById('insumoVarianteSection').style.display = 'flex';
-    loadInsumosForForm();
+    // Solo cargar insumos si NO estamos editando (editProduct ya lo hace)
+    if (!isEditing) {
+      loadInsumosForForm();
+    }
   }
   // Si es 'infinito' no muestra nada de stock
 }
