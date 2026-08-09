@@ -672,11 +672,11 @@ async function saveProduct(e) {
     }
   } else if (stockType === 'insumo') {
     const insumoId = document.getElementById('productInsumo')?.value;
-    const varianteId = document.getElementById('productInsumoVariante')?.value;
-    if (!insumoId || !varianteId) {
-      puchiaAlert('Debes seleccionar un insumo y su variante', 'warning');
+    if (!insumoId) {
+      puchiaAlert('Debes seleccionar un insumo', 'warning');
       return;
     }
+    // Variante es opcional - si no se selecciona, se muestran todas las variantes al cliente
   }
   // Si es 'infinito' no necesita validación de stock
 
