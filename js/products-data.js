@@ -41,7 +41,7 @@ async function loadProductsFromAPI() {
           stock_cantidad: effectiveStock,
           stock: effectiveStock,
           stock_type: p.stock_type,
-          product_insumo_variant: p.product_insumo_variant,
+          producto_insumo: p.producto_insumo,
           habilitado: p.habilitado !== false,
           media: mediaList,
           portada: portadaItem ? portadaItem.url : null

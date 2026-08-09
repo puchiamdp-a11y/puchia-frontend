@@ -548,11 +548,31 @@ function editProduct(id) {
   document.getElementById('productPrecio').value = productoActualEnEdicion.precio;
   document.getElementById('productStock').value = productoActualEnEdicion.stock_cantidad || 0;
   populateProductCategoryDropdown();
-  loadInsumosForForm();
   document.getElementById('productCategoria').value = productoActualEnEdicion.categorias?.[0]?.id || '';
   document.querySelector(`input[name="stockType"][value="${productoActualEnEdicion.stock_type}"]`).checked = true;
-  toggleProductTypeFields();
   document.getElementById('productHabilitado').checked = productoActualEnEdicion.habilitado !== false;
+
+  // Cargar insumos y esperar a que se complete
+  loadInsumosForForm().then(() => {
+    // Si es producto tipo insumo, restaurar insumo_id y variante
+    if (productoActualEnEdicion.stock_type === 'insumo' && productoActualEnEdicion.producto_insumo) {
+      console.log('📍 [editProduct] Restaurando insumo para producto:', id);
+      console.log('📍 [editProduct] producto_insumo:', productoActualEnEdicion.producto_insumo);
+
+      const insumoId = productoActualEnEdicion.producto_insumo.insumo_id;
+      document.getElementById('productInsumo').value = insumoId || '';
+
+      // Cargar variantes del insumo y restaurar selección
+      loadInsumoVariantes().then(() => {
+        if (productoActualEnEdicion.producto_insumo?.insumo_variant_id) {
+          document.getElementById('productInsumoVariante').value = productoActualEnEdicion.producto_insumo.insumo_variant_id;
+          console.log('✅ [editProduct] Variante restaurada:', productoActualEnEdicion.producto_insumo.insumo_variant_id);
+        }
+      });
+    }
+  });
+
+  toggleProductTypeFields();
 
   document.getElementById('modalProducto').style.display = 'flex';
   initMediaSection(id);
@@ -610,7 +630,7 @@ async function loadInsumoVariantes() {
 
     if (data.data && data.data.insumo_variants) {
       const varianteSelect = document.getElementById('productInsumoVariante');
-      varianteSelect.innerHTML = '<option value="">-- Selecciona variante --</option>';
+      varianteSelect.innerHTML = '<option value="">-- Selecciona variante (opcional) --</option>';
       data.data.insumo_variants.forEach(v => {
         const opt = document.createElement('option');
         opt.value = v.id;
@@ -628,7 +648,7 @@ async function loadInsumoVariantes() {
 }
 
 /**
- * Carga lista de insumos disponibles
+ * Carga lista de insumos disponibles - retorna Promise
  */
 async function loadInsumosForForm() {
   try {
@@ -647,11 +667,14 @@ async function loadInsumosForForm() {
         insumoSelect.appendChild(opt);
       });
       console.log('✅ [loadInsumosForForm] Dropdown de insumos actualizado con', data.data.length, 'insumos');
+      return Promise.resolve();
     } else {
       console.warn('⚠️ [loadInsumosForForm] Respuesta sin datos:', data);
+      return Promise.resolve();
     }
   } catch (error) {
     console.error('❌ [loadInsumosForForm] Error cargando insumos:', error);
+    return Promise.resolve();
   }
 }
 
@@ -725,13 +748,21 @@ async function saveProduct(e) {
       requestPayload.tiene_variantes_stock = false;
     } else if (stockType === 'insumo') {
       const insumoId = document.getElementById('productInsumo')?.value;
+      const insumoVarianteId = document.getElementById('productInsumoVariante')?.value;
+      console.log('📍 [saveProduct] INSUMO - insumoId:', insumoId, 'type:', typeof insumoId);
+      console.log('📍 [saveProduct] INSUMO - insumoVarianteId:', insumoVarianteId, 'type:', typeof insumoVarianteId);
       requestPayload.insumo_id = Number(insumoId);
+      if (insumoVarianteId) {
+        requestPayload.insumo_variant_id = Number(insumoVarianteId);
+      }
       requestPayload.tiene_variantes_stock = false;
+      console.log('📍 [saveProduct] INSUMO - requestPayload COMPLETO:', JSON.stringify(requestPayload, null, 2));
     } else if (stockType === 'infinito') {
       requestPayload.stock_cantidad = null;
       requestPayload.tiene_variantes_stock = false;
     }
 
+    console.log('📍 [saveProduct] Enviando petición:', method, url);
     const response = await fetch(url, {
       method,
       headers: {
@@ -742,6 +773,9 @@ async function saveProduct(e) {
     });
 
     const data = await response.json();
+
+    console.log('📍 [saveProduct] Respuesta status:', response.status, response.ok);
+    console.log('📍 [saveProduct] Respuesta data:', JSON.stringify(data, null, 2));
 
     if (response.ok && data.success) {
       const savedProductId = data.data?.id || productoActualEnEdicion?.id;
