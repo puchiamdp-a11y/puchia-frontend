@@ -605,8 +605,8 @@ async function openProductDetail(productId) {
             fetch(`${API_URL}/insumos/${product.producto_insumo.insumo_id}`)
               .then(res => res.json())
               .then(data => {
-                if (data.success && data.data && data.data.variantes) {
-                  const variants = data.data.variantes;
+                if (data.success && data.data && data.data.insumo_variants) {
+                  const variants = data.data.insumo_variants;
                   if (variants.length > 0) {
                     variantsListDiv.innerHTML = `
                       <div style="display: grid; gap: 10px;">
