@@ -719,30 +719,109 @@
     font-weight: 300;
 }
 
-@media (max-width: 600px) {
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* TABLET (768px y menores) */
+@media (max-width: 768px) {
+  .products-section {
+    padding: 50px 30px;
+  }
+
+  .section-title {
+    font-size: 28px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* CELULAR (480px y menores) */
+@media (max-width: 480px) {
+  .products-section {
+    padding: 30px 16px;
+  }
+
+  .section-title {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .product-card {
+    border-radius: 8px;
+  }
+
+  .product-info {
+    padding: 12px;
+  }
+
+  .product-name-wrapper {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .product-price {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .product-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  /* Modal de detalles */
   .modal-box {
-    padding: 20px;
+    border-radius: 12px 12px 0 0;
+    max-width: 100%;
+    width: 100%;
+    margin: auto 0 0 0;
+    max-height: 90vh;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
-  
-  .detail-image {
-    font-size: 60px;
+
+  .modal-detail-content {
+    padding: 0;
   }
-  
-  .detail-info h2 {
-    font-size: 20px;
-  }
-  
+
   .detail-price {
     font-size: 24px;
   }
-  
-  .detail-actions {
-    flex-direction: column;
+
+  .detail-description {
+    font-size: 13px;
   }
-  
-  .btn-add-cart,
-  .btn-close {
-    width: 100%;
+
+  .btn-add-cart {
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+
+  .qty-input {
+    width: 40px !important;
+  }
+
+  /* Header responsive */
+  header nav {
+    display: none;
+  }
+
+  .filters-bar {
+    padding: 0 16px;
+    margin-bottom: 24px;
   }
 }
 

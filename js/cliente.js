@@ -507,59 +507,63 @@ async function openProductDetail(productId) {
     }
 
     const modalHTML = `
-      <div class="product-detail-modal" id="productDetailModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 3000;">
-        <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); cursor: pointer;"></div>
-        <div class="modal-box" style="position: relative; background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; z-index: 1001; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
-          <button class="modal-box-close" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #666; z-index:2;">✕</button>
+      <div class="product-detail-modal" id="productDetailModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: flex-start; justify-content: center; z-index: 3000; overflow-y: auto; padding: 10px 0; background: rgba(0,0,0,0.5);">
+        <button class="modal-box-close" onclick="closeProductDetail()" style="position: fixed; top: 16px; right: 16px; background: white; border: none; font-size: 28px; cursor: pointer; color: #666; z-index: 3001; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✕</button>
 
-          <div class="modal-detail-content" style="text-align: center; display: flex; flex-direction: column;">
-            ${displayHTML}
+        <div class="modal-box" style="position: relative; background: white; border-radius: 8px; width: 100%; max-width: 500px; margin: 20px auto; z-index: 1001; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);">
+          <div class="modal-detail-content" style="display: flex; flex-direction: column;">
 
-            <div class="detail-info">
-              <h2 style="font-size: 24px; color: #9b2d7d; margin: 0 0 8px; font-weight: 700;">${product.name}</h2>
-              <p class="detail-category" style="color: #888; font-size: 13px; margin: 0 0 12px;">Categoría: ${product.category}</p>
-              <p class="detail-price" style="font-size: 30px; color: #9b2d7d; font-weight: 700; margin: 0 0 20px;">
+            <!-- FOTO DEL PRODUCTO -->
+            <div style="width: 100%; background: #f5f5f5; border-radius: 8px 8px 0 0; overflow: hidden;">
+              ${displayHTML}
+            </div>
+
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+
+              <!-- PRECIO GRANDE -->
+              <p class="detail-price" style="font-size: 28px; color: #9b2d7d; font-weight: 700; margin: 0;">
                 ${formatCurrency(product.price)}
               </p>
 
-              <!-- CANTIDAD Y VARIANTE EN LA MISMA LÍNEA -->
-              <div style="display: flex; gap: 12px; align-items: flex-end; justify-content: center; margin-bottom: 20px; padding: 0 0 20px 0; border-bottom: 1px solid #eee; flex-wrap: wrap;">
-                <div style="display: flex; gap: 8px; align-items: center;">
-                  <button class="qty-decrease" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; color: #9b2d7d;">−</button>
-                  <input type="number" class="qty-input" value="1" min="1" style="width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: 600; font-size: 14px;">
-                  <button class="qty-increase" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; color: #9b2d7d;">+</button>
-                </div>
+              <!-- TÍTULO -->
+              <h2 style="font-size: 18px; color: #333; margin: 0; font-weight: 600; line-height: 1.3;">${product.name}</h2>
 
-                <!-- SELECTOR DE VARIANTE (DROPDOWN) -->
-                <div class="detail-insumo-variants" id="product-variants-${product.id}" style="display: none; flex: 1; min-width: 150px;">
-                  <select id="variants-select-${product.id}" class="variant-select" style="padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; font-family: inherit; color: #666; cursor: pointer; width: 100%; background: white;">
-                    <option value="">Selecciona variante...</option>
-                  </select>
-                  <span id="variants-label-${product.id}" style="font-size: 12px; color: #999; margin-top: 2px; display: block;"></span>
-                </div>
+              <!-- VARIANTES (si existen) -->
+              <div class="detail-insumo-variants" id="product-variants-${product.id}" style="display: none;">
+                <select id="variants-select-${product.id}" class="variant-select" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; color: #333; cursor: pointer; width: 100%; background: white;">
+                  <option value="">Selecciona variante...</option>
+                </select>
+                <span id="variants-label-${product.id}" style="font-size: 12px; color: #999; margin-top: 4px; display: block;"></span>
               </div>
 
-              <!-- DESCRIPCIÓN COMPLETA -->
-              <div class="detail-description" id="product-desc-${product.id}" style="color: #666; font-size: 15px; line-height: 1.6; margin: 0 0 20px; text-align: left;">
+              <!-- CANTIDAD -->
+              <div style="display: flex; gap: 8px; align-items: center; padding-top: 8px; border-top: 1px solid #eee;">
+                <span style="font-size: 14px; color: #666; font-weight: 500;">Cantidad:</span>
+                <button class="qty-decrease" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; color: #9b2d7d;">−</button>
+                <input type="number" class="qty-input" value="1" min="1" style="width: 45px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: 600; font-size: 14px;">
+                <button class="qty-increase" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; color: #9b2d7d;">+</button>
               </div>
+
+              <!-- DESCRIPCIÓN -->
+              <div class="detail-description" id="product-desc-${product.id}" style="color: #666; font-size: 14px; line-height: 1.5; padding-top: 8px; border-top: 1px solid #eee;">
+              </div>
+
+              <!-- BOTÓN AGREGAR AL CARRITO -->
+              <button class="btn-add-cart modal-add-cart" style="padding: 14px 24px; background: #9b2d7d; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s; margin-top: 12px; width: 100%;">
+                Agregar al Carrito
+              </button>
 
               <!-- ESPECIFICACIONES -->
-              <div class="detail-specifications" id="product-spec-${product.id}" style="display: none; margin: 20px 0; padding: 16px 0; border-top: 1px solid #eee; text-align: left;">
-                <h3 style="color: #333; font-size: 16px; margin: 0 0 12px; font-weight: 600;">⚙️ Especificaciones Técnicas</h3>
-                <div style="color: #666; font-size: 14px; line-height: 1.6;"></div>
+              <div class="detail-specifications" id="product-spec-${product.id}" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
+                <h3 style="color: #333; font-size: 14px; margin: 0 0 8px; font-weight: 600;">⚙️ Especificaciones</h3>
+                <div style="color: #666; font-size: 13px; line-height: 1.5;"></div>
               </div>
 
               <!-- INSTRUCCIONES -->
-              <div class="detail-instructions" id="product-instr-${product.id}" style="display: none; margin: 20px 0; padding: 16px 0; border-top: 1px solid #eee; text-align: left;">
-                <h3 style="color: #333; font-size: 16px; margin: 0 0 12px; font-weight: 600;">📖 Instrucciones de Uso</h3>
-                <div style="color: #666; font-size: 14px; line-height: 1.6;"></div>
+              <div class="detail-instructions" id="product-instr-${product.id}" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
+                <h3 style="color: #333; font-size: 14px; margin: 0 0 8px; font-weight: 600;">📖 Instrucciones</h3>
+                <div style="color: #666; font-size: 13px; line-height: 1.5;"></div>
               </div>
-            </div>
-
-            <div class="detail-actions" style="display: flex; gap: 12px; flex-wrap: wrap; background: white; padding-top: 16px; border-top: 1px solid #eee;">
-              <button class="btn-add-cart modal-add-cart" style="flex: 1; min-width: 150px; padding: 12px 24px; background: #9b2d7d; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
-                Agregar al Carrito
-              </button>
             </div>
           </div>
         </div>
@@ -589,6 +593,12 @@ async function openProductDetail(productId) {
       }
 
       // Variantes de Insumo
+      console.log(`📍 [openProductDetail] Producto ${product.id} (${product.name}):`, {
+        stock_type: product.stock_type,
+        producto_insumo: product.producto_insumo,
+        tieneVariantes: product.stock_type === 'insumo' && product.producto_insumo
+      });
+
       if (product.stock_type === 'insumo' && product.producto_insumo) {
         const variantsDiv = document.getElementById(`product-variants-${product.id}`);
         const selectEl = document.getElementById(`variants-select-${product.id}`);
