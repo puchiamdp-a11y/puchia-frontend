@@ -414,18 +414,23 @@ footer {
 
 @media (max-width: 768px) {
     header {
-        padding: 15px 20px;
-        flex-direction: column;
-        gap: 15px;
+        padding: 12px 20px;
+        flex-direction: row;
+        gap: 10px;
     }
 
     .header-left {
-        width: 100%;
-        justify-content: space-between;
+        width: auto;
+        gap: 20px;
     }
 
     nav {
         gap: 20px;
+        font-size: 12px;
+    }
+
+    nav a {
+        font-size: 13px;
     }
 
     footer {
@@ -436,6 +441,62 @@ footer {
 
     .modal-content {
         padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .header-left {
+        gap: 12px;
+    }
+
+    .logo {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .logo-text {
+        font-size: 14px;
+    }
+
+    nav {
+        display: none;
+    }
+
+    nav a {
+        font-size: 11px;
+    }
+
+    .header-right {
+        gap: 12px;
+    }
+
+    .admin-link {
+        font-size: 18px;
+    }
+
+    .cart-btn {
+        font-size: 20px;
+    }
+
+    .announcement-bar {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+
+    footer {
+        padding: 20px 12px;
+        font-size: 12px;
+    }
+
+    .modal-content {
+        padding: 12px;
+        max-width: 100%;
     }
 }
 

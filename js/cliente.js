@@ -507,26 +507,26 @@ async function openProductDetail(productId) {
     }
 
     const modalHTML = `
-      <div class="product-detail-modal" id="productDetailModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: flex-start; justify-content: center; z-index: 3000; overflow-y: auto; padding: 10px 0; background: rgba(0,0,0,0.5);">
-        <button class="modal-box-close" onclick="closeProductDetail()" style="position: fixed; top: 16px; right: 16px; background: white; border: none; font-size: 28px; cursor: pointer; color: #666; z-index: 3001; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✕</button>
+      <div class="product-detail-modal" id="productDetailModal">
+        <button class="modal-box-close" onclick="closeProductDetail()">✕</button>
 
-        <div class="modal-box" style="position: relative; background: white; border-radius: 8px; width: 100%; max-width: 500px; margin: 20px auto; z-index: 1001; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);">
-          <div class="modal-detail-content" style="display: flex; flex-direction: column;">
+        <div class="modal-box">
+          <div class="modal-detail-content">
 
             <!-- FOTO DEL PRODUCTO -->
-            <div style="width: 100%; background: #f5f5f5; border-radius: 8px 8px 0 0; overflow: hidden;">
+            <div class="modal-image-wrapper">
               ${displayHTML}
             </div>
 
-            <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+            <div class="modal-content-wrapper">
 
               <!-- PRECIO GRANDE -->
-              <p class="detail-price" style="font-size: 28px; color: #9b2d7d; font-weight: 700; margin: 0;">
+              <p class="detail-price">
                 ${formatCurrency(product.price)}
               </p>
 
               <!-- TÍTULO -->
-              <h2 style="font-size: 18px; color: #333; margin: 0; font-weight: 600; line-height: 1.3;">${product.name}</h2>
+              <h2 class="modal-title">${product.name}</h2>
 
               <!-- VARIANTES (si existen) -->
               <div class="detail-insumo-variants" id="product-variants-${product.id}" style="display: none;">
@@ -537,32 +537,32 @@ async function openProductDetail(productId) {
               </div>
 
               <!-- CANTIDAD -->
-              <div style="display: flex; gap: 8px; align-items: center; padding-top: 8px; border-top: 1px solid #eee;">
-                <span style="font-size: 14px; color: #666; font-weight: 500;">Cantidad:</span>
-                <button class="qty-decrease" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; color: #9b2d7d;">−</button>
-                <input type="number" class="qty-input" value="1" min="1" style="width: 45px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: 600; font-size: 14px;">
-                <button class="qty-increase" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; color: #9b2d7d;">+</button>
+              <div class="detail-quantity-section">
+                <span>Cantidad:</span>
+                <button class="qty-decrease">−</button>
+                <input type="number" class="qty-input" value="1" min="1">
+                <button class="qty-increase">+</button>
               </div>
 
               <!-- DESCRIPCIÓN -->
-              <div class="detail-description" id="product-desc-${product.id}" style="color: #666; font-size: 14px; line-height: 1.5; padding-top: 8px; border-top: 1px solid #eee;">
+              <div class="detail-description" id="product-desc-${product.id}">
               </div>
 
               <!-- BOTÓN AGREGAR AL CARRITO -->
-              <button class="btn-add-cart modal-add-cart" style="padding: 14px 24px; background: #9b2d7d; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s; margin-top: 12px; width: 100%;">
+              <button class="btn-add-cart modal-add-cart">
                 Agregar al Carrito
               </button>
 
               <!-- ESPECIFICACIONES -->
-              <div class="detail-specifications" id="product-spec-${product.id}" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
-                <h3 style="color: #333; font-size: 14px; margin: 0 0 8px; font-weight: 600;">⚙️ Especificaciones</h3>
-                <div style="color: #666; font-size: 13px; line-height: 1.5;"></div>
+              <div class="detail-specifications" id="product-spec-${product.id}">
+                <h3>⚙️ Especificaciones</h3>
+                <div></div>
               </div>
 
               <!-- INSTRUCCIONES -->
-              <div class="detail-instructions" id="product-instr-${product.id}" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
-                <h3 style="color: #333; font-size: 14px; margin: 0 0 8px; font-weight: 600;">📖 Instrucciones</h3>
-                <div style="color: #666; font-size: 13px; line-height: 1.5;"></div>
+              <div class="detail-instructions" id="product-instr-${product.id}">
+                <h3>📖 Instrucciones</h3>
+                <div></div>
               </div>
             </div>
           </div>
