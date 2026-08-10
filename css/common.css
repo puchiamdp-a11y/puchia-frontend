@@ -448,12 +448,16 @@ footer {
     header {
         padding: 8px 12px !important;
         gap: 6px !important;
-        flex-wrap: nowrap !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
     }
 
     .header-left {
-        gap: 12px !important;
-        flex-shrink: 0;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        width: 100%;
     }
 
     .logo {
@@ -469,12 +473,31 @@ footer {
     }
 
     nav {
-        display: none !important;
+        display: flex !important;
+        gap: 12px !important;
+        width: 100% !important;
+        padding: 6px 0 !important;
+        border-top: 1px solid #f0f0f0 !important;
+        flex-wrap: wrap !important;
+        order: 2;
+    }
+
+    nav a {
+        font-size: 11px !important;
+        flex: 1 1 auto !important;
+        min-width: 50px !important;
+        text-align: center !important;
+        padding: 4px 0 !important;
+    }
+
+    nav a:after {
+        bottom: -2px !important;
     }
 
     .header-right {
-        gap: 8px !important;
-        margin-left: auto;
+        gap: 10px !important;
+        margin-left: auto !important;
+        order: 1;
     }
 
     .admin-link {
