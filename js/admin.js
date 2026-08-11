@@ -398,7 +398,7 @@ function renderProductos(lista) {
 
     const portada = p.media?.find(m => m.es_portada) || p.media?.[0] || null;
     const fotoCell = portada
-      ? `<td style="padding:6px;"><img src="${BACKEND_URL}${portada.url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid #ddd;display:block;" onclick="openProductGallery(${p.id})" title="Ver galería" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'"></td>`
+      ? `<td style="padding:6px;"><img src="${BACKEND_URL}${portada.url}" class="image-thumbnail-small" style="cursor:pointer;display:block;" onclick="openProductGallery(${p.id})" title="Ver galería" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'"></td>`
       : `<td style="padding:6px;text-align:center;"><span style="font-size:22px;" title="Sin fotos">${emoji}</span></td>`;
 
     return `<tr>
@@ -1085,9 +1085,9 @@ function renderInsumoVariants() {
     const bgColor = isValid ? '#fafafa' : '#fff5f5';
 
     return `
-    <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 4px; align-items: flex-end;">
+    <div class="flex-layout-responsive" style="background: ${bgColor}; border: 1px solid ${borderColor};">
       <input type="text" placeholder="Nombre variante *" value="${v.nombre || ''}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
-      <input type="number" placeholder="Stock *" min="1" value="${v.cantidad_en_stock || ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" style="width: 80px; padding: 6px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
+      <input type="number" placeholder="Stock *" min="1" value="${v.cantidad_en_stock || ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" class="input-stock-responsive" style="border-color: ${borderColor};">
       <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
       ${!isValid ? `<span style="font-size: 12px; color: #d32f2f; white-space: nowrap;">⚠️ Incompleta</span>` : ''}
     </div>
@@ -1261,10 +1261,10 @@ function renderOrders() {
     const shortId = formatShortOrderId(orden);
 
     return `
-      <tr style="border-bottom: 1px solid #eee; height: 44px;">
+      <tr class="table-row-responsive">
         <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${orden.id_unico}">${shortId}</td>
         <td style="padding: 8px 12px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaCompra}</td>
-        <td style="padding: 8px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
+        <td class="table-cell-cliente" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${restoPagar.toFixed(2)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${parseFloat(orden.total).toFixed(2)}</td>
         <td style="padding: 8px 12px;">
@@ -1274,9 +1274,9 @@ function renderOrders() {
         </td>
         <td style="padding: 8px 12px; font-size: 13px; color: #1a1a1a; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaEntrega}</td>
         <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})" style="padding: 4px 8px; font-size: 11px;" title="Ver">👁️</button>
-          <button class="btn btn-sm btn-primary" onclick="abrirEditarOrden(${orden.id})" style="padding: 4px 8px; font-size: 11px;" title="Editar">✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" style="padding: 4px 8px; font-size: 11px;" title="Eliminar">🗑️</button>
+          <button class="btn btn-sm btn-secondary button-table-action" onclick="viewOrder(${orden.id})" title="Ver">👁️</button>
+          <button class="btn btn-sm btn-primary button-table-action" onclick="abrirEditarOrden(${orden.id})" title="Editar">✏️</button>
+          <button class="btn btn-sm btn-danger button-table-action" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" title="Eliminar">🗑️</button>
         </td>
       </tr>
     `;
@@ -2378,7 +2378,7 @@ function renderMediaGallery(items) {
          </div>`
       : `<img src="${BACKEND_URL}${item.url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=background:#f5f5f5;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px>📷</div>'">`;
 
-    return `<div data-media-id="${item.id}" style="position:relative;width:88px;height:88px;border-radius:8px;overflow:hidden;border:${border};flex-shrink:0;cursor:pointer;" onclick="openGalleryViewModal(${mediaCurrentProductoId}, mediaItems, ${idx})">
+    return `<div data-media-id="${item.id}" class="media-thumbnail" style="border:${border};cursor:pointer;" onclick="openGalleryViewModal(${mediaCurrentProductoId}, mediaItems, ${idx})">
       ${previewHtml}
       ${esPortada ? `<div style="position:absolute;bottom:2px;left:2px;background:#f59e0b;color:white;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;">★</div>` : ''}
       <div style="position:absolute;top:2px;right:2px;display:flex;gap:2px;">
