@@ -1,0 +1,168 @@
+/* ===============================================
+   ADMIN-CLIENTES RESPONSIVE - Reemplaza estilos inline
+   =============================================== */
+
+/* PROBLEMA 1: BADGE BUTTON (Estado) */
+.badge-button-responsive {
+  border: none;
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.badge-button-responsive:hover {
+  opacity: 0.8;
+}
+
+.badge-button-responsive:active {
+  opacity: 0.9;
+}
+
+@media (max-width: 480px) {
+  .badge-button-responsive {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .badge-button-responsive {
+    padding: 5px 14px;
+    font-size: 13px;
+  }
+}
+
+/* PROBLEMA 2: TABLE CELL (Fecha) */
+.table-cell-fecha-responsive {
+  font-size: 12px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .table-cell-fecha-responsive {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-cell-fecha-responsive {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .table-cell-fecha-responsive {
+    font-size: 9px;
+  }
+}
+
+/* PROBLEMA 3: PAGINATION INFO */
+.pagination-info-responsive {
+  font-size: 13px;
+  color: #666;
+  margin-left: 8px;
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .pagination-info-responsive {
+    font-size: 12px;
+    margin-left: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-info-responsive {
+    font-size: 11px;
+    margin-left: 4px;
+    display: block;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .pagination-info-responsive {
+    font-size: 10px;
+  }
+}
+
+/* PROBLEMA 4: DETAIL BOX CONTAINER */
+.detail-box-responsive {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+@media (max-width: 768px) {
+  .detail-box-responsive {
+    margin-top: 10px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-box-responsive {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .detail-box-responsive {
+    margin-top: 6px;
+    padding: 6px;
+  }
+}
+
+/* PROBLEMA 5: DETAIL ROW (con background y padding fijo) */
+.detail-row-highlight-responsive {
+  background: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+  border: 1px solid #eee;
+}
+
+@media (max-width: 480px) {
+  .detail-row-highlight-responsive {
+    padding: 10px;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .detail-row-highlight-responsive {
+    padding: 12px;
+  }
+}
+
+/* PROBLEMA 5B: STRONG (font-size 16px + color púrpura) */
+.detail-value-highlight-responsive {
+  font-size: 16px;
+  color: #7f1f6e;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .detail-value-highlight-responsive {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-value-highlight-responsive {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .detail-value-highlight-responsive {
+    font-size: 14px;
+  }
+}
