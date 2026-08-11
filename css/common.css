@@ -474,20 +474,21 @@ footer {
 
     nav {
         display: flex !important;
-        gap: 12px !important;
+        gap: 8px !important;
         width: 100% !important;
         padding: 6px 0 !important;
         border-top: 1px solid #f0f0f0 !important;
         flex-wrap: wrap !important;
         order: 2;
+        justify-content: center !important;
     }
 
     nav a {
         font-size: 11px !important;
-        flex: 1 1 auto !important;
-        min-width: 50px !important;
+        flex: 0 1 auto !important;
+        white-space: nowrap !important;
         text-align: center !important;
-        padding: 4px 0 !important;
+        padding: 6px 8px !important;
     }
 
     nav a:after {
@@ -551,6 +552,18 @@ footer {
         bottom: 20px !important;
         right: 12px !important;
         left: 12px !important;
+    }
+}
+
+@media (max-width: 360px) {
+    nav {
+        gap: 4px !important;
+        font-size: 10px !important;
+    }
+
+    nav a {
+        font-size: 10px !important;
+        padding: 4px 6px !important;
     }
 }
 
