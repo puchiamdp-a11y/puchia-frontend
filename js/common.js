@@ -41,9 +41,9 @@ function showPuchiaModal(titulo, mensaje, botones = []) {
     const modalId = 'puchiaModal';
     const botonesHTML = botones.map((btn, idx) => `
         <button
-            class="modal-btn ${btn.clase || 'secondary'}"
+            class="modal-btn ${btn.clase || 'secondary'} modal-button-responsive"
             onclick="document.getElementById('${modalId}')?.remove(); ${btn.callback || ''}"
-            style="flex: 1; padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+        >
             ${btn.texto}
         </button>
     `).join('');
@@ -72,7 +72,7 @@ function showPuchiaModal(titulo, mensaje, botones = []) {
                 text-align: center;
                 animation: slideUp 0.3s ease;
             ">
-                <h2 style="color: #9b2d7d; font-size: 24px; margin: 0 0 16px; font-weight: 700;">
+                <h2 class="modal-header-responsive">
                     ${titulo}
                 </h2>
                 <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 28px;">
@@ -440,7 +440,7 @@ function prefillCheckoutFromUser() {
     if (form && !document.getElementById('prefillBanner')) {
         const banner = document.createElement('div');
         banner.id = 'prefillBanner';
-        banner.style.cssText = 'background:#eafaf1;border:1px solid #a9dfbf;color:#1e8449;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:18px;';
+        banner.className = 'banner-prefill-responsive';
         banner.innerHTML = `✓ Hola <strong>${user.nombre || ''}</strong>, pre-cargamos tus datos. Podés editarlos si necesitás.`;
         form.insertBefore(banner, form.firstChild);
     }
