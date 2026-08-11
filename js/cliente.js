@@ -193,6 +193,155 @@ function loadAndRenderPromos() {
     }, 0);
 }
 
+// ==================== CHUNKED RENDERING (PERFORMANCE OPTIMIZATION) ====================
+// Renders products in batches of 15 to avoid layout thrashing
+
+function renderProductsChunked(products, gridId = 'productsGrid') {
+    const grid = document.getElementById(gridId);
+    if (!grid || products.length === 0) {
+        if (grid) grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;"><p>Sin productos en esta categoría</p></div>';
+        return;
+    }
+
+    const BACKEND = 'https://puchia-backend-production.up.railway.app';
+    const chunkSize = 15;
+    let currentChunk = 0;
+    const totalChunks = Math.ceil(products.length / chunkSize);
+
+    grid.innerHTML = ''; // Clear grid
+
+    function renderNextChunk() {
+        if (currentChunk >= totalChunks) {
+            console.log(`✅ Renderización completada: ${products.length} productos en ${totalChunks} chunks`);
+            attachProductListeners(grid, products);
+            return;
+        }
+
+        const start = currentChunk * chunkSize;
+        const end = Math.min(start + chunkSize, products.length);
+        const chunk = products.slice(start, end);
+
+        let html = '';
+        chunk.forEach(product => {
+            const imgContent = product.portada
+                ? `<img src="${BACKEND}${product.portada}" alt="${product.name}" class="product-image-responsive" loading="lazy" onerror="this.outerHTML='<div class=product-icon-responsive>${product.icon}</div>'">`
+                : `<div class="product-icon-responsive">${product.icon}</div>`;
+
+            html += `<div class="product-card" data-product-id="${product.id}">
+                <div class="product-image-wrapper" style="cursor: pointer; background: var(--gray-light); min-height: 180px; overflow: hidden;">
+                    ${imgContent}
+                </div>
+                <div class="product-info" style="padding: 20px;">
+                    <div class="product-name-wrapper" style="cursor: pointer; font-weight: 600; font-size: 16px; color: var(--purple); margin-bottom: 8px;">
+                        ${product.name}
+                    </div>
+                    <div class="product-price" style="font-size: 20px; font-weight: 700; color: var(--purple); margin-bottom: 16px;">
+                        ${formatCurrency(product.price)}
+                    </div>
+                    <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
+                        Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
+                    </div>
+                    <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
+                        ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
+                    </button>
+                </div>
+            </div>`;
+        });
+
+        // Insert chunk into DOM
+        grid.insertAdjacentHTML('beforeend', html);
+
+        // Schedule next chunk render
+        currentChunk++;
+        requestAnimationFrame(renderNextChunk);
+    }
+
+    // Start chunked rendering
+    renderNextChunk();
+}
+
+function renderPromosChunked(promos) {
+    const grid = document.getElementById('promosGrid');
+    if (!grid || promos.length === 0) {
+        if (grid) grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;"><p>Sin promociones disponibles</p></div>';
+        return;
+    }
+
+    const BACKEND_PROMO = 'https://puchia-backend-production.up.railway.app';
+    const chunkSize = 15;
+    let currentChunk = 0;
+    const totalChunks = Math.ceil(promos.length / chunkSize);
+
+    grid.innerHTML = ''; // Clear grid
+
+    function renderNextChunk() {
+        if (currentChunk >= totalChunks) {
+            console.log(`✅ Promos renderizadas: ${promos.length} en ${totalChunks} chunks`);
+            attachProductListeners(grid, promos);
+            return;
+        }
+
+        const start = currentChunk * chunkSize;
+        const end = Math.min(start + chunkSize, promos.length);
+        const chunk = promos.slice(start, end);
+
+        let html = '';
+        chunk.forEach(product => {
+            const imgContent = product.portada
+                ? `<img src="${BACKEND_PROMO}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" loading="lazy" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
+                : `<div style="font-size: 80px; text-align: center; padding: 40px 20px; display: flex; align-items: center; justify-content: center; height: 180px;">${product.icon}</div>`;
+
+            html += `<div class="product-card" data-product-id="${product.id}">
+                <div class="product-image-wrapper" style="cursor: pointer; background: var(--gray-light); min-height: 180px; overflow: hidden;">
+                    ${imgContent}
+                </div>
+                <div class="product-info" style="padding: 20px;">
+                    <div class="product-name-wrapper" style="cursor: pointer; font-weight: 600; font-size: 16px; color: var(--purple); margin-bottom: 8px;">
+                        ${product.name}
+                    </div>
+                    <div class="product-price" style="font-size: 20px; font-weight: 700; color: var(--purple); margin-bottom: 16px;">
+                        ${formatCurrency(product.price)}
+                    </div>
+                    <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
+                        Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
+                    </div>
+                    <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
+                        ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
+                    </button>
+                </div>
+            </div>`;
+        });
+
+        // Insert chunk into DOM
+        grid.insertAdjacentHTML('beforeend', html);
+
+        // Schedule next chunk render
+        currentChunk++;
+        requestAnimationFrame(renderNextChunk);
+    }
+
+    // Start chunked rendering
+    renderNextChunk();
+}
+
+// Helper function to attach event listeners (shared for both products and promos)
+function attachProductListeners(grid, products) {
+    grid.querySelectorAll('[data-product-id]').forEach(card => {
+        const productId = parseInt(card.dataset.productId);
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+
+        const addBtn = card.querySelector('.btn-add-to-cart');
+        addBtn?.addEventListener('click', () => {
+            addToCart(product);
+            showToast(`${product.name} agregado al carrito`, 'success');
+        });
+
+        card.querySelector('.product-image-wrapper')?.addEventListener('click', () => openProductDetail(productId));
+        card.querySelector('.product-name-wrapper')?.addEventListener('click', () => openProductDetail(productId));
+    });
+}
+
 function filterProducts(category) {
     currentFilter = category;
 
@@ -201,7 +350,11 @@ function filterProducts(category) {
     });
     event.target.classList.add('active');
 
-    loadAndRenderProducts();
+    // ✅ Use chunked rendering for filtered results
+    const filtered = currentFilter === 'todas'
+        ? allProducts
+        : allProducts.filter(p => p.category === currentFilter);
+    renderProductsChunked(filtered);
 }
 
 function closeCheckout() {
@@ -417,8 +570,9 @@ window.addEventListener('load', async () => {
 
     // Fetch API data without blocking UI
     loadProductsFromAPI().then(() => {
-        loadAndRenderProducts();
-        loadAndRenderPromos();
+        // ✅ Use chunked rendering instead of monolithic
+        renderProductsChunked(allProducts);
+        renderPromosChunked(promoProducts);
         startProductPolling();
     });
 });
