@@ -26,7 +26,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .detail-row { display: flex; gap: 16px; margin-bottom: 8px; font-size: 14px; }
         .detail-label { font-weight: 600; color: #666; min-width: 110px; }
-        .modal.show { display: flex !important; }
+        .modal.show { display: flex; }
         th.sortable { cursor: pointer; user-select: none; position: relative; }
         th.sortable:hover { background: #f3e6f0; }
         th.sortable .sort-ind { font-size: 11px; color: #7f1f6e; margin-left: 4px; opacity: 0.4; }
@@ -39,9 +39,9 @@
         .toggle-estado-btn.inactivo:hover { background: #e0e0e0; }
         #closeProductModal { position: absolute; top: 16px; right: 16px; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #7b2d8e, #9d4cb8); color: white; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; padding: 0; line-height: 1; }
         #closeProductModal:hover { opacity: 0.8; }
-        .product-tab-btn { color: #666 !important; }
-        .product-tab-btn:hover { color: #7b2d8e !important; background: #f9f9f9 !important; }
-        .product-tab-btn.active { color: #7b2d8e !important; border-bottom-color: #7b2d8e !important; font-weight: 600 !important; }
+        .product-tab-btn { color: #666; }
+        .product-tab-btn:hover { color: #7b2d8e; background: #f9f9f9; }
+        .product-tab-btn.active { color: #7b2d8e; border-bottom-color: #7b2d8e; font-weight: 600; }
         .product-tab-content { display: none; gap: 16px; flex-direction: column; }
         .product-tab-content.active { display: flex; }
     </style>
