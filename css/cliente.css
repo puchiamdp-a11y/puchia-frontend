@@ -975,14 +975,29 @@
     font-size: 14px;
   }
 
-  /* Header responsive */
-  header nav {
-    display: none;
+  /* Header responsive - REMOVED: nav should be shown below logo */
+  header {
+    padding: 8px 12px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
   }
 
-  header {
-    flex-wrap: wrap;
-    gap: 10px;
+  header nav {
+    display: flex !important;
+    width: 100% !important;
+    gap: 12px !important;
+    padding: 6px 0 !important;
+    border-top: 1px solid #f0f0f0 !important;
+    flex-wrap: wrap !important;
+  }
+
+  header nav a {
+    font-size: 11px !important;
+    flex: 1 1 auto !important;
+    min-width: 40px !important;
+    text-align: center !important;
+    padding: 4px 0 !important;
   }
 
   .logo-container {
