@@ -87,7 +87,7 @@ function loadAndRenderProducts() {
     const BACKEND = 'https://puchia-backend-production.up.railway.app';
     const html = filtered.map(product => {
         const imgContent = product.portada
-            ? `<img src="${BACKEND}${product.portada}" alt="${product.name}" class="product-image-responsive" onerror="this.outerHTML='<div class=product-icon-responsive>${product.icon}</div>'">`
+            ? `<img src="${BACKEND}${product.portada}" alt="${product.name}" class="product-image-responsive" loading="lazy" onerror="this.outerHTML='<div class=product-icon-responsive>${product.icon}</div>'">`
             : `<div class="product-icon-responsive">${product.icon}</div>`;
 
         // Determine summary text
@@ -146,7 +146,7 @@ function loadAndRenderPromos() {
     const BACKEND_PROMO = 'https://puchia-backend-production.up.railway.app';
     const html = promoProducts.map(product => {
         const imgContent = product.portada
-            ? `<img src="${BACKEND_PROMO}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
+            ? `<img src="${BACKEND_PROMO}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" loading="lazy" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
             : `<div style="font-size: 80px; text-align: center; padding: 40px 20px; display: flex; align-items: center; justify-content: center; height: 180px;">${product.icon}</div>`;
 
         // Determine summary text
@@ -482,7 +482,7 @@ async function openProductDetail(productId) {
     if (portadaItem) {
       const mainMedia = portadaItem.tipo === 'video'
         ? `<video id="detailMainMedia" src="${BK}${portadaItem.url}" controls class="detail-media-responsive video-element"></video>`
-        : `<img id="detailMainMedia" src="${BK}${portadaItem.url}" alt="${product.name}" class="detail-media-responsive" onerror="this.outerHTML='<div class=product-icon-responsive>${product.icon}</div>'">`;
+        : `<img id="detailMainMedia" src="${BK}${portadaItem.url}" alt="${product.name}" class="detail-media-responsive" loading="lazy" onerror="this.outerHTML='<div class=product-icon-responsive>${product.icon}</div>'">`;
 
       const thumbsHTML = mediaList.length > 1
         ? `<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;scrollbar-width:thin;">
@@ -490,7 +490,7 @@ async function openProductDetail(productId) {
               const isFirst = idx === 0;
               const thumbContent = m.tipo === 'video'
                 ? `<div style="width:100%;height:100%;background:#333;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;">▶</div>`
-                : `<img src="${BK}${m.url}" style="width:100%;height:100%;object-fit:cover;">`;
+                : `<img src="${BK}${m.url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`;
               return `<div class="detail-thumb detail-thumb-responsive ${isFirst ? 'active' : ''}" onclick="changeDetailMedia(${idx})">${thumbContent}</div>`;
             }).join('')}
            </div>`
