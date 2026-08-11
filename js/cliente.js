@@ -507,20 +507,26 @@ async function openProductDetail(productId) {
     }
 
     const modalHTML = `
-      <div class="product-detail-modal" id="productDetailModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 3000;">
-        <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); cursor: pointer;"></div>
-        <div class="modal-box" style="position: relative; background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; z-index: 1001; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
-          <button class="modal-box-close" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #666; z-index:2;">✕</button>
+      <div class="product-detail-modal" id="productDetailModal">
+        <button class="modal-box-close" onclick="closeProductDetail()">✕</button>
 
-          <div class="modal-detail-content" style="text-align: center; display: flex; flex-direction: column;">
-            ${displayHTML}
+        <div class="modal-box">
+          <div class="modal-detail-content">
 
-            <div class="detail-info">
-              <h2 style="font-size: 24px; color: #9b2d7d; margin: 0 0 8px; font-weight: 700;">${product.name}</h2>
-              <p class="detail-category" style="color: #888; font-size: 13px; margin: 0 0 12px;">Categoría: ${product.category}</p>
-              <p class="detail-price" style="font-size: 30px; color: #9b2d7d; font-weight: 700; margin: 0 0 16px;">
+            <!-- FOTO DEL PRODUCTO -->
+            <div class="modal-image-wrapper">
+              ${displayHTML}
+            </div>
+
+            <div class="modal-content-wrapper">
+
+              <!-- PRECIO GRANDE -->
+              <p class="detail-price">
                 ${formatCurrency(product.price)}
               </p>
+
+              <!-- TÍTULO -->
+              <h2 class="modal-title">${product.name}</h2>
 
               <div class="detail-quantity qty-container-responsive" style="margin-bottom: 16px; padding: 0 0 16px 0; border-bottom: 1px solid #eee;">
                 <button class="qty-decrease qty-button-responsive">−</button>
@@ -528,33 +534,34 @@ async function openProductDetail(productId) {
                 <button class="qty-increase qty-button-responsive">+</button>
               </div>
 
-              <!-- DESCRIPCIÓN COMPLETA -->
-              <div class="detail-description" id="product-desc-${product.id}" style="color: #666; font-size: 15px; line-height: 1.6; margin: 0 0 20px; text-align: left;">
+              <!-- VARIANTES (si existen) -->
+              <div class="detail-insumo-variants" id="product-variants-${product.id}" style="display: none;">
+                <select id="variants-select-${product.id}" class="variant-select" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; color: #333; cursor: pointer; width: 100%; background: white;">
+                  <option value="">Selecciona variante...</option>
+                </select>
+                <span id="variants-label-${product.id}" style="font-size: 12px; color: #999; margin-top: 4px; display: block;"></span>
               </div>
 
-              <!-- VARIANTES DE INSUMO -->
-              <div class="detail-insumo-variants" id="product-variants-${product.id}" style="display: none; margin: 20px 0; padding: 16px 0; border-top: 1px solid #eee; text-align: left;">
-                <h3 style="color: #333; font-size: 16px; margin: 0 0 12px; font-weight: 600;">🔧 Variantes Disponibles</h3>
-                <div id="variants-list-${product.id}" style="color: #666; font-size: 14px; line-height: 1.6;"></div>
+              <!-- DESCRIPCIÓN -->
+              <div class="detail-description" id="product-desc-${product.id}">
               </div>
+
+              <!-- BOTÓN AGREGAR AL CARRITO -->
+              <button class="btn-add-cart modal-add-cart">
+                Agregar al Carrito
+              </button>
 
               <!-- ESPECIFICACIONES -->
-              <div class="detail-specifications" id="product-spec-${product.id}" style="display: none; margin: 20px 0; padding: 16px 0; border-top: 1px solid #eee; text-align: left;">
-                <h3 style="color: #333; font-size: 16px; margin: 0 0 12px; font-weight: 600;">⚙️ Especificaciones Técnicas</h3>
-                <div style="color: #666; font-size: 14px; line-height: 1.6;"></div>
+              <div class="detail-specifications" id="product-spec-${product.id}">
+                <h3>⚙️ Especificaciones</h3>
+                <div></div>
               </div>
 
               <!-- INSTRUCCIONES -->
-              <div class="detail-instructions" id="product-instr-${product.id}" style="display: none; margin: 20px 0; padding: 16px 0; border-top: 1px solid #eee; text-align: left;">
-                <h3 style="color: #333; font-size: 16px; margin: 0 0 12px; font-weight: 600;">📖 Instrucciones de Uso</h3>
-                <div style="color: #666; font-size: 14px; line-height: 1.6;"></div>
+              <div class="detail-instructions" id="product-instr-${product.id}">
+                <h3>📖 Instrucciones</h3>
+                <div></div>
               </div>
-            </div>
-
-            <div class="detail-actions" style="display: flex; gap: 12px; flex-wrap: wrap; background: white; padding-top: 16px; border-top: 1px solid #eee;">
-              <button class="btn-add-cart modal-add-cart" style="flex: 1; min-width: 150px; padding: 12px 24px; background: #9b2d7d; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
-                Agregar al Carrito
-              </button>
             </div>
           </div>
         </div>
@@ -584,48 +591,46 @@ async function openProductDetail(productId) {
       }
 
       // Variantes de Insumo
+      console.log(`📍 [openProductDetail] Producto ${product.id} (${product.name}):`, {
+        stock_type: product.stock_type,
+        producto_insumo: product.producto_insumo,
+        tieneVariantes: product.stock_type === 'insumo' && product.producto_insumo
+      });
+
       if (product.stock_type === 'insumo' && product.producto_insumo) {
         const variantsDiv = document.getElementById(`product-variants-${product.id}`);
-        const variantsListDiv = document.getElementById(`variants-list-${product.id}`);
-        if (variantsDiv && variantsListDiv) {
-          variantsDiv.style.display = 'block';
+        const selectEl = document.getElementById(`variants-select-${product.id}`);
+        const labelEl = document.getElementById(`variants-label-${product.id}`);
 
-          if (product.producto_insumo.insumo_variant) {
-            // Variante específica seleccionada
-            const variant = product.producto_insumo.insumo_variant;
-            variantsListDiv.innerHTML = `
-              <div style="padding: 12px; background: #f5f5f5; border-radius: 6px; border-left: 4px solid #9b2d7d;">
-                <strong style="color: #333;">${variant.nombre}</strong><br>
-                <span style="font-size: 12px; color: #666;">Stock disponible: ${variant.cantidad_en_stock}</span>
-              </div>
-            `;
-          } else if (product.producto_insumo.insumo_id) {
-            // Todas las variantes disponibles - necesitamos fetchear desde la API
-            const API_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
-            fetch(`${API_URL}/insumos/${product.producto_insumo.insumo_id}`)
-              .then(res => res.json())
-              .then(data => {
-                if (data.success && data.data && data.data.insumo_variants) {
-                  const variants = data.data.insumo_variants;
-                  if (variants.length > 0) {
-                    variantsListDiv.innerHTML = `
-                      <div style="display: grid; gap: 10px;">
-                        ${variants.map(v => `
-                          <label style="display: flex; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 6px; cursor: pointer; border: 2px solid #ddd; transition: all 0.2s;">
-                            <input type="radio" name="product-variant-${product.id}" value="${v.id}" style="margin-right: 10px; cursor: pointer;">
-                            <div style="flex: 1;">
-                              <strong style="color: #333;">${v.nombre}</strong><br>
-                              <span style="font-size: 12px; color: #666;">Stock: ${v.cantidad_en_stock}</span>
-                            </div>
-                          </label>
-                        `).join('')}
-                      </div>
-                    `;
-                  }
+        if (variantsDiv && selectEl && labelEl) {
+          const API_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
+
+          fetch(`${API_URL}/insumos/${product.producto_insumo.insumo_id}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.success && data.data) {
+                const insumo = data.data;
+                const variants = insumo.insumo_variants || [];
+                const tipoVariante = insumo.tipo_variante || 'Variante';
+
+                // Actualizar label dinámico
+                labelEl.textContent = tipoVariante;
+
+                if (product.producto_insumo.insumo_variant) {
+                  // Variante específica seleccionada
+                  const variantId = product.producto_insumo.insumo_variant.id;
+                  selectEl.innerHTML = `<option value="${variantId}" selected>${product.producto_insumo.insumo_variant.nombre}</option>`;
+                  selectEl.disabled = true;
+                  variantsDiv.style.display = 'block';
+                } else if (variants.length > 0) {
+                  // Todas las variantes disponibles
+                  selectEl.innerHTML = `<option value="">Selecciona ${tipoVariante.toLowerCase()}...</option>` +
+                    variants.map(v => `<option value="${v.id}" title="Stock: ${v.cantidad_en_stock}">${v.nombre}</option>`).join('');
+                  variantsDiv.style.display = 'block';
                 }
-              })
-              .catch(err => console.error('Error fetching insumo variants:', err));
-          }
+              }
+            })
+            .catch(err => console.error('Error fetching insumo variants:', err));
         }
       }
 
@@ -647,6 +652,17 @@ async function openProductDetail(productId) {
       modal.querySelector('.modal-box-close')?.addEventListener('click', closeProductDetail);
       modal.querySelector('.modal-add-cart')?.addEventListener('click', () => {
         const qty = parseInt(qtyInput.value) || 1;
+
+        // Si el producto tiene variantes y se requiere selección
+        const selectEl = modal.querySelector(`#variants-select-${product.id}`);
+        if (selectEl && selectEl.style.display !== 'none' && !selectEl.disabled) {
+          const selectedVariantId = selectEl.value;
+          if (!selectedVariantId) {
+            showToast('Por favor selecciona una variante', 'error');
+            return;
+          }
+        }
+
         for (let i = 0; i < qty; i++) {
           addToCart(product);
         }

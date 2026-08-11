@@ -979,10 +979,15 @@
                     <input type="text" id="insumoNombre" placeholder="Ej: Tela Premium" required style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
                 </div>
 
-                <!-- DESCRIPCIÓN -->
+                <!-- TIPO DE VARIANTE -->
                 <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 13px; font-weight: 600; color: #555;">Descripción</label>
-                    <textarea id="insumoDescripcion" placeholder="Descripción del insumo" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Tipo de Variante</label>
+                    <select id="insumoTipoVariante" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;">
+                        <option value="Color">Color</option>
+                        <option value="Tamaño">Tamaño</option>
+                        <option value="Capacidad">Capacidad</option>
+                        <option value="Medidas">Medidas</option>
+                    </select>
                 </div>
 
                 <!-- VARIANTES -->
