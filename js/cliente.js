@@ -87,8 +87,8 @@ function loadAndRenderProducts() {
     const BACKEND = 'https://puchia-backend-production.up.railway.app';
     const html = filtered.map(product => {
         const imgContent = product.portada
-            ? `<img src="${BACKEND}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
-            : `<div style="font-size: 80px; text-align: center; padding: 40px 20px; display: flex; align-items: center; justify-content: center; height: 180px;">${product.icon}</div>`;
+            ? `<img src="${BACKEND}${product.portada}" alt="${product.name}" class="product-image-responsive" onerror="this.outerHTML='<div class=product-icon-responsive>${product.icon}</div>'">`
+            : `<div class="product-icon-responsive">${product.icon}</div>`;
 
         // Determine summary text
         const summaryText = product.resumen || (product.descripcion_completa ? product.descripcion_completa.substring(0, 100) : '');
@@ -481,8 +481,8 @@ async function openProductDetail(productId) {
     let displayHTML;
     if (portadaItem) {
       const mainMedia = portadaItem.tipo === 'video'
-        ? `<video id="detailMainMedia" src="${BK}${portadaItem.url}" controls style="width:100%;max-height:280px;object-fit:contain;border-radius:8px;background:#000;"></video>`
-        : `<img id="detailMainMedia" src="${BK}${portadaItem.url}" alt="${product.name}" style="width:100%;max-height:280px;object-fit:contain;border-radius:8px;" onerror="this.outerHTML='<div style=font-size:80px;text-align:center;padding:20px>${product.icon}</div>'">`;
+        ? `<video id="detailMainMedia" src="${BK}${portadaItem.url}" controls class="detail-media-responsive video-element"></video>`
+        : `<img id="detailMainMedia" src="${BK}${portadaItem.url}" alt="${product.name}" class="detail-media-responsive" onerror="this.outerHTML='<div class=product-icon-responsive>${product.icon}</div>'">`;
 
       const thumbsHTML = mediaList.length > 1
         ? `<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;scrollbar-width:thin;">
@@ -491,7 +491,7 @@ async function openProductDetail(productId) {
               const thumbContent = m.tipo === 'video'
                 ? `<div style="width:100%;height:100%;background:#333;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;">▶</div>`
                 : `<img src="${BK}${m.url}" style="width:100%;height:100%;object-fit:cover;">`;
-              return `<div class="detail-thumb" onclick="changeDetailMedia(${idx})" style="width:56px;height:56px;flex-shrink:0;border-radius:6px;overflow:hidden;cursor:pointer;border:${isFirst ? '2px solid #9b2d7d' : '2px solid #ddd'};">${thumbContent}</div>`;
+              return `<div class="detail-thumb detail-thumb-responsive ${isFirst ? 'active' : ''}" onclick="changeDetailMedia(${idx})">${thumbContent}</div>`;
             }).join('')}
            </div>`
         : '';
@@ -522,10 +522,10 @@ async function openProductDetail(productId) {
                 ${formatCurrency(product.price)}
               </p>
 
-              <div class="detail-quantity" style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 16px; padding: 0 0 16px 0; border-bottom: 1px solid #eee;">
-                <button class="qty-decrease" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; color: #9b2d7d;">−</button>
-                <input type="number" class="qty-input" value="1" min="1" style="width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: 600; font-size: 14px;">
-                <button class="qty-increase" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-weight: 600; color: #9b2d7d;">+</button>
+              <div class="detail-quantity qty-container-responsive" style="margin-bottom: 16px; padding: 0 0 16px 0; border-bottom: 1px solid #eee;">
+                <button class="qty-decrease qty-button-responsive">−</button>
+                <input type="number" class="qty-input qty-input-responsive" value="1" min="1">
+                <button class="qty-increase qty-button-responsive">+</button>
               </div>
 
               <!-- DESCRIPCIÓN COMPLETA -->
@@ -688,7 +688,7 @@ function changeDetailMedia(idx) {
       vid.id = 'detailMainMedia';
       vid.src = `${BK}${item.url}`;
       vid.controls = true;
-      vid.style.cssText = 'width:100%;max-height:280px;object-fit:contain;border-radius:8px;background:#000;';
+      vid.classList.add('detail-media-responsive', 'video-element');
       mainEl.replaceWith(vid);
     }
   } else {
@@ -700,7 +700,7 @@ function changeDetailMedia(idx) {
       img.id = 'detailMainMedia';
       img.src = `${BK}${item.url}`;
       img.alt = '';
-      img.style.cssText = 'width:100%;max-height:280px;object-fit:contain;border-radius:8px;';
+      img.classList.add('detail-media-responsive');
       mainEl.replaceWith(img);
     }
   }
