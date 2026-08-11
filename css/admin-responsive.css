@@ -1,0 +1,215 @@
+/* ===============================================
+   ADMIN RESPONSIVE - Reemplaza estilos inline
+   =============================================== */
+
+/* PROBLEMA 1, 2, 3, 4: MODALES */
+.modal-responsive {
+  width: 95vw;           /* Desktop: 95% ancho */
+  max-width: 450px;      /* Desktop: máximo 450px */
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+  .modal-responsive {
+    width: 90vw;
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-responsive {
+    width: 85vw;
+    max-width: 95vw;     /* Móvil: casi full screen */
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-responsive {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 8px 8px 0 0;  /* Rounded top only */
+  }
+}
+
+/* PROBLEMA 5: MINIATURAS GALERÍA */
+.media-thumbnail {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .media-thumbnail {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+@media (max-width: 480px) {
+  .media-thumbnail {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 360px) {
+  .media-thumbnail {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+/* PROBLEMA 6: INPUT STOCK */
+.input-stock-responsive {
+  width: 80px;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  border: 1px solid #ddd;
+}
+
+@media (max-width: 768px) {
+  .input-stock-responsive {
+    width: 70px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-stock-responsive {
+    width: 60px;
+  }
+}
+
+@media (max-width: 360px) {
+  .input-stock-responsive {
+    width: 50px;
+  }
+}
+
+/* PROBLEMA 7: TABLA - COLUMNA CLIENTE */
+.table-cell-cliente {
+  padding: 8px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+@media (max-width: 768px) {
+  .table-cell-cliente {
+    max-width: 120px;
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-cell-cliente {
+    max-width: 100px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .table-cell-cliente {
+    max-width: 80px;
+  }
+}
+
+/* PROBLEMA 8: IMAGEN PORTADA */
+.image-thumbnail-small {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+@media (max-width: 480px) {
+  .image-thumbnail-small {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 360px) {
+  .image-thumbnail-small {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* PROBLEMA 9: FILA TABLA */
+.table-row-responsive {
+  border-bottom: 1px solid #eee;
+  height: 44px;
+}
+
+@media (max-width: 480px) {
+  .table-row-responsive {
+    height: 40px;
+  }
+}
+
+@media (max-width: 360px) {
+  .table-row-responsive {
+    height: auto;
+  }
+}
+
+/* PROBLEMA 10: BOTONES TABLA */
+.button-table-action {
+  padding: 4px 8px;
+  font-size: 11px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.button-table-action:hover {
+  background: #f0f0f0;
+}
+
+@media (max-width: 480px) {
+  .button-table-action {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .button-table-action {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* PROBLEMA 12: FLEX LAYOUT */
+.flex-layout-responsive {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .flex-layout-responsive {
+    gap: 6px;
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .flex-layout-responsive {
+    gap: 4px;
+    padding: 4px;
+  }
+}
