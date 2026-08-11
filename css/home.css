@@ -615,26 +615,32 @@
     }
 
     .stats-grid {
-        flex-direction: column;
-        gap: 50px;
+        flex-direction: row;
+        gap: 60px;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
     .stat-number {
         font-size: 42px;
     }
 
-    .how-grid,
+    .stat-label {
+        font-size: 13px;
+    }
+
+    .how-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .how-grid::before {
+        display: none;
+    }
+
     .categories-grid,
     .products-grid,
     .testimonials-grid {
         grid-template-columns: 1fr;
-    }
-
-    .how-grid::before {
-        width: 1px;
-        height: 100%;
-        top: 0;
-        left: 36px;
     }
 
     .featured-products,
@@ -650,6 +656,18 @@
 
     .categories-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .how-icon {
+        font-size: 40px;
+    }
+
+    .how-step h3 {
+        font-size: 15px;
+    }
+
+    .how-step p {
+        font-size: 13px;
     }
 
     .stats-section {
@@ -859,5 +877,32 @@
         bottom: 20px;
         right: 20px;
         font-size: 24px;
+    }
+}
+
+/* EXTRA SMALL MOBILE (360px and below) */
+@media (max-width: 360px) {
+    .stat-number {
+        font-size: 24px;
+    }
+
+    .stat-label {
+        font-size: 10px;
+    }
+
+    .how-grid {
+        gap: 16px;
+    }
+
+    .how-icon {
+        font-size: 32px;
+    }
+
+    .how-step h3 {
+        font-size: 13px;
+    }
+
+    .how-step p {
+        font-size: 11px;
     }
 }

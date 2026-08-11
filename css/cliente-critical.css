@@ -228,30 +228,37 @@
 /* ========== MOBILE BREAKPOINT ========== */
 @media (max-width: 480px) {
     .products-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
 
     .product-card {
         border-radius: 8px;
+        padding: 10px;
     }
 
     .product-image-wrapper {
-        min-height: 140px !important;
+        min-height: 120px !important;
     }
 
     .product-info {
         padding: 12px;
     }
 
+    .product-name,
+    .product-name-wrapper {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
     .product-price {
-        font-size: 16px;
+        font-size: 14px;
         margin-bottom: 8px;
     }
 
     .product-btn {
-        padding: 10px 12px;
-        font-size: 13px;
+        padding: 8px 12px;
+        font-size: 12px;
     }
 
     .modal-box {
@@ -270,5 +277,35 @@
     .cart-sidebar {
         width: 100%;
         right: -100%;
+    }
+}
+
+/* ========== EXTRA SMALL MOBILE (360px and below) ========== */
+@media (max-width: 360px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .product-card {
+        padding: 8px;
+    }
+
+    .product-image-wrapper {
+        min-height: 100px !important;
+    }
+
+    .product-name,
+    .product-name-wrapper {
+        font-size: 12px;
+    }
+
+    .product-price {
+        font-size: 13px;
+    }
+
+    .product-btn {
+        padding: 6px 10px;
+        font-size: 11px;
     }
 }

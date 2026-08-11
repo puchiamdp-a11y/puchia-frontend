@@ -403,7 +403,10 @@
         gap: 50px;
     }
 
-    .how-grid,
+    .how-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
     .categories-grid,
     .products-grid,
     .testimonials-grid {
@@ -412,6 +415,18 @@
 
     .categories-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .how-icon {
+        font-size: 40px;
+    }
+
+    .how-step h3 {
+        font-size: 15px;
+    }
+
+    .how-step p {
+        font-size: 13px;
     }
 
     .featured-products,
@@ -575,5 +590,24 @@
         bottom: 20px;
         right: 20px;
         font-size: 24px;
+    }
+}
+
+/* ========== EXTRA SMALL MOBILE (360px and below) ========== */
+@media (max-width: 360px) {
+    .how-grid {
+        gap: 16px;
+    }
+
+    .how-icon {
+        font-size: 32px;
+    }
+
+    .how-step h3 {
+        font-size: 13px;
+    }
+
+    .how-step p {
+        font-size: 11px;
     }
 }
