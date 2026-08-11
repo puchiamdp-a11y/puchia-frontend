@@ -414,18 +414,23 @@ footer {
 
 @media (max-width: 768px) {
     header {
-        padding: 15px 20px;
-        flex-direction: column;
-        gap: 15px;
+        padding: 12px 20px;
+        flex-direction: row;
+        gap: 10px;
     }
 
     .header-left {
-        width: 100%;
-        justify-content: space-between;
+        width: auto;
+        gap: 20px;
     }
 
     nav {
         gap: 20px;
+        font-size: 12px;
+    }
+
+    nav a {
+        font-size: 13px;
     }
 
     footer {
@@ -436,6 +441,116 @@ footer {
 
     .modal-content {
         padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: 8px 12px !important;
+        gap: 6px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .header-left {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        width: 100%;
+    }
+
+    .logo {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important;
+        flex-shrink: 0;
+    }
+
+    .logo-text {
+        font-size: 12px !important;
+        flex-shrink: 0;
+    }
+
+    nav {
+        display: flex !important;
+        gap: 12px !important;
+        width: 100% !important;
+        padding: 6px 0 !important;
+        border-top: 1px solid #f0f0f0 !important;
+        flex-wrap: wrap !important;
+        order: 2;
+    }
+
+    nav a {
+        font-size: 11px !important;
+        flex: 1 1 auto !important;
+        min-width: 50px !important;
+        text-align: center !important;
+        padding: 4px 0 !important;
+    }
+
+    nav a:after {
+        bottom: -2px !important;
+    }
+
+    .header-right {
+        gap: 10px !important;
+        margin-left: auto !important;
+        order: 1;
+    }
+
+    .admin-link {
+        font-size: 16px !important;
+        padding: 0 !important;
+    }
+
+    .cart-btn {
+        font-size: 18px !important;
+    }
+
+    .announcement-bar {
+        font-size: 10px !important;
+        padding: 4px 12px !important;
+        letter-spacing: 0;
+        word-break: break-word;
+    }
+
+    footer {
+        padding: 16px 12px !important;
+        font-size: 11px !important;
+    }
+
+    .modal-content {
+        padding: 12px !important;
+        max-width: 100% !important;
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-secondary {
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+    }
+
+    .form-group label {
+        font-size: 12px !important;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 13px !important;
+        padding: 10px !important;
+    }
+
+    .toast {
+        font-size: 12px !important;
+        padding: 12px 16px !important;
+        bottom: 20px !important;
+        right: 12px !important;
+        left: 12px !important;
     }
 }
 

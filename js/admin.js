@@ -930,7 +930,7 @@ async function editInsumo(id) {
     document.getElementById('insumoTitle').textContent = `Editar Insumo: ${insumo.nombre}`;
     document.getElementById('insumoId').value = insumo.id;
     document.getElementById('insumoNombre').value = insumo.nombre;
-    document.getElementById('insumoDescripcion').value = insumo.descripcion || '';
+    document.getElementById('insumoTipoVariante').value = insumo.tipo_variante || 'Color';
 
     // IMPORTANTE: Cargar variantes en variable global
     if (Array.isArray(insumo.insumo_variants)) {
@@ -963,11 +963,12 @@ async function saveInsumo(e) {
 
   const id = document.getElementById('insumoId').value;
   const nombre = document.getElementById('insumoNombre').value?.trim();
-  const descripcion = document.getElementById('insumoDescripcion').value?.trim();
+  const tipo_variante = document.getElementById('insumoTipoVariante').value;
 
   console.log('📍 [saveInsumo] Iniciando guardado de insumo');
   console.log('📍 [saveInsumo] ID:', id || 'NUEVO');
   console.log('📍 [saveInsumo] Nombre:', nombre);
+  console.log('📍 [saveInsumo] Tipo de variante:', tipo_variante);
   console.log('📍 [saveInsumo] Variantes en insumoVariantesEdit:', JSON.stringify(insumoVariantesEdit, null, 2));
 
   if (!nombre) {
@@ -996,7 +997,7 @@ async function saveInsumo(e) {
 
     const payload = {
       nombre,
-      descripcion,
+      tipo_variante,
       variantes: variantesValidas
     };
 
