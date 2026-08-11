@@ -1761,13 +1761,7 @@ async function descargarTicket() {
 
     // Crear HTML del ticket
     const ticketHTML = `
-      <div style="
-        width: 400px;
-        background: white;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-        box-sizing: border-box;
-        color: #333;
-      ">
+      <div class="modal-responsive" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; box-sizing: border-box; color: #333;">
         <!-- HEADER PÚRPURA -->
         <div style="
           background: #7f1f6e;
@@ -2769,15 +2763,7 @@ function openEmojiSelector() {
       justify-content: center;
     `;
     modal.innerHTML = `
-      <div style="
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        width: 100%;
-        max-width: 400px;
-        max-height: 500px;
-        overflow-y: auto;
-      ">
+      <div class="modal-responsive" style="padding: 20px; border-radius: 12px; overflow-y: auto;">
         <h3 style="margin-top: 0; margin-bottom: 16px; color: #333;">Selecciona un emoji</h3>
         <div id="emojiGrid" style="
           display: grid;
@@ -2939,7 +2925,7 @@ function exportarProductos() {
   const modal = document.createElement('div');
   modal.className = 'modal show';
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-responsive">
       <h2 style="margin-bottom: 20px; color: #7b2d8e;">Exportar Productos</h2>
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; border: 1px solid #ddd; border-radius: 8px; transition: all 0.2s;">
@@ -3167,7 +3153,7 @@ function mostrarErroresImportacion(errores) {
   const modal = document.createElement('div');
   modal.className = 'modal show';
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
+    <div class="modal-responsive" style="overflow-y: auto;">
       <h2 style="margin-bottom: 20px; color: #c5221f;">Errores en la importación</h2>
       <div style="background: #fce8e6; border: 1px solid #f1d5d3; border-radius: 8px; padding: 16px; margin-bottom: 20px; max-height: 300px; overflow-y: auto;">
         ${errores.map((e, i) => `<div style="margin-bottom: 8px; font-size: 13px;">❌ ${e}</div>`).join('')}
