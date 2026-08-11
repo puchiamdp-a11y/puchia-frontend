@@ -615,12 +615,18 @@
     }
 
     .stats-grid {
-        flex-direction: column;
-        gap: 50px;
+        flex-direction: row;
+        gap: 60px;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
     .stat-number {
         font-size: 42px;
+    }
+
+    .stat-label {
+        font-size: 13px;
     }
 
     .how-grid,
@@ -859,5 +865,16 @@
         bottom: 20px;
         right: 20px;
         font-size: 24px;
+    }
+}
+
+/* EXTRA SMALL MOBILE (360px and below) */
+@media (max-width: 360px) {
+    .stat-number {
+        font-size: 24px;
+    }
+
+    .stat-label {
+        font-size: 10px;
     }
 }
