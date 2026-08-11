@@ -155,8 +155,8 @@ function renderClientes() {
       <td><strong>${c.nombre}</strong></td>
       <td>${c.whatsapp || '-'}</td>
       <td>${c.ciudad || '-'}</td>
-      <td><button class="badge badge-${c.activo ? 'activo' : 'inactivo'}" onclick="toggleClienteEstado(${c.id}, ${c.activo}, '${c.nombre.replace(/'/g, "\\'")}');" style="border: none; cursor: pointer; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">${c.activo ? 'Activo' : 'Inactivo'}</button></td>
-      <td style="font-size:12px;">${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</td>
+      <td><button class="badge badge-${c.activo ? 'activo' : 'inactivo'} badge-button-responsive" onclick="toggleClienteEstado(${c.id}, ${c.activo}, '${c.nombre.replace(/'/g, "\\'")}');">${c.activo ? 'Activo' : 'Inactivo'}</button></td>
+      <td class="table-cell-fecha-responsive">${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</td>
       <td><div class="acciones-cell">
         <button class="btn btn-sm btn-secondary" onclick="verCliente(${c.id})">Ver</button>
         <button class="btn btn-sm btn-warning" onclick="editarCliente(${c.id})">Editar</button>
@@ -178,7 +178,7 @@ function renderPaginacion() {
   }
 
   html += `<button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual >= totalPaginas ? 'disabled' : ''}>Sig →</button>`;
-  html += `<span style="font-size:13px;color:#666;margin-left:8px;">Pág ${paginaActual} / ${totalPaginas}</span>`;
+  html += `<span class="pagination-info-responsive">Pág ${paginaActual} / ${totalPaginas}</span>`;
   pag.innerHTML = html;
 }
 
@@ -221,10 +221,10 @@ async function verCliente(id) {
         <div class="detail-row"><span class="detail-label">Ciudad:</span> ${c.ciudad || '-'}</div>
         <div class="detail-row"><span class="detail-label">Cód. Postal:</span> ${c.codigo_postal || '-'}</div>
         <div class="detail-row"><span class="detail-label">Estado:</span> <span class="badge badge-${c.activo ? 'activo' : 'inactivo'}">${c.activo ? 'Activo' : 'Inactivo'}</span></div>
-        <div style="margin-top:12px;padding:12px;background:#f5f5f5;border-radius:6px;">
+        <div class="detail-box-responsive">
           <div class="detail-row"><span class="detail-label">Pedidos históricos:</span> <strong>${pedidosHistoricos}</strong></div>
           <div class="detail-row"><span class="detail-label">Pedidos nuevos (web):</span> <strong>${pedidosNuevos}</strong></div>
-          <div class="detail-row" style="background:#fff;padding:8px;border-radius:4px;margin-top:8px;"><span class="detail-label">Todos los pedidos:</span> <strong style="font-size:16px;color:#7f1f6e;">${totalPedidos}</strong></div>
+          <div class="detail-row detail-row-highlight-responsive"><span class="detail-label">Todos los pedidos:</span> <strong class="detail-value-highlight-responsive">${totalPedidos}</strong></div>
         </div>
         <div class="detail-row"><span class="detail-label">Notas:</span> ${c.notas || '-'}</div>
         <div class="detail-row"><span class="detail-label">Creado:</span> ${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</div>

@@ -1,0 +1,128 @@
+/* ===============================================
+   COMMON RESPONSIVE - Reemplaza estilos inline
+   =============================================== */
+
+/* PROBLEMA 1: BANNER PREFILL */
+.banner-prefill-responsive {
+  background: #eafaf1;
+  border: 1px solid #a9dfbf;
+  color: #1e8449;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.banner-prefill-responsive strong {
+  font-weight: 700;
+  color: #1e8449;
+}
+
+@media (max-width: 768px) {
+  .banner-prefill-responsive {
+    padding: 8px 12px;
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner-prefill-responsive {
+    padding: 6px 10px;
+    font-size: 11px;
+    margin-bottom: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .banner-prefill-responsive {
+    padding: 5px 8px;
+    font-size: 10px;
+    margin-bottom: 12px;
+  }
+}
+
+/* PROBLEMA 2: MODAL BUTTON */
+.modal-button-responsive {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-button-responsive:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.modal-button-responsive:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .modal-button-responsive {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-button-responsive {
+    padding: 10px 16px;
+    font-size: 13px;
+    min-height: 40px;
+    flex: 1 1 48%;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-button-responsive {
+    padding: 10px 12px;
+    font-size: 12px;
+    min-height: 40px;
+    flex: 1 1 100%;
+  }
+}
+
+/* PROBLEMA 3: MODAL HEADER (h2) */
+.modal-header-responsive {
+  color: #9b2d7d;
+  font-size: 24px;
+  margin: 0 0 16px;
+  font-weight: 700;
+  text-align: center;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+@media (max-width: 768px) {
+  .modal-header-responsive {
+    font-size: 20px;
+    margin: 0 0 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header-responsive {
+    font-size: 18px;
+    margin: 0 0 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-header-responsive {
+    font-size: 16px;
+    margin: 0 0 10px;
+  }
+}
