@@ -1571,10 +1571,11 @@ function agregarProductoRow() {
   tr.id = `ordenRow_${rowId}`;
   tr.innerHTML = `
     <td style="padding: 8px; border-bottom: 1px solid #eee;">
-      <select id="productoSelect_${rowId}" onchange="actualizarFilaProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+      <select id="productoSelect_${rowId}" onchange="actualizarFilaProducto(${rowId}); actualizarVariantesProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
         <option value="">-- Selecciona producto --</option>
         ${opciones}
       </select>
+      <div id="variantesContainer_${rowId}" style="display: none; margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0;"></div>
     </td>
     <td style="padding: 8px; border-bottom: 1px solid #eee;">
       <input type="number" id="cantidadInput_${rowId}" value="1" min="1" onchange="actualizarFilaProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: right; font-size: 13px;">
@@ -1604,6 +1605,67 @@ function actualizarFilaProducto(rowId) {
   subtotalCell.textContent = `$${subtotal.toFixed(2)}`;
 
   actualizarTotalOrden();
+}
+
+async function actualizarVariantesProducto(rowId) {
+  const select = document.getElementById(`productoSelect_${rowId}`);
+  const variantesContainer = document.getElementById(`variantesContainer_${rowId}`);
+
+  if (!select || !select.value) {
+    variantesContainer.style.display = 'none';
+    return;
+  }
+
+  const productoId = parseInt(select.value);
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/productos/${productoId}`);
+    const data = await res.json();
+
+    if (!data.success || !data.data) {
+      variantesContainer.style.display = 'none';
+      return;
+    }
+
+    const producto = data.data;
+
+    if (producto.stock_type !== 'insumo') {
+      variantesContainer.style.display = 'none';
+      return;
+    }
+
+    const insumoRes = await fetch(`${API_BASE_URL}/insumos/${producto.insumo_id}`);
+    const insumoData = await insumoRes.json();
+
+    if (!insumoData.success || !insumoData.data) {
+      variantesContainer.style.display = 'none';
+      return;
+    }
+
+    const insumo = insumoData.data;
+    const variants = insumo.insumo_variants || [];
+
+    if (variants.length === 0) {
+      variantesContainer.style.display = 'none';
+      return;
+    }
+
+    let html = `<label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #666;">${insumo.tipo_variante}:</label>`;
+    html += `<select id="variantSelect_${rowId}" data-tipo-variante="${insumo.tipo_variante}" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">`;
+    html += `<option value="">-- Selecciona ${insumo.tipo_variante.toLowerCase()} --</option>`;
+
+    variants.forEach(variant => {
+      const stock = variant.cantidad_en_stock || 0;
+      html += `<option value="${variant.nombre}">${variant.nombre} (${stock} en stock)</option>`;
+    });
+
+    html += `</select>`;
+    variantesContainer.innerHTML = html;
+    variantesContainer.style.display = 'block';
+  } catch (error) {
+    console.error('Error actualizando variantes:', error);
+    variantesContainer.style.display = 'none';
+  }
 }
 
 function eliminarProductoRow(rowId) {
@@ -1703,7 +1765,18 @@ async function guardarOrden(e) {
     const cantidad = parseInt(cantidadInput.value);
 
     if (productoId && cantidad > 0) {
-      items.push({ producto_id: parseInt(productoId), cantidad });
+      const item = { producto_id: parseInt(productoId), cantidad };
+
+      // Recopilar variantes seleccionadas si existen
+      const variantSelect = document.getElementById(`variantSelect_${rowId}`);
+      if (variantSelect && variantSelect.value) {
+        const tipoVariante = variantSelect.dataset.tipoVariante;
+        item.variantes_seleccionadas = {
+          [tipoVariante]: variantSelect.value
+        };
+      }
+
+      items.push(item);
     }
   });
 
