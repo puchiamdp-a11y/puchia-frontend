@@ -1496,6 +1496,69 @@ function toggleNuevoCliente() {
   }
 }
 
+async function guardarNuevoCliente() {
+  const nombre = document.getElementById('nuevoClienteNombre')?.value.trim();
+  const whatsapp = document.getElementById('nuevoClienteWhatsapp')?.value.trim();
+  const dni = document.getElementById('nuevoClienteDni')?.value.trim() || null;
+  const direccion = document.getElementById('nuevoClienteDireccion')?.value.trim() || null;
+  const codigoPostal = document.getElementById('nuevoClienteCP')?.value.trim() || null;
+  const ciudad = document.getElementById('nuevoClienteCiudad')?.value.trim() || null;
+  const provincia = document.getElementById('nuevoClienteProvincia')?.value.trim() || null;
+  const email = document.getElementById('nuevoClienteEmail')?.value.trim() || null;
+
+  if (!nombre || !whatsapp) {
+    puchiaAlert('Nombre y WhatsApp son obligatorios', 'error');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/clientes`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nombre,
+        whatsapp,
+        dni,
+        direccion,
+        codigo_postal: codigoPostal,
+        ciudad,
+        provincia,
+        email
+      })
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      puchiaAlert('Error al guardar cliente: ' + (data.error || 'desconocido'), 'error');
+      return;
+    }
+
+    puchiaAlert('Cliente guardado exitosamente', 'success');
+
+    // Limpiar formulario
+    document.getElementById('nuevoClienteNombre').value = '';
+    document.getElementById('nuevoClienteWhatsapp').value = '';
+    document.getElementById('nuevoClienteDni').value = '';
+    document.getElementById('nuevoClienteDireccion').value = '';
+    document.getElementById('nuevoClienteCP').value = '';
+    document.getElementById('nuevoClienteCiudad').value = '';
+    document.getElementById('nuevoClienteProvincia').value = '';
+    document.getElementById('nuevoClienteEmail').value = '';
+
+    // Recargar clientes y ocultar formulario
+    await cargarClientesEnDropdown();
+    toggleNuevoCliente();
+
+  } catch (error) {
+    console.error('Error guardando cliente:', error);
+    puchiaAlert('Error al guardar cliente', 'error');
+  }
+}
+
 function agregarProductoRow() {
   const rowId = ordenManualRowCounter++;
   const tbody = document.getElementById('ordenItemsTable');
