@@ -1852,14 +1852,14 @@ async function guardarOrden(e) {
       loadAllOrders();
       loadRecentOrders();
     } else {
-      puchiaAlert('Error al crear orden: ' + (data.error || 'desconocido'), 'error');
+      puchiaAlert('Error al crear pedido: ' + (data.error || 'desconocido'), 'error');
     }
   } catch (error) {
-    console.error('Error guardando orden:', error);
+    console.error('Error guardando pedido:', error);
     puchiaAlert('Error de conexión: ' + error.message, 'error');
   } finally {
     btnGuardar.disabled = false;
-    btnGuardar.textContent = 'Guardar Orden';
+    btnGuardar.textContent = 'Guardar Pedido';
   }
 }
 
@@ -1882,7 +1882,7 @@ async function descargarTicket() {
   const orden = ordenActualData || ordenCreadaData;
 
   if (!orden) {
-    puchiaAlert('No hay orden para descargar', 'error');
+    puchiaAlert('No hay pedido para descargar', 'error');
     return;
   }
 
@@ -1921,7 +1921,7 @@ async function descargarTicket() {
             margin-bottom: 18px;
             text-align: center;
           ">
-            <div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600;">Código de orden</div>
+            <div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600;">Código de pedido</div>
             <div style="font-size: 18px; color: #7f1f6e; font-weight: 700; font-family: monospace; letter-spacing: 1px;">${orden.id_unico}</div>
           </div>
 
@@ -2077,7 +2077,7 @@ async function descargarTicket() {
 
 function copiarLinkSeguimiento() {
   if (!ordenCreadaIdUnico) {
-    puchiaAlert('No hay orden para obtener link', 'error');
+    puchiaAlert('No hay pedido para obtener link', 'error');
     return;
   }
 
@@ -2104,7 +2104,7 @@ async function abrirEditarOrden(id) {
 
     const data = await response.json();
     if (!data.success) {
-      puchiaAlert('Error al cargar orden', 'error');
+      puchiaAlert('Error al cargar pedido', 'error');
       return;
     }
 
@@ -2124,7 +2124,7 @@ async function abrirEditarOrden(id) {
     document.getElementById('modalEditarOrden').style.display = 'flex';
   } catch (error) {
     console.error('Error:', error);
-    puchiaAlert('Error al cargar orden', 'error');
+    puchiaAlert('Error al cargar pedido', 'error');
   }
 }
 
@@ -2174,7 +2174,7 @@ async function guardarEditarOrden() {
     const data = await response.json();
 
     if (data.success) {
-      puchiaAlert('Orden actualizada exitosamente', 'success');
+      puchiaAlert('Pedido actualizado exitosamente', 'success');
       cerrarEditarOrden();
       loadAllOrders(); // Recargar tabla
     } else {
@@ -2202,7 +2202,7 @@ async function updateOrderStatus(orderId, newStatus) {
     });
 
     if (response.ok) {
-      puchiaAlert('Estado de la orden actualizado', 'success');
+      puchiaAlert('Estado del pedido actualizado', 'success');
       loadAllOrders();
     }
   } catch (error) {
@@ -2239,16 +2239,16 @@ async function confirmarEliminarOrden() {
 
     if (response.ok) {
       const data = await response.json();
-      puchiaAlert('Orden eliminada exitosamente', 'success');
+      puchiaAlert('Pedido eliminado exitosamente', 'success');
       closeDeleteConfirm();
       loadAllOrders();
     } else {
       const errorData = await response.json();
-      puchiaAlert(errorData.mensaje || 'Error al eliminar la orden', 'error');
+      puchiaAlert(errorData.mensaje || 'Error al eliminar el pedido', 'error');
     }
   } catch (error) {
-    console.error('Error eliminando orden:', error);
-    puchiaAlert('Error al eliminar la orden', 'error');
+    console.error('Error eliminando pedido:', error);
+    puchiaAlert('Error al eliminar el pedido', 'error');
   }
 }
 

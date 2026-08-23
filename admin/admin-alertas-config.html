@@ -91,8 +91,8 @@
                 <h3>Tipos de Alerta</h3>
                 <div class="toggle-row">
                     <div>
-                        <div class="toggle-label">Nueva Orden</div>
-                        <div class="toggle-desc">Notificar cuando se recibe una nueva orden</div>
+                        <div class="toggle-label">Nuevo Pedido</div>
+                        <div class="toggle-desc">Notificar cuando se recibe un nuevo pedido</div>
                     </div>
                     <label class="toggle">
                         <input type="checkbox" id="alertaOrdenNueva" checked />
@@ -102,7 +102,7 @@
                 <div class="toggle-row">
                     <div>
                         <div class="toggle-label">Cambio de Estado</div>
-                        <div class="toggle-desc">Notificar cuando cambia el estado de una orden</div>
+                        <div class="toggle-desc">Notificar cuando cambia el estado de un pedido</div>
                     </div>
                     <label class="toggle">
                         <input type="checkbox" id="alertaCambioEstado" checked />
@@ -122,7 +122,7 @@
                 <div class="toggle-row">
                     <div>
                         <div class="toggle-label">Alertas al Cliente</div>
-                        <div class="toggle-desc">Enviar confirmaciones de orden al WhatsApp del cliente</div>
+                        <div class="toggle-desc">Enviar confirmaciones de pedido al WhatsApp del cliente</div>
                     </div>
                     <label class="toggle">
                         <input type="checkbox" id="alertasCliente" />
@@ -139,9 +139,9 @@
                 <h3>Templates de Mensajes</h3>
 
                 <div class="form-group">
-                    <label>Nueva Orden (Admin)</label>
-                    <textarea id="tplOrdenNueva" rows="3">📦 *NUEVA ORDEN - Puchia*
-Orden: #{ordenId}
+                    <label>Nuevo Pedido (Admin)</label>
+                    <textarea id="tplOrdenNueva" rows="3">📦 *NUEVO PEDIDO - Puchia*
+Pedido: #{ordenId}
 Cliente: #{clienteNombre}
 Total: ${total}</textarea>
                     <div class="template-preview" id="prevOrdenNueva">Vista previa cargando...</div>
@@ -150,7 +150,7 @@ Total: ${total}</textarea>
                 <div class="form-group" style="margin-top:16px;">
                     <label>Cambio de Estado (Admin)</label>
                     <textarea id="tplCambioEstado" rows="3">📋 *CAMBIO DE ESTADO - Puchia*
-Orden: #{ordenId}
+Pedido: #{ordenId}
 #{estadoAnterior} → #{nuevoEstado}</textarea>
                     <div class="template-preview" id="prevCambioEstado">Vista previa cargando...</div>
                 </div>
