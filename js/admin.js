@@ -1571,22 +1571,43 @@ function agregarProductoRow() {
   tr.id = `ordenRow_${rowId}`;
   tr.innerHTML = `
     <td style="padding: 8px; border-bottom: 1px solid #eee;">
-      <select id="productoSelect_${rowId}" onchange="actualizarFilaProducto(${rowId}); actualizarVariantesProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+      <select id="productoSelect_${rowId}" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
         <option value="">-- Selecciona producto --</option>
         ${opciones}
       </select>
       <div id="variantesContainer_${rowId}" style="display: none; margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0;"></div>
     </td>
     <td style="padding: 8px; border-bottom: 1px solid #eee;">
-      <input type="number" id="cantidadInput_${rowId}" value="1" min="1" onchange="actualizarFilaProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: right; font-size: 13px;">
+      <input type="number" id="cantidadInput_${rowId}" value="1" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: right; font-size: 13px;">
     </td>
     <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right; font-size: 13px;" id="precioCell_${rowId}">$0.00</td>
     <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right; font-size: 13px; font-weight: 600;" id="subtotalCell_${rowId}">$0.00</td>
     <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">
-      <button type="button" onclick="eliminarProductoRow(${rowId})" style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 18px;">×</button>
+      <button type="button" id="deleteBtn_${rowId}" style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 18px;">×</button>
     </td>
   `;
   tbody.appendChild(tr);
+
+  // Agregar event listeners (más seguro que onchange inline)
+  const select = document.getElementById(`productoSelect_${rowId}`);
+  const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
+  const deleteBtn = document.getElementById(`deleteBtn_${rowId}`);
+
+  select.addEventListener('change', () => {
+    console.log(`✅ [EVENTO] Select cambió, rowId: ${rowId}`);
+    actualizarFilaProducto(rowId);
+    actualizarVariantesProducto(rowId);
+  });
+
+  cantidadInput.addEventListener('change', () => {
+    console.log(`✅ [EVENTO] Cantidad cambió, rowId: ${rowId}`);
+    actualizarFilaProducto(rowId);
+  });
+
+  deleteBtn.addEventListener('click', () => {
+    console.log(`✅ [EVENTO] Delete clicked, rowId: ${rowId}`);
+    eliminarProductoRow(rowId);
+  });
 }
 
 function actualizarFilaProducto(rowId) {
