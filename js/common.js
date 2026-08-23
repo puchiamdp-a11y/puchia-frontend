@@ -497,3 +497,38 @@ window.addEventListener('storage', (e) => {
         renderCartSidebar();
     }
 });
+
+/* ═════════════════════════════════════════════════════════════════
+   HAMBURGER MENU - Mobile Navigation
+   ═════════════════════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const mobileNav = document.getElementById('mobileNav');
+    const navLinks = document.querySelectorAll('.mobile-nav-sidebar a');
+
+    if (!hamburgerBtn || !mobileNav) return;
+
+    hamburgerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        mobileNav.classList.toggle('open');
+    });
+
+    mobileNav.addEventListener('click', (e) => {
+        if (e.target === mobileNav) {
+            mobileNav.classList.remove('open');
+        }
+    });
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            mobileNav.classList.remove('open');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!hamburgerBtn.contains(e.target) && !mobileNav.contains(e.target)) {
+            mobileNav.classList.remove('open');
+        }
+    });
+});
