@@ -68,7 +68,7 @@
         <aside class="admin-sidebar">
             <ul class="sidebar-nav">
                 <li><a href="#" class="active" data-page="dashboard">📊 Dashboard</a></li>
-                <li><a href="#" data-page="ordenes">📋 Órdenes</a></li>
+                <li><a href="#" data-page="ordenes">📋 Pedidos</a></li>
                 <li><a href="#" data-page="clientes">👥 Clientes</a></li>
                 <li><a href="#" data-page="productos">🛍️ Productos</a></li>
                 <li class="menu-toggle-item">
@@ -93,11 +93,11 @@
                 <!-- STATS -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Órdenes Pendientes</div>
+                        <div class="stat-label">Pedidos Pendientes</div>
                         <div class="stat-value" id="stat-pending">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Órdenes Completadas</div>
+                        <div class="stat-label">Pedidos Completados</div>
                         <div class="stat-value" id="stat-completed">0</div>
                     </div>
                     <div class="stat-card">
@@ -204,9 +204,9 @@
 
             <!-- ÓRDENES PAGE -->
             <div id="ordenes-page" class="page" style="display: none;">
-                <h1 class="page-title">Órdenes</h1>
+                <h1 class="page-title">Pedidos</h1>
                 <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <button class="btn btn-primary" id="btnCrearOrdenManual" onclick="abrirModalCrearOrden()">➕ Crear Orden Manual</button>
+                    <button class="btn btn-primary" id="btnCrearOrdenManual" onclick="abrirModalCrearOrden()">➕ Crear Pedido Manual</button>
                 </div>
 
                 <!-- FILTROS Y BÚSQUEDA -->
@@ -657,7 +657,7 @@
         <div style="background: white; border-radius: 16px; width: 100%; max-width: 800px; position: relative; margin: 20px;">
             <div style="padding: 32px 32px 0; position: relative;">
                 <button type="button" onclick="cerrarModalOrden()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
-                <h2 style="font-size: 20px; margin: 0 0 24px; color: #7f1f6e;">Crear Orden Manual</h2>
+                <h2 style="font-size: 20px; margin: 0 0 24px; color: #7f1f6e;">Crear Pedido Manual</h2>
             </div>
 
             <form id="formCrearOrden" style="display: flex; flex-direction: column; max-height: 85vh; overflow-y: auto;">
@@ -781,7 +781,7 @@
                 <!-- Botones -->
                 <div style="display: flex; gap: 12px; justify-content: flex-end; padding: 24px 32px; margin-top: 16px; border-top: 1px solid #eee; background: #f9f9f9;">
                     <button type="button" class="btn btn-secondary" onclick="cerrarModalOrden()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnGuardarOrden">Guardar Orden</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarOrden">Guardar Pedido</button>
                 </div>
             </form>
         </div>
@@ -790,8 +790,8 @@
     <!-- MODAL SUCESO CREAR ORDEN -->
     <div class="modal" id="modalSucesoOrden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; position: relative; text-align: center;">
-            <h2 style="color: #7f1f6e; margin-bottom: 8px; font-size: 22px;">✅ Orden Creada Exitosamente</h2>
-            <p style="color: #666; margin-bottom: 24px; font-size: 14px;">Tu orden está lista. Elige una acción:</p>
+            <h2 style="color: #7f1f6e; margin-bottom: 8px; font-size: 22px;">✅ Pedido Creado Exitosamente</h2>
+            <p style="color: #666; margin-bottom: 24px; font-size: 14px;">Tu pedido está listo. Elige una acción:</p>
 
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                 <button type="button" class="btn btn-primary" onclick="descargarTicket()" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -811,7 +811,7 @@
         <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 100%; position: relative;">
             <button type="button" onclick="cerrarEditarOrden()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
 
-            <h2 style="color: #7f1f6e; margin-bottom: 8px; font-size: 22px;">✏️ Editar Orden</h2>
+            <h2 style="color: #7f1f6e; margin-bottom: 8px; font-size: 22px;">✏️ Editar Pedido</h2>
             <p id="editOrdenCode" style="color: #666; font-size: 14px; margin-bottom: 24px; font-weight: 600; font-family: monospace;"></p>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
@@ -884,7 +884,7 @@
         <div style="background:linear-gradient(135deg,#7b2d8e 0%,#9d4cb8 100%); border-radius:20px; padding:36px 32px; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(123,45,142,0.4); text-align:center; color:white;">
             <div style="font-size:56px; margin-bottom:12px;">🗑️</div>
             <h2 style="color:white; font-size:22px; margin:0 0 12px 0; font-weight:600;">Confirmar eliminación</h2>
-            <p style="color:rgba(255,255,255,0.92); font-size:15px; margin:0 0 8px 0; line-height:1.5;">¿Estás seguro de que deseas eliminar la orden <strong id="deleteOrderId"></strong>?</p>
+            <p style="color:rgba(255,255,255,0.92); font-size:15px; margin:0 0 8px 0; line-height:1.5;">¿Estás seguro de que deseas eliminar el pedido <strong id="deleteOrderId"></strong>?</p>
             <p style="color:rgba(255,255,255,0.7); font-size:12px; margin:0 0 24px 0;">Esta acción no se puede deshacer.</p>
             <div style="display:flex; gap:12px; justify-content:center;">
                 <button onclick="closeDeleteConfirm()" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.4); padding:12px 28px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; min-width:110px;">Cancelar</button>
