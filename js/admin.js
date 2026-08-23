@@ -1611,33 +1611,58 @@ async function actualizarVariantesProducto(rowId) {
   const select = document.getElementById(`productoSelect_${rowId}`);
   const variantesContainer = document.getElementById(`variantesContainer_${rowId}`);
 
+  console.log(`🔍 [actualizarVariantesProducto] rowId: ${rowId}, select existe: ${!!select}, tiene valor: ${select?.value}`);
+
   if (!select || !select.value) {
+    console.log(`⚠️ [actualizarVariantesProducto] Select vacío o no existe`);
     variantesContainer.style.display = 'none';
     return;
   }
 
   const productoId = parseInt(select.value);
+  console.log(`📦 [actualizarVariantesProducto] Buscando producto ID: ${productoId}`);
 
   try {
-    const res = await fetch(`${API_BASE_URL}/productos/${productoId}`);
+    const url = `${API_BASE_URL}/productos/${productoId}`;
+    console.log(`🌐 [actualizarVariantesProducto] Fetch a: ${url}`);
+    const res = await fetch(url);
     const data = await res.json();
 
+    console.log(`📡 [actualizarVariantesProducto] Respuesta status: ${res.status}`);
+    console.log(`📡 [actualizarVariantesProducto] Respuesta completa:`, data);
+
     if (!data.success || !data.data) {
+      console.error(`❌ [actualizarVariantesProducto] Respuesta no válida:`, data);
       variantesContainer.style.display = 'none';
       return;
     }
 
     const producto = data.data;
+    console.log(`✅ [actualizarVariantesProducto] Producto encontrado:`, producto.nombre);
+    console.log(`📌 [actualizarVariantesProducto] stock_type: ${producto.stock_type}, insumo_id: ${producto.insumo_id}`);
 
     if (producto.stock_type !== 'insumo') {
+      console.log(`ℹ️ [actualizarVariantesProducto] El producto no es tipo insumo, ocultando variantes`);
       variantesContainer.style.display = 'none';
       return;
     }
 
-    const insumoRes = await fetch(`${API_BASE_URL}/insumos/${producto.insumo_id}`);
+    if (!producto.insumo_id) {
+      console.error(`❌ [actualizarVariantesProducto] El producto no tiene insumo_id`);
+      variantesContainer.style.display = 'none';
+      return;
+    }
+
+    const insumoUrl = `${API_BASE_URL}/insumos/${producto.insumo_id}`;
+    console.log(`🌐 [actualizarVariantesProducto] Fetch a insumo: ${insumoUrl}`);
+    const insumoRes = await fetch(insumoUrl);
     const insumoData = await insumoRes.json();
 
+    console.log(`📡 [actualizarVariantesProducto] Respuesta insumo status: ${insumoRes.status}`);
+    console.log(`📡 [actualizarVariantesProducto] Respuesta insumo completa:`, insumoData);
+
     if (!insumoData.success || !insumoData.data) {
+      console.error(`❌ [actualizarVariantesProducto] Insumo no encontrado:`, insumoData);
       variantesContainer.style.display = 'none';
       return;
     }
@@ -1645,7 +1670,12 @@ async function actualizarVariantesProducto(rowId) {
     const insumo = insumoData.data;
     const variants = insumo.insumo_variants || [];
 
+    console.log(`✅ [actualizarVariantesProducto] Insumo encontrado:`, insumo.nombre);
+    console.log(`📋 [actualizarVariantesProducto] Tipo variante: ${insumo.tipo_variante}`);
+    console.log(`📋 [actualizarVariantesProducto] Variantes: ${variants.length}`, variants);
+
     if (variants.length === 0) {
+      console.log(`ℹ️ [actualizarVariantesProducto] Sin variantes disponibles`);
       variantesContainer.style.display = 'none';
       return;
     }
@@ -1662,8 +1692,11 @@ async function actualizarVariantesProducto(rowId) {
     html += `</select>`;
     variantesContainer.innerHTML = html;
     variantesContainer.style.display = 'block';
+
+    console.log(`✅ [actualizarVariantesProducto] Variantes renderizadas exitosamente`);
   } catch (error) {
-    console.error('Error actualizando variantes:', error);
+    console.error(`❌ [actualizarVariantesProducto] Error completo:`, error);
+    console.error(`❌ [actualizarVariantesProducto] Stack:`, error.stack);
     variantesContainer.style.display = 'none';
   }
 }
