@@ -532,8 +532,10 @@ footer {
     .header-left {
         display: flex !important;
         align-items: center !important;
-        gap: 12px !important;
+        gap: 0 !important;
         flex: 1;
+        width: 100% !important;
+        justify-content: flex-start !important;
     }
 
     .logo {
@@ -565,8 +567,8 @@ footer {
 
     .header-right {
         gap: 10px !important;
-        margin-left: auto !important;
         order: 1;
+        flex-shrink: 0;
     }
 
     .admin-link {
@@ -585,13 +587,16 @@ footer {
         font-size: 24px !important;
         order: -1 !important;
         flex-shrink: 0;
+        flex: 0 0 auto !important;
     }
 
     .logo-container {
-        flex: 1;
+        flex: 1 !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
+        width: 100% !important;
+        margin: 0 auto !important;
     }
 
     .announcement-bar {
