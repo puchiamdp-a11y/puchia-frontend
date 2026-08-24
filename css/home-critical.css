@@ -347,18 +347,34 @@
 }
 
 .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
+    display: flex;
+    gap: 20px;
     max-width: 1300px;
     margin: 0 auto;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-behavior: smooth;
+}
+
+@media (min-width: 1024px) {
+    .testimonials-grid {
+        flex-wrap: wrap;
+        overflow-x: visible;
+    }
 }
 
 .testimonial-card {
     background: #fafbfc;
     border-radius: 12px;
-    padding: 32px;
+    padding: 20px;
     border: 1px solid #e0e0e0;
+    min-width: 280px;
+    max-width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 13px;
 }
 
 /* ========== WHATSAPP FLOAT ========== */
@@ -581,13 +597,16 @@
     }
 
     .testimonials-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
         gap: 12px !important;
+        scroll-snap-type: x mandatory;
     }
 
     .testimonial-card {
         padding: 12px !important;
-        font-size: 12px !important;
+        font-size: 11px !important;
+        min-width: 240px !important;
+        max-width: 240px !important;
+        scroll-snap-align: start;
     }
 
     .whatsapp-float {

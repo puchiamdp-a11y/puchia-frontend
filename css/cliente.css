@@ -900,7 +900,7 @@
   }
 
   .categories-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   .product-card {
@@ -1005,12 +1005,7 @@
   }
 
   header nav {
-    display: flex !important;
-    width: 100% !important;
-    gap: 12px !important;
-    padding: 6px 0 !important;
-    border-top: 1px solid #f0f0f0 !important;
-    flex-wrap: wrap !important;
+    display: none !important;
   }
 
   header nav a {
