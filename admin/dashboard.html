@@ -807,8 +807,8 @@
     </div>
 
     <!-- MODAL EDITAR ORDEN -->
-    <div class="modal" id="modalEditarOrden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 100%; position: relative;">
+    <div class="modal" id="modalEditarOrden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 100%; position: relative; margin: 20px auto;">
             <button type="button" onclick="cerrarEditarOrden()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
 
             <h2 style="color: #7f1f6e; margin-bottom: 8px; font-size: 22px;">✏️ Editar Pedido</h2>
@@ -838,9 +838,53 @@
                 <input type="date" id="editFechaEntrega" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
             </div>
 
+            <!-- PRODUCTOS DEL PEDIDO -->
+            <div style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <label style="display: block; font-weight: 600; color: #333; font-size: 14px;">PRODUCTOS DEL PEDIDO</label>
+                    <button type="button" class="btn btn-secondary" onclick="abrirModalAgregarProductoEdicion()" style="font-size: 12px; padding: 6px 12px;">+ Agregar</button>
+                </div>
+                <div id="editProductosContainer" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #f9f9f9; max-height: 300px; overflow-y: auto;">
+                    <div id="editProductosLista" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <button type="button" class="btn btn-secondary" onclick="cerrarEditarOrden()">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="guardarEditarOrden()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR PRODUCTO A ORDEN EN EDICIÓN -->
+    <div class="modal" id="modalAgregarProductoEdicion" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 95%; position: relative;">
+            <button type="button" onclick="cerrarModalAgregarProductoEdicion()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
+
+            <h2 style="color: #7f1f6e; margin-bottom: 20px; font-size: 20px;">➕ Agregar Producto</h2>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">Producto *</label>
+                <select id="selectProductoEdicion" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                    <option value="">-- Selecciona un producto --</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">Cantidad *</label>
+                <input type="number" id="cantidadProductoEdicion" min="1" value="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div id="variantesEdicionContainer" style="margin-bottom: 16px; display: none;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">Variantes</label>
+                <div id="variantesEdicionList" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #f9f9f9;"></div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalAgregarProductoEdicion()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="confirmAgregarProductoEdicion()">Agregar</button>
             </div>
         </div>
     </div>
