@@ -407,9 +407,12 @@
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .products-grid,
-    .testimonials-grid {
+    .products-grid {
         grid-template-columns: 1fr;
+    }
+
+    .testimonials-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .categories-grid {
