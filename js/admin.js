@@ -1628,6 +1628,32 @@ function actualizarFilaProducto(rowId) {
   actualizarTotalOrden();
 }
 
+// Cache global para insumos (para evitar múltiples fetches del mismo insumo)
+const insumosCache = {};
+
+async function obtenerInsumoConCache(insumoId) {
+  // Si ya está en cache, retornar inmediatamente
+  if (insumosCache[insumoId]) {
+    console.log(`💾 [obtenerInsumo] Usando cache para insumo ${insumoId}`);
+    return insumosCache[insumoId];
+  }
+
+  // Si no está en cache, hacer fetch
+  const insumoUrl = `${API_BASE_URL}/insumos/${insumoId}`;
+  console.log(`🌐 [obtenerInsumo] Fetch a insumo: ${insumoUrl}`);
+  const insumoRes = await fetch(insumoUrl);
+  const insumoData = await insumoRes.json();
+
+  if (insumoData.success && insumoData.data) {
+    // Guardar en cache
+    insumosCache[insumoId] = insumoData.data;
+    console.log(`💾 [obtenerInsumo] Guardado en cache: insumo ${insumoId}`);
+    return insumoData.data;
+  }
+
+  return null;
+}
+
 async function actualizarVariantesProducto(rowId) {
   const select = document.getElementById(`productoSelect_${rowId}`);
   const variantesContainer = document.getElementById(`variantesContainer_${rowId}`);
@@ -1682,21 +1708,14 @@ async function actualizarVariantesProducto(rowId) {
       return;
     }
 
-    const insumoUrl = `${API_BASE_URL}/insumos/${insumoId}`;
-    console.log(`🌐 [actualizarVariantesProducto] Fetch a insumo: ${insumoUrl}`);
-    const insumoRes = await fetch(insumoUrl);
-    const insumoData = await insumoRes.json();
+    // Usar cache para obtener el insumo
+    const insumo = await obtenerInsumoConCache(insumoId);
 
-    console.log(`📡 [actualizarVariantesProducto] Respuesta insumo status: ${insumoRes.status}`);
-    console.log(`📡 [actualizarVariantesProducto] Respuesta insumo completa:`, insumoData);
-
-    if (!insumoData.success || !insumoData.data) {
-      console.error(`❌ [actualizarVariantesProducto] Insumo no encontrado:`, insumoData);
+    if (!insumo) {
+      console.error(`❌ [actualizarVariantesProducto] Insumo no encontrado`);
       variantesContainer.style.display = 'none';
       return;
     }
-
-    const insumo = insumoData.data;
     const variants = insumo.insumo_variants || [];
 
     console.log(`✅ [actualizarVariantesProducto] Insumo encontrado:`, insumo.nombre);
