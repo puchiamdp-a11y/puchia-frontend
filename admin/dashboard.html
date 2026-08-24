@@ -838,6 +838,19 @@
                 <input type="date" id="editFechaEntrega" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
             </div>
 
+            <!-- SECCIÓN PRODUCTOS -->
+            <div style="margin-bottom: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <label style="font-weight: 600; color: #333; font-size: 14px;">PRODUCTOS DEL PEDIDO</label>
+                    <button type="button" class="btn btn-secondary" onclick="abrirAgregarProducto()" style="font-size: 12px; padding: 6px 12px;">+ Agregar</button>
+                </div>
+                <div id="editProductosContainer" style="border: 1px solid #eee; border-radius: 8px; padding: 12px; background: #f9f9f9; max-height: 300px; overflow-y: auto;">
+                    <div id="editProductosList" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <button type="button" class="btn btn-secondary" onclick="cerrarEditarOrden()">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="guardarEditarOrden()">Guardar Cambios</button>
