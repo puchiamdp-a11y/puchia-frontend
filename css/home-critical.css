@@ -347,18 +347,35 @@
 }
 
 .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
     max-width: 1300px;
     margin: 0 auto;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-behavior: smooth;
+}
+
+@media (min-width: 1024px) {
+    .testimonials-grid {
+        flex-wrap: wrap;
+        overflow-x: visible;
+    }
 }
 
 .testimonial-card {
     background: #fafbfc;
     border-radius: 12px;
-    padding: 32px;
+    padding: 20px;
     border: 1px solid #e0e0e0;
+    min-width: 280px;
+    max-width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 13px;
 }
 
 /* ========== WHATSAPP FLOAT ========== */
