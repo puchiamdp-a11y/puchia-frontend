@@ -27,11 +27,12 @@
     </div>
 
     <header>
+        <button class="hamburger-btn" id="hamburgerBtn" title="Menú">☰</button>
+        <a class="logo-container" href="index.html">
+            <div class="logo" id="headerLogo">P</div>
+            <div class="logo-text" id="headerLogoText">Puchia</div>
+        </a>
         <div class="header-left">
-            <a class="logo-container" href="index.html">
-                <div class="logo" id="headerLogo">P</div>
-                <div class="logo-text" id="headerLogoText">Puchia</div>
-            </a>
             <nav>
                 <a href="index.html">Inicio</a>
                 <a href="categorias.html">Categorías</a>
@@ -39,7 +40,6 @@
                 <a href="proceso-compra.html?view=promos">Promos</a>
                 <a href="contacto.html">Contacto</a>
             </nav>
-            <button class="hamburger-btn" id="hamburgerBtn" title="Menú">☰</button>
         </div>
         <div class="header-right">
             <button class="cart-btn" onclick="toggleCart(event)" title="Ver carrito" style="background: none; border: none; cursor: pointer; position: relative; font-size: 22px;">
@@ -47,7 +47,6 @@
                 <span class="cart-count" id="cartCount">0</span>
             </button>
             <a href="perfil.html" class="admin-link" id="clienteNavLink" title="Mi cuenta">👤</a>
-            <a href="admin/login.html" class="admin-link" title="Panel administrador">⚙️</a>
         </div>
     </header>
 
