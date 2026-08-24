@@ -1571,22 +1571,43 @@ function agregarProductoRow() {
   tr.id = `ordenRow_${rowId}`;
   tr.innerHTML = `
     <td style="padding: 8px; border-bottom: 1px solid #eee;">
-      <select id="productoSelect_${rowId}" onchange="actualizarFilaProducto(${rowId}); actualizarVariantesProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+      <select id="productoSelect_${rowId}" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
         <option value="">-- Selecciona producto --</option>
         ${opciones}
       </select>
       <div id="variantesContainer_${rowId}" style="display: none; margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0;"></div>
     </td>
     <td style="padding: 8px; border-bottom: 1px solid #eee;">
-      <input type="number" id="cantidadInput_${rowId}" value="1" min="1" onchange="actualizarFilaProducto(${rowId})" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: right; font-size: 13px;">
+      <input type="number" id="cantidadInput_${rowId}" value="1" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: right; font-size: 13px;">
     </td>
     <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right; font-size: 13px;" id="precioCell_${rowId}">$0.00</td>
     <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right; font-size: 13px; font-weight: 600;" id="subtotalCell_${rowId}">$0.00</td>
     <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">
-      <button type="button" onclick="eliminarProductoRow(${rowId})" style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 18px;">×</button>
+      <button type="button" id="deleteBtn_${rowId}" style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 18px;">×</button>
     </td>
   `;
   tbody.appendChild(tr);
+
+  // Agregar event listeners (más seguro que onchange inline)
+  const select = document.getElementById(`productoSelect_${rowId}`);
+  const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
+  const deleteBtn = document.getElementById(`deleteBtn_${rowId}`);
+
+  select.addEventListener('change', () => {
+    console.log(`✅ [EVENTO] Select cambió, rowId: ${rowId}`);
+    actualizarFilaProducto(rowId);
+    actualizarVariantesProducto(rowId);
+  });
+
+  cantidadInput.addEventListener('change', () => {
+    console.log(`✅ [EVENTO] Cantidad cambió, rowId: ${rowId}`);
+    actualizarFilaProducto(rowId);
+  });
+
+  deleteBtn.addEventListener('click', () => {
+    console.log(`✅ [EVENTO] Delete clicked, rowId: ${rowId}`);
+    eliminarProductoRow(rowId);
+  });
 }
 
 function actualizarFilaProducto(rowId) {
@@ -1611,33 +1632,58 @@ async function actualizarVariantesProducto(rowId) {
   const select = document.getElementById(`productoSelect_${rowId}`);
   const variantesContainer = document.getElementById(`variantesContainer_${rowId}`);
 
+  console.log(`🔍 [actualizarVariantesProducto] rowId: ${rowId}, select existe: ${!!select}, tiene valor: ${select?.value}`);
+
   if (!select || !select.value) {
+    console.log(`⚠️ [actualizarVariantesProducto] Select vacío o no existe`);
     variantesContainer.style.display = 'none';
     return;
   }
 
   const productoId = parseInt(select.value);
+  console.log(`📦 [actualizarVariantesProducto] Buscando producto ID: ${productoId}`);
 
   try {
-    const res = await fetch(`${API_BASE_URL}/productos/${productoId}`);
+    const url = `${API_BASE_URL}/productos/${productoId}`;
+    console.log(`🌐 [actualizarVariantesProducto] Fetch a: ${url}`);
+    const res = await fetch(url);
     const data = await res.json();
 
+    console.log(`📡 [actualizarVariantesProducto] Respuesta status: ${res.status}`);
+    console.log(`📡 [actualizarVariantesProducto] Respuesta completa:`, data);
+
     if (!data.success || !data.data) {
+      console.error(`❌ [actualizarVariantesProducto] Respuesta no válida:`, data);
       variantesContainer.style.display = 'none';
       return;
     }
 
     const producto = data.data;
+    console.log(`✅ [actualizarVariantesProducto] Producto encontrado:`, producto.nombre);
+    console.log(`📌 [actualizarVariantesProducto] stock_type: ${producto.stock_type}, insumo_id: ${producto.insumo_id}`);
 
     if (producto.stock_type !== 'insumo') {
+      console.log(`ℹ️ [actualizarVariantesProducto] El producto no es tipo insumo, ocultando variantes`);
       variantesContainer.style.display = 'none';
       return;
     }
 
-    const insumoRes = await fetch(`${API_BASE_URL}/insumos/${producto.insumo_id}`);
+    if (!producto.insumo_id) {
+      console.error(`❌ [actualizarVariantesProducto] El producto no tiene insumo_id`);
+      variantesContainer.style.display = 'none';
+      return;
+    }
+
+    const insumoUrl = `${API_BASE_URL}/insumos/${producto.insumo_id}`;
+    console.log(`🌐 [actualizarVariantesProducto] Fetch a insumo: ${insumoUrl}`);
+    const insumoRes = await fetch(insumoUrl);
     const insumoData = await insumoRes.json();
 
+    console.log(`📡 [actualizarVariantesProducto] Respuesta insumo status: ${insumoRes.status}`);
+    console.log(`📡 [actualizarVariantesProducto] Respuesta insumo completa:`, insumoData);
+
     if (!insumoData.success || !insumoData.data) {
+      console.error(`❌ [actualizarVariantesProducto] Insumo no encontrado:`, insumoData);
       variantesContainer.style.display = 'none';
       return;
     }
@@ -1645,7 +1691,12 @@ async function actualizarVariantesProducto(rowId) {
     const insumo = insumoData.data;
     const variants = insumo.insumo_variants || [];
 
+    console.log(`✅ [actualizarVariantesProducto] Insumo encontrado:`, insumo.nombre);
+    console.log(`📋 [actualizarVariantesProducto] Tipo variante: ${insumo.tipo_variante}`);
+    console.log(`📋 [actualizarVariantesProducto] Variantes: ${variants.length}`, variants);
+
     if (variants.length === 0) {
+      console.log(`ℹ️ [actualizarVariantesProducto] Sin variantes disponibles`);
       variantesContainer.style.display = 'none';
       return;
     }
@@ -1662,8 +1713,11 @@ async function actualizarVariantesProducto(rowId) {
     html += `</select>`;
     variantesContainer.innerHTML = html;
     variantesContainer.style.display = 'block';
+
+    console.log(`✅ [actualizarVariantesProducto] Variantes renderizadas exitosamente`);
   } catch (error) {
-    console.error('Error actualizando variantes:', error);
+    console.error(`❌ [actualizarVariantesProducto] Error completo:`, error);
+    console.error(`❌ [actualizarVariantesProducto] Stack:`, error.stack);
     variantesContainer.style.display = 'none';
   }
 }
