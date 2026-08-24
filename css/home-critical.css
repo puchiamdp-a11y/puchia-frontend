@@ -529,7 +529,7 @@
     }
 
     .categories-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 12px;
     }
 
@@ -561,29 +561,33 @@
     }
 
     .product-image {
-        min-height: 120px !important;
+        min-height: 100px !important;
+        max-height: 100px !important;
+        padding: 20px 10px !important;
     }
 
     .product-info {
-        padding: 12px;
+        padding: 8px !important;
     }
 
     .product-price {
-        font-size: 15px;
-        margin-bottom: 8px;
+        font-size: 12px !important;
+        margin-bottom: 4px !important;
     }
 
     .product-btn {
-        padding: 10px;
-        font-size: 12px;
+        padding: 6px !important;
+        font-size: 10px !important;
     }
 
     .testimonials-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
     }
 
     .testimonial-card {
-        padding: 16px;
+        padding: 12px !important;
+        font-size: 12px !important;
     }
 
     .whatsapp-float {
