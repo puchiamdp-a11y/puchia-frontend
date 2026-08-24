@@ -64,6 +64,8 @@
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
@@ -106,6 +108,10 @@
 
 .product-info {
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
 }
 
 .product-name,

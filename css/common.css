@@ -68,11 +68,12 @@ header {
     width: 48px;
     height: 48px;
     border-radius: 12px;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    background: url('../assets/logo.png') center / cover no-repeat;
+    background-color: var(--white);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--white);
+    color: transparent;
     font-weight: 700;
     font-size: 20px;
     box-shadow: 0 4px 16px rgba(127,31,110,0.2);
@@ -242,12 +243,13 @@ footer {
 .footer-logo {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    background: url('../assets/logo.png') center / cover no-repeat;
+    background-color: var(--white);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--white);
+    color: transparent;
     font-size: 16px;
 }
 
@@ -501,7 +503,7 @@ footer {
     }
 
     .hamburger-btn {
-        display: flex;
+        display: flex !important;
     }
 
     footer {
@@ -544,14 +546,7 @@ footer {
     }
 
     nav {
-        display: flex !important;
-        gap: 8px !important;
-        width: 100% !important;
-        padding: 6px 0 !important;
-        border-top: 1px solid #f0f0f0 !important;
-        flex-wrap: wrap !important;
-        order: 2;
-        justify-content: center !important;
+        display: none !important;
     }
 
     nav a {
@@ -579,6 +574,15 @@ footer {
 
     .cart-btn {
         font-size: 18px !important;
+    }
+
+    .hamburger-btn {
+        display: flex !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 24px !important;
+        order: 1;
+        margin-left: auto !important;
     }
 
     .announcement-bar {
