@@ -38,6 +38,7 @@
                 <a href="proceso-compra.html" onclick="showOnlyPromos(); return false;">Promos</a>
                 <a href="contacto.html">Contacto</a>
             </nav>
+            <button class="hamburger-btn" id="hamburgerBtn" title="Menú">☰</button>
         </div>
         <div class="header-right">
             <button class="cart-btn" onclick="toggleCart(event)" title="Ver carrito" style="background: none; border: none; cursor: pointer; position: relative; font-size: 22px;">
@@ -48,6 +49,17 @@
             <a href="admin/login.html" class="admin-link" title="Panel administrador">⚙️</a>
         </div>
     </header>
+
+    <!-- MOBILE NAV SIDEBAR -->
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-sidebar">
+            <a href="index.html">Inicio</a>
+            <a href="categorias.html">Categorías</a>
+            <a href="proceso-compra.html" onclick="showAllProducts(); return false;">Productos</a>
+            <a href="proceso-compra.html" onclick="showOnlyPromos(); return false;">Promos</a>
+            <a href="contacto.html">Contacto</a>
+        </div>
+    </div>
 
     <!-- SECCIÓN PRODUCTOS -->
     <section id="productsSection" class="products-section">
