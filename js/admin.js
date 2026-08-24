@@ -1660,7 +1660,8 @@ async function actualizarVariantesProducto(rowId) {
 
     const producto = data.data;
     console.log(`✅ [actualizarVariantesProducto] Producto encontrado:`, producto.nombre);
-    console.log(`📌 [actualizarVariantesProducto] stock_type: ${producto.stock_type}, insumo_id: ${producto.insumo_id}`);
+    console.log(`📌 [actualizarVariantesProducto] stock_type: ${producto.stock_type}`);
+    console.log(`📌 [actualizarVariantesProducto] producto_insumo:`, producto.producto_insumo);
 
     if (producto.stock_type !== 'insumo') {
       console.log(`ℹ️ [actualizarVariantesProducto] El producto no es tipo insumo, ocultando variantes`);
@@ -1668,13 +1669,20 @@ async function actualizarVariantesProducto(rowId) {
       return;
     }
 
-    if (!producto.insumo_id) {
-      console.error(`❌ [actualizarVariantesProducto] El producto no tiene insumo_id`);
+    // El insumo_id está en producto_insumo[0].insumo_id
+    const productoInsumo = producto.producto_insumo && producto.producto_insumo.length > 0
+      ? producto.producto_insumo[0]
+      : (producto.producto_insumo); // Podría ser un objeto directamente
+
+    const insumoId = productoInsumo?.insumo_id;
+
+    if (!insumoId) {
+      console.error(`❌ [actualizarVariantesProducto] El producto no tiene insumo_id en producto_insumo:`, productoInsumo);
       variantesContainer.style.display = 'none';
       return;
     }
 
-    const insumoUrl = `${API_BASE_URL}/insumos/${producto.insumo_id}`;
+    const insumoUrl = `${API_BASE_URL}/insumos/${insumoId}`;
     console.log(`🌐 [actualizarVariantesProducto] Fetch a insumo: ${insumoUrl}`);
     const insumoRes = await fetch(insumoUrl);
     const insumoData = await insumoRes.json();
