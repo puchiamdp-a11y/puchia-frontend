@@ -598,7 +598,10 @@
     }
 
     .testimonials-grid {
+        display: flex !important;
+        flex-wrap: nowrap !important;
         gap: 12px !important;
+        overflow-x: auto !important;
         scroll-snap-type: x mandatory;
     }
 

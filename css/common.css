@@ -589,7 +589,9 @@ footer {
 
     .logo-container {
         flex: 1;
-        text-align: center;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     .announcement-bar {

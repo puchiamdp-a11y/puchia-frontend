@@ -509,6 +509,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!hamburgerBtn || !mobileNav) return;
 
+    // Close mobile nav on page load
+    mobileNav.classList.remove('open');
+
     hamburgerBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         mobileNav.classList.toggle('open');
@@ -528,6 +531,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', (e) => {
         if (!hamburgerBtn.contains(e.target) && !mobileNav.contains(e.target)) {
+            mobileNav.classList.remove('open');
+        }
+    });
+
+    // Close menu on window resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
             mobileNav.classList.remove('open');
         }
     });
