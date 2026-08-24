@@ -2178,34 +2178,79 @@ let ordenEditandoId = null;
 
 async function abrirEditarOrden(id) {
   try {
+    console.log(`📍 [abrirEditarOrden] Abriendo pedido ID: ${id}`);
+
+    // Verificar que el modal existe
+    const modal = document.getElementById('modalEditarOrden');
+    if (!modal) {
+      console.error('❌ Modal modalEditarOrden no encontrado en el DOM');
+      puchiaAlert('Error: Modal no encontrado', 'error');
+      return;
+    }
+
     const token = localStorage.getItem('puchia_admin_token');
+    if (!token) {
+      console.error('❌ No hay token de autenticación');
+      puchiaAlert('Error de autenticación', 'error');
+      return;
+    }
+
+    console.log(`📍 [abrirEditarOrden] Obteniendo orden del API...`);
     const response = await fetch(`${API_BASE_URL}/admin/ordenes/${id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
+    console.log(`📍 [abrirEditarOrden] Response status: ${response.status}`);
+
     const data = await response.json();
+    console.log(`📍 [abrirEditarOrden] Response data:`, data);
+
     if (!data.success) {
-      puchiaAlert('Error al cargar pedido', 'error');
+      console.error('❌ API retornó success=false:', data);
+      puchiaAlert('Error al cargar pedido: ' + (data.error || 'desconocido'), 'error');
       return;
     }
 
     const orden = data.data;
+    console.log(`📍 [abrirEditarOrden] Orden cargada:`, orden);
+
     ordenEditandoId = orden.id;
 
+    // Verificar elementos del modal
+    const editSenaInput = document.getElementById('editSena');
+    const editFechaEntregaInput = document.getElementById('editFechaEntrega');
+    const editTotalDiv = document.getElementById('editTotal');
+    const editOrdenCodeP = document.getElementById('editOrdenCode');
+
+    if (!editSenaInput || !editFechaEntregaInput || !editTotalDiv || !editOrdenCodeP) {
+      console.error('❌ Faltan elementos del modal:', {
+        editSena: !!editSenaInput,
+        editFechaEntrega: !!editFechaEntregaInput,
+        editTotal: !!editTotalDiv,
+        editOrdenCode: !!editOrdenCodeP
+      });
+      puchiaAlert('Error: Elementos del modal no encontrados', 'error');
+      return;
+    }
+
     // Llenar modal con datos
-    document.getElementById('editSena').value = orden.sena || (orden.total / 2);
-    document.getElementById('editFechaEntrega').value = orden.fecha_entrega ? orden.fecha_entrega.split('T')[0] : '';
-    document.getElementById('editTotal').textContent = `$${parseFloat(orden.total).toFixed(2)}`;
-    document.getElementById('editOrdenCode').textContent = orden.id_unico;
+    editSenaInput.value = orden.sena || (orden.total / 2);
+    editFechaEntregaInput.value = orden.fecha_entrega ? orden.fecha_entrega.split('T')[0] : '';
+    editTotalDiv.textContent = `$${parseFloat(orden.total).toFixed(2)}`;
+    editOrdenCodeP.textContent = orden.id_unico;
+
+    console.log(`📍 [abrirEditarOrden] Datos del modal actualizados`);
 
     // Actualizar resto a pagar
     actualizarRestoEditarOrden();
 
     // Mostrar modal
-    document.getElementById('modalEditarOrden').style.display = 'flex';
+    modal.style.display = 'flex';
+    console.log(`✅ [abrirEditarOrden] Modal mostrado exitosamente`);
   } catch (error) {
-    console.error('Error:', error);
-    puchiaAlert('Error al cargar pedido', 'error');
+    console.error('❌ [abrirEditarOrden] Error:', error);
+    console.error('📍 Error stack:', error.stack);
+    puchiaAlert('Error al cargar pedido: ' + error.message, 'error');
   }
 }
 
