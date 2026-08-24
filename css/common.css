@@ -499,7 +499,7 @@ footer {
     }
 
     nav {
-        display: none;
+        display: none !important;
     }
 
     .hamburger-btn {
