@@ -101,38 +101,10 @@
     </style>
 </head>
 <body>
-    <!-- HEADER ADMIN -->
-    <header class="admin-header">
-        <a href="./dashboard.html" class="admin-logo-container">
-            <div class="admin-logo">P</div>
-            <span class="admin-logo-text">Puchia Admin</span>
-        </a>
-        <div class="admin-user-info">
-            <span class="admin-user-name" id="adminUserName">Admin</span>
-            <button class="admin-logout-btn" id="logoutBtn">Cerrar Sesión</button>
-        </div>
-    </header>
-
-    <!-- CONTENEDOR PRINCIPAL -->
-    <div class="admin-container">
-        <!-- SIDEBAR -->
-        <aside class="admin-sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="./dashboard.html">📊 Dashboard</a></li>
-                <li><a href="./dashboard.html?page=ordenes">📋 Pedidos</a></li>
-                <li><a href="./dashboard.html?page=clientes">👥 Clientes</a></li>
-                <li><a href="./dashboard.html?page=productos">🛍️ Productos</a></li>
-                <li><a href="./dashboard.html?page=categorias">📁 Categorías</a></li>
-                <li><a href="#" class="active">🏠 HOME Personalizable</a></li>
-                <li><a href="./admin-alertas-config.html">🔔 Alertas</a></li>
-                <li><a href="./dashboard.html?page=settings">⚙️ Configuración</a></li>
-            </ul>
-        </aside>
-
-        <!-- CONTENIDO PRINCIPAL -->
-        <main class="admin-content">
-            <h1 class="page-title">Gestor de Secciones del HOME</h1>
-            <p style="color: #666; margin-bottom: 24px;">Reordena, edita, duplica o elimina secciones. Los cambios se guardan automáticamente.</p>
+    <!-- CONTENIDO PRINCIPAL CMS -->
+    <div class="cms-home-container" style="padding: 24px;">
+        <h1 style="margin-top: 0;">Editar Tienda</h1>
+        <p style="color: #666; margin-bottom: 24px;">Reordena, edita, duplica o elimina secciones. Los cambios se guardan automáticamente.</p>
 
             <!-- TOOLBAR -->
             <div class="sections-toolbar">
@@ -168,8 +140,7 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
 
     <!-- MODAL: Agregar Sección (Paso 1 - Seleccionar Tipo) -->
     <div id="selectTypeModal" class="modal">
