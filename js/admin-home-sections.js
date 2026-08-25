@@ -4,6 +4,20 @@ let currentEditingSection = null;
 let sections = [];
 let allProducts = [];
 let allCategories = [];
+let authToken = null;
+
+// ======================== RECIBIR TOKEN DEL DASHBOARD ========================
+window.addEventListener('message', (event) => {
+  // Validar origen (solo acepta mensajes del dashboard padre)
+  if (event.origin !== window.location.origin) {
+    return;
+  }
+
+  if (event.data.type === 'AUTH_TOKEN') {
+    authToken = event.data.token;
+    console.log('✅ [admin-home-sections] Token recibido del dashboard');
+  }
+});
 
 // ======================== INICIALIZACIÓN ========================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -28,16 +42,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ======================== CARGAR SECCIONES ========================
 async function loadSections() {
   try {
-    const token = localStorage.getItem('adminToken');
-    console.log('📍 [loadSections] Token disponible:', !!token);
+    // Esperar a que el token sea recibido del dashboard (máximo 2 segundos)
+    let retries = 0;
+    while (!authToken && retries < 20) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      retries++;
+    }
 
-    if (!token) {
+    console.log('📍 [loadSections] Token disponible:', !!authToken);
+
+    if (!authToken) {
       throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
     }
 
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${authToken}`,
         'Content-Type': 'application/json'
       }
     });
@@ -310,7 +330,7 @@ function renderCategorySelector(selectedIds = []) {
 async function saveSectionFromForm(e) {
   e.preventDefault();
 
-  const token = localStorage.getItem('adminToken');
+  const token = authToken;
   let config = {};
   let isValid = true;
 
@@ -391,7 +411,7 @@ async function saveSectionFromForm(e) {
 
 // ======================== CREAR SECCIÓN ========================
 async function selectSectionType(type) {
-  const token = localStorage.getItem('adminToken');
+  const token = authToken;
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
@@ -435,7 +455,7 @@ async function moveSection(sectionId, direction) {
 
 // ======================== REORDENAR SECCIONES ========================
 async function reorderSections(order) {
-  const token = localStorage.getItem('adminToken');
+  const token = authToken;
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/batch/reorder`, {
@@ -461,7 +481,7 @@ async function reorderSections(order) {
 
 // ======================== DUPLICAR SECCIÓN ========================
 async function duplicateSection(sectionId) {
-  const token = localStorage.getItem('adminToken');
+  const token = authToken;
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}/duplicate`, {
@@ -488,7 +508,7 @@ async function duplicateSection(sectionId) {
 async function deleteSection(sectionId) {
   if (!confirm('¿Estás seguro de que quieres eliminar esta sección?')) return;
 
-  const token = localStorage.getItem('adminToken');
+  const token = authToken;
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}`, {

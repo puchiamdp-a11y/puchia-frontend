@@ -207,11 +207,26 @@ function setupEventListeners() {
         }
 
         container.innerHTML = `<iframe
+          id="admin-home-iframe"
           src="./admin-home.html"
           style="width: 100%; height: 100%; border: none;"
           title="Gestor de Secciones del HOME">
         </iframe>`;
         container.style.display = 'flex';
+
+        // Enviar token al iframe cuando está listo
+        const iframe = container.querySelector('#admin-home-iframe');
+        iframe.addEventListener('load', () => {
+          const token = localStorage.getItem('adminToken');
+          if (token && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'AUTH_TOKEN',
+              token: token
+            }, window.location.origin);
+            console.log('✅ [admin.js] Token enviado al iframe');
+          }
+        });
+
         return;
       }
 
