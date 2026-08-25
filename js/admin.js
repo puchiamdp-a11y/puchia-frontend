@@ -959,38 +959,39 @@ async function editInsumo(id) {
 }
 
 async function saveInsumo(e) {
-  e.preventDefault();
-
-  const id = document.getElementById('insumoId').value;
-  const nombre = document.getElementById('insumoNombre').value?.trim();
-  const tipo_variante = document.getElementById('insumoTipoVariante').value;
-
-  console.log('📍 [saveInsumo] Iniciando guardado de insumo');
-  console.log('📍 [saveInsumo] ID:', id || 'NUEVO');
-  console.log('📍 [saveInsumo] Nombre:', nombre);
-  console.log('📍 [saveInsumo] Tipo de variante:', tipo_variante);
-  console.log('📍 [saveInsumo] Variantes en insumoVariantesEdit:', JSON.stringify(insumoVariantesEdit, null, 2));
-
-  if (!nombre) {
-    puchiaAlert('El nombre del insumo es requerido', 'error');
-    return;
-  }
-
-  // Validar que todas las variantes sean válidas: nombre no vacío Y cantidad > 0
-  const variantesValidas = insumoVariantesEdit.filter(v =>
-    v.nombre && v.nombre.trim() && v.cantidad_en_stock > 0
-  );
-
-  console.log('📍 [saveInsumo] Variantes válidas:', variantesValidas.length, 'de', insumoVariantesEdit.length);
-
-  // Si hay variantes inválidas, mostrar error
-  if (insumoVariantesEdit.length > 0 && variantesValidas.length < insumoVariantesEdit.length) {
-    const invalidas = insumoVariantesEdit.length - variantesValidas.length;
-    puchiaAlert(`No se pueden guardar ${invalidas} variante(s) sin nombre o cantidad. Cada variante debe tener nombre y cantidad > 0`, 'error');
-    return;
-  }
+  if (isSubmittingInsumo) return;
+  isSubmittingInsumo = true;
 
   try {
+    e.preventDefault();
+
+    const id = document.getElementById('insumoId').value;
+    const nombre = document.getElementById('insumoNombre').value?.trim();
+    const tipo_variante = document.getElementById('insumoTipoVariante').value;
+
+    console.log('📍 [saveInsumo] Iniciando guardado de insumo');
+    console.log('📍 [saveInsumo] ID:', id || 'NUEVO');
+    console.log('📍 [saveInsumo] Nombre:', nombre);
+    console.log('📍 [saveInsumo] Tipo de variante:', tipo_variante);
+    console.log('📍 [saveInsumo] Variantes en insumoVariantesEdit:', JSON.stringify(insumoVariantesEdit, null, 2));
+
+    if (!nombre) {
+      puchiaAlert('El nombre del insumo es requerido', 'error');
+      return;
+    }
+
+    const variantesValidas = insumoVariantesEdit.filter(v =>
+      v.nombre && v.nombre.trim() && v.cantidad_en_stock > 0
+    );
+
+    console.log('📍 [saveInsumo] Variantes válidas:', variantesValidas.length, 'de', insumoVariantesEdit.length);
+
+    if (insumoVariantesEdit.length > 0 && variantesValidas.length < insumoVariantesEdit.length) {
+      const invalidas = insumoVariantesEdit.length - variantesValidas.length;
+      puchiaAlert(`No se pueden guardar ${invalidas} variante(s) sin nombre o cantidad. Cada variante debe tener nombre y cantidad > 0`, 'error');
+      return;
+    }
+
     const token = localStorage.getItem('puchia_admin_token');
     const url = id ? `${API_BASE_URL}/insumos/${id}` : `${API_BASE_URL}/insumos`;
     const method = id ? 'PUT' : 'POST';
@@ -1031,6 +1032,8 @@ async function saveInsumo(e) {
     console.error('❌ [saveInsumo] Error:', error);
     console.error('❌ [saveInsumo] Stack:', error.stack);
     puchiaAlert('Error guardando insumo', 'error');
+  } finally {
+    isSubmittingInsumo = false;
   }
 }
 
@@ -1063,6 +1066,7 @@ async function deleteInsumo(id) {
 
 // Helper functions para variantes de insumos
 let insumoVariantesEdit = [];
+let isSubmittingInsumo = false;
 
 function addInsumoVariant() {
   insumoVariantesEdit.push({ nombre: '', cantidad_en_stock: 0, cantidad_minima: 0 });
@@ -2372,29 +2376,53 @@ async function cargarVariantesProductoEdicion(productoId) {
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/insumos/${productoId}`, {
+    const response = await fetch(`${API_BASE_URL}/productos/${productoId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     const data = await response.json();
-    if (!data.success || !data.data) return;
-
-    const insumo = data.data;
-    if (!insumo.variantes || insumo.variantes.length === 0) {
+    if (!data.success || !data.data) {
+      console.warn('No se encontró producto o no tiene variantes');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
-    variantesContainer.innerHTML = insumo.variantes.map(variante => `
-      <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
-        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333;">${variante.valor}</label>
-        <select class="varianteSelect" data-variante-id="${variante.id}" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
-          <option value="">-- Selecciona --</option>
-        </select>
-      </div>
-    `).join('');
+    const producto = data.data;
+
+    if (!producto.insumo_id) {
+      document.getElementById('variantesEdicionContainer').style.display = 'none';
+      return;
+    }
+
+    const insumoResponse = await fetch(`${API_BASE_URL}/insumos/${producto.insumo_id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const insumoData = await insumoResponse.json();
+    if (!insumoData.success || !insumoData.data || !insumoData.data.variantes || insumoData.data.variantes.length === 0) {
+      document.getElementById('variantesEdicionContainer').style.display = 'none';
+      return;
+    }
+
+    const insumo = insumoData.data;
+    variantesContainer.innerHTML = insumo.variantes.map(variante => {
+      const opciones = (variante.valores_disponibles || []).map(valor =>
+        `<option value="${valor.id || valor}">${valor.nombre || valor}</option>`
+      ).join('');
+
+      return `
+        <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+          <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333;">${variante.valor}</label>
+          <select class="varianteSelect" data-variante-id="${variante.id}" data-variante-tipo="${variante.valor}" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+            <option value="">-- Selecciona ${variante.valor} --</option>
+            ${opciones}
+          </select>
+        </div>
+      `;
+    }).join('');
   } catch (error) {
     console.error('Error cargando variantes:', error);
+    document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
 
