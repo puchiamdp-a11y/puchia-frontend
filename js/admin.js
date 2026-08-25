@@ -185,6 +185,12 @@ function setupEventListeners() {
       const page = link.dataset.page;
       console.log('Navegando a:', page);
 
+      // Navegar a admin-home (página separada)
+      if (page === 'admin-home') {
+        window.location.href = './admin-home.html';
+        return;
+      }
+
       // Remover activo de todos
       document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
       link.classList.add('active');
