@@ -2497,11 +2497,11 @@ async function confirmAgregarProductoEdicion() {
   }
 
   const selectedOption = select.options[select.selectedIndex];
-  const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
+  const tieneInsumo = selectedOption?.dataset.insumoId && selectedOption.dataset.insumoId !== '';
 
   // Capturar variantes seleccionadas
   const variantesSeleccionadas = {};
-  if (tieneVariantes) {
+  if (tieneInsumo) {
     const selectores = document.querySelectorAll('.varianteSelect');
     if (selectores.length === 0) {
       puchiaAlert('Este producto requiere variantes', 'warning');
