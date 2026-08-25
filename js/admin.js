@@ -2475,30 +2475,45 @@ async function cargarVariantesProductoEdicion(productoId) {
     const insumoData = await insumoResponse.json();
     console.log('📦 [cargarVariantesProductoEdicion] Insumo data:', insumoData);
 
-    if (!insumoData.success || !insumoData.data || !insumoData.data.variantes || insumoData.data.variantes.length === 0) {
-      console.warn('⚠️ [cargarVariantesProductoEdicion] Insumo sin variantes válidas');
+    if (!insumoData.success || !insumoData.data) {
+      console.warn('⚠️ [cargarVariantesProductoEdicion] Insumo request failed');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const insumo = insumoData.data;
-    console.log('✅ [cargarVariantesProductoEdicion] Renderizando', insumo.variantes.length, 'variantes');
 
-    variantesContainer.innerHTML = insumo.variantes.map(variante => {
-      const opciones = (variante.valores_disponibles || []).map(valor =>
-        `<option value="${valor.id || valor}">${valor.nombre || valor}</option>`
-      ).join('');
+    // Backend devuelve 'insumo_variants', no 'variantes'
+    const variantes = insumo.insumo_variants || insumo.variantes || [];
+    console.log('📋 [cargarVariantesProductoEdicion] Variantes disponibles:', variantes.length);
+    console.log('📋 [cargarVariantesProductoEdicion] Estructura variantes:', JSON.stringify(variantes.slice(0, 1)));
 
-      return `
-        <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
-          <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333;">${variante.valor}</label>
-          <select class="varianteSelect" data-variante-id="${variante.id}" data-variante-tipo="${variante.valor}" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
-            <option value="">-- Selecciona ${variante.valor} --</option>
-            ${opciones}
-          </select>
-        </div>
-      `;
-    }).join('');
+    if (!Array.isArray(variantes) || variantes.length === 0) {
+      console.warn('⚠️ [cargarVariantesProductoEdicion] Insumo sin variantes válidas');
+      document.getElementById('variantesEdicionContainer').style.display = 'none';
+      return;
+    }
+
+    console.log('✅ [cargarVariantesProductoEdicion] Renderizando', variantes.length, 'variantes');
+
+    // Backend devuelve array plano de InsumoVariant
+    // Transformar a estructura esperada por el frontend
+    const tipoVariante = insumo.tipo_variante || 'Opción';
+    console.log('📝 [cargarVariantesProductoEdicion] Tipo variante:', tipoVariante);
+
+    const opciones = variantes.map(variante =>
+      `<option value="${variante.id || variante.nombre}">${variante.nombre}</option>`
+    ).join('');
+
+    variantesContainer.innerHTML = `
+      <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #333;">${tipoVariante}</label>
+        <select class="varianteSelect" data-variante-id="${insumo.id}" data-variante-tipo="${tipoVariante}" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+          <option value="">-- Selecciona ${tipoVariante} --</option>
+          ${opciones}
+        </select>
+      </div>
+    `;
 
     console.log('✅ [cargarVariantesProductoEdicion] Variantes renderizadas en el contenedor');
   } catch (error) {
