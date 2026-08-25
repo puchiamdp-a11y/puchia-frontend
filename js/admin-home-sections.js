@@ -197,7 +197,7 @@ function renderSections() {
 // ======================== CARGAR PRODUCTOS ========================
 async function loadProductsForSelector() {
   try {
-    const response = await fetch(`${API_BASE_URL}/productos?limit=1000`);
+    const response = await fetch(`${API_BASE_URL}/productos`);
     if (!response.ok) throw new Error('Error cargando productos');
     const result = await response.json();
     allProducts = result.data || [];
@@ -209,7 +209,7 @@ async function loadProductsForSelector() {
 // ======================== CARGAR CATEGORÍAS ========================
 async function loadCategoriesForSelector() {
   try {
-    const response = await fetch(`${API_BASE_URL}/categorias?limit=1000`);
+    const response = await fetch(`${API_BASE_URL}/categorias`);
     if (!response.ok) throw new Error('Error cargando categorías');
     const result = await response.json();
     allCategories = result.data || [];
@@ -557,22 +557,41 @@ function closeModal(modalId) {
 
 // ======================== EVENT LISTENERS ========================
 function setupEventListeners() {
-  document.getElementById('addSectionBtn').addEventListener('click', () => {
-    document.getElementById('selectTypeModal').classList.add('show');
-  });
+  const addSectionBtn = document.getElementById('addSectionBtn');
+  if (addSectionBtn) {
+    addSectionBtn.addEventListener('click', () => {
+      const selectTypeModal = document.getElementById('selectTypeModal');
+      if (selectTypeModal) selectTypeModal.classList.add('show');
+    });
+  }
 
-  document.getElementById('previewBtn').addEventListener('click', openPreview);
+  const previewBtn = document.getElementById('previewBtn');
+  if (previewBtn) {
+    previewBtn.addEventListener('click', openPreview);
+  }
 
-  document.getElementById('saveSectionOrderBtn').addEventListener('click', async () => {
-    const order = sections.map(s => s.id);
-    await reorderSections(order);
-  });
+  const saveSectionOrderBtn = document.getElementById('saveSectionOrderBtn');
+  if (saveSectionOrderBtn) {
+    saveSectionOrderBtn.addEventListener('click', async () => {
+      const order = sections.map(s => s.id);
+      await reorderSections(order);
+    });
+  }
 
-  document.getElementById('editSectionForm').addEventListener('submit', saveSectionFromForm);
+  const editSectionForm = document.getElementById('editSectionForm');
+  if (editSectionForm) {
+    editSectionForm.addEventListener('submit', saveSectionFromForm);
+  }
 
-  document.getElementById('categories-show-all').addEventListener('change', (e) => {
-    document.getElementById('categories-selector').style.display = e.target.checked ? 'none' : 'block';
-  });
+  const categoriesShowAll = document.getElementById('categories-show-all');
+  if (categoriesShowAll) {
+    categoriesShowAll.addEventListener('change', (e) => {
+      const categoriesSelector = document.getElementById('categories-selector');
+      if (categoriesSelector) {
+        categoriesSelector.style.display = e.target.checked ? 'none' : 'block';
+      }
+    });
+  }
 
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
