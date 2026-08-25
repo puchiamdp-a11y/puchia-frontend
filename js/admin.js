@@ -2264,10 +2264,23 @@ async function abrirEditarOrden(id) {
 }
 
 function actualizarRestoEditarOrden() {
-  const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', '')) || 0;
-  const sena = parseFloat(document.getElementById('editSena').value) || 0;
+  const editTotalEl = document.getElementById('editTotal');
+  const senaInput = document.getElementById('editSena');
+
+  if (!editTotalEl || !senaInput) return;
+
+  const total = parseFloat(editTotalEl.textContent.replace('$', '')) || 0;
+  const sena = parseFloat(senaInput.value) || 0;
   const resto = total - sena;
+
   document.getElementById('editRestoAPagar').textContent = `$${Math.max(0, resto).toFixed(2)}`;
+
+  // Validar que la seña no supere el total
+  if (sena > total) {
+    senaInput.style.borderColor = '#dc3545';
+  } else {
+    senaInput.style.borderColor = '#ddd';
+  }
 }
 
 function cerrarEditarOrden() {
@@ -2285,21 +2298,63 @@ function mostrarProductosEditarOrden(orden) {
     return;
   }
 
-  productosLista.innerHTML = orden.items.map(item => `
-    <div style="background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-      <div style="flex: 1; font-size: 13px;">
-        <div style="font-weight: 600; color: #333;">${item.producto?.nombre || 'Producto'}</div>
-        <div style="color: #666; font-size: 12px;">Cantidad: ${item.cantidad} | Precio: $${parseFloat(item.precio_unitario).toFixed(2)}</div>
+  productosLista.innerHTML = orden.items.map((item, index) => {
+    const variantesText = item.variantes_seleccionadas && Object.keys(item.variantes_seleccionadas).length > 0
+      ? Object.entries(item.variantes_seleccionadas).map(([tipo, valor]) => `${tipo}: ${valor}`).join(' | ')
+      : '';
+
+    const itemId = item.id !== null && item.id !== undefined ? item.id : `temp-${index}`;
+
+    return `
+      <div style="background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex: 1; font-size: 13px;">
+          <div style="font-weight: 600; color: #333;">${item.producto?.nombre || 'Producto'}</div>
+          ${variantesText ? `<div style="color: #7f1f6e; font-size: 12px; font-weight: 500;">${variantesText}</div>` : ''}
+          <div style="color: #666; font-size: 12px;">Cantidad: ${item.cantidad} | Precio: $${parseFloat(item.precio_unitario).toFixed(2)}</div>
+        </div>
+        <button type="button" class="btn btn-sm btn-danger" onclick="eliminarProductoEditarOrden('${itemId}')" style="padding: 4px 8px; font-size: 11px; margin-left: 8px; white-space: nowrap;">Quitar</button>
       </div>
-      <button type="button" class="btn btn-sm btn-danger" onclick="eliminarProductoEditarOrden(${item.id})" style="padding: 4px 8px; font-size: 11px;">Quitar</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function eliminarProductoEditarOrden(itemId) {
   if (!ordenEditandoData || !ordenEditandoData.items) return;
-  ordenEditandoData.items = ordenEditandoData.items.filter(item => item.id !== itemId);
+
+  // Eliminar por ID si es número, o por índice si es string tipo "temp-0"
+  if (itemId.toString().startsWith('temp-')) {
+    const tempIndex = parseInt(itemId.split('-')[1]);
+    ordenEditandoData.items = ordenEditandoData.items.filter((_, index) => index !== tempIndex);
+  } else {
+    ordenEditandoData.items = ordenEditandoData.items.filter(item => item.id !== parseInt(itemId));
+  }
+
   mostrarProductosEditarOrden(ordenEditandoData);
+  recalcularTotalesEditarOrden();
+}
+
+function recalcularTotalesEditarOrden() {
+  if (!ordenEditandoData || !ordenEditandoData.items) return;
+
+  // Calcular nuevo total
+  const nuevoTotal = ordenEditandoData.items.reduce((sum, item) => {
+    return sum + (parseFloat(item.precio_unitario) || 0) * (parseInt(item.cantidad) || 0);
+  }, 0);
+
+  // Obtener seña actual
+  const senaInput = document.getElementById('editSena');
+  const senaActual = parseFloat(senaInput.value) || 0;
+
+  // Calcular nuevo resto
+  const nuevoResto = nuevoTotal - senaActual;
+
+  // Actualizar display de totales
+  document.getElementById('editTotal').textContent = `$${nuevoTotal.toFixed(2)}`;
+  document.getElementById('editRestoAPagar').textContent = `$${Math.max(0, nuevoResto).toFixed(2)}`;
+
+  // Actualizar datos
+  ordenEditandoData.total = nuevoTotal;
+  ordenEditandoData.resto_a_pagar = Math.max(0, nuevoResto);
 }
 
 function abrirModalAgregarProductoEdicion() {
@@ -2444,10 +2499,30 @@ async function confirmAgregarProductoEdicion() {
   const selectedOption = select.options[select.selectedIndex];
   const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
 
+  // Capturar variantes seleccionadas
+  const variantesSeleccionadas = {};
   if (tieneVariantes) {
     const selectores = document.querySelectorAll('.varianteSelect');
     if (selectores.length === 0) {
       puchiaAlert('Este producto requiere variantes', 'warning');
+      return;
+    }
+
+    // Recolectar valores de variantes seleccionadas
+    let todasVariantesSeleccionadas = true;
+    selectores.forEach(selector => {
+      const valor = selector.value;
+      const tipo = selector.dataset.varianteTipo;
+
+      if (!valor) {
+        todasVariantesSeleccionadas = false;
+      } else {
+        variantesSeleccionadas[tipo] = valor;
+      }
+    });
+
+    if (!todasVariantesSeleccionadas) {
+      puchiaAlert('Por favor selecciona todos los valores de variantes', 'warning');
       return;
     }
   }
@@ -2458,6 +2533,7 @@ async function confirmAgregarProductoEdicion() {
     producto_id: parseInt(productoId),
     cantidad: cantidad,
     precio_unitario: parseFloat(selectedOption.dataset.precio),
+    variantes_seleccionadas: variantesSeleccionadas,
     producto: {
       id: parseInt(productoId),
       nombre: selectedOption.textContent.split(' - ')[0],
@@ -2471,6 +2547,7 @@ async function confirmAgregarProductoEdicion() {
 
   ordenEditandoData.items.push(nuevoItem);
   mostrarProductosEditarOrden(ordenEditandoData);
+  recalcularTotalesEditarOrden();
   cerrarModalAgregarProductoEdicion();
   puchiaAlert('Producto agregado', 'success');
 }
