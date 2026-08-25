@@ -2460,6 +2460,8 @@ async function confirmAgregarProductoEdicion() {
   const cantidad = parseInt(document.getElementById('cantidadProductoEdicion').value) || 1;
   const productoId = select.value;
 
+  console.log('📝 confirmAgregarProductoEdicion - Producto:', productoId);
+
   if (!productoId) {
     puchiaAlert('Por favor selecciona un producto', 'warning');
     return;
@@ -2473,35 +2475,65 @@ async function confirmAgregarProductoEdicion() {
   const selectedOption = select.options[select.selectedIndex];
   const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
 
+  console.log('📝 ¿Tiene variantes?', tieneVariantes);
+
+  // Capturar variantes seleccionadas
+  const variantesSeleccionadas = {};
   if (tieneVariantes) {
     const selectores = document.querySelectorAll('.varianteSelect');
     if (selectores.length === 0) {
       puchiaAlert('Este producto requiere variantes', 'warning');
       return;
     }
+
+    // Capturar cada variante seleccionada
+    selectores.forEach(select => {
+      const varianteId = select.dataset.varianteId;
+      const varianteTipo = select.dataset.varianteTipo;
+      const valor = select.value;
+
+      if (!valor) {
+        puchiaAlert(`Por favor selecciona ${varianteTipo}`, 'warning');
+        throw new Error('Variante vacía');
+      }
+
+      variantesSeleccionadas[varianteId] = valor;
+      variantesSeleccionadas[varianteTipo] = valor; // También guardar por tipo para compatibilidad
+      console.log(`📝 Variante ${varianteTipo}:`, valor);
+    });
   }
 
-  // Agregar producto a la orden
-  const nuevoItem = {
-    id: null,
-    producto_id: parseInt(productoId),
-    cantidad: cantidad,
-    precio_unitario: parseFloat(selectedOption.dataset.precio),
-    producto: {
-      id: parseInt(productoId),
-      nombre: selectedOption.textContent.split(' - ')[0],
-      precio: parseFloat(selectedOption.dataset.precio)
+  try {
+    // Agregar producto a la orden
+    const nuevoItem = {
+      id: null,
+      producto_id: parseInt(productoId),
+      cantidad: cantidad,
+      precio_unitario: parseFloat(selectedOption.dataset.precio),
+      variantes_seleccionadas: variantesSeleccionadas,
+      producto: {
+        id: parseInt(productoId),
+        nombre: selectedOption.textContent.split(' - ')[0],
+        precio: parseFloat(selectedOption.dataset.precio)
+      }
+    };
+
+    console.log('📦 Nuevo item:', nuevoItem);
+
+    if (!ordenEditandoData.items) {
+      ordenEditandoData.items = [];
     }
-  };
 
-  if (!ordenEditandoData.items) {
-    ordenEditandoData.items = [];
+    ordenEditandoData.items.push(nuevoItem);
+    console.log('✅ Item agregado. Total items:', ordenEditandoData.items.length);
+
+    mostrarProductosEditarOrden(ordenEditandoData);
+    cerrarModalAgregarProductoEdicion();
+    puchiaAlert('Producto agregado', 'success');
+  } catch (error) {
+    console.error('❌ Error agregando producto:', error);
+    puchiaAlert('Error al agregar producto', 'error');
   }
-
-  ordenEditandoData.items.push(nuevoItem);
-  mostrarProductosEditarOrden(ordenEditandoData);
-  cerrarModalAgregarProductoEdicion();
-  puchiaAlert('Producto agregado', 'success');
 }
 
 async function guardarEditarOrden() {
