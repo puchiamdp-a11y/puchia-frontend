@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadSections() {
   try {
     const token = localStorage.getItem('adminToken');
+    console.log('📍 [loadSections] Token disponible:', !!token);
+
+    if (!token) {
+      throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
+    }
+
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -36,15 +42,20 @@ async function loadSections() {
       }
     });
 
+    if (response.status === 401) {
+      throw new Error('Sesión expirada. Por favor, recarga la página e inicia sesión de nuevo.');
+    }
+
     if (!response.ok) {
-      throw new Error('Error al cargar secciones');
+      throw new Error(`Error al cargar secciones (${response.status})`);
     }
 
     const result = await response.json();
     sections = result.data || [];
+    console.log('✅ [loadSections] Secciones cargadas:', sections.length);
     renderSections();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ Error:', error);
     showStatus('Error al cargar secciones: ' + error.message, 'error');
   }
 }
