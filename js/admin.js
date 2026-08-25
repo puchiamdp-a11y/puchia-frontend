@@ -2509,12 +2509,6 @@ async function guardarEditarOrden() {
 
   const sena = parseFloat(document.getElementById('editSena').value);
   const fechaEntrega = document.getElementById('editFechaEntrega').value;
-  const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
-
-  if (!sena || sena < 0 || sena > total) {
-    puchiaAlert('Seña inválida', 'warning');
-    return;
-  }
 
   const btn = event.target;
   btn.disabled = true;
@@ -2522,6 +2516,8 @@ async function guardarEditarOrden() {
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
+    let nuevoTotal = null;
+    let nuevoResto = null;
 
     // Primero, actualizar items si hay cambios
     if (ordenEditandoData && ordenEditandoData.items) {
@@ -2533,6 +2529,8 @@ async function guardarEditarOrden() {
           variantes_seleccionadas: item.variantes_seleccionadas || {}
         }));
 
+      console.log('📊 Items a guardar:', itemsParaGuardar);
+
       if (itemsParaGuardar.length > 0) {
         const itemsResponse = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}/items`, {
           method: 'PATCH',
@@ -2543,15 +2541,50 @@ async function guardarEditarOrden() {
           body: JSON.stringify({ items: itemsParaGuardar })
         });
 
+        console.log('🔄 PATCH response status:', itemsResponse.status);
+
         if (!itemsResponse.ok) {
           const errorData = await itemsResponse.json();
+          console.error('❌ Error en PATCH:', errorData);
           puchiaAlert('Error actualizando productos: ' + (errorData.error || 'desconocido'), 'error');
           return;
+        }
+
+        const itemsData = await itemsResponse.json();
+        console.log('📈 PATCH response data:', itemsData);
+
+        if (itemsData.success && itemsData.data) {
+          // Usar los valores actualizados del backend
+          nuevoTotal = itemsData.data.total || itemsData.data.total_nuevo;
+          nuevoResto = itemsData.data.resto_a_pagar || itemsData.data.resto_nuevo;
+          console.log('✅ Total actualizado desde PATCH:', nuevoTotal);
+          console.log('✅ Resto actualizado desde PATCH:', nuevoResto);
+
+          // Actualizar UI con nuevos valores
+          if (nuevoTotal) {
+            document.getElementById('editTotal').textContent = '$' + nuevoTotal.toFixed(2);
+          }
+          if (nuevoResto) {
+            const restoElement = document.getElementById('editResto');
+            if (restoElement) {
+              restoElement.textContent = '$' + nuevoResto.toFixed(2);
+            }
+          }
         }
       }
     }
 
-    // Luego, actualizar detalles de la orden
+    // Validar seña con el total actualizado (o actual si no hubo cambios)
+    const totalActual = nuevoTotal || parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
+
+    if (!sena || sena < 0 || sena > totalActual) {
+      puchiaAlert('Seña inválida (no puede exceder $' + totalActual.toFixed(2) + ')', 'warning');
+      return;
+    }
+
+    // Luego, actualizar detalles de la orden (seña y fecha)
+    console.log('📝 Guardando seña:', sena, 'Fecha:', fechaEntrega);
+
     const response = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}`, {
       method: 'PUT',
       headers: {
@@ -2560,22 +2593,27 @@ async function guardarEditarOrden() {
       },
       body: JSON.stringify({
         sena,
-        resto_a_pagar: total - sena,
         fecha_entrega: fechaEntrega || null
       })
     });
 
+    console.log('📤 PUT response status:', response.status);
+
     const data = await response.json();
+    console.log('📤 PUT response data:', data);
 
     if (data.success) {
+      console.log('✅ Pedido guardado exitosamente');
       puchiaAlert('Pedido actualizado exitosamente', 'success');
       cerrarEditarOrden();
       loadAllOrders(); // Recargar tabla
     } else {
+      console.error('❌ Error en PUT:', data);
       puchiaAlert('Error al actualizar: ' + (data.error || 'desconocido'), 'error');
     }
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ Error en guardarEditarOrden:', error);
+    console.error('Stack:', error.stack);
     puchiaAlert('Error de conexión', 'error');
   } finally {
     btn.disabled = false;
