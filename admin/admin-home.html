@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchia Admin - Gestor HOME</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-responsive.css">
+    <!-- SortableJS para drag-drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        .home-sections-container { max-width: 900px; margin: 0 auto; }
+        .sections-toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .btn-primary { background: linear-gradient(135deg, #7b2d8e, #9d4cb8); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: #f1f1f1; color: #333; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-secondary:hover { background: #e8e8e8; }
+        .btn-sm { padding: 6px 12px; font-size: 13px; }
+        .btn-danger { background: #f1f1f1; color: #c5221f; border: 1px solid #ddd; }
+        .btn-danger:hover { background: #fce8e6; }
+
+        .sections-list { display: flex; flex-direction: column; gap: 12px; }
+        .section-item { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; display: flex; gap: 12px; align-items: flex-start; cursor: move; transition: all 0.2s; }
+        .section-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .section-item.ghost { opacity: 0.5; }
+        .section-item.dragging { opacity: 0.7; background: #f9f9f9; }
+
+        .section-checkbox { width: 20px; height: 20px; margin-top: 4px; cursor: pointer; }
+        .section-content { flex: 1; min-width: 0; }
+        .section-type-badge { display: inline-block; background: #7b2d8e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .section-config { font-size: 13px; color: #666; display: flex; gap: 8px; flex-wrap: wrap; }
+        .section-config-item { background: #f5f5f5; padding: 4px 8px; border-radius: 4px; }
+
+        .section-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .icon-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .icon-btn:hover { background: #f5f5f5; }
+        .icon-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; font-size: 20px; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+        .close-btn:hover { color: #333; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 14px; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #7b2d8e; }
+        .form-textarea { resize: vertical; min-height: 100px; }
+
+        .section-type-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .type-option { border: 2px solid #ddd; padding: 16px; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .type-option:hover { border-color: #7b2d8e; background: #f9f9f9; }
+        .type-option.selected { border-color: #7b2d8e; background: #f5f0ff; }
+        .type-option-icon { font-size: 28px; margin-bottom: 8px; }
+        .type-option-label { font-weight: 600; }
+
+        .products-selector { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 12px; }
+        .product-item { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid #f0f0f0; }
+        .product-item:last-child { border-bottom: none; }
+        .product-item input[type="checkbox"] { margin-top: 2px; }
+        .product-item label { flex: 1; cursor: pointer; }
+
+        .status-bar { background: #fff9e6; border-left: 4px solid #fbbf24; padding: 12px; border-radius: 4px; margin-bottom: 16px; font-size: 13px; }
+        .status-bar.success { background: #e6f4ea; border-left-color: #1a7c3a; color: #1a7c3a; }
+        .status-bar.error { background: #fce8e6; border-left-color: #c5221f; color: #c5221f; }
+
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #f3e6f0; border-top-color: #7b2d8e; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .no-sections { text-align: center; padding: 40px; color: #999; }
+        .no-sections-icon { font-size: 48px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <!-- HEADER ADMIN -->
+    <header class="admin-header">
+        <a href="./dashboard.html" class="admin-logo-container">
+            <div class="admin-logo">P</div>
+            <span class="admin-logo-text">Puchia Admin</span>
+        </a>
+        <div class="admin-user-info">
+            <span class="admin-user-name" id="adminUserName">Admin</span>
+            <button class="admin-logout-btn" id="logoutBtn">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="admin-container">
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="./dashboard.html">📊 Dashboard</a></li>
+                <li><a href="./dashboard.html?page=ordenes">📋 Pedidos</a></li>
+                <li><a href="./dashboard.html?page=clientes">👥 Clientes</a></li>
+                <li><a href="./dashboard.html?page=productos">🛍️ Productos</a></li>
+                <li><a href="./dashboard.html?page=categorias">📁 Categorías</a></li>
+                <li><a href="#" class="active">🏠 HOME Personalizable</a></li>
+                <li><a href="./admin-alertas-config.html">🔔 Alertas</a></li>
+                <li><a href="./dashboard.html?page=settings">⚙️ Configuración</a></li>
+            </ul>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="admin-content">
+            <div class="home-sections-container">
+                <h1 class="page-title">Gestor de Secciones del HOME</h1>
+                <p style="color: #666; margin-bottom: 24px;">Reordena, edita, duplica o elimina secciones. Los cambios se guardan automáticamente.</p>
+
+                <!-- TOOLBAR -->
+                <div class="sections-toolbar">
+                    <button class="btn-primary" id="addSectionBtn">➕ Agregar Sección</button>
+                    <button class="btn-secondary btn-sm" id="previewBtn">👁️ Ver Preview</button>
+                    <button class="btn-secondary btn-sm" id="saveSectionOrderBtn">💾 Guardar Cambios</button>
+                </div>
+
+                <!-- STATUS MESSAGE -->
+                <div id="statusMessage" class="status-bar" style="display: none;"></div>
+
+                <!-- SECTIONS LIST -->
+                <div id="sectionsList" class="sections-list">
+                    <!-- Sections will be loaded here -->
+                </div>
+
+                <!-- NO SECTIONS MESSAGE -->
+                <div id="noSections" class="no-sections" style="display: none;">
+                    <div class="no-sections-icon">📭</div>
+                    <p>No hay secciones en el HOME. ¡Crea la primera!</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: Agregar Sección (Paso 1 - Seleccionar Tipo) -->
+    <div id="selectTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Nueva Sección</h2>
+                <button class="close-btn" onclick="closeModal('selectTypeModal')">&times;</button>
+            </div>
+            <p style="margin-bottom: 20px; color: #666;">Selecciona el tipo de sección que deseas agregar:</p>
+            <div class="section-type-selector">
+                <div class="type-option" onclick="selectSectionType('banner')">
+                    <div class="type-option-icon">🖼️</div>
+                    <div class="type-option-label">Banner</div>
+                </div>
+                <div class="type-option" onclick="selectSectionType('products')">
+                    <div class="type-option-icon">🛍️</div>
+                    <div class="type-option-label">Productos Destacados</div>
+                </div>
+                <div class="type-option" onclick="selectSectionType('categories')">
+                    <div class="type-option-icon">📁</div>
+                    <div class="type-option-label">Categorías</div>
+                </div>
+                <div class="type-option" onclick="selectSectionType('testimonials')">
+                    <div class="type-option-icon">⭐</div>
+                    <div class="type-option-label">Testimonios</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Editar Sección (Paso 2 - Configurar) -->
+    <div id="editSectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="editModalTitle">Editar Sección</h2>
+                <button class="close-btn" onclick="closeModal('editSectionModal')">&times;</button>
+            </div>
+
+            <form id="editSectionForm">
+                <!-- BANNER FIELDS -->
+                <div id="banner-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Eyebrow (Etiqueta pequeña)</label>
+                        <input type="text" class="form-input" id="banner-eyebrow" placeholder="Ej: NUEVO CATÁLOGO">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Título *</label>
+                        <input type="text" class="form-input" id="banner-title" placeholder="Título principal" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Subtítulo</label>
+                        <input type="text" class="form-input" id="banner-subtitle" placeholder="Subtítulo descriptivo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL de Imagen *</label>
+                        <input type="url" class="form-input" id="banner-image" placeholder="https://ejemplo.com/imagen.jpg" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Texto del Botón</label>
+                        <input type="text" class="form-input" id="banner-button-text" placeholder="Ver Más">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL del Botón</label>
+                        <input type="url" class="form-input" id="banner-button-url" placeholder="https://ejemplo.com">
+                    </div>
+                </div>
+
+                <!-- PRODUCTS FIELDS -->
+                <div id="products-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-input" id="products-title" placeholder="Productos Destacados">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Seleccionar Productos *</label>
+                        <p style="font-size: 12px; color: #999; margin-bottom: 8px;">Cargando productos...</p>
+                        <div class="products-selector" id="products-list">
+                            <!-- Products will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Límite de Productos</label>
+                        <input type="number" class="form-input" id="products-limit" value="10" min="1" max="50">
+                    </div>
+                </div>
+
+                <!-- CATEGORIES FIELDS -->
+                <div id="categories-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-input" id="categories-title" placeholder="Categorías">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="categories-show-all" checked>
+                            Mostrar todas las categorías
+                        </label>
+                    </div>
+                    <div id="categories-selector" style="display: none;">
+                        <label class="form-label">Seleccionar Categorías Específicas</label>
+                        <p style="font-size: 12px; color: #999; margin-bottom: 8px;">Cargando categorías...</p>
+                        <div class="products-selector" id="categories-list">
+                            <!-- Categories will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Límite de Categorías</label>
+                        <input type="number" class="form-input" id="categories-limit" value="10" min="1" max="50">
+                    </div>
+                </div>
+
+                <!-- TESTIMONIALS FIELDS -->
+                <div id="testimonials-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-input" id="testimonials-title" placeholder="Lo que Dicen Nuestros Clientes">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="testimonials-show-all" checked>
+                            Mostrar todas las opiniones
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Calificación Mínima (estrellas)</label>
+                        <select class="form-select" id="testimonials-rating">
+                            <option value="0">Todas</option>
+                            <option value="1">1+ ⭐</option>
+                            <option value="2">2+ ⭐⭐</option>
+                            <option value="3">3+ ⭐⭐⭐</option>
+                            <option value="4">4+ ⭐⭐⭐⭐</option>
+                            <option value="5">5 ⭐⭐⭐⭐⭐</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Límite de Opiniones</label>
+                        <input type="number" class="form-input" id="testimonials-limit" value="5" min="1" max="50">
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" onclick="closeModal('editSectionModal')">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Sección</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/admin-home-sections.js"></script>
+</body>
+</html>
