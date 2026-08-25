@@ -2264,10 +2264,23 @@ async function abrirEditarOrden(id) {
 }
 
 function actualizarRestoEditarOrden() {
-  const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', '')) || 0;
-  const sena = parseFloat(document.getElementById('editSena').value) || 0;
+  const editTotalEl = document.getElementById('editTotal');
+  const senaInput = document.getElementById('editSena');
+
+  if (!editTotalEl || !senaInput) return;
+
+  const total = parseFloat(editTotalEl.textContent.replace('$', '')) || 0;
+  const sena = parseFloat(senaInput.value) || 0;
   const resto = total - sena;
+
   document.getElementById('editRestoAPagar').textContent = `$${Math.max(0, resto).toFixed(2)}`;
+
+  // Validar que la seña no supere el total
+  if (sena > total) {
+    senaInput.style.borderColor = '#dc3545';
+  } else {
+    senaInput.style.borderColor = '#ddd';
+  }
 }
 
 function cerrarEditarOrden() {
@@ -2285,21 +2298,63 @@ function mostrarProductosEditarOrden(orden) {
     return;
   }
 
-  productosLista.innerHTML = orden.items.map(item => `
-    <div style="background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-      <div style="flex: 1; font-size: 13px;">
-        <div style="font-weight: 600; color: #333;">${item.producto?.nombre || 'Producto'}</div>
-        <div style="color: #666; font-size: 12px;">Cantidad: ${item.cantidad} | Precio: $${parseFloat(item.precio_unitario).toFixed(2)}</div>
+  productosLista.innerHTML = orden.items.map((item, index) => {
+    const variantesText = item.variantes_seleccionadas && Object.keys(item.variantes_seleccionadas).length > 0
+      ? Object.entries(item.variantes_seleccionadas).map(([tipo, valor]) => `${tipo}: ${valor}`).join(' | ')
+      : '';
+
+    const itemId = item.id !== null && item.id !== undefined ? item.id : `temp-${index}`;
+
+    return `
+      <div style="background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex: 1; font-size: 13px;">
+          <div style="font-weight: 600; color: #333;">${item.producto?.nombre || 'Producto'}</div>
+          ${variantesText ? `<div style="color: #7f1f6e; font-size: 12px; font-weight: 500;">${variantesText}</div>` : ''}
+          <div style="color: #666; font-size: 12px;">Cantidad: ${item.cantidad} | Precio: $${parseFloat(item.precio_unitario).toFixed(2)}</div>
+        </div>
+        <button type="button" class="btn btn-sm btn-danger" onclick="eliminarProductoEditarOrden('${itemId}')" style="padding: 4px 8px; font-size: 11px; margin-left: 8px; white-space: nowrap;">Quitar</button>
       </div>
-      <button type="button" class="btn btn-sm btn-danger" onclick="eliminarProductoEditarOrden(${item.id})" style="padding: 4px 8px; font-size: 11px;">Quitar</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function eliminarProductoEditarOrden(itemId) {
   if (!ordenEditandoData || !ordenEditandoData.items) return;
-  ordenEditandoData.items = ordenEditandoData.items.filter(item => item.id !== itemId);
+
+  // Eliminar por ID si es número, o por índice si es string tipo "temp-0"
+  if (itemId.toString().startsWith('temp-')) {
+    const tempIndex = parseInt(itemId.split('-')[1]);
+    ordenEditandoData.items = ordenEditandoData.items.filter((_, index) => index !== tempIndex);
+  } else {
+    ordenEditandoData.items = ordenEditandoData.items.filter(item => item.id !== parseInt(itemId));
+  }
+
   mostrarProductosEditarOrden(ordenEditandoData);
+  recalcularTotalesEditarOrden();
+}
+
+function recalcularTotalesEditarOrden() {
+  if (!ordenEditandoData || !ordenEditandoData.items) return;
+
+  // Calcular nuevo total
+  const nuevoTotal = ordenEditandoData.items.reduce((sum, item) => {
+    return sum + (parseFloat(item.precio_unitario) || 0) * (parseInt(item.cantidad) || 0);
+  }, 0);
+
+  // Obtener seña actual
+  const senaInput = document.getElementById('editSena');
+  const senaActual = parseFloat(senaInput.value) || 0;
+
+  // Calcular nuevo resto
+  const nuevoResto = nuevoTotal - senaActual;
+
+  // Actualizar display de totales
+  document.getElementById('editTotal').textContent = `$${nuevoTotal.toFixed(2)}`;
+  document.getElementById('editRestoAPagar').textContent = `$${Math.max(0, nuevoResto).toFixed(2)}`;
+
+  // Actualizar datos
+  ordenEditandoData.total = nuevoTotal;
+  ordenEditandoData.resto_a_pagar = Math.max(0, nuevoResto);
 }
 
 function abrirModalAgregarProductoEdicion() {
@@ -2334,13 +2389,10 @@ async function cargarProductosSelectEdicion() {
     }
 
     if (ordenManualProductos && ordenManualProductos.length > 0) {
-      const opciones = ordenManualProductos.map(p => {
-        // Asegurar que tiene_variantes_stock sea un boolean y convertirlo a string correcto
-        const tieneVariantes = p.tiene_variantes_stock === true || p.tiene_variantes_stock === 'true' ? 'true' : 'false';
-        return `<option value="${p.id}" data-precio="${p.precio}" data-tiene-variantes="${tieneVariantes}" data-producto-id="${p.id}">${p.nombre} - $${p.precio}</option>`;
-      }).join('');
+      const opciones = ordenManualProductos.map(p =>
+        `<option value="${p.id}" data-precio="${p.precio}" data-tiene-variantes="${p.tiene_variantes_stock}">${p.nombre} - $${p.precio}</option>`
+      ).join('');
       select.innerHTML += opciones;
-      console.log('✅ Productos cargados en select edición:', ordenManualProductos.length);
     }
 
     // Remover listeners anteriores y agregar nuevo
@@ -2348,7 +2400,7 @@ async function cargarProductosSelectEdicion() {
     select.parentNode.replaceChild(newSelect, select);
     document.getElementById('selectProductoEdicion').addEventListener('change', manejarCambioProductoEdicion);
   } catch (error) {
-    console.error('❌ Error cargando productos:', error);
+    console.error('Error cargando productos:', error);
     puchiaAlert('Error cargando productos', 'error');
   }
 }
@@ -2357,80 +2409,57 @@ async function manejarCambioProductoEdicion() {
   const select = document.getElementById('selectProductoEdicion');
   const productoId = select.value;
 
-  console.log('📍 manejarCambioProductoEdicion - Producto seleccionado:', productoId);
-
   if (!productoId) {
     document.getElementById('variantesEdicionContainer').style.display = 'none';
-    console.log('📍 No hay producto seleccionado');
     return;
   }
 
   const selectedOption = select.options[select.selectedIndex];
   const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
 
-  console.log('📍 Dataset tieneVariantes:', selectedOption?.dataset.tieneVariantes);
-  console.log('📍 ¿Tiene variantes? (true/false):', tieneVariantes);
-
   if (tieneVariantes) {
-    console.log('✅ Cargando variantes para producto', productoId);
     await cargarVariantesProductoEdicion(productoId);
     document.getElementById('variantesEdicionContainer').style.display = 'block';
   } else {
-    console.log('📍 Producto no tiene variantes, ocultando contenedor');
     document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
 
 async function cargarVariantesProductoEdicion(productoId) {
   const variantesContainer = document.getElementById('variantesEdicionList');
-  if (!variantesContainer) {
-    console.error('❌ No encontrado: variantesEdicionList');
-    return;
-  }
+  if (!variantesContainer) return;
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
-    console.log('📍 Obteniendo producto:', productoId);
-
     const response = await fetch(`${API_BASE_URL}/productos/${productoId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     const data = await response.json();
-    console.log('📍 Response producto:', data);
-
     if (!data.success || !data.data) {
-      console.warn('❌ No se encontró producto');
+      console.warn('No se encontró producto o no tiene variantes');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const producto = data.data;
-    console.log('📍 Producto insumo_id:', producto.insumo_id);
 
     if (!producto.insumo_id) {
-      console.log('📍 Producto no tiene insumo_id');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
-    console.log('📍 Obteniendo insumo:', producto.insumo_id);
     const insumoResponse = await fetch(`${API_BASE_URL}/insumos/${producto.insumo_id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     const insumoData = await insumoResponse.json();
-    console.log('📍 Response insumo:', insumoData);
-
     if (!insumoData.success || !insumoData.data || !insumoData.data.variantes || insumoData.data.variantes.length === 0) {
-      console.warn('❌ Insumo no tiene variantes o error en respuesta');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const insumo = insumoData.data;
-    console.log('✅ Variantes encontradas:', insumo.variantes.length);
-
     variantesContainer.innerHTML = insumo.variantes.map(variante => {
       const opciones = (variante.valores_disponibles || []).map(valor =>
         `<option value="${valor.id || valor}">${valor.nombre || valor}</option>`
@@ -2446,11 +2475,8 @@ async function cargarVariantesProductoEdicion(productoId) {
         </div>
       `;
     }).join('');
-
-    console.log('✅ Variantes renderizadas correctamente');
   } catch (error) {
-    console.error('❌ Error cargando variantes:', error);
-    console.error('Stack:', error.stack);
+    console.error('Error cargando variantes:', error);
     document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
@@ -2459,8 +2485,6 @@ async function confirmAgregarProductoEdicion() {
   const select = document.getElementById('selectProductoEdicion');
   const cantidad = parseInt(document.getElementById('cantidadProductoEdicion').value) || 1;
   const productoId = select.value;
-
-  console.log('📝 confirmAgregarProductoEdicion - Producto:', productoId);
 
   if (!productoId) {
     puchiaAlert('Por favor selecciona un producto', 'warning');
@@ -2475,8 +2499,6 @@ async function confirmAgregarProductoEdicion() {
   const selectedOption = select.options[select.selectedIndex];
   const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
 
-  console.log('📝 ¿Tiene variantes?', tieneVariantes);
-
   // Capturar variantes seleccionadas
   const variantesSeleccionadas = {};
   if (tieneVariantes) {
@@ -2486,54 +2508,48 @@ async function confirmAgregarProductoEdicion() {
       return;
     }
 
-    // Capturar cada variante seleccionada
-    selectores.forEach(select => {
-      const varianteId = select.dataset.varianteId;
-      const varianteTipo = select.dataset.varianteTipo;
-      const valor = select.value;
+    // Recolectar valores de variantes seleccionadas
+    let todasVariantesSeleccionadas = true;
+    selectores.forEach(selector => {
+      const valor = selector.value;
+      const tipo = selector.dataset.varianteTipo;
 
       if (!valor) {
-        puchiaAlert(`Por favor selecciona ${varianteTipo}`, 'warning');
-        throw new Error('Variante vacía');
+        todasVariantesSeleccionadas = false;
+      } else {
+        variantesSeleccionadas[tipo] = valor;
       }
-
-      variantesSeleccionadas[varianteId] = valor;
-      variantesSeleccionadas[varianteTipo] = valor; // También guardar por tipo para compatibilidad
-      console.log(`📝 Variante ${varianteTipo}:`, valor);
     });
-  }
 
-  try {
-    // Agregar producto a la orden
-    const nuevoItem = {
-      id: null,
-      producto_id: parseInt(productoId),
-      cantidad: cantidad,
-      precio_unitario: parseFloat(selectedOption.dataset.precio),
-      variantes_seleccionadas: variantesSeleccionadas,
-      producto: {
-        id: parseInt(productoId),
-        nombre: selectedOption.textContent.split(' - ')[0],
-        precio: parseFloat(selectedOption.dataset.precio)
-      }
-    };
-
-    console.log('📦 Nuevo item:', nuevoItem);
-
-    if (!ordenEditandoData.items) {
-      ordenEditandoData.items = [];
+    if (!todasVariantesSeleccionadas) {
+      puchiaAlert('Por favor selecciona todos los valores de variantes', 'warning');
+      return;
     }
-
-    ordenEditandoData.items.push(nuevoItem);
-    console.log('✅ Item agregado. Total items:', ordenEditandoData.items.length);
-
-    mostrarProductosEditarOrden(ordenEditandoData);
-    cerrarModalAgregarProductoEdicion();
-    puchiaAlert('Producto agregado', 'success');
-  } catch (error) {
-    console.error('❌ Error agregando producto:', error);
-    puchiaAlert('Error al agregar producto', 'error');
   }
+
+  // Agregar producto a la orden
+  const nuevoItem = {
+    id: null,
+    producto_id: parseInt(productoId),
+    cantidad: cantidad,
+    precio_unitario: parseFloat(selectedOption.dataset.precio),
+    variantes_seleccionadas: variantesSeleccionadas,
+    producto: {
+      id: parseInt(productoId),
+      nombre: selectedOption.textContent.split(' - ')[0],
+      precio: parseFloat(selectedOption.dataset.precio)
+    }
+  };
+
+  if (!ordenEditandoData.items) {
+    ordenEditandoData.items = [];
+  }
+
+  ordenEditandoData.items.push(nuevoItem);
+  mostrarProductosEditarOrden(ordenEditandoData);
+  recalcularTotalesEditarOrden();
+  cerrarModalAgregarProductoEdicion();
+  puchiaAlert('Producto agregado', 'success');
 }
 
 async function guardarEditarOrden() {
@@ -2541,6 +2557,12 @@ async function guardarEditarOrden() {
 
   const sena = parseFloat(document.getElementById('editSena').value);
   const fechaEntrega = document.getElementById('editFechaEntrega').value;
+  const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
+
+  if (!sena || sena < 0 || sena > total) {
+    puchiaAlert('Seña inválida', 'warning');
+    return;
+  }
 
   const btn = event.target;
   btn.disabled = true;
@@ -2548,8 +2570,6 @@ async function guardarEditarOrden() {
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
-    let nuevoTotal = null;
-    let nuevoResto = null;
 
     // Primero, actualizar items si hay cambios
     if (ordenEditandoData && ordenEditandoData.items) {
@@ -2561,8 +2581,6 @@ async function guardarEditarOrden() {
           variantes_seleccionadas: item.variantes_seleccionadas || {}
         }));
 
-      console.log('📊 Items a guardar:', itemsParaGuardar);
-
       if (itemsParaGuardar.length > 0) {
         const itemsResponse = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}/items`, {
           method: 'PATCH',
@@ -2573,50 +2591,15 @@ async function guardarEditarOrden() {
           body: JSON.stringify({ items: itemsParaGuardar })
         });
 
-        console.log('🔄 PATCH response status:', itemsResponse.status);
-
         if (!itemsResponse.ok) {
           const errorData = await itemsResponse.json();
-          console.error('❌ Error en PATCH:', errorData);
           puchiaAlert('Error actualizando productos: ' + (errorData.error || 'desconocido'), 'error');
           return;
-        }
-
-        const itemsData = await itemsResponse.json();
-        console.log('📈 PATCH response data:', itemsData);
-
-        if (itemsData.success && itemsData.data) {
-          // Usar los valores actualizados del backend
-          nuevoTotal = itemsData.data.total || itemsData.data.total_nuevo;
-          nuevoResto = itemsData.data.resto_a_pagar || itemsData.data.resto_nuevo;
-          console.log('✅ Total actualizado desde PATCH:', nuevoTotal);
-          console.log('✅ Resto actualizado desde PATCH:', nuevoResto);
-
-          // Actualizar UI con nuevos valores
-          if (nuevoTotal) {
-            document.getElementById('editTotal').textContent = '$' + nuevoTotal.toFixed(2);
-          }
-          if (nuevoResto) {
-            const restoElement = document.getElementById('editResto');
-            if (restoElement) {
-              restoElement.textContent = '$' + nuevoResto.toFixed(2);
-            }
-          }
         }
       }
     }
 
-    // Validar seña con el total actualizado (o actual si no hubo cambios)
-    const totalActual = nuevoTotal || parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
-
-    if (!sena || sena < 0 || sena > totalActual) {
-      puchiaAlert('Seña inválida (no puede exceder $' + totalActual.toFixed(2) + ')', 'warning');
-      return;
-    }
-
-    // Luego, actualizar detalles de la orden (seña y fecha)
-    console.log('📝 Guardando seña:', sena, 'Fecha:', fechaEntrega);
-
+    // Luego, actualizar detalles de la orden
     const response = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}`, {
       method: 'PUT',
       headers: {
@@ -2625,27 +2608,22 @@ async function guardarEditarOrden() {
       },
       body: JSON.stringify({
         sena,
+        resto_a_pagar: total - sena,
         fecha_entrega: fechaEntrega || null
       })
     });
 
-    console.log('📤 PUT response status:', response.status);
-
     const data = await response.json();
-    console.log('📤 PUT response data:', data);
 
     if (data.success) {
-      console.log('✅ Pedido guardado exitosamente');
       puchiaAlert('Pedido actualizado exitosamente', 'success');
       cerrarEditarOrden();
       loadAllOrders(); // Recargar tabla
     } else {
-      console.error('❌ Error en PUT:', data);
       puchiaAlert('Error al actualizar: ' + (data.error || 'desconocido'), 'error');
     }
   } catch (error) {
-    console.error('❌ Error en guardarEditarOrden:', error);
-    console.error('Stack:', error.stack);
+    console.error('Error:', error);
     puchiaAlert('Error de conexión', 'error');
   } finally {
     btn.disabled = false;
