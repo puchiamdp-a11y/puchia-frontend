@@ -7,17 +7,11 @@ let allCategories = [];
 
 // ======================== INICIALIZACIÓN ========================
 document.addEventListener('DOMContentLoaded', async () => {
-  // Verificar autenticación
-  const token = localStorage.getItem('adminToken');
-  if (!token) {
-    window.location.href = '../admin/login.html';
-    return;
-  }
-
   // Mostrar nombre del usuario
   const userName = localStorage.getItem('adminUserName');
   if (userName) {
-    document.getElementById('adminUserName').textContent = userName;
+    const userNameEl = document.getElementById('adminUserName');
+    if (userNameEl) userNameEl.textContent = userName;
   }
 
   // Cargar secciones
@@ -43,10 +37,6 @@ async function loadSections() {
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        window.location.href = '../admin/login.html';
-        return;
-      }
       throw new Error('Error al cargar secciones');
     }
 
@@ -584,11 +574,14 @@ function setupEventListeners() {
     document.getElementById('categories-selector').style.display = e.target.checked ? 'none' : 'block';
   });
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUserName');
-    window.location.href = '../admin/login.html';
-  });
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUserName');
+      window.location.href = '../admin/login.html';
+    });
+  }
 
   // Cerrar modales al hacer click fuera
   window.addEventListener('click', (e) => {
