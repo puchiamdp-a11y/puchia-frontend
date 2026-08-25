@@ -8,14 +8,19 @@ let authToken = null;
 
 // ======================== RECIBIR TOKEN DEL DASHBOARD ========================
 window.addEventListener('message', (event) => {
-  // Validar origen (solo acepta mensajes del dashboard padre)
-  if (event.origin !== window.location.origin) {
-    return;
-  }
+  console.log('📨 [admin-home-sections] Mensaje recibido:', event.data.type, 'origen:', event.origin);
+
+  // Validar origen (comentado durante debug, usar '*' en el dashboard)
+  // if (event.origin !== window.location.origin) {
+  //   console.warn('❌ Origen rechazado:', event.origin);
+  //   return;
+  // }
 
   if (event.data.type === 'AUTH_TOKEN') {
     authToken = event.data.token;
-    console.log('✅ [admin-home-sections] Token recibido del dashboard');
+    console.log('✅ [admin-home-sections] Token recibido del dashboard:', authToken.substring(0, 20) + '...');
+  } else {
+    console.warn('⚠️ Tipo de mensaje desconocido:', event.data.type);
   }
 });
 

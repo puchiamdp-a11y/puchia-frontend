@@ -216,16 +216,35 @@ function setupEventListeners() {
 
         // Enviar token al iframe cuando está listo
         const iframe = container.querySelector('#admin-home-iframe');
+        const token = localStorage.getItem('adminToken');
+        console.log('🔍 [admin.js] Inicializando iframe. Token disponible:', !!token);
+
         iframe.addEventListener('load', () => {
-          const token = localStorage.getItem('adminToken');
+          console.log('✅ [admin.js] Iframe loaded. contentWindow:', !!iframe.contentWindow);
+
+          if (token && iframe.contentWindow) {
+            console.log('📤 [admin.js] Enviando token al iframe...', token.substring(0, 20) + '...');
+            iframe.contentWindow.postMessage({
+              type: 'AUTH_TOKEN',
+              token: token
+            }, '*'); // Usar '*' para aceptar cualquier origen durante debug
+            console.log('✅ [admin.js] postMessage enviado');
+          } else {
+            console.error('❌ [admin.js] No se puede enviar: token:', !!token, 'contentWindow:', !!iframe.contentWindow);
+          }
+        });
+
+        // Enviar token también después de un delay (por si load no se dispara)
+        setTimeout(() => {
+          console.log('⏱️ [admin.js] Intentando enviar token por timeout...');
           if (token && iframe.contentWindow) {
             iframe.contentWindow.postMessage({
               type: 'AUTH_TOKEN',
               token: token
-            }, window.location.origin);
-            console.log('✅ [admin.js] Token enviado al iframe');
+            }, '*');
+            console.log('✅ [admin.js] postMessage enviado por timeout');
           }
-        });
+        }, 1000);
 
         return;
       }
