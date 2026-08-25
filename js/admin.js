@@ -185,18 +185,35 @@ function setupEventListeners() {
       const page = link.dataset.page;
       console.log('Navegando a:', page);
 
-      // Navegar a admin-home (página separada)
-      if (page === 'admin-home') {
-        window.location.href = './admin-home.html';
-        return;
-      }
-
       // Remover activo de todos
       document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
       link.classList.add('active');
 
       // Ocultar todas las páginas
       document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+
+      // Ocultar iframe container si existe
+      const iframeContainer = document.getElementById('admin-home-iframe-container');
+      if (iframeContainer) iframeContainer.style.display = 'none';
+
+      // Cargar admin-home dentro del panel como iframe
+      if (page === 'admin-home') {
+        let container = document.getElementById('admin-home-iframe-container');
+        if (!container) {
+          container = document.createElement('div');
+          container.id = 'admin-home-iframe-container';
+          container.style.cssText = 'display: flex; flex-direction: column; height: calc(100vh - 80px); width: 100%;';
+          document.querySelector('.admin-content').appendChild(container);
+        }
+
+        container.innerHTML = `<iframe
+          src="./admin-home.html"
+          style="width: 100%; height: 100%; border: none;"
+          title="Gestor de Secciones del HOME">
+        </iframe>`;
+        container.style.display = 'flex';
+        return;
+      }
 
       // Mostrar página seleccionada
       const pageElement = document.getElementById(`${page}-page`);
