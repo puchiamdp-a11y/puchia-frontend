@@ -59,6 +59,91 @@ async function loadSections() {
   }
 }
 
+// ======================== ACTUALIZAR PREVIEW EN VIVO ========================
+function updatePreview() {
+  const previewFrame = document.getElementById('previewFrame');
+
+  if (sections.length === 0) {
+    previewFrame.innerHTML = '<div class="preview-empty">No hay secciones. Agrega una para ver el preview.</div>';
+    return;
+  }
+
+  let html = '';
+
+  sections.forEach(section => {
+    if (!section.enabled) {
+      html += `<div class="preview-section" style="opacity: 0.5; background: #f5f5f5;">
+                <div style="color: #999; text-align: center; padding: 12px;">
+                  [DESHABILITADO] ${getSectionTypeLabel(section.section_type)}
+                </div>
+              </div>`;
+      return;
+    }
+
+    const config = section.config || {};
+
+    switch (section.section_type) {
+      case 'banner':
+        html += `<div class="preview-section">
+                  ${config.image_url ? `<img src="${config.image_url}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px; margin-bottom: 12px;" alt="Banner">` : ''}
+                  <div class="preview-banner" style="background: linear-gradient(135deg, #7b2d8e, #9d4cb8);">
+                    ${config.eyebrow ? `<div style="font-size: 11px; letter-spacing: 1px; margin-bottom: 8px;">${config.eyebrow}</div>` : ''}
+                    <div class="preview-banner-title">${config.title || 'Banner sin título'}</div>
+                    ${config.subtitle ? `<div class="preview-banner-subtitle">${config.subtitle}</div>` : ''}
+                    ${config.button_text ? `<div style="margin-top: 12px;"><button style="background: white; color: #7b2d8e; padding: 8px 16px; border-radius: 4px; border: none; font-weight: 600; cursor: pointer;">${config.button_text}</button></div>` : ''}
+                  </div>
+                </div>`;
+        break;
+
+      case 'products':
+        html += `<div class="preview-section">
+                  <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">${config.title || 'Productos Destacados'}</div>
+                  <div class="preview-products-grid">
+                    ${config.ids && config.ids.length > 0
+                      ? config.ids.slice(0, 4).map(id => `
+                          <div class="preview-product-card">
+                            <div class="preview-product-card-title">Producto ${id}</div>
+                            <div class="preview-product-card-price">$199</div>
+                          </div>
+                        `).join('')
+                      : '<div style="color: #999; padding: 20px; text-align: center;">Sin productos seleccionados</div>'
+                    }
+                  </div>
+                </div>`;
+        break;
+
+      case 'categories':
+        html += `<div class="preview-section">
+                  <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">${config.title || 'Categorías'}</div>
+                  <div>
+                    ${config.show_all
+                      ? '<div class="preview-category-item">Cumpleaños</div><div class="preview-category-item">Regalos</div><div class="preview-category-item">Decoración</div>'
+                      : config.ids && config.ids.length > 0
+                      ? config.ids.map(id => `<div class="preview-category-item">Categoría ${id}</div>`).join('')
+                      : '<div style="color: #999;">Sin categorías</div>'
+                    }
+                  </div>
+                </div>`;
+        break;
+
+      case 'testimonials':
+        html += `<div class="preview-section">
+                  <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">${config.title || 'Testimonios'}</div>
+                  <div>
+                    <div class="preview-testimonial">
+                      <div class="preview-stars">★★★★★</div>
+                      <div class="preview-testimonial-text">Excelente servicio y calidad. Muy recomendable.</div>
+                      <div class="preview-testimonial-author">Cliente verificado</div>
+                    </div>
+                  </div>
+                </div>`;
+        break;
+    }
+  });
+
+  previewFrame.innerHTML = html;
+}
+
 // ======================== RENDERIZAR SECCIONES ========================
 function renderSections() {
   const listContainer = document.getElementById('sectionsList');
@@ -67,11 +152,13 @@ function renderSections() {
   if (sections.length === 0) {
     listContainer.style.display = 'none';
     noSections.style.display = 'block';
+    updatePreview();
     return;
   }
 
   listContainer.style.display = 'flex';
   noSections.style.display = 'none';
+  updatePreview();
 
   listContainer.innerHTML = sections.map((section, index) => `
     <div class="section-item" data-section-id="${section.id}">

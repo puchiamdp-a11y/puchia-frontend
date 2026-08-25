@@ -11,7 +11,30 @@
     <!-- SortableJS para drag-drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
-        .home-sections-container { max-width: 900px; margin: 0 auto; }
+        .home-sections-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 1600px; margin: 0 auto; }
+        .home-sections-left { display: flex; flex-direction: column; gap: 12px; }
+        .home-sections-right { border-left: 1px solid #e0e0e0; padding-left: 24px; display: flex; flex-direction: column; gap: 12px; }
+        .preview-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+        .preview-frame { flex: 1; border: 1px solid #e0e0e0; border-radius: 8px; overflow-y: auto; background: white; }
+        .preview-section { padding: 16px; border-bottom: 1px solid #f0f0f0; }
+        .preview-section:last-child { border-bottom: none; }
+        .preview-banner { background: linear-gradient(135deg, #7b2d8e, #9d4cb8); color: white; padding: 24px; border-radius: 8px; text-align: center; }
+        .preview-banner-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .preview-banner-subtitle { font-size: 14px; opacity: 0.9; }
+        .preview-products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .preview-product-card { background: #f9f9f9; padding: 12px; border-radius: 6px; border: 1px solid #e0e0e0; text-align: center; }
+        .preview-product-card-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+        .preview-product-card-price { color: #7b2d8e; font-weight: 600; }
+        .preview-category-item { display: inline-block; background: #f0e6f6; color: #7b2d8e; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-right: 8px; margin-bottom: 8px; }
+        .preview-testimonial { background: #f9f9f9; padding: 12px; border-radius: 6px; border-left: 4px solid #7b2d8e; }
+        .preview-stars { color: #fbbf24; font-size: 14px; margin-bottom: 4px; }
+        .preview-testimonial-text { font-size: 13px; color: #666; margin-bottom: 4px; }
+        .preview-testimonial-author { font-size: 12px; color: #999; font-style: italic; }
+        .preview-empty { display: flex; align-items: center; justify-content: center; height: 200px; color: #999; text-align: center; }
+        @media (max-width: 1200px) {
+            .home-sections-container { grid-template-columns: 1fr; }
+            .home-sections-right { border-left: none; border-top: 1px solid #e0e0e0; padding-left: 0; padding-top: 24px; }
+        }
         .sections-toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
         .btn-primary { background: linear-gradient(135deg, #7b2d8e, #9d4cb8); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
         .btn-primary:hover { opacity: 0.9; }
@@ -108,29 +131,41 @@
 
         <!-- CONTENIDO PRINCIPAL -->
         <main class="admin-content">
+            <h1 class="page-title">Gestor de Secciones del HOME</h1>
+            <p style="color: #666; margin-bottom: 24px;">Reordena, edita, duplica o elimina secciones. Los cambios se guardan automáticamente.</p>
+
+            <!-- TOOLBAR -->
+            <div class="sections-toolbar">
+                <button class="btn-primary" id="addSectionBtn">➕ Agregar Sección</button>
+                <button class="btn-secondary btn-sm" id="saveSectionOrderBtn">💾 Guardar Cambios</button>
+            </div>
+
+            <!-- STATUS MESSAGE -->
+            <div id="statusMessage" class="status-bar" style="display: none;"></div>
+
             <div class="home-sections-container">
-                <h1 class="page-title">Gestor de Secciones del HOME</h1>
-                <p style="color: #666; margin-bottom: 24px;">Reordena, edita, duplica o elimina secciones. Los cambios se guardan automáticamente.</p>
+                <!-- LEFT PANEL: ADMIN -->
+                <div class="home-sections-left">
+                    <!-- SECTIONS LIST -->
+                    <div id="sectionsList" class="sections-list">
+                        <!-- Sections will be loaded here -->
+                    </div>
 
-                <!-- TOOLBAR -->
-                <div class="sections-toolbar">
-                    <button class="btn-primary" id="addSectionBtn">➕ Agregar Sección</button>
-                    <button class="btn-secondary btn-sm" id="previewBtn">👁️ Ver Preview</button>
-                    <button class="btn-secondary btn-sm" id="saveSectionOrderBtn">💾 Guardar Cambios</button>
+                    <!-- NO SECTIONS MESSAGE -->
+                    <div id="noSections" class="no-sections" style="display: none;">
+                        <div class="no-sections-icon">📭</div>
+                        <p>No hay secciones en el HOME. ¡Crea la primera!</p>
+                    </div>
                 </div>
 
-                <!-- STATUS MESSAGE -->
-                <div id="statusMessage" class="status-bar" style="display: none;"></div>
-
-                <!-- SECTIONS LIST -->
-                <div id="sectionsList" class="sections-list">
-                    <!-- Sections will be loaded here -->
-                </div>
-
-                <!-- NO SECTIONS MESSAGE -->
-                <div id="noSections" class="no-sections" style="display: none;">
-                    <div class="no-sections-icon">📭</div>
-                    <p>No hay secciones en el HOME. ¡Crea la primera!</p>
+                <!-- RIGHT PANEL: LIVE PREVIEW -->
+                <div class="home-sections-right">
+                    <div class="preview-header">👁️ Preview en Vivo</div>
+                    <div class="preview-frame" id="previewFrame">
+                        <div class="preview-empty">
+                            Carga las secciones para ver el preview...
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
