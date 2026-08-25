@@ -2345,16 +2345,18 @@ function recalcularTotalesEditarOrden() {
   const senaInput = document.getElementById('editSena');
   const senaActual = parseFloat(senaInput.value) || 0;
 
-  // Calcular nuevo resto
+  // Calcular nuevo resto (puede ser negativo si seña > total)
   const nuevoResto = nuevoTotal - senaActual;
 
-  // Actualizar display de totales
+  // Actualizar display de totales (mostrar valor real, incluso negativo)
   document.getElementById('editTotal').textContent = `$${nuevoTotal.toFixed(2)}`;
-  document.getElementById('editRestoAPagar').textContent = `$${Math.max(0, nuevoResto).toFixed(2)}`;
+  document.getElementById('editRestoAPagar').textContent = `$${nuevoResto.toFixed(2)}`;
 
-  // Actualizar datos
+  // Actualizar datos (guardar valor real, no modificado)
   ordenEditandoData.total = nuevoTotal;
-  ordenEditandoData.resto_a_pagar = Math.max(0, nuevoResto);
+  ordenEditandoData.resto_a_pagar = nuevoResto;
+
+  console.log('💰 [recalcularTotalesEditarOrden] Total:', nuevoTotal, 'Seña:', senaActual, 'Resto:', nuevoResto);
 }
 
 function abrirModalAgregarProductoEdicion() {
@@ -2501,9 +2503,11 @@ async function cargarVariantesProductoEdicion(productoId) {
     const tipoVariante = insumo.tipo_variante || 'Opción';
     console.log('📝 [cargarVariantesProductoEdicion] Tipo variante:', tipoVariante);
 
-    const opciones = variantes.map(variante =>
-      `<option value="${variante.id || variante.nombre}">${variante.nombre}</option>`
-    ).join('');
+    const opciones = variantes.map(variante => {
+      const stock = variante.cantidad_en_stock || 0;
+      const displayText = `${variante.nombre} (${stock} disponibles)`;
+      return `<option value="${variante.nombre}">${displayText}</option>`;
+    }).join('');
 
     variantesContainer.innerHTML = `
       <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
