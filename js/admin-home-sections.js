@@ -4,25 +4,32 @@ let currentEditingSection = null;
 let sections = [];
 let allProducts = [];
 let allCategories = [];
-let authToken = null;
 
-// ======================== RECIBIR TOKEN DEL DASHBOARD ========================
-window.addEventListener('message', (event) => {
-  console.log('📨 [admin-home-sections] Mensaje recibido:', event.data.type, 'origen:', event.origin);
-
-  // Validar origen (comentado durante debug, usar '*' en el dashboard)
-  // if (event.origin !== window.location.origin) {
-  //   console.warn('❌ Origen rechazado:', event.origin);
-  //   return;
-  // }
-
-  if (event.data.type === 'AUTH_TOKEN') {
-    authToken = event.data.token;
-    console.log('✅ [admin-home-sections] Token recibido del dashboard:', authToken.substring(0, 20) + '...');
-  } else {
-    console.warn('⚠️ Tipo de mensaje desconocido:', event.data.type);
+// ======================== OBTENER TOKEN DEL DASHBOARD ========================
+function getAuthToken() {
+  // Intentar obtener token del dashboard (página padre)
+  try {
+    if (window.parent && window.parent !== window) {
+      const parentToken = window.parent.localStorage.getItem('adminToken');
+      if (parentToken) {
+        console.log('✅ [admin-home-sections] Token obtenido del dashboard padre');
+        return parentToken;
+      }
+    }
+  } catch (e) {
+    console.warn('⚠️ No se puede acceder al localStorage del padre:', e.message);
   }
-});
+
+  // Fallback: intentar obtener del localStorage del iframe
+  const localToken = localStorage.getItem('adminToken');
+  if (localToken) {
+    console.log('✅ [admin-home-sections] Token obtenido del localStorage local');
+    return localToken;
+  }
+
+  console.error('❌ No hay token disponible');
+  return null;
+}
 
 // ======================== INICIALIZACIÓN ========================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -47,22 +54,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ======================== CARGAR SECCIONES ========================
 async function loadSections() {
   try {
-    // Esperar a que el token sea recibido del dashboard (máximo 2 segundos)
-    let retries = 0;
-    while (!authToken && retries < 20) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      retries++;
-    }
+    const token = getAuthToken();
 
-    console.log('📍 [loadSections] Token disponible:', !!authToken);
-
-    if (!authToken) {
+    if (!token) {
       throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
     }
 
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
       headers: {
-        'Authorization': `Bearer ${authToken}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
@@ -335,7 +335,7 @@ function renderCategorySelector(selectedIds = []) {
 async function saveSectionFromForm(e) {
   e.preventDefault();
 
-  const token = authToken;
+  const token = getAuthToken();
   let config = {};
   let isValid = true;
 
@@ -416,7 +416,7 @@ async function saveSectionFromForm(e) {
 
 // ======================== CREAR SECCIÓN ========================
 async function selectSectionType(type) {
-  const token = authToken;
+  const token = getAuthToken();
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
@@ -460,7 +460,7 @@ async function moveSection(sectionId, direction) {
 
 // ======================== REORDENAR SECCIONES ========================
 async function reorderSections(order) {
-  const token = authToken;
+  const token = getAuthToken();
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/batch/reorder`, {
@@ -486,7 +486,7 @@ async function reorderSections(order) {
 
 // ======================== DUPLICAR SECCIÓN ========================
 async function duplicateSection(sectionId) {
-  const token = authToken;
+  const token = getAuthToken();
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}/duplicate`, {
@@ -513,7 +513,7 @@ async function duplicateSection(sectionId) {
 async function deleteSection(sectionId) {
   if (!confirm('¿Estás seguro de que quieres eliminar esta sección?')) return;
 
-  const token = authToken;
+  const token = getAuthToken();
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}`, {

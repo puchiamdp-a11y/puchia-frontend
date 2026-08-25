@@ -202,50 +202,19 @@ function setupEventListeners() {
         if (!container) {
           container = document.createElement('div');
           container.id = 'admin-home-iframe-container';
-          container.style.cssText = 'display: flex; flex-direction: column; height: calc(100vh - 80px); width: 100%;';
+          container.style.cssText = 'display: flex; flex-direction: column; flex: 1; width: 100%;';
           document.querySelector('.admin-content').appendChild(container);
         }
 
         container.innerHTML = `<iframe
           id="admin-home-iframe"
           src="./admin-home.html"
-          style="width: 100%; height: 100%; border: none;"
+          style="width: 100%; height: 100%; border: none; flex: 1;"
           title="Gestor de Secciones del HOME">
         </iframe>`;
         container.style.display = 'flex';
 
-        // Enviar token al iframe cuando está listo
-        const iframe = container.querySelector('#admin-home-iframe');
-        const token = localStorage.getItem('adminToken');
-        console.log('🔍 [admin.js] Inicializando iframe. Token disponible:', !!token);
-
-        iframe.addEventListener('load', () => {
-          console.log('✅ [admin.js] Iframe loaded. contentWindow:', !!iframe.contentWindow);
-
-          if (token && iframe.contentWindow) {
-            console.log('📤 [admin.js] Enviando token al iframe...', token.substring(0, 20) + '...');
-            iframe.contentWindow.postMessage({
-              type: 'AUTH_TOKEN',
-              token: token
-            }, '*'); // Usar '*' para aceptar cualquier origen durante debug
-            console.log('✅ [admin.js] postMessage enviado');
-          } else {
-            console.error('❌ [admin.js] No se puede enviar: token:', !!token, 'contentWindow:', !!iframe.contentWindow);
-          }
-        });
-
-        // Enviar token también después de un delay (por si load no se dispara)
-        setTimeout(() => {
-          console.log('⏱️ [admin.js] Intentando enviar token por timeout...');
-          if (token && iframe.contentWindow) {
-            iframe.contentWindow.postMessage({
-              type: 'AUTH_TOKEN',
-              token: token
-            }, '*');
-            console.log('✅ [admin.js] postMessage enviado por timeout');
-          }
-        }, 1000);
-
+        console.log('✅ [admin.js] CMS HOME iframe cargado. El iframe accederá al token del dashboard');
         return;
       }
 
