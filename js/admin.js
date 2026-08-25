@@ -2334,10 +2334,13 @@ async function cargarProductosSelectEdicion() {
     }
 
     if (ordenManualProductos && ordenManualProductos.length > 0) {
-      const opciones = ordenManualProductos.map(p =>
-        `<option value="${p.id}" data-precio="${p.precio}" data-tiene-variantes="${p.tiene_variantes_stock}">${p.nombre} - $${p.precio}</option>`
-      ).join('');
+      const opciones = ordenManualProductos.map(p => {
+        // Asegurar que tiene_variantes_stock sea un boolean y convertirlo a string correcto
+        const tieneVariantes = p.tiene_variantes_stock === true || p.tiene_variantes_stock === 'true' ? 'true' : 'false';
+        return `<option value="${p.id}" data-precio="${p.precio}" data-tiene-variantes="${tieneVariantes}" data-producto-id="${p.id}">${p.nombre} - $${p.precio}</option>`;
+      }).join('');
       select.innerHTML += opciones;
+      console.log('✅ Productos cargados en select edición:', ordenManualProductos.length);
     }
 
     // Remover listeners anteriores y agregar nuevo
@@ -2345,7 +2348,7 @@ async function cargarProductosSelectEdicion() {
     select.parentNode.replaceChild(newSelect, select);
     document.getElementById('selectProductoEdicion').addEventListener('change', manejarCambioProductoEdicion);
   } catch (error) {
-    console.error('Error cargando productos:', error);
+    console.error('❌ Error cargando productos:', error);
     puchiaAlert('Error cargando productos', 'error');
   }
 }
@@ -2354,57 +2357,80 @@ async function manejarCambioProductoEdicion() {
   const select = document.getElementById('selectProductoEdicion');
   const productoId = select.value;
 
+  console.log('📍 manejarCambioProductoEdicion - Producto seleccionado:', productoId);
+
   if (!productoId) {
     document.getElementById('variantesEdicionContainer').style.display = 'none';
+    console.log('📍 No hay producto seleccionado');
     return;
   }
 
   const selectedOption = select.options[select.selectedIndex];
   const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
 
+  console.log('📍 Dataset tieneVariantes:', selectedOption?.dataset.tieneVariantes);
+  console.log('📍 ¿Tiene variantes? (true/false):', tieneVariantes);
+
   if (tieneVariantes) {
+    console.log('✅ Cargando variantes para producto', productoId);
     await cargarVariantesProductoEdicion(productoId);
     document.getElementById('variantesEdicionContainer').style.display = 'block';
   } else {
+    console.log('📍 Producto no tiene variantes, ocultando contenedor');
     document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
 
 async function cargarVariantesProductoEdicion(productoId) {
   const variantesContainer = document.getElementById('variantesEdicionList');
-  if (!variantesContainer) return;
+  if (!variantesContainer) {
+    console.error('❌ No encontrado: variantesEdicionList');
+    return;
+  }
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
+    console.log('📍 Obteniendo producto:', productoId);
+
     const response = await fetch(`${API_BASE_URL}/productos/${productoId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     const data = await response.json();
+    console.log('📍 Response producto:', data);
+
     if (!data.success || !data.data) {
-      console.warn('No se encontró producto o no tiene variantes');
+      console.warn('❌ No se encontró producto');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const producto = data.data;
+    console.log('📍 Producto insumo_id:', producto.insumo_id);
 
     if (!producto.insumo_id) {
+      console.log('📍 Producto no tiene insumo_id');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
+    console.log('📍 Obteniendo insumo:', producto.insumo_id);
     const insumoResponse = await fetch(`${API_BASE_URL}/insumos/${producto.insumo_id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     const insumoData = await insumoResponse.json();
+    console.log('📍 Response insumo:', insumoData);
+
     if (!insumoData.success || !insumoData.data || !insumoData.data.variantes || insumoData.data.variantes.length === 0) {
+      console.warn('❌ Insumo no tiene variantes o error en respuesta');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const insumo = insumoData.data;
+    console.log('✅ Variantes encontradas:', insumo.variantes.length);
+
     variantesContainer.innerHTML = insumo.variantes.map(variante => {
       const opciones = (variante.valores_disponibles || []).map(valor =>
         `<option value="${valor.id || valor}">${valor.nombre || valor}</option>`
@@ -2420,8 +2446,11 @@ async function cargarVariantesProductoEdicion(productoId) {
         </div>
       `;
     }).join('');
+
+    console.log('✅ Variantes renderizadas correctamente');
   } catch (error) {
-    console.error('Error cargando variantes:', error);
+    console.error('❌ Error cargando variantes:', error);
+    console.error('Stack:', error.stack);
     document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
