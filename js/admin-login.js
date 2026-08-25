@@ -1,5 +1,4 @@
-// Use internal Railway URL to bypass proxy restrictions
-const API_BASE_URL = 'http://puchia-backend.railway.internal:3000/api/v1';
+const API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
 
 document.getElementById('loginForm').addEventListener('submit', handleLogin);
 
