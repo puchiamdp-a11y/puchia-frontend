@@ -2409,25 +2409,40 @@ async function manejarCambioProductoEdicion() {
   const select = document.getElementById('selectProductoEdicion');
   const productoId = select.value;
 
+  console.log('🎯 [manejarCambioProductoEdicion] Producto seleccionado:', productoId);
+
   if (!productoId) {
+    console.log('ℹ️ [manejarCambioProductoEdicion] Sin producto seleccionado, ocultando variantes');
     document.getElementById('variantesEdicionContainer').style.display = 'none';
     return;
   }
 
   const selectedOption = select.options[select.selectedIndex];
-  const tieneInsumo = selectedOption?.dataset.insumoId && selectedOption.dataset.insumoId !== '';
+  const insumoId = selectedOption?.dataset.insumoId;
+  const tieneInsumo = insumoId && insumoId !== '';
+
+  console.log('🔑 [manejarCambioProductoEdicion] insumoId:', insumoId, '| tieneInsumo:', tieneInsumo);
+  console.log('📊 [manejarCambioProductoEdicion] selectedOption.dataset:', selectedOption?.dataset);
 
   if (tieneInsumo) {
+    console.log('📦 [manejarCambioProductoEdicion] Producto tiene insumo, cargando variantes...');
     await cargarVariantesProductoEdicion(productoId);
     document.getElementById('variantesEdicionContainer').style.display = 'block';
   } else {
+    console.log('ℹ️ [manejarCambioProductoEdicion] Producto sin insumo, ocultando variantes');
     document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
 
 async function cargarVariantesProductoEdicion(productoId) {
   const variantesContainer = document.getElementById('variantesEdicionList');
-  if (!variantesContainer) return;
+  console.log('🔍 [cargarVariantesProductoEdicion] Cargando variantes para producto:', productoId);
+  console.log('📦 [cargarVariantesProductoEdicion] Contenedor encontrado?', !!variantesContainer);
+
+  if (!variantesContainer) {
+    console.error('❌ [cargarVariantesProductoEdicion] Contenedor variantesEdicionList no encontrado!');
+    return;
+  }
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
@@ -2436,15 +2451,19 @@ async function cargarVariantesProductoEdicion(productoId) {
     });
 
     const data = await response.json();
+    console.log('📋 [cargarVariantesProductoEdicion] Producto data:', data);
+
     if (!data.success || !data.data) {
-      console.warn('No se encontró producto o no tiene variantes');
+      console.warn('⚠️ [cargarVariantesProductoEdicion] Producto no encontrado');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const producto = data.data;
+    console.log('🔑 [cargarVariantesProductoEdicion] Producto insumo_id:', producto.insumo_id);
 
     if (!producto.insumo_id) {
+      console.log('ℹ️ [cargarVariantesProductoEdicion] Producto sin insumo_id, ocultando variantes');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
@@ -2454,12 +2473,17 @@ async function cargarVariantesProductoEdicion(productoId) {
     });
 
     const insumoData = await insumoResponse.json();
+    console.log('📦 [cargarVariantesProductoEdicion] Insumo data:', insumoData);
+
     if (!insumoData.success || !insumoData.data || !insumoData.data.variantes || insumoData.data.variantes.length === 0) {
+      console.warn('⚠️ [cargarVariantesProductoEdicion] Insumo sin variantes válidas');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const insumo = insumoData.data;
+    console.log('✅ [cargarVariantesProductoEdicion] Renderizando', insumo.variantes.length, 'variantes');
+
     variantesContainer.innerHTML = insumo.variantes.map(variante => {
       const opciones = (variante.valores_disponibles || []).map(valor =>
         `<option value="${valor.id || valor}">${valor.nombre || valor}</option>`
@@ -2475,8 +2499,10 @@ async function cargarVariantesProductoEdicion(productoId) {
         </div>
       `;
     }).join('');
+
+    console.log('✅ [cargarVariantesProductoEdicion] Variantes renderizadas en el contenedor');
   } catch (error) {
-    console.error('Error cargando variantes:', error);
+    console.error('❌ [cargarVariantesProductoEdicion] Error cargando variantes:', error);
     document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
