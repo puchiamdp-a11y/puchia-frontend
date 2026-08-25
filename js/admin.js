@@ -2334,10 +2334,13 @@ async function cargarProductosSelectEdicion() {
     }
 
     if (ordenManualProductos && ordenManualProductos.length > 0) {
-      const opciones = ordenManualProductos.map(p =>
-        `<option value="${p.id}" data-precio="${p.precio}" data-tiene-variantes="${p.tiene_variantes_stock}">${p.nombre} - $${p.precio}</option>`
-      ).join('');
+      const opciones = ordenManualProductos.map(p => {
+        // Asegurar que tiene_variantes_stock sea un boolean y convertirlo a string correcto
+        const tieneVariantes = p.tiene_variantes_stock === true || p.tiene_variantes_stock === 'true' ? 'true' : 'false';
+        return `<option value="${p.id}" data-precio="${p.precio}" data-tiene-variantes="${tieneVariantes}" data-producto-id="${p.id}">${p.nombre} - $${p.precio}</option>`;
+      }).join('');
       select.innerHTML += opciones;
+      console.log('✅ Productos cargados en select edición:', ordenManualProductos.length);
     }
 
     // Remover listeners anteriores y agregar nuevo
@@ -2345,7 +2348,7 @@ async function cargarProductosSelectEdicion() {
     select.parentNode.replaceChild(newSelect, select);
     document.getElementById('selectProductoEdicion').addEventListener('change', manejarCambioProductoEdicion);
   } catch (error) {
-    console.error('Error cargando productos:', error);
+    console.error('❌ Error cargando productos:', error);
     puchiaAlert('Error cargando productos', 'error');
   }
 }
@@ -2354,57 +2357,80 @@ async function manejarCambioProductoEdicion() {
   const select = document.getElementById('selectProductoEdicion');
   const productoId = select.value;
 
+  console.log('📍 manejarCambioProductoEdicion - Producto seleccionado:', productoId);
+
   if (!productoId) {
     document.getElementById('variantesEdicionContainer').style.display = 'none';
+    console.log('📍 No hay producto seleccionado');
     return;
   }
 
   const selectedOption = select.options[select.selectedIndex];
   const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
 
+  console.log('📍 Dataset tieneVariantes:', selectedOption?.dataset.tieneVariantes);
+  console.log('📍 ¿Tiene variantes? (true/false):', tieneVariantes);
+
   if (tieneVariantes) {
+    console.log('✅ Cargando variantes para producto', productoId);
     await cargarVariantesProductoEdicion(productoId);
     document.getElementById('variantesEdicionContainer').style.display = 'block';
   } else {
+    console.log('📍 Producto no tiene variantes, ocultando contenedor');
     document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
 
 async function cargarVariantesProductoEdicion(productoId) {
   const variantesContainer = document.getElementById('variantesEdicionList');
-  if (!variantesContainer) return;
+  if (!variantesContainer) {
+    console.error('❌ No encontrado: variantesEdicionList');
+    return;
+  }
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
+    console.log('📍 Obteniendo producto:', productoId);
+
     const response = await fetch(`${API_BASE_URL}/productos/${productoId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     const data = await response.json();
+    console.log('📍 Response producto:', data);
+
     if (!data.success || !data.data) {
-      console.warn('No se encontró producto o no tiene variantes');
+      console.warn('❌ No se encontró producto');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const producto = data.data;
+    console.log('📍 Producto insumo_id:', producto.insumo_id);
 
     if (!producto.insumo_id) {
+      console.log('📍 Producto no tiene insumo_id');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
+    console.log('📍 Obteniendo insumo:', producto.insumo_id);
     const insumoResponse = await fetch(`${API_BASE_URL}/insumos/${producto.insumo_id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     const insumoData = await insumoResponse.json();
+    console.log('📍 Response insumo:', insumoData);
+
     if (!insumoData.success || !insumoData.data || !insumoData.data.variantes || insumoData.data.variantes.length === 0) {
+      console.warn('❌ Insumo no tiene variantes o error en respuesta');
       document.getElementById('variantesEdicionContainer').style.display = 'none';
       return;
     }
 
     const insumo = insumoData.data;
+    console.log('✅ Variantes encontradas:', insumo.variantes.length);
+
     variantesContainer.innerHTML = insumo.variantes.map(variante => {
       const opciones = (variante.valores_disponibles || []).map(valor =>
         `<option value="${valor.id || valor}">${valor.nombre || valor}</option>`
@@ -2420,8 +2446,11 @@ async function cargarVariantesProductoEdicion(productoId) {
         </div>
       `;
     }).join('');
+
+    console.log('✅ Variantes renderizadas correctamente');
   } catch (error) {
-    console.error('Error cargando variantes:', error);
+    console.error('❌ Error cargando variantes:', error);
+    console.error('Stack:', error.stack);
     document.getElementById('variantesEdicionContainer').style.display = 'none';
   }
 }
@@ -2430,6 +2459,8 @@ async function confirmAgregarProductoEdicion() {
   const select = document.getElementById('selectProductoEdicion');
   const cantidad = parseInt(document.getElementById('cantidadProductoEdicion').value) || 1;
   const productoId = select.value;
+
+  console.log('📝 confirmAgregarProductoEdicion - Producto:', productoId);
 
   if (!productoId) {
     puchiaAlert('Por favor selecciona un producto', 'warning');
@@ -2444,35 +2475,65 @@ async function confirmAgregarProductoEdicion() {
   const selectedOption = select.options[select.selectedIndex];
   const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
 
+  console.log('📝 ¿Tiene variantes?', tieneVariantes);
+
+  // Capturar variantes seleccionadas
+  const variantesSeleccionadas = {};
   if (tieneVariantes) {
     const selectores = document.querySelectorAll('.varianteSelect');
     if (selectores.length === 0) {
       puchiaAlert('Este producto requiere variantes', 'warning');
       return;
     }
+
+    // Capturar cada variante seleccionada
+    selectores.forEach(select => {
+      const varianteId = select.dataset.varianteId;
+      const varianteTipo = select.dataset.varianteTipo;
+      const valor = select.value;
+
+      if (!valor) {
+        puchiaAlert(`Por favor selecciona ${varianteTipo}`, 'warning');
+        throw new Error('Variante vacía');
+      }
+
+      variantesSeleccionadas[varianteId] = valor;
+      variantesSeleccionadas[varianteTipo] = valor; // También guardar por tipo para compatibilidad
+      console.log(`📝 Variante ${varianteTipo}:`, valor);
+    });
   }
 
-  // Agregar producto a la orden
-  const nuevoItem = {
-    id: null,
-    producto_id: parseInt(productoId),
-    cantidad: cantidad,
-    precio_unitario: parseFloat(selectedOption.dataset.precio),
-    producto: {
-      id: parseInt(productoId),
-      nombre: selectedOption.textContent.split(' - ')[0],
-      precio: parseFloat(selectedOption.dataset.precio)
+  try {
+    // Agregar producto a la orden
+    const nuevoItem = {
+      id: null,
+      producto_id: parseInt(productoId),
+      cantidad: cantidad,
+      precio_unitario: parseFloat(selectedOption.dataset.precio),
+      variantes_seleccionadas: variantesSeleccionadas,
+      producto: {
+        id: parseInt(productoId),
+        nombre: selectedOption.textContent.split(' - ')[0],
+        precio: parseFloat(selectedOption.dataset.precio)
+      }
+    };
+
+    console.log('📦 Nuevo item:', nuevoItem);
+
+    if (!ordenEditandoData.items) {
+      ordenEditandoData.items = [];
     }
-  };
 
-  if (!ordenEditandoData.items) {
-    ordenEditandoData.items = [];
+    ordenEditandoData.items.push(nuevoItem);
+    console.log('✅ Item agregado. Total items:', ordenEditandoData.items.length);
+
+    mostrarProductosEditarOrden(ordenEditandoData);
+    cerrarModalAgregarProductoEdicion();
+    puchiaAlert('Producto agregado', 'success');
+  } catch (error) {
+    console.error('❌ Error agregando producto:', error);
+    puchiaAlert('Error al agregar producto', 'error');
   }
-
-  ordenEditandoData.items.push(nuevoItem);
-  mostrarProductosEditarOrden(ordenEditandoData);
-  cerrarModalAgregarProductoEdicion();
-  puchiaAlert('Producto agregado', 'success');
 }
 
 async function guardarEditarOrden() {
@@ -2480,12 +2541,6 @@ async function guardarEditarOrden() {
 
   const sena = parseFloat(document.getElementById('editSena').value);
   const fechaEntrega = document.getElementById('editFechaEntrega').value;
-  const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
-
-  if (!sena || sena < 0 || sena > total) {
-    puchiaAlert('Seña inválida', 'warning');
-    return;
-  }
 
   const btn = event.target;
   btn.disabled = true;
@@ -2493,6 +2548,8 @@ async function guardarEditarOrden() {
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
+    let nuevoTotal = null;
+    let nuevoResto = null;
 
     // Primero, actualizar items si hay cambios
     if (ordenEditandoData && ordenEditandoData.items) {
@@ -2504,6 +2561,8 @@ async function guardarEditarOrden() {
           variantes_seleccionadas: item.variantes_seleccionadas || {}
         }));
 
+      console.log('📊 Items a guardar:', itemsParaGuardar);
+
       if (itemsParaGuardar.length > 0) {
         const itemsResponse = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}/items`, {
           method: 'PATCH',
@@ -2514,15 +2573,50 @@ async function guardarEditarOrden() {
           body: JSON.stringify({ items: itemsParaGuardar })
         });
 
+        console.log('🔄 PATCH response status:', itemsResponse.status);
+
         if (!itemsResponse.ok) {
           const errorData = await itemsResponse.json();
+          console.error('❌ Error en PATCH:', errorData);
           puchiaAlert('Error actualizando productos: ' + (errorData.error || 'desconocido'), 'error');
           return;
+        }
+
+        const itemsData = await itemsResponse.json();
+        console.log('📈 PATCH response data:', itemsData);
+
+        if (itemsData.success && itemsData.data) {
+          // Usar los valores actualizados del backend
+          nuevoTotal = itemsData.data.total || itemsData.data.total_nuevo;
+          nuevoResto = itemsData.data.resto_a_pagar || itemsData.data.resto_nuevo;
+          console.log('✅ Total actualizado desde PATCH:', nuevoTotal);
+          console.log('✅ Resto actualizado desde PATCH:', nuevoResto);
+
+          // Actualizar UI con nuevos valores
+          if (nuevoTotal) {
+            document.getElementById('editTotal').textContent = '$' + nuevoTotal.toFixed(2);
+          }
+          if (nuevoResto) {
+            const restoElement = document.getElementById('editResto');
+            if (restoElement) {
+              restoElement.textContent = '$' + nuevoResto.toFixed(2);
+            }
+          }
         }
       }
     }
 
-    // Luego, actualizar detalles de la orden
+    // Validar seña con el total actualizado (o actual si no hubo cambios)
+    const totalActual = nuevoTotal || parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
+
+    if (!sena || sena < 0 || sena > totalActual) {
+      puchiaAlert('Seña inválida (no puede exceder $' + totalActual.toFixed(2) + ')', 'warning');
+      return;
+    }
+
+    // Luego, actualizar detalles de la orden (seña y fecha)
+    console.log('📝 Guardando seña:', sena, 'Fecha:', fechaEntrega);
+
     const response = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}`, {
       method: 'PUT',
       headers: {
@@ -2531,22 +2625,27 @@ async function guardarEditarOrden() {
       },
       body: JSON.stringify({
         sena,
-        resto_a_pagar: total - sena,
         fecha_entrega: fechaEntrega || null
       })
     });
 
+    console.log('📤 PUT response status:', response.status);
+
     const data = await response.json();
+    console.log('📤 PUT response data:', data);
 
     if (data.success) {
+      console.log('✅ Pedido guardado exitosamente');
       puchiaAlert('Pedido actualizado exitosamente', 'success');
       cerrarEditarOrden();
       loadAllOrders(); // Recargar tabla
     } else {
+      console.error('❌ Error en PUT:', data);
       puchiaAlert('Error al actualizar: ' + (data.error || 'desconocido'), 'error');
     }
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ Error en guardarEditarOrden:', error);
+    console.error('Stack:', error.stack);
     puchiaAlert('Error de conexión', 'error');
   } finally {
     btn.disabled = false;
