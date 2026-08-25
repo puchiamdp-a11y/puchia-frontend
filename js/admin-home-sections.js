@@ -198,6 +198,8 @@ function renderSections() {
       sections.sort((a, b) => {
         return newOrder.indexOf(a.id) - newOrder.indexOf(b.id);
       });
+      // Actualizar preview en tiempo real
+      updatePreview();
     }
   });
 }
