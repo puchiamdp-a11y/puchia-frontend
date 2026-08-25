@@ -2390,7 +2390,7 @@ async function cargarProductosSelectEdicion() {
 
     if (ordenManualProductos && ordenManualProductos.length > 0) {
       const opciones = ordenManualProductos.map(p =>
-        `<option value="${p.id}" data-precio="${p.precio}" data-tiene-variantes="${p.tiene_variantes_stock}">${p.nombre} - $${p.precio}</option>`
+        `<option value="${p.id}" data-precio="${p.precio}" data-insumo-id="${p.insumo_id || ''}">${p.nombre} - $${p.precio}</option>`
       ).join('');
       select.innerHTML += opciones;
     }
@@ -2415,9 +2415,9 @@ async function manejarCambioProductoEdicion() {
   }
 
   const selectedOption = select.options[select.selectedIndex];
-  const tieneVariantes = selectedOption?.dataset.tieneVariantes === 'true';
+  const tieneInsumo = selectedOption?.dataset.insumoId && selectedOption.dataset.insumoId !== '';
 
-  if (tieneVariantes) {
+  if (tieneInsumo) {
     await cargarVariantesProductoEdicion(productoId);
     document.getElementById('variantesEdicionContainer').style.display = 'block';
   } else {
