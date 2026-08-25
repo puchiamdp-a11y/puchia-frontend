@@ -27,6 +27,8 @@ async function handleLogin(e) {
   loading.classList.add('show');
 
   try {
+    console.log('🔍 Intentando login a:', `${API_BASE_URL}/admin/auth/login`);
+
     const response = await fetch(`${API_BASE_URL}/admin/auth/login`, {
       method: 'POST',
       headers: {
@@ -35,8 +37,11 @@ async function handleLogin(e) {
       body: JSON.stringify({
         usuario,
         password
-      })
+      }),
+      credentials: 'include'
     });
+
+    console.log('📊 Respuesta recibida. Status:', response.status, 'OK:', response.ok);
 
     const data = await response.json();
 
@@ -45,7 +50,8 @@ async function handleLogin(e) {
     }
 
     if (data.success && data.token) {
-      // Guardar token en localStorage
+      // Guardar token en localStorage (usar 'adminToken' para consistencia con admin-home-sections.js)
+      localStorage.setItem('adminToken', data.token);
       localStorage.setItem('puchia_admin_token', data.token);
       localStorage.setItem('puchia_admin_user', JSON.stringify(data.usuario));
 
@@ -55,8 +61,16 @@ async function handleLogin(e) {
       throw new Error('Respuesta inválida del servidor');
     }
   } catch (error) {
-    console.error('Error en login:', error);
-    generalError.textContent = error.message || 'Error al iniciar sesión. Intenta nuevamente.';
+    console.error('❌ Error en login:', error);
+
+    // Diagnosticar tipo de error
+    let errorMessage = error.message;
+    if (error.message === 'Failed to fetch') {
+      errorMessage = 'No se puede conectar al servidor. Verifica tu conexión o intenta más tarde.';
+      console.error('🔴 Probable causa: Backend no está disponible o hay problema de conexión');
+    }
+
+    generalError.textContent = errorMessage || 'Error al iniciar sesión. Intenta nuevamente.';
     generalError.classList.add('show');
   } finally {
     loginBtn.disabled = false;
