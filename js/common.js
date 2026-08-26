@@ -542,3 +542,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// Función para animar números en la sección de estadísticas
+// ═══════════════════════════════════════════════════════════════
+function animateStats() {
+    const statNumbers = document.querySelectorAll('.stat-number');
+
+    statNumbers.forEach(stat => {
+        const target = parseInt(stat.getAttribute('data-target'));
+        const suffix = stat.textContent.replace(/[0-9]/g, '');
+        let current = 0;
+
+        const increment = Math.ceil(target / 30);
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            stat.textContent = current + suffix;
+        }, 50);
+    });
+}
