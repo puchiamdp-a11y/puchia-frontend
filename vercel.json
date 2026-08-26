@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/v1/admin/home-draft/:path*",
+      "destination": "https://puchia-backend-production.up.railway.app/api/v1/admin/home-draft/:path*"
+    },
+    {
+      "source": "/api/v1/admin/home-branding/:path*",
+      "destination": "https://puchia-backend-production.up.railway.app/api/v1/admin/home-branding/:path*"
+    },
+    {
+      "source": "/api/v1/admin/home-sections/:path*",
+      "destination": "https://puchia-backend-production.up.railway.app/api/v1/admin/home-sections/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://puchia-backend-production.up.railway.app/api/:path*"
+    }
+  ]
+}
