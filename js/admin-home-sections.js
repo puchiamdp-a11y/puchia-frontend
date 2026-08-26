@@ -25,10 +25,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
 });
 
+// ======================== OBTENER TOKEN CON RETRY ========================
+async function getTokenWithRetry(maxAttempts = 30, delayMs = 100) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const token = localStorage.getItem('puchia_admin_token');
+    if (token) {
+      console.log(`[TokenRetry] Token obtenido en intento ${attempt}/${maxAttempts}`);
+      return token;
+    }
+
+    if (attempt < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+
+  console.error('[TokenRetry] Token no disponible después de ' + (maxAttempts * delayMs) + 'ms');
+  return null;
+}
+
 // ======================== CARGAR SECCIONES ========================
 async function loadSections() {
   try {
-    const token = localStorage.getItem('puchia_admin_token');
+    const token = await getTokenWithRetry();
+
+    if (!token) {
+      throw new Error('No autenticado. Por favor inicia sesión nuevamente.');
+    }
+
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -37,15 +60,19 @@ async function loadSections() {
     });
 
     if (!response.ok) {
-      throw new Error('Error al cargar secciones');
+      if (response.status === 401) {
+        throw new Error('Token inválido o expirado. Por favor inicia sesión nuevamente.');
+      }
+      throw new Error('Error al cargar secciones (HTTP ' + response.status + ')');
     }
 
     const result = await response.json();
     sections = result.data || [];
     renderSections();
+    console.log('[Admin Panel] ' + sections.length + ' secciones cargadas');
   } catch (error) {
-    console.error('Error:', error);
-    showStatus('Error al cargar secciones: ' + error.message, 'error');
+    console.error('Error al cargar secciones:', error);
+    showStatus('Error: ' + error.message, 'error');
   }
 }
 
@@ -299,7 +326,12 @@ function renderCategorySelector(selectedIds = []) {
 async function saveSectionFromForm(e) {
   e.preventDefault();
 
-  const token = localStorage.getItem('puchia_admin_token');
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
+
   let config = {};
   let isValid = true;
 
@@ -380,7 +412,11 @@ async function saveSectionFromForm(e) {
 
 // ======================== CREAR SECCIÓN ========================
 async function selectSectionType(type) {
-  const token = localStorage.getItem('puchia_admin_token');
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
@@ -424,7 +460,11 @@ async function moveSection(sectionId, direction) {
 
 // ======================== REORDENAR SECCIONES ========================
 async function reorderSections(order) {
-  const token = localStorage.getItem('puchia_admin_token');
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/batch/reorder`, {
@@ -450,7 +490,11 @@ async function reorderSections(order) {
 
 // ======================== DUPLICAR SECCIÓN ========================
 async function duplicateSection(sectionId) {
-  const token = localStorage.getItem('puchia_admin_token');
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}/duplicate`, {
@@ -477,7 +521,11 @@ async function duplicateSection(sectionId) {
 async function deleteSection(sectionId) {
   if (!confirm('¿Estás seguro de que quieres eliminar esta sección?')) return;
 
-  const token = localStorage.getItem('puchia_admin_token');
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}`, {
