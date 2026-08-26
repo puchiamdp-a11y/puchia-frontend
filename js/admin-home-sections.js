@@ -1,35 +1,11 @@
 // ======================== CONFIG ========================
-const API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
+const API_BASE_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
 let currentEditingSection = null;
 let sections = [];
 let allProducts = [];
 let allCategories = [];
-
-// ======================== OBTENER TOKEN DEL DASHBOARD ========================
-function getAuthToken() {
-  // Intentar obtener token del dashboard (página padre)
-  try {
-    if (window.parent && window.parent !== window) {
-      const parentToken = window.parent.localStorage.getItem('adminToken');
-      if (parentToken) {
-        console.log('✅ [admin-home-sections] Token obtenido del dashboard padre');
-        return parentToken;
-      }
-    }
-  } catch (e) {
-    console.warn('⚠️ No se puede acceder al localStorage del padre:', e.message);
-  }
-
-  // Fallback: intentar obtener del localStorage del iframe
-  const localToken = localStorage.getItem('adminToken');
-  if (localToken) {
-    console.log('✅ [admin-home-sections] Token obtenido del localStorage local');
-    return localToken;
-  }
-
-  console.error('❌ No hay token disponible');
-  return null;
-}
+let hasUnsavedChanges = false;
+let previewRefreshInterval = null;
 
 // ======================== INICIALIZACIÓN ========================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -51,37 +27,83 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
 });
 
+// ======================== OBTENER TOKEN CON RETRY ========================
+async function getTokenWithRetry(maxAttempts = 30, delayMs = 100) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const token = localStorage.getItem('puchia_admin_token');
+    if (token) {
+      console.log(`[TokenRetry] Token obtenido en intento ${attempt}/${maxAttempts}`);
+      return token;
+    }
+
+    if (attempt < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+
+  console.error('[TokenRetry] Token no disponible después de ' + (maxAttempts * delayMs) + 'ms');
+  return null;
+}
+
 // ======================== CARGAR SECCIONES ========================
 async function loadSections() {
   try {
-    const token = getAuthToken();
+    const token = await getTokenWithRetry();
 
     if (!token) {
-      throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
+      throw new Error('No autenticado. Por favor inicia sesión nuevamente.');
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+    let draftSections = null;
+
+    // Intenta cargar el borrador primero (cambios sin publicar)
+    try {
+      const draftResponse = await fetch(`${API_BASE_URL}/admin/home-draft`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (draftResponse.ok) {
+        const draftResult = await draftResponse.json();
+        if (draftResult.data && Array.isArray(draftResult.data.sections) && draftResult.data.sections.length > 0) {
+          draftSections = draftResult.data.sections;
+          console.log('📝 [Admin Panel] Borrador cargado: ' + draftSections.length + ' secciones');
+        }
       }
-    });
-
-    if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor, recarga la página e inicia sesión de nuevo.');
+    } catch (draftError) {
+      console.warn('⚠️ Error al cargar borrador:', draftError.message);
     }
 
-    if (!response.ok) {
-      throw new Error(`Error al cargar secciones (${response.status})`);
+    // Si hay borrador, usarlo; si no, cargar secciones publicadas
+    if (draftSections && draftSections.length > 0) {
+      sections = draftSections;
+    } else {
+      console.log('📌 No hay borrador o está vacío, cargando secciones publicadas...');
+      const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Token inválido o expirado. Por favor inicia sesión nuevamente.');
+        }
+        throw new Error('Error al cargar secciones (HTTP ' + response.status + ')');
+      }
+
+      const result = await response.json();
+      sections = result.data || [];
+      console.log('📝 [Admin Panel] Secciones publicadas cargadas: ' + sections.length + ' secciones');
     }
 
-    const result = await response.json();
-    sections = result.data || [];
-    console.log('✅ [loadSections] Secciones cargadas:', sections.length);
     renderSections();
   } catch (error) {
-    console.error('❌ Error:', error);
-    showStatus('Error al cargar secciones: ' + error.message, 'error');
+    console.error('Error al cargar secciones:', error);
+    showStatus('Error: ' + error.message, 'error');
   }
 }
 
@@ -89,91 +111,26 @@ async function loadSections() {
 function updatePreview() {
   const previewFrame = document.getElementById('previewFrame');
 
-  if (sections.length === 0) {
-    previewFrame.innerHTML = '<div class="preview-empty">No hay secciones. Agrega una para ver el preview.</div>';
-    return;
-  }
+  // El preview muestra un IFRAME del HOME cliente real
+  // Con un query param para forzar refresco cada vez que hay cambios
+  const timestamp = new Date().getTime();
+  const iframeUrl = `https://puchia-web.vercel.app/?_t=${timestamp}`;
 
-  let html = '';
+  previewFrame.innerHTML = `<iframe src="${iframeUrl}" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>`;
+  previewFrame.style.padding = '0';
 
-  sections.forEach(section => {
-    if (!section.enabled) {
-      html += `<div class="preview-section" style="opacity: 0.5; background: #f5f5f5;">
-                <div style="color: #999; text-align: center; padding: 12px;">
-                  [DESHABILITADO] ${getSectionTypeLabel(section.section_type)}
-                </div>
-              </div>`;
-      return;
-    }
-
-    const config = section.config || {};
-
-    switch (section.section_type) {
-      case 'banner':
-        html += `<div class="preview-section">
-                  ${config.image_url ? `<img src="${config.image_url}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px; margin-bottom: 12px;" alt="Banner">` : ''}
-                  <div class="preview-banner" style="background: linear-gradient(135deg, #7b2d8e, #9d4cb8);">
-                    ${config.eyebrow ? `<div style="font-size: 11px; letter-spacing: 1px; margin-bottom: 8px;">${config.eyebrow}</div>` : ''}
-                    <div class="preview-banner-title">${config.title || 'Banner sin título'}</div>
-                    ${config.subtitle ? `<div class="preview-banner-subtitle">${config.subtitle}</div>` : ''}
-                    ${config.button_text ? `<div style="margin-top: 12px;"><button style="background: white; color: #7b2d8e; padding: 8px 16px; border-radius: 4px; border: none; font-weight: 600; cursor: pointer;">${config.button_text}</button></div>` : ''}
-                  </div>
-                </div>`;
-        break;
-
-      case 'products':
-        html += `<div class="preview-section">
-                  <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">${config.title || 'Productos Destacados'}</div>
-                  <div class="preview-products-grid">
-                    ${config.ids && config.ids.length > 0
-                      ? config.ids.slice(0, 4).map(id => `
-                          <div class="preview-product-card">
-                            <div class="preview-product-card-title">Producto ${id}</div>
-                            <div class="preview-product-card-price">$199</div>
-                          </div>
-                        `).join('')
-                      : '<div style="color: #999; padding: 20px; text-align: center;">Sin productos seleccionados</div>'
-                    }
-                  </div>
-                </div>`;
-        break;
-
-      case 'categories':
-        html += `<div class="preview-section">
-                  <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">${config.title || 'Categorías'}</div>
-                  <div>
-                    ${config.show_all
-                      ? '<div class="preview-category-item">Cumpleaños</div><div class="preview-category-item">Regalos</div><div class="preview-category-item">Decoración</div>'
-                      : config.ids && config.ids.length > 0
-                      ? config.ids.map(id => `<div class="preview-category-item">Categoría ${id}</div>`).join('')
-                      : '<div style="color: #999;">Sin categorías</div>'
-                    }
-                  </div>
-                </div>`;
-        break;
-
-      case 'testimonials':
-        html += `<div class="preview-section">
-                  <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">${config.title || 'Testimonios'}</div>
-                  <div>
-                    <div class="preview-testimonial">
-                      <div class="preview-stars">★★★★★</div>
-                      <div class="preview-testimonial-text">Excelente servicio y calidad. Muy recomendable.</div>
-                      <div class="preview-testimonial-author">Cliente verificado</div>
-                    </div>
-                  </div>
-                </div>`;
-        break;
-    }
-  });
-
-  previewFrame.innerHTML = html;
+  console.log('🔄 Preview refrescado');
 }
 
 // ======================== RENDERIZAR SECCIONES ========================
 function renderSections() {
   const listContainer = document.getElementById('sectionsList');
   const noSections = document.getElementById('noSections');
+
+  if (!listContainer) {
+    console.error('❌ Elemento sectionsList no encontrado en el DOM');
+    return;
+  }
 
   if (sections.length === 0) {
     listContainer.style.display = 'none';
@@ -210,24 +167,31 @@ function renderSections() {
     </div>
   `).join('');
 
-  // Inicializar SortableJS para drag-drop
-  new Sortable(listContainer, {
-    animation: 150,
-    ghostClass: 'ghost',
-    dragClass: 'dragging',
-    onEnd: (evt) => {
-      // Reordenar array local
-      const items = document.querySelectorAll('.section-item');
-      const newOrder = Array.from(items).map(item =>
-        parseInt(item.getAttribute('data-section-id'))
-      );
-      sections.sort((a, b) => {
-        return newOrder.indexOf(a.id) - newOrder.indexOf(b.id);
+  // Inicializar SortableJS para drag-drop con verificación defensiva
+  if (listContainer && listContainer.children.length > 0) {
+    try {
+      new Sortable(listContainer, {
+        animation: 150,
+        ghostClass: 'ghost',
+        dragClass: 'dragging',
+        onEnd: (evt) => {
+          // Reordenar array local
+          const items = document.querySelectorAll('.section-item');
+          const newOrder = Array.from(items).map(item =>
+            parseInt(item.getAttribute('data-section-id'))
+          );
+          sections.sort((a, b) => {
+            return newOrder.indexOf(a.id) - newOrder.indexOf(b.id);
+          });
+          // Actualizar preview en tiempo real
+          updatePreview();
+        }
       });
-      // Actualizar preview en tiempo real
-      updatePreview();
+      console.log('✅ SortableJS inicializado correctamente');
+    } catch (error) {
+      console.error('❌ Error al inicializar SortableJS:', error);
     }
-  });
+  }
 }
 
 // ======================== CARGAR PRODUCTOS ========================
@@ -306,6 +270,37 @@ function fillFormWithSectionData(section) {
       document.getElementById('testimonials-rating').value = config.min_rating || 0;
       document.getElementById('testimonials-limit').value = config.limit || 5;
       break;
+
+    case 'scrolling_text':
+      document.getElementById('scrolling-text-content').value = config.text || '';
+      document.getElementById('scrolling-bg-color').value = config.background_color || '#FF1493';
+      document.getElementById('scrolling-text-color').value = config.text_color || '#FFFFFF';
+      document.getElementById('scrolling-speed').value = config.scroll_speed || 50;
+      break;
+
+    case 'stats':
+      document.getElementById('stats-title').value = config.title || 'Nuestros Logros';
+      if (config.stats && config.stats.length >= 1) {
+        document.getElementById('stats-1-number').value = config.stats[0].number || '';
+        document.getElementById('stats-1-label').value = config.stats[0].label || '';
+      }
+      if (config.stats && config.stats.length >= 2) {
+        document.getElementById('stats-2-number').value = config.stats[1].number || '';
+        document.getElementById('stats-2-label').value = config.stats[1].label || '';
+      }
+      if (config.stats && config.stats.length >= 3) {
+        document.getElementById('stats-3-number').value = config.stats[2].number || '';
+        document.getElementById('stats-3-label').value = config.stats[2].label || '';
+      }
+      break;
+
+    case 'image':
+      document.getElementById('image-title').value = config.title || '';
+      document.getElementById('image-subtitle').value = config.subtitle || '';
+      document.getElementById('image-url').value = config.image_url || '';
+      document.getElementById('image-button-text').value = config.button_text || 'Crear Mi Regalo';
+      document.getElementById('image-button-url').value = config.button_url || '/productos';
+      break;
   }
 }
 
@@ -335,7 +330,14 @@ function renderCategorySelector(selectedIds = []) {
 async function saveSectionFromForm(e) {
   e.preventDefault();
 
-  const token = getAuthToken();
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
+
+  console.log('📝 saveSectionFromForm - Saving section:', currentEditingSection.section_type, 'ID:', currentEditingSection.id);
+
   let config = {};
   let isValid = true;
 
@@ -380,64 +382,129 @@ async function saveSectionFromForm(e) {
       min_rating: parseInt(document.getElementById('testimonials-rating').value) || 0,
       limit: parseInt(document.getElementById('testimonials-limit').value) || 5
     };
+  } else if (currentEditingSection.section_type === 'scrolling_text') {
+    config = {
+      text: document.getElementById('scrolling-text-content').value.trim() || '',
+      background_color: document.getElementById('scrolling-bg-color').value,
+      text_color: document.getElementById('scrolling-text-color').value,
+      scroll_speed: parseInt(document.getElementById('scrolling-speed').value) || 50
+    };
+    if (!config.text) {
+      showStatus('El texto del anuncio es requerido', 'error');
+      isValid = false;
+    }
+  } else if (currentEditingSection.section_type === 'stats') {
+    config = {
+      title: document.getElementById('stats-title').value.trim() || 'Nuestros Logros',
+      stats: [
+        {
+          number: document.getElementById('stats-1-number').value || '0',
+          label: document.getElementById('stats-1-label').value.trim() || ''
+        },
+        {
+          number: document.getElementById('stats-2-number').value || '0',
+          label: document.getElementById('stats-2-label').value.trim() || ''
+        },
+        {
+          number: document.getElementById('stats-3-number').value || '0',
+          label: document.getElementById('stats-3-label').value.trim() || ''
+        }
+      ]
+    };
+  } else if (currentEditingSection.section_type === 'image') {
+    config = {
+      title: document.getElementById('image-title').value.trim() || '',
+      subtitle: document.getElementById('image-subtitle').value.trim() || '',
+      image_url: document.getElementById('image-url').value.trim() || '',
+      button_text: document.getElementById('image-button-text').value.trim() || 'Crear Mi Regalo',
+      button_url: document.getElementById('image-button-url').value.trim() || '/productos'
+    };
+  } else {
+    console.warn('⚠️ saveSectionFromForm - Unsupported section type:', currentEditingSection.section_type);
+    showStatus('Tipo de sección no soportado aún en el formulario. El backend usará valores por defecto.', 'warning');
   }
 
   if (!isValid) return;
 
   try {
-    const url = currentEditingSection.id
-      ? `${API_BASE_URL}/admin/home-sections/${currentEditingSection.id}`
-      : `${API_BASE_URL}/admin/home-sections`;
+    // Actualizar sección en memoria primero
+    const sectionIndex = sections.findIndex(s => s.id === currentEditingSection.id);
+    if (sectionIndex !== -1) {
+      sections[sectionIndex].config = config;
+    }
 
-    const method = currentEditingSection.id ? 'PUT' : 'POST';
+    // Actualizar UI inmediatamente
+    renderSections();
+    updatePreview(); // Refrescar preview
+    hasUnsavedChanges = true;
+    showStatus('✅ Cambios guardados en borrador (sin publicar aún)', 'success');
+    closeModal('editSectionModal');
 
-    const response = await fetch(url, {
-      method,
+    // Guardar en borrador (sin publicar)
+    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
+    const draftResponse = await fetch(saveDraftUrl, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ config })
+      body: JSON.stringify({ sections })
     });
 
-    if (!response.ok) {
-      throw new Error('Error guardando sección');
+    if (!draftResponse.ok) {
+      console.warn('⚠️ Borrador no guardado en servidor:', draftResponse.status);
     }
-
-    const result = await response.json();
-    showStatus('✅ Sección guardada correctamente', 'success');
-    closeModal('editSectionModal');
-    await loadSections();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ saveSectionFromForm - Error:', error);
     showStatus('Error: ' + error.message, 'error');
   }
 }
 
 // ======================== CREAR SECCIÓN ========================
 async function selectSectionType(type) {
-  const token = getAuthToken();
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
+
+  console.log('📝 selectSectionType - Creating section type:', type);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
+    // Crear sección en memoria con ID temporal
+    const tempId = Math.max(...sections.map(s => s.id || 0), 0) + 1;
+    const newSection = {
+      id: tempId,
+      section_type: type,
+      display_order: sections.length + 1,
+      enabled: true,
+      config: {},
+      created_by: null,
+      updated_by: null
+    };
+
+    sections.push(newSection);
+
+    closeModal('selectTypeModal');
+    renderSections();
+    updatePreview(); // Refrescar preview
+    hasUnsavedChanges = true;
+    editSection(newSection.id);
+
+    showStatus('✅ Nueva sección creada en borrador (sin publicar aún)', 'success');
+
+    // Guardar en borrador de forma asincrónica
+    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
+    await fetch(saveDraftUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ section_type: type, config: {} })
-    });
-
-    if (!response.ok) {
-      throw new Error('Error creando sección');
-    }
-
-    closeModal('selectTypeModal');
-    await loadSections();
-    const newSection = sections[sections.length - 1];
-    editSection(newSection.id);
+      body: JSON.stringify({ sections })
+    }).catch(err => console.warn('⚠️ Borrador no guardado:', err));
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ selectSectionType - Error:', error);
     showStatus('Error: ' + error.message, 'error');
   }
 }
@@ -460,24 +527,33 @@ async function moveSection(sectionId, direction) {
 
 // ======================== REORDENAR SECCIONES ========================
 async function reorderSections(order) {
-  const token = getAuthToken();
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/home-sections/batch/reorder`, {
-      method: 'PUT',
+    // Reordenar en memoria
+    const reorderedSections = order.map(id => sections.find(s => s.id === id)).filter(Boolean);
+    sections = reorderedSections;
+
+    // Actualizar UI
+    renderSections();
+    updatePreview(); // Refrescar preview
+    hasUnsavedChanges = true;
+    showStatus('✅ Orden actualizado en borrador (sin publicar aún)', 'success');
+
+    // Guardar en borrador de forma asincrónica
+    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
+    await fetch(saveDraftUrl, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ order })
-    });
-
-    if (!response.ok) {
-      throw new Error('Error reordenando secciones');
-    }
-
-    renderSections();
-    showStatus('✅ Orden actualizado', 'success');
+      body: JSON.stringify({ sections })
+    }).catch(err => console.warn('⚠️ Borrador no guardado:', err));
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -486,23 +562,47 @@ async function reorderSections(order) {
 
 // ======================== DUPLICAR SECCIÓN ========================
 async function duplicateSection(sectionId) {
-  const token = getAuthToken();
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}/duplicate`, {
+    // Encontrar la sección original
+    const originalSection = sections.find(s => s.id === sectionId);
+    if (!originalSection) {
+      throw new Error('Sección no encontrada');
+    }
+
+    // Duplicar en memoria
+    const tempId = Math.max(...sections.map(s => s.id || 0), 0) + 1;
+    const duplicatedSection = {
+      id: tempId,
+      section_type: originalSection.section_type,
+      display_order: sections.length + 1,
+      enabled: originalSection.enabled,
+      config: JSON.parse(JSON.stringify(originalSection.config))
+    };
+
+    sections.push(duplicatedSection);
+
+    // Actualizar UI
+    renderSections();
+    updatePreview(); // Refrescar preview
+    hasUnsavedChanges = true;
+    showStatus('✅ Sección duplicada en borrador (sin publicar aún)', 'success');
+
+    // Guardar en borrador de forma asincrónica
+    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
+    await fetch(saveDraftUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('Error duplicando sección');
-    }
-
-    showStatus('✅ Sección duplicada', 'success');
-    await loadSections();
+      },
+      body: JSON.stringify({ sections })
+    }).catch(err => console.warn('⚠️ Borrador no guardado:', err));
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -513,26 +613,73 @@ async function duplicateSection(sectionId) {
 async function deleteSection(sectionId) {
   if (!confirm('¿Estás seguro de que quieres eliminar esta sección?')) return;
 
-  const token = getAuthToken();
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}`, {
-      method: 'DELETE',
+    // Eliminar de la memoria
+    sections = sections.filter(s => s.id !== sectionId);
+
+    // Actualizar UI inmediatamente
+    renderSections();
+    updatePreview(); // Refrescar preview
+    hasUnsavedChanges = true;
+    showStatus('✅ Sección eliminada del borrador (sin publicar aún)', 'success');
+
+    // Guardar en borrador de forma asincrónica
+    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
+    await fetch(saveDraftUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sections })
+    }).catch(err => console.warn('⚠️ Borrador no guardado:', err));
+  } catch (error) {
+    console.error('Error:', error);
+    showStatus('Error: ' + error.message, 'error');
+  }
+}
+
+// ======================== PUBLICAR CAMBIOS ========================
+async function publishChanges() {
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
+
+  try {
+    console.log('📤 Publicando cambios...');
+    showStatus('Publicando cambios...', 'success');
+
+    const response = await fetch(`${API_BASE_URL}/admin/home-draft/publish`, {
+      method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
 
+    const responseText = await response.text();
+    console.log('📤 publishChanges - Response:', response.status, responseText);
+
     if (!response.ok) {
-      throw new Error('Error eliminando sección');
+      throw new Error(`HTTP ${response.status}: ${responseText}`);
     }
 
-    showStatus('✅ Sección eliminada', 'success');
+    const result = JSON.parse(responseText);
+    showStatus('✅ Cambios publicados correctamente. Los cambios son visibles al público.', 'success');
+
+    // Recargar secciones para mostrar las publicadas
     await loadSections();
   } catch (error) {
-    console.error('Error:', error);
-    showStatus('Error: ' + error.message, 'error');
+    console.error('❌ publishChanges - Error:', error);
+    showStatus('Error publicando cambios: ' + error.message, 'error');
   }
 }
 
@@ -609,8 +756,7 @@ function setupEventListeners() {
   const saveSectionOrderBtn = document.getElementById('saveSectionOrderBtn');
   if (saveSectionOrderBtn) {
     saveSectionOrderBtn.addEventListener('click', async () => {
-      const order = sections.map(s => s.id);
-      await reorderSections(order);
+      await publishChanges();
     });
   }
 
@@ -632,8 +778,8 @@ function setupEventListeners() {
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminUserName');
+      localStorage.removeItem('puchia_admin_token');
+      localStorage.removeItem('puchia_admin_user');
       window.location.href = '../admin/login.html';
     });
   }

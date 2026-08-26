@@ -3,7 +3,8 @@
 let allProducts = [];
 let promoProducts = [];
 
-const API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
+// Usar la constante global de common.js
+const API_BASE_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
 
 const ICONOS_CATEGORIA = {
   'cumpleanos': '🎈',

@@ -2,6 +2,9 @@
    COMMON.JS - Funciones Compartidas Globales
    ═════════════════════════════════════════════════════════════════ */
 
+// API Base URL - Constante Global
+window.API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
+
 function getSettings() {
     const defaults = {
         logo: 'P',
@@ -542,3 +545,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// Función para animar números en la sección de estadísticas
+// ═══════════════════════════════════════════════════════════════
+function animateStats() {
+    const statNumbers = document.querySelectorAll('.stat-number');
+
+    statNumbers.forEach(stat => {
+        const target = parseInt(stat.getAttribute('data-target'));
+        const suffix = stat.textContent.replace(/[0-9]/g, '');
+        let current = 0;
+
+        const increment = Math.ceil(target / 30);
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            stat.textContent = current + suffix;
+        }, 50);
+    });
+}
