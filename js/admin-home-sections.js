@@ -54,43 +54,53 @@ async function loadSections() {
       throw new Error('No autenticado. Por favor inicia sesión nuevamente.');
     }
 
-    // Cargar el borrador primero (cambios sin publicar)
-    const draftResponse = await fetch(`${API_BASE_URL}/admin/home-draft`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    let draftSections = null;
 
-    if (draftResponse.ok) {
-      const draftResult = await draftResponse.json();
-      if (draftResult.data && Array.isArray(draftResult.data.sections)) {
-        sections = draftResult.data.sections;
-        renderSections();
-        console.log('📝 [Admin Panel] Borrador cargado: ' + sections.length + ' secciones');
-        return;
+    // Intenta cargar el borrador primero (cambios sin publicar)
+    try {
+      const draftResponse = await fetch(`${API_BASE_URL}/admin/home-draft`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (draftResponse.ok) {
+        const draftResult = await draftResponse.json();
+        if (draftResult.data && Array.isArray(draftResult.data.sections) && draftResult.data.sections.length > 0) {
+          draftSections = draftResult.data.sections;
+          console.log('📝 [Admin Panel] Borrador cargado: ' + draftSections.length + ' secciones');
+        }
       }
+    } catch (draftError) {
+      console.warn('⚠️ Error al cargar borrador:', draftError.message);
     }
 
-    // Si no hay borrador, cargar secciones publicadas
-    const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    // Si hay borrador, usarlo; si no, cargar secciones publicadas
+    if (draftSections && draftSections.length > 0) {
+      sections = draftSections;
+    } else {
+      console.log('📌 No hay borrador o está vacío, cargando secciones publicadas...');
+      const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Token inválido o expirado. Por favor inicia sesión nuevamente.');
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Token inválido o expirado. Por favor inicia sesión nuevamente.');
+        }
+        throw new Error('Error al cargar secciones (HTTP ' + response.status + ')');
       }
-      throw new Error('Error al cargar secciones (HTTP ' + response.status + ')');
+
+      const result = await response.json();
+      sections = result.data || [];
+      console.log('📝 [Admin Panel] Secciones publicadas cargadas: ' + sections.length + ' secciones');
     }
 
-    const result = await response.json();
-    sections = result.data || [];
     renderSections();
-    console.log('📝 [Admin Panel] Secciones publicadas cargadas: ' + sections.length + ' secciones');
   } catch (error) {
     console.error('Error al cargar secciones:', error);
     showStatus('Error: ' + error.message, 'error');
