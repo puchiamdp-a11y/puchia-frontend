@@ -80,9 +80,9 @@ async function loadSections() {
 function updatePreview() {
   const previewFrame = document.getElementById('previewFrame');
 
-  // El preview ahora es un IFRAME del HOME cliente real
+  // El preview ahora muestra un IFRAME del HOME cliente real
   // El HOME cliente hace polling automático de /api/v1/home-sections
-  // Por lo que los cambios se reflejan automáticamente (cada 60s máximo)
+  // Por lo que los cambios se reflejan automáticamente cada ~60 segundos
   if (!previewFrame.querySelector('iframe')) {
     previewFrame.innerHTML = '<iframe src="https://puchia-web.vercel.app/" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>';
     previewFrame.style.padding = '0';
@@ -93,6 +93,11 @@ function updatePreview() {
 function renderSections() {
   const listContainer = document.getElementById('sectionsList');
   const noSections = document.getElementById('noSections');
+
+  if (!listContainer) {
+    console.error('❌ Elemento sectionsList no encontrado en el DOM');
+    return;
+  }
 
   if (sections.length === 0) {
     listContainer.style.display = 'none';
@@ -129,24 +134,31 @@ function renderSections() {
     </div>
   `).join('');
 
-  // Inicializar SortableJS para drag-drop
-  new Sortable(listContainer, {
-    animation: 150,
-    ghostClass: 'ghost',
-    dragClass: 'dragging',
-    onEnd: (evt) => {
-      // Reordenar array local
-      const items = document.querySelectorAll('.section-item');
-      const newOrder = Array.from(items).map(item =>
-        parseInt(item.getAttribute('data-section-id'))
-      );
-      sections.sort((a, b) => {
-        return newOrder.indexOf(a.id) - newOrder.indexOf(b.id);
+  // Inicializar SortableJS para drag-drop con verificación defensiva
+  if (listContainer && listContainer.children.length > 0) {
+    try {
+      new Sortable(listContainer, {
+        animation: 150,
+        ghostClass: 'ghost',
+        dragClass: 'dragging',
+        onEnd: (evt) => {
+          // Reordenar array local
+          const items = document.querySelectorAll('.section-item');
+          const newOrder = Array.from(items).map(item =>
+            parseInt(item.getAttribute('data-section-id'))
+          );
+          sections.sort((a, b) => {
+            return newOrder.indexOf(a.id) - newOrder.indexOf(b.id);
+          });
+          // Actualizar preview en tiempo real
+          updatePreview();
+        }
       });
-      // Actualizar preview en tiempo real
-      updatePreview();
+      console.log('✅ SortableJS inicializado correctamente');
+    } catch (error) {
+      console.error('❌ Error al inicializar SortableJS:', error);
     }
-  });
+  }
 }
 
 // ======================== CARGAR PRODUCTOS ========================
