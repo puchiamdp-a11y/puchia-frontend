@@ -272,6 +272,8 @@ async function saveSectionFromForm(e) {
     return;
   }
 
+  console.log('📝 saveSectionFromForm - Saving section:', currentEditingSection.section_type, 'ID:', currentEditingSection.id);
+
   let config = {};
   let isValid = true;
 
@@ -316,6 +318,9 @@ async function saveSectionFromForm(e) {
       min_rating: parseInt(document.getElementById('testimonials-rating').value) || 0,
       limit: parseInt(document.getElementById('testimonials-limit').value) || 5
     };
+  } else {
+    console.warn('⚠️ saveSectionFromForm - Unsupported section type:', currentEditingSection.section_type);
+    showStatus('Tipo de sección no soportado aún en el formulario. El backend usará valores por defecto.', 'warning');
   }
 
   if (!isValid) return;
@@ -327,25 +332,34 @@ async function saveSectionFromForm(e) {
 
     const method = currentEditingSection.id ? 'PUT' : 'POST';
 
+    console.log('📝 saveSectionFromForm - Sending:', { method, url, hasId: !!currentEditingSection.id });
+
+    const requestBody = currentEditingSection.id
+      ? { config }
+      : { section_type: currentEditingSection.section_type, config };
+
     const response = await fetch(url, {
       method,
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ config })
+      body: JSON.stringify(requestBody)
     });
 
+    const responseText = await response.text();
+    console.log('📝 saveSectionFromForm - Response:', response.status, responseText);
+
     if (!response.ok) {
-      throw new Error('Error guardando sección');
+      throw new Error(`HTTP ${response.status}: ${responseText}`);
     }
 
-    const result = await response.json();
+    const result = JSON.parse(responseText);
     showStatus('✅ Sección guardada correctamente', 'success');
     closeModal('editSectionModal');
     await loadSections();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ saveSectionFromForm - Error:', error);
     showStatus('Error: ' + error.message, 'error');
   }
 }
@@ -358,6 +372,8 @@ async function selectSectionType(type) {
     return;
   }
 
+  console.log('📝 selectSectionType - Creating section type:', type);
+
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
       method: 'POST',
@@ -368,16 +384,22 @@ async function selectSectionType(type) {
       body: JSON.stringify({ section_type: type, config: {} })
     });
 
+    const responseText = await response.text();
+    console.log('📝 selectSectionType - Response:', response.status, responseText);
+
     if (!response.ok) {
-      throw new Error('Error creando sección');
+      throw new Error(`HTTP ${response.status}: ${responseText}`);
     }
+
+    const result = JSON.parse(responseText);
+    console.log('✅ selectSectionType - Section created:', result.data?.id);
 
     closeModal('selectTypeModal');
     await loadSections();
     const newSection = sections[sections.length - 1];
     editSection(newSection.id);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ selectSectionType - Error:', error);
     showStatus('Error: ' + error.message, 'error');
   }
 }
