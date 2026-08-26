@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ======================== CARGAR SECCIONES ========================
 async function loadSections() {
   try {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem('puchia_admin_token');
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -299,7 +299,7 @@ function renderCategorySelector(selectedIds = []) {
 async function saveSectionFromForm(e) {
   e.preventDefault();
 
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('puchia_admin_token');
   let config = {};
   let isValid = true;
 
@@ -380,7 +380,7 @@ async function saveSectionFromForm(e) {
 
 // ======================== CREAR SECCIÓN ========================
 async function selectSectionType(type) {
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('puchia_admin_token');
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
@@ -424,7 +424,7 @@ async function moveSection(sectionId, direction) {
 
 // ======================== REORDENAR SECCIONES ========================
 async function reorderSections(order) {
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('puchia_admin_token');
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/batch/reorder`, {
@@ -450,7 +450,7 @@ async function reorderSections(order) {
 
 // ======================== DUPLICAR SECCIÓN ========================
 async function duplicateSection(sectionId) {
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('puchia_admin_token');
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}/duplicate`, {
@@ -477,7 +477,7 @@ async function duplicateSection(sectionId) {
 async function deleteSection(sectionId) {
   if (!confirm('¿Estás seguro de que quieres eliminar esta sección?')) return;
 
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('puchia_admin_token');
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-sections/${sectionId}`, {
@@ -596,8 +596,8 @@ function setupEventListeners() {
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminUserName');
+      localStorage.removeItem('puchia_admin_token');
+      localStorage.removeItem('puchia_admin_user');
       window.location.href = '../admin/login.html';
     });
   }
