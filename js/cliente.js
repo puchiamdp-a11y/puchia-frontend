@@ -84,7 +84,7 @@ function loadAndRenderProducts() {
         return;
     }
 
-    const BACKEND = 'https://puchia-backend-production.up.railway.app';
+    const BACKEND = window.API_BASE_URL?.replace('/api/v1', '') || 'https://puchia-backend-production.up.railway.app';
     const html = filtered.map(product => {
         const imgContent = product.portada
             ? `<img src="${BACKEND}${product.portada}" alt="${product.name}" class="product-image-responsive" loading="lazy" onerror="this.outerHTML='<div class=product-icon-responsive>${product.icon}</div>'">`
@@ -143,7 +143,7 @@ function loadAndRenderPromos() {
         return;
     }
 
-    const BACKEND_PROMO = 'https://puchia-backend-production.up.railway.app';
+    const BACKEND_PROMO = window.API_BASE_URL?.replace('/api/v1', '') || 'https://puchia-backend-production.up.railway.app';
     const html = promoProducts.map(product => {
         const imgContent = product.portada
             ? `<img src="${BACKEND_PROMO}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" loading="lazy" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
@@ -203,7 +203,7 @@ function renderProductsChunked(products, gridId = 'productsGrid') {
         return;
     }
 
-    const BACKEND = 'https://puchia-backend-production.up.railway.app';
+    const BACKEND = window.API_BASE_URL?.replace('/api/v1', '') || 'https://puchia-backend-production.up.railway.app';
     const chunkSize = 15;
     let currentChunk = 0;
     const totalChunks = Math.ceil(products.length / chunkSize);
@@ -267,7 +267,7 @@ function renderPromosChunked(promos) {
         return;
     }
 
-    const BACKEND_PROMO = 'https://puchia-backend-production.up.railway.app';
+    const BACKEND_PROMO = window.API_BASE_URL?.replace('/api/v1', '') || 'https://puchia-backend-production.up.railway.app';
     const chunkSize = 15;
     let currentChunk = 0;
     const totalChunks = Math.ceil(promos.length / chunkSize);
@@ -626,7 +626,7 @@ async function openProductDetail(productId) {
     const oldModal = document.getElementById('productDetailModal');
     if (oldModal) oldModal.remove();
 
-    const BK = 'https://puchia-backend-production.up.railway.app';
+    const BK = window.API_BASE_URL?.replace('/api/v1', '') || 'https://puchia-backend-production.up.railway.app';
     const mediaList = product.media || [];
     window._currentDetailMedia = mediaList;
     const portadaItem = mediaList.find(m => m.es_portada) || mediaList[0] || null;
@@ -757,7 +757,7 @@ async function openProductDetail(productId) {
         const labelEl = document.getElementById(`variants-label-${product.id}`);
 
         if (variantsDiv && selectEl && labelEl) {
-          const API_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
+          const API_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
 
           fetch(`${API_URL}/insumos/${product.producto_insumo.insumo_id}`)
             .then(res => res.json())
@@ -842,7 +842,7 @@ function changeDetailMedia(idx) {
   const item = media[idx];
   if (!item) return;
 
-  const BK = 'https://puchia-backend-production.up.railway.app';
+  const BK = window.API_BASE_URL?.replace('/api/v1', '') || 'https://puchia-backend-production.up.railway.app';
   const mainEl = document.getElementById('detailMainMedia');
   if (!mainEl) return;
 

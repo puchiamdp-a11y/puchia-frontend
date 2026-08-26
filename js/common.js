@@ -2,6 +2,9 @@
    COMMON.JS - Funciones Compartidas Globales
    ═════════════════════════════════════════════════════════════════ */
 
+// API Base URL - Constante Global
+window.API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
+
 function getSettings() {
     const defaults = {
         logo: 'P',

@@ -4,7 +4,7 @@ let categories = [];
 
 async function loadCategoriasFromAPI() {
   try {
-    const response = await fetch('https://puchia-backend-production.up.railway.app/api/v1/categorias');
+    const response = await fetch(`${window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1'}/categorias`);
     const data = await response.json();
 
     categories = data.data.map(cat => ({
