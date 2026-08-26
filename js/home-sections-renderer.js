@@ -15,7 +15,8 @@ async function loadAndRenderHomeSections() {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const sections = await response.json();
+    const result = await response.json();
+    const sections = result.data || result;
     console.log('✅ Secciones cargadas:', sections.length);
 
     // Ordenar secciones por display_order
