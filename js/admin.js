@@ -202,16 +202,19 @@ function setupEventListeners() {
         if (!container) {
           container = document.createElement('div');
           container.id = 'admin-home-iframe-container';
-          container.style.cssText = 'display: flex; flex-direction: column; height: calc(100vh - 80px); width: 100%;';
+          container.style.cssText = 'display: flex; flex-direction: column; flex: 1; width: 100%;';
           document.querySelector('.admin-content').appendChild(container);
         }
 
         container.innerHTML = `<iframe
+          id="admin-home-iframe"
           src="./admin-home.html"
-          style="width: 100%; height: 100%; border: none;"
+          style="width: 100%; height: 100%; border: none; flex: 1;"
           title="Gestor de Secciones del HOME">
         </iframe>`;
         container.style.display = 'flex';
+
+        console.log('✅ [admin.js] CMS HOME iframe cargado. El iframe accederá al token del dashboard');
         return;
       }
 
