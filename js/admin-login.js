@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
+const API_BASE_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
 
 document.getElementById('loginForm').addEventListener('submit', handleLogin);
 
