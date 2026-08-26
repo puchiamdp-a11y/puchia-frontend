@@ -182,6 +182,18 @@
                     <div class="type-option-icon">⭐</div>
                     <div class="type-option-label">Testimonios</div>
                 </div>
+                <div class="type-option" onclick="selectSectionType('scrolling_text')">
+                    <div class="type-option-icon">📢</div>
+                    <div class="type-option-label">Anuncio Desplazante</div>
+                </div>
+                <div class="type-option" onclick="selectSectionType('stats')">
+                    <div class="type-option-icon">📊</div>
+                    <div class="type-option-label">Estadísticas</div>
+                </div>
+                <div class="type-option" onclick="selectSectionType('image')">
+                    <div class="type-option-icon">🎨</div>
+                    <div class="type-option-label">Imagen + Descripción</div>
+                </div>
             </div>
         </div>
     </div>
@@ -293,6 +305,82 @@
                     <div class="form-group">
                         <label class="form-label">Límite de Opiniones</label>
                         <input type="number" name="limit" class="form-input" id="testimonials-limit" value="5" min="1" max="50">
+                    </div>
+                </div>
+
+                <!-- SCROLLING TEXT FIELDS -->
+                <div id="scrolling_text-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Texto a Mostrar *</label>
+                        <input type="text" name="text" class="form-input" id="scrolling-text-content" placeholder="Ej: Envío gratis en compras mayores a $2.000 🎉">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Color de Fondo</label>
+                        <input type="color" name="background_color" class="form-input" id="scrolling-bg-color" value="#FF1493">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Color del Texto</label>
+                        <input type="color" name="text_color" class="form-input" id="scrolling-text-color" value="#FFFFFF">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Velocidad de Scroll (10-200)</label>
+                        <input type="number" name="scroll_speed" class="form-input" id="scrolling-speed" value="50" min="10" max="200">
+                    </div>
+                </div>
+
+                <!-- STATS FIELDS -->
+                <div id="stats-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" name="title" class="form-input" id="stats-title" placeholder="Nuestros Logros">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stat 1: Número</label>
+                        <input type="number" name="stat1_number" class="form-input" id="stats-1-number" placeholder="2500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stat 1: Etiqueta</label>
+                        <input type="text" name="stat1_label" class="form-input" id="stats-1-label" placeholder="Clientes Felices">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stat 2: Número</label>
+                        <input type="number" name="stat2_number" class="form-input" id="stats-2-number" placeholder="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stat 2: Etiqueta</label>
+                        <input type="text" name="stat2_label" class="form-input" id="stats-2-label" placeholder="Calificación Promedio">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stat 3: Número</label>
+                        <input type="number" name="stat3_number" class="form-input" id="stats-3-number" placeholder="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stat 3: Etiqueta</label>
+                        <input type="text" name="stat3_label" class="form-input" id="stats-3-label" placeholder="100% Personalizado">
+                    </div>
+                </div>
+
+                <!-- IMAGE FIELDS -->
+                <div id="image-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" name="title" class="form-input" id="image-title" placeholder="¿Cómo Funciona?">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Subtítulo</label>
+                        <input type="text" name="subtitle" class="form-input" id="image-subtitle" placeholder="Describe brevemente">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL de Imagen</label>
+                        <input type="url" name="image_url" class="form-input" id="image-url" placeholder="https://ejemplo.com/imagen.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Texto del Botón</label>
+                        <input type="text" name="button_text" class="form-input" id="image-button-text" placeholder="Crear Mi Regalo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL del Botón</label>
+                        <input type="url" name="button_url" class="form-input" id="image-button-url" placeholder="https://ejemplo.com">
                     </div>
                 </div>
 
