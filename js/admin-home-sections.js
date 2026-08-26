@@ -270,6 +270,37 @@ function fillFormWithSectionData(section) {
       document.getElementById('testimonials-rating').value = config.min_rating || 0;
       document.getElementById('testimonials-limit').value = config.limit || 5;
       break;
+
+    case 'scrolling_text':
+      document.getElementById('scrolling-text-content').value = config.text || '';
+      document.getElementById('scrolling-bg-color').value = config.background_color || '#FF1493';
+      document.getElementById('scrolling-text-color').value = config.text_color || '#FFFFFF';
+      document.getElementById('scrolling-speed').value = config.scroll_speed || 50;
+      break;
+
+    case 'stats':
+      document.getElementById('stats-title').value = config.title || 'Nuestros Logros';
+      if (config.stats && config.stats.length >= 1) {
+        document.getElementById('stats-1-number').value = config.stats[0].number || '';
+        document.getElementById('stats-1-label').value = config.stats[0].label || '';
+      }
+      if (config.stats && config.stats.length >= 2) {
+        document.getElementById('stats-2-number').value = config.stats[1].number || '';
+        document.getElementById('stats-2-label').value = config.stats[1].label || '';
+      }
+      if (config.stats && config.stats.length >= 3) {
+        document.getElementById('stats-3-number').value = config.stats[2].number || '';
+        document.getElementById('stats-3-label').value = config.stats[2].label || '';
+      }
+      break;
+
+    case 'image':
+      document.getElementById('image-title').value = config.title || '';
+      document.getElementById('image-subtitle').value = config.subtitle || '';
+      document.getElementById('image-url').value = config.image_url || '';
+      document.getElementById('image-button-text').value = config.button_text || 'Crear Mi Regalo';
+      document.getElementById('image-button-url').value = config.button_url || '/productos';
+      break;
   }
 }
 
@@ -350,6 +381,43 @@ async function saveSectionFromForm(e) {
       show_all: document.getElementById('testimonials-show-all').checked,
       min_rating: parseInt(document.getElementById('testimonials-rating').value) || 0,
       limit: parseInt(document.getElementById('testimonials-limit').value) || 5
+    };
+  } else if (currentEditingSection.section_type === 'scrolling_text') {
+    config = {
+      text: document.getElementById('scrolling-text-content').value.trim() || '',
+      background_color: document.getElementById('scrolling-bg-color').value,
+      text_color: document.getElementById('scrolling-text-color').value,
+      scroll_speed: parseInt(document.getElementById('scrolling-speed').value) || 50
+    };
+    if (!config.text) {
+      showStatus('El texto del anuncio es requerido', 'error');
+      isValid = false;
+    }
+  } else if (currentEditingSection.section_type === 'stats') {
+    config = {
+      title: document.getElementById('stats-title').value.trim() || 'Nuestros Logros',
+      stats: [
+        {
+          number: document.getElementById('stats-1-number').value || '0',
+          label: document.getElementById('stats-1-label').value.trim() || ''
+        },
+        {
+          number: document.getElementById('stats-2-number').value || '0',
+          label: document.getElementById('stats-2-label').value.trim() || ''
+        },
+        {
+          number: document.getElementById('stats-3-number').value || '0',
+          label: document.getElementById('stats-3-label').value.trim() || ''
+        }
+      ]
+    };
+  } else if (currentEditingSection.section_type === 'image') {
+    config = {
+      title: document.getElementById('image-title').value.trim() || '',
+      subtitle: document.getElementById('image-subtitle').value.trim() || '',
+      image_url: document.getElementById('image-url').value.trim() || '',
+      button_text: document.getElementById('image-button-text').value.trim() || 'Crear Mi Regalo',
+      button_url: document.getElementById('image-button-url').value.trim() || '/productos'
     };
   } else {
     console.warn('⚠️ saveSectionFromForm - Unsupported section type:', currentEditingSection.section_type);
