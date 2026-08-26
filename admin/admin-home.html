@@ -184,27 +184,27 @@
                 <div id="banner-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Eyebrow (Etiqueta pequeña)</label>
-                        <input type="text" class="form-input" id="banner-eyebrow" placeholder="Ej: NUEVO CATÁLOGO">
+                        <input type="text" name="eyebrow" class="form-input" id="banner-eyebrow" placeholder="Ej: NUEVO CATÁLOGO">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Título *</label>
-                        <input type="text" class="form-input" id="banner-title" placeholder="Título principal" required>
+                        <input type="text" name="title" class="form-input" id="banner-title" placeholder="Título principal" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Subtítulo</label>
-                        <input type="text" class="form-input" id="banner-subtitle" placeholder="Subtítulo descriptivo">
+                        <input type="text" name="subtitle" class="form-input" id="banner-subtitle" placeholder="Subtítulo descriptivo">
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL de Imagen *</label>
-                        <input type="url" class="form-input" id="banner-image" placeholder="https://ejemplo.com/imagen.jpg" required>
+                        <input type="url" name="image_url" class="form-input" id="banner-image" placeholder="https://ejemplo.com/imagen.jpg" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Texto del Botón</label>
-                        <input type="text" class="form-input" id="banner-button-text" placeholder="Ver Más">
+                        <input type="text" name="button_text" class="form-input" id="banner-button-text" placeholder="Ver Más">
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL del Botón</label>
-                        <input type="url" class="form-input" id="banner-button-url" placeholder="https://ejemplo.com">
+                        <input type="url" name="button_url" class="form-input" id="banner-button-url" placeholder="https://ejemplo.com">
                     </div>
                 </div>
 
@@ -212,7 +212,7 @@
                 <div id="products-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Título</label>
-                        <input type="text" class="form-input" id="products-title" placeholder="Productos Destacados">
+                        <input type="text" name="title" class="form-input" id="products-title" placeholder="Productos Destacados">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Seleccionar Productos *</label>
@@ -223,7 +223,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Límite de Productos</label>
-                        <input type="number" class="form-input" id="products-limit" value="10" min="1" max="50">
+                        <input type="number" name="limit" class="form-input" id="products-limit" value="10" min="1" max="50">
                     </div>
                 </div>
 
@@ -231,11 +231,11 @@
                 <div id="categories-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Título</label>
-                        <input type="text" class="form-input" id="categories-title" placeholder="Categorías">
+                        <input type="text" name="title" class="form-input" id="categories-title" placeholder="Categorías">
                     </div>
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" id="categories-show-all" checked>
+                            <input type="checkbox" name="show_all" id="categories-show-all" checked>
                             Mostrar todas las categorías
                         </label>
                     </div>
@@ -248,7 +248,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Límite de Categorías</label>
-                        <input type="number" class="form-input" id="categories-limit" value="10" min="1" max="50">
+                        <input type="number" name="limit" class="form-input" id="categories-limit" value="10" min="1" max="50">
                     </div>
                 </div>
 
@@ -256,17 +256,17 @@
                 <div id="testimonials-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Título</label>
-                        <input type="text" class="form-input" id="testimonials-title" placeholder="Lo que Dicen Nuestros Clientes">
+                        <input type="text" name="title" class="form-input" id="testimonials-title" placeholder="Lo que Dicen Nuestros Clientes">
                     </div>
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" id="testimonials-show-all" checked>
+                            <input type="checkbox" name="show_all" id="testimonials-show-all" checked>
                             Mostrar todas las opiniones
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Calificación Mínima (estrellas)</label>
-                        <select class="form-select" id="testimonials-rating">
+                        <select class="form-select" name="min_rating" id="testimonials-rating">
                             <option value="0">Todas</option>
                             <option value="1">1+ ⭐</option>
                             <option value="2">2+ ⭐⭐</option>
@@ -277,7 +277,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Límite de Opiniones</label>
-                        <input type="number" class="form-input" id="testimonials-limit" value="5" min="1" max="50">
+                        <input type="number" name="limit" class="form-input" id="testimonials-limit" value="5" min="1" max="50">
                     </div>
                 </div>
 
