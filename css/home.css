@@ -128,6 +128,40 @@
     border-color: var(--yellow);
 }
 
+.banner-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255,255,255,0.3);
+    color: var(--white);
+    border: none;
+    font-size: 28px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+}
+
+.banner-arrow:hover {
+    background-color: rgba(255,255,255,0.6);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.banner-arrow-left {
+    left: 20px;
+}
+
+.banner-arrow-right {
+    right: 20px;
+}
+
 /* ─────────────────────────────────────────────────────────────────
    ESTADÍSTICAS - PERFECTAMENTE ALINEADAS Y CENTRADAS
    ───────────────────────────────────────────────────────────────── */
@@ -606,6 +640,20 @@
         height: 400px;
     }
 
+    .banner-arrow {
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+
+    .banner-arrow-left {
+        left: 12px;
+    }
+
+    .banner-arrow-right {
+        right: 12px;
+    }
+
     .banner h1 {
         font-size: 40px;
     }
@@ -681,6 +729,20 @@
     .banner-carousel {
         height: 280px;
         padding: 0;
+    }
+
+    .banner-arrow {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+
+    .banner-arrow-left {
+        left: 8px;
+    }
+
+    .banner-arrow-right {
+        right: 8px;
     }
 
     .banner {
