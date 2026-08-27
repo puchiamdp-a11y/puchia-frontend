@@ -6,6 +6,7 @@ let allProducts = [];
 let allCategories = [];
 let hasUnsavedChanges = false;
 let previewRefreshInterval = null;
+let previewUpdateTimeout = null;
 
 // ======================== INICIALIZACIÓN ========================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -235,6 +236,24 @@ async function loadCategoriesForSelector() {
   }
 }
 
+// ======================== CONFIGURAR PREVIEW EN VIVO ========================
+function setupPreviewAutoUpdate() {
+  const formInputs = document.querySelectorAll('#editSectionForm input, #editSectionForm select, #editSectionForm textarea');
+
+  formInputs.forEach(input => {
+    input.addEventListener('change', debouncePreviewUpdate);
+    input.addEventListener('input', debouncePreviewUpdate);
+  });
+}
+
+function debouncePreviewUpdate() {
+  clearTimeout(previewUpdateTimeout);
+  previewUpdateTimeout = setTimeout(() => {
+    console.log('🎨 Updating preview (user edited field)');
+    updatePreview();
+  }, 2000); // 2s debounce
+}
+
 // ======================== EDITAR SECCIÓN ========================
 async function editSection(sectionId) {
   const section = sections.find(s => s.id === sectionId);
@@ -251,6 +270,9 @@ async function editSection(sectionId) {
 
   // Mostrar modal
   document.getElementById('editSectionModal').classList.add('show');
+
+  // Configurar preview en vivo cuando edita
+  setupPreviewAutoUpdate();
 }
 
 // ======================== LLENAR FORMULARIO ========================
