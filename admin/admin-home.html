@@ -216,31 +216,26 @@
             <form id="editSectionForm">
                 <!-- BANNER FIELDS -->
                 <div id="banner-fields" class="edit-fields" style="display: none;">
-                    <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <!-- Banners Section - Main Content -->
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                             <label class="form-label" style="margin: 0;">Banners</label>
                             <button type="button" id="add-banner-btn" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">+ Agregar Banner</button>
                         </div>
-                        <div id="banners-list" style="max-height: 400px; overflow-y: auto;">
+                        <div id="banners-list" style="max-height: 600px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 10px; background-color: #fafafa;">
                             <!-- Los banners se cargarán dinámicamente aquí -->
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 6px;">
-                        <label class="form-label">Rotación Automática</label>
-                        <div class="form-group">
-                            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                                <input type="checkbox" id="banner-auto-rotate" name="auto_rotate">
-                                <span>Activar rotación automática de banners</span>
-                            </label>
-                        </div>
-                        <div class="form-group" id="banner-rotation-speed-group" style="display: none;">
-                            <label class="form-label">Intervalo de Rotación</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="range" name="rotation_speed" class="form-input" id="banner-rotation-speed" value="5000" min="1000" max="10000" step="500" style="flex: 1; cursor: pointer;">
-                                <span id="banner-rotation-speed-value" style="min-width: 60px; text-align: center; font-weight: 600;">5.0s</span>
-                            </div>
-                            <small style="color: #666; margin-top: 5px; display: block;">1 a 10 segundos</small>
+                    <!-- Rotation Settings - Compact -->
+                    <div style="padding: 12px; background-color: #f5f5f5; border-radius: 6px; display: flex; gap: 15px; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                            <input type="checkbox" id="banner-auto-rotate" name="auto_rotate">
+                            <span style="font-size: 13px;">Rotar automáticamente</span>
+                        </label>
+                        <div id="banner-rotation-speed-group" style="display: none; flex: 1; display: flex; gap: 10px; align-items: center;">
+                            <input type="range" name="rotation_speed" class="form-input" id="banner-rotation-speed" value="5000" min="1000" max="10000" step="500" style="flex: 1; cursor: pointer; height: 4px;">
+                            <span id="banner-rotation-speed-value" style="min-width: 45px; text-align: center; font-weight: 600; font-size: 12px;">5.0s</span>
                         </div>
                     </div>
                 </div>
@@ -327,15 +322,17 @@
                     <div class="form-group">
                         <label class="form-label">Color de Fondo</label>
                         <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="scrolling-bg-color-picker" value="#FF1493" style="width: 50px; height: 40px; cursor: pointer;">
                             <input type="text" name="background_color" class="form-input" id="scrolling-bg-color" value="#FF1493" placeholder="#FF1493" style="flex: 1;">
-                            <div id="scrolling-bg-preview" style="width: 40px; height: 40px; border: 2px solid #ddd; border-radius: 4px; background-color: #FF1493; cursor: pointer;" title="Click para abrir selector de color"></div>
+                            <div id="scrolling-bg-preview" style="width: 40px; height: 40px; border: 2px solid #ddd; border-radius: 4px; background-color: #FF1493;"></div>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Color del Texto</label>
                         <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="scrolling-text-color-picker" value="#FFFFFF" style="width: 50px; height: 40px; cursor: pointer;">
                             <input type="text" name="text_color" class="form-input" id="scrolling-text-color" value="#FFFFFF" placeholder="#FFFFFF" style="flex: 1;">
-                            <div id="scrolling-text-preview" style="width: 40px; height: 40px; border: 2px solid #ddd; border-radius: 4px; background-color: #FFFFFF; cursor: pointer;" title="Click para abrir selector de color"></div>
+                            <div id="scrolling-text-preview" style="width: 40px; height: 40px; border: 2px solid #ddd; border-radius: 4px; background-color: #FFFFFF;"></div>
                         </div>
                     </div>
                     <div class="form-group">
