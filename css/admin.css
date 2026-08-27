@@ -364,6 +364,35 @@ select:focus {
     box-shadow: 0 0 0 3px rgba(127, 31, 110, 0.1);
 }
 
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #2c3e50;
+    font-size: 13px;
+    cursor: pointer;
+    gap: 8px;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    height: 18px;
+    min-width: 18px;
+    padding: 0;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: #7f1f6e;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+    border-color: #7f1f6e;
+    background-color: #7f1f6e;
+}
+
 /* ==================== MODALES ==================== */
 
 .modal {
