@@ -147,11 +147,14 @@ window.addEventListener('resize', fitPreviewToViewport);
 function generateCompletePreviewDocument() {
   const cssStyles = getCSSStyles();
 
+  // Las secciones desactivadas no se publican, así que tampoco se previsualizan.
+  const visibleSections = sections.filter(section => section.enabled !== false);
+
   let sectionsHTML = '';
-  if (sections.length === 0) {
+  if (visibleSections.length === 0) {
     sectionsHTML = '<div style="text-align: center; padding: 60px 40px; color: #999;">Sin secciones configuradas</div>';
   } else {
-    sections.forEach((section, index) => {
+    visibleSections.forEach((section, index) => {
       sectionsHTML += renderPreviewSection(section, index);
     });
   }
@@ -473,7 +476,7 @@ function renderSections() {
 
   listContainer.innerHTML = sections.map((section, index) => `
     <div class="section-item" data-section-id="${section.id}">
-      <input type="checkbox" class="section-checkbox" checked>
+      <input type="checkbox" class="section-checkbox" title="Mostrar en la web" ${section.enabled !== false ? 'checked' : ''} onchange="toggleSectionEnabled(${section.id}, this.checked)">
 
       <div class="section-content">
         <div>
@@ -515,6 +518,7 @@ function renderSections() {
             return newOrder.indexOf(a.id) - newOrder.indexOf(b.id);
           });
           // Actualizar preview en tiempo real
+          hasUnsavedChanges = true;
           updatePreview();
         }
       });
@@ -522,6 +526,22 @@ function renderSections() {
       console.error('Error initializing SortableJS:', error);
     }
   }
+}
+
+// ======================== ACTIVAR / DESACTIVAR SECCIÓN ========================
+function toggleSectionEnabled(sectionId, enabled) {
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return;
+
+  section.enabled = enabled;
+  hasUnsavedChanges = true;
+  updatePreview();
+  showStatus(
+    enabled
+      ? '✅ Sección activada (clickea "Guardar Cambios" para publicar)'
+      : '✅ Sección ocultada (clickea "Guardar Cambios" para publicar)',
+    'success'
+  );
 }
 
 // ======================== CARGAR PRODUCTOS ========================
@@ -989,8 +1009,28 @@ async function publishChanges() {
 
   try {
     console.log('📤 Publicando cambios...');
-    showStatus('Publicando cambios...', 'success');
+    showStatus('Guardando y publicando cambios...', 'success');
 
+    // 1) Guardar el estado actual en el borrador.
+    // Las ediciones del formulario solo viven en memoria hasta este punto, así que
+    // hay que persistirlas antes de publicar o se publicaría una versión vieja.
+    const saveResponse = await fetch(`${API_BASE_URL}/admin/home-draft/save`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sections })
+    });
+
+    if (!saveResponse.ok) {
+      const saveText = await saveResponse.text();
+      throw new Error(`No se pudo guardar el borrador (HTTP ${saveResponse.status}): ${saveText}`);
+    }
+
+    console.log('💾 Borrador guardado con', sections.length, 'secciones');
+
+    // 2) Publicar el borrador para que sea visible al público.
     const response = await fetch(`${API_BASE_URL}/admin/home-draft/publish`, {
       method: 'PUT',
       headers: {
@@ -1007,6 +1047,7 @@ async function publishChanges() {
     }
 
     const result = JSON.parse(responseText);
+    hasUnsavedChanges = false;
     showStatus('✅ Cambios publicados correctamente. Los cambios son visibles al público.', 'success');
 
     // Recargar secciones para mostrar las publicadas

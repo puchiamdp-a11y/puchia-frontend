@@ -26,6 +26,13 @@ function updateUIWithSettings() {
 }
 
 function loadAndRenderProducts() {
+    // Cuando el HOME lo controla el CMS, la sección de productos la arma
+    // home-sections-renderer.js respetando los productos elegidos en el panel.
+    if (window.__cmsHomeActive) {
+        if (typeof renderHomeSections === 'function') renderHomeSections();
+        return;
+    }
+
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
 
@@ -280,16 +287,7 @@ window.addEventListener('load', async () => {
         startHomeProductPolling();
     });
 
-    // Load HOME sections from CMS
-    loadHomeSections().then((sections) => {
-        if (sections && sections.length > 0) {
-            renderSectionsFromCMS();
-            startHomeSectionsPolling();
-            console.log('[CMS] HOME CMS activo');
-        } else {
-            console.log('[CMS] Sin secciones disponibles, usando configuración por defecto');
-        }
-    });
+    // Las secciones del HOME las renderiza home-sections-renderer.js desde el CMS.
 });
 
 let _lastHomeSnapshot = '';
@@ -319,6 +317,9 @@ function startHomeProductPolling() {
 // ==================== CATEGORÍAS DINÁMICAS ====================
 
 function renderCategoriesHome() {
+  // Bajo el CMS, la sección de categorías la arma home-sections-renderer.js.
+  if (window.__cmsHomeActive) return;
+
   const categoriasGrid = document.getElementById('categorias-grid');
   if (!categoriasGrid || !categories || categories.length === 0) return;
 
@@ -333,187 +334,5 @@ function renderCategoriesHome() {
   categoriasGrid.innerHTML = categoriesHTML;
 }
 
-// ==================== CMS INTEGRACIÓN - HOME SECTIONS ====================
-
-let _homeSections = null;
-let _lastSectionsSnapshot = '';
-
-async function loadHomeSections() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/home-sections`);
-    if (!response.ok) {
-      console.warn('[CMS] API responded with', response.status, '- usando fallback');
-      return null;
-    }
-    const data = await response.json();
-    if (data.success && data.data) {
-      _homeSections = data.data;
-      console.log('[CMS] Secciones cargadas:', _homeSections.length);
-      return _homeSections;
-    }
-  } catch (error) {
-    console.warn('[CMS] Error cargando secciones:', error.message);
-  }
-  return null;
-}
-
-function renderSectionsFromCMS() {
-  if (!_homeSections || _homeSections.length === 0) {
-    console.log('[CMS] Sin secciones disponibles, usando configuración por defecto');
-    return;
-  }
-
-  // Actualizar secciones según tipo
-  _homeSections.forEach(section => {
-    if (!section.enabled) return;
-
-    try {
-      switch (section.section_type) {
-        case 'banner':
-          updateBannersFromCMS(section);
-          break;
-        case 'categories':
-          // Las categorías ya se cargan dinámicamente desde loadCategoriasFromAPI
-          // Aquí solo actualizamos el título si es necesario
-          const catTitle = document.querySelector('.categories-section .section-title');
-          if (catTitle && section.config.title) {
-            catTitle.textContent = section.config.title;
-          }
-          break;
-        case 'products':
-          updateProductsFromCMS(section);
-          break;
-        case 'testimonials':
-          updateTestimonialsFromCMS(section);
-          break;
-      }
-    } catch (err) {
-      console.error(`[CMS] Error renderizando ${section.section_type}:`, err);
-    }
-  });
-
-  console.log('[CMS] Secciones renderizadas');
-}
-
-function updateBannersFromCMS(section) {
-  const bannerCarousel = document.querySelector('.banner-carousel');
-  if (!bannerCarousel || !section.config) return;
-
-  const config = section.config;
-  const banners = bannerCarousel.querySelectorAll('.banner');
-
-  if (banners.length > 0) {
-    const firstBanner = banners[0];
-    const bannerContent = firstBanner.querySelector('.banner-content');
-
-    if (bannerContent) {
-      const eyebrowEl = bannerContent.querySelector('.banner-eyebrow');
-      const titleEl = bannerContent.querySelector('h1');
-      const descEl = bannerContent.querySelector('p');
-      const btnEl = bannerContent.querySelector('.banner-btn');
-
-      if (eyebrowEl && config.eyebrow) eyebrowEl.textContent = config.eyebrow;
-      if (titleEl && config.title) titleEl.textContent = config.title;
-      if (descEl && config.subtitle) descEl.textContent = config.subtitle;
-      if (btnEl) {
-        if (config.button_text) btnEl.textContent = config.button_text;
-        if (config.button_url) btnEl.href = config.button_url;
-      }
-    }
-  }
-}
-
-function updateProductsFromCMS(section) {
-  if (!section.config || !Array.isArray(section.config.ids)) return;
-
-  // Filtrar productos según IDs especificados
-  const productIds = section.config.ids;
-  const filteredProducts = allProducts.filter(p => productIds.includes(p.id));
-
-  if (filteredProducts.length === 0) {
-    console.warn('[CMS] No hay productos con los IDs especificados');
-    return;
-  }
-
-  // Renderizar productos
-  const grid = document.getElementById('productsGrid');
-  if (!grid) return;
-
-  const html = filteredProducts.slice(0, section.config.limit || 6).map(product => {
-    let badgeHtml = '';
-    const badge = featuredBadges[product.id];
-    if (badge) {
-      const badgeClass = badge === 'Nuevo' ? 'badge-new' : 'badge-hot';
-      badgeHtml = `<div class="product-badge ${badgeClass}">${badge}</div>`;
-    }
-
-    return `
-      <div class="product-card" data-product-id="${product.id}">
-        ${badgeHtml}
-        <div class="product-image" style="cursor: pointer;">${product.icon}</div>
-        <div class="product-info">
-          <div class="product-name" style="cursor: pointer;">${product.name}</div>
-          <div class="product-price">${formatCurrency(product.price)}</div>
-          <button class="product-btn" onclick="openProductDetail(${product.id})">
-            Agregar al Carrito
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  grid.innerHTML = html;
-
-  // Re-attach listeners
-  setTimeout(() => {
-    grid.querySelectorAll('[data-product-id]').forEach(card => {
-      card.querySelector('.product-image')?.addEventListener('click', () => {
-        openProductDetail(parseInt(card.dataset.productId));
-      });
-      card.querySelector('.product-name')?.addEventListener('click', () => {
-        openProductDetail(parseInt(card.dataset.productId));
-      });
-    });
-  }, 0);
-
-  // Actualizar título si es necesario
-  const prodTitle = document.querySelector('.featured-products .section-title');
-  if (prodTitle && section.config.title) {
-    prodTitle.textContent = section.config.title;
-  }
-}
-
-function updateTestimonialsFromCMS(section) {
-  const testimonialsTitle = document.querySelector('.testimonials-section .testimonials-title');
-  if (testimonialsTitle && section.config.title) {
-    testimonialsTitle.textContent = section.config.title;
-  }
-}
-
-function _snapshotHomeSections() {
-  return JSON.stringify(_homeSections || []);
-}
-
-function startHomeSectionsPolling() {
-  if (!_homeSections) return;
-
-  _lastSectionsSnapshot = _snapshotHomeSections();
-
-  // Polling cada 60 segundos
-  setInterval(async () => {
-    if (document.hidden) return;
-    try {
-      const sections = await loadHomeSections();
-      if (sections) {
-        const newSnapshot = _snapshotHomeSections();
-        if (newSnapshot !== _lastSectionsSnapshot) {
-          _lastSectionsSnapshot = newSnapshot;
-          renderSectionsFromCMS();
-          console.log('[CMS] Secciones actualizadas via polling');
-        }
-      }
-    } catch (err) {
-      console.warn('[CMS Polling] Error:', err.message);
-    }
-  }, 60000);
-}
+// Las secciones del HOME (banner, stats, categorías, productos, testimonios)
+// se renderizan desde el CMS en js/home-sections-renderer.js.
