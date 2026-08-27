@@ -193,24 +193,33 @@ function applyHomeScrollingText(config) {
 }
 
 function renderHomeBanner(config) {
-  if (!config.title) return '';
+  const banners = Array.isArray(config.banners) ? config.banners : [];
+  if (banners.length === 0) return '';
 
-  const bgStyle = config.image_url
-    ? ` style="background-image: url('${escapeHomeHTML(config.image_url)}'); background-size: cover; background-position: center;"`
-    : '';
-  const buttonUrl = config.button_url || 'proceso-compra.html';
+  const bannersHTML = banners.map((banner, index) => {
+    const bgStyle = banner.image_url
+      ? ` style="background-image: url('${escapeHomeHTML(banner.image_url)}'); background-size: cover; background-position: center;"`
+      : '';
+    const bannerUrl = banner.url || 'proceso-compra.html';
 
-  return `
-    <div class="banner-carousel"${bgStyle}>
-      <div class="banner active">
+    return `
+      <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
         <div class="banner-content">
-          ${config.eyebrow ? `<div class="banner-eyebrow">${escapeHomeHTML(config.eyebrow)}</div>` : ''}
-          <h1>${escapeHomeHTML(config.title)}</h1>
-          ${config.subtitle ? `<p>${escapeHomeHTML(config.subtitle)}</p>` : ''}
-          ${config.button_text ? `<a href="${escapeHomeHTML(buttonUrl)}" class="banner-btn">${escapeHomeHTML(config.button_text)}</a>` : ''}
+          <h1>${escapeHomeHTML(banner.title || '')}</h1>
+          ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
+          ${bannerUrl && bannerUrl !== '' ? `<a href="${escapeHomeHTML(bannerUrl)}" class="banner-btn">Explorar</a>` : ''}
         </div>
       </div>
-      <div class="carousel-dots"><div class="dot active"></div></div>
+    `;
+  }).join('');
+
+  const dotsHTML = banners.map((_, index) => `<div class="dot${index === 0 ? ' active' : ''}"></div>`).join('');
+  const autoRotateClass = config.auto_rotate === true ? ' data-auto-rotate="true" data-rotation-interval="' + (config.rotation_interval || 5000) + '"' : '';
+
+  return `
+    <div class="banner-carousel"${autoRotateClass}>
+      ${bannersHTML}
+      ${banners.length > 1 ? `<div class="carousel-dots">${dotsHTML}</div>` : ''}
     </div>
   `;
 }
