@@ -118,10 +118,30 @@ function updatePreview() {
   }
 
   // Generar documento HTML completo con todos los estilos CSS reales
-  const previewHTML = generateCompletePreviewDocument();
-  previewFrame.srcdoc = previewHTML;
+  previewFrame.onload = () => fitPreviewToViewport();
+  previewFrame.srcdoc = generateCompletePreviewDocument();
   console.log('✅ Preview updated with', sections.length, 'sections');
 }
+
+// El sitio real se diseña para escritorio: renderizamos a PREVIEW_WIDTH y
+// escalamos para que entre en el panel sin deformar las proporciones.
+const PREVIEW_WIDTH = 1280;
+
+function fitPreviewToViewport() {
+  const frame = document.getElementById('previewFrame');
+  const stage = document.getElementById('previewStage');
+  const viewport = document.getElementById('previewViewport');
+  if (!frame || !stage || !viewport || !frame.contentDocument) return;
+
+  const contentHeight = frame.contentDocument.documentElement.scrollHeight;
+  const scale = viewport.clientWidth / PREVIEW_WIDTH;
+
+  frame.style.height = contentHeight + 'px';
+  frame.style.transform = `scale(${scale})`;
+  stage.style.height = (contentHeight * scale) + 'px';
+}
+
+window.addEventListener('resize', fitPreviewToViewport);
 
 // ======================== GENERAR DOCUMENTO HTML COMPLETO ========================
 function generateCompletePreviewDocument() {
@@ -140,407 +160,33 @@ function generateCompletePreviewDocument() {
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Preview - Puchia</title>
+  <base href="${new URL('.', window.location.href).href}">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/home-critical.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/cliente.css">
   <style>
     ${cssStyles}
   </style>
 </head>
 <body>
-  <div class="preview-content">
-    ${sectionsHTML}
-  </div>
+  ${sectionsHTML}
 </body>
 </html>`;
 }
 
-// ======================== OBTENER ESTILOS CSS PARA PREVIEW ========================
+// ======================== AJUSTES PROPIOS DEL PREVIEW ========================
+// Solo overrides mínimos: el aspecto real viene de las hojas de estilo del sitio.
 function getCSSStyles() {
   return `
-/* Root variables */
-:root {
-  --purple: #7f1f6e;
-  --purple-light: #a01f8a;
-  --yellow: #F3E93F;
-  --white: #ffffff;
-  --gray-light: #f5f5f5;
-  --gray-text: #7a8794;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Poppins', sans-serif;
-  background-color: #fafbfc;
-  color: #2c3e50;
-  line-height: 1.6;
-}
-
-.preview-content {
-  width: 100%;
-  background: white;
-}
-
-/* BANNER STYLES */
-.preview-banner-section {
-  position: relative;
-  width: 100%;
-  height: 400px;
-  background: linear-gradient(135deg, var(--purple) 0%, #5a1f5c 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  text-align: center;
-  overflow: hidden;
-  margin-bottom: 40px;
-}
-
-.preview-banner-section-overlay {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-}
-
-.preview-banner-content {
-  position: relative;
-  z-index: 2;
-  max-width: 700px;
-  padding: 40px;
-}
-
-.preview-banner-eyebrow {
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: 15px;
-  opacity: 0.9;
-}
-
-.preview-banner-title {
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: 15px;
-  line-height: 1.2;
-}
-
-.preview-banner-subtitle {
-  font-size: 18px;
-  margin-bottom: 30px;
-  opacity: 0.9;
-  font-weight: 300;
-}
-
-.preview-banner-btn {
-  display: inline-block;
-  background: white;
-  color: var(--purple);
-  padding: 13px 40px;
-  border-radius: 50px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: none;
-  font-size: 14px;
-}
-
-.preview-banner-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-  background: var(--yellow);
-}
-
-/* PRODUCTS SECTION */
-.preview-section {
-  padding: 60px 40px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.section-title {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: #2c3e50;
-}
-
-.section-subtitle {
-  font-size: 16px;
-  color: var(--gray-text);
-  margin-bottom: 40px;
-}
-
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-}
-
-.product-card {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.product-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  transform: translateY(-4px);
-}
-
-.product-image {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  background: #f5f5f5;
-}
-
-.product-info {
-  padding: 15px;
-}
-
-.product-name {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 8px;
-  color: #2c3e50;
-}
-
-.product-price {
-  color: var(--purple);
-  font-weight: 700;
-  font-size: 13px;
-}
-
-/* CATEGORIES SECTION */
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
-}
-
-.category-card {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  overflow: hidden;
-  text-align: center;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-}
-
-.category-image {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  background: #f5f5f5;
-}
-
-.category-name {
-  padding: 12px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #2c3e50;
-}
-
-/* STATS SECTION */
-.stats-section {
-  background: white;
-  padding: 60px 40px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 40px;
-  text-align: center;
-}
-
-.stat-item {
-  padding: 20px;
-}
-
-.stat-number {
-  font-size: 36px;
-  font-weight: 700;
-  color: var(--purple);
-  margin-bottom: 10px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: var(--gray-text);
-}
-
-/* TESTIMONIALS SECTION */
-.testimonials-section {
-  padding: 60px 40px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.testimonials-title {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.testimonials-subtitle {
-  font-size: 16px;
-  color: var(--gray-text);
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.testimonials-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.testimonial-card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.testimonial-badge {
-  font-size: 11px;
-  color: #999;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.testimonial-stars {
-  color: #fbbf24;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-
-.testimonial-text {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 12px;
-  line-height: 1.5;
-  font-style: italic;
-}
-
-.testimonial-author {
-  font-size: 12px;
-  color: var(--purple);
-  font-weight: 600;
-}
-
-/* SCROLLING TEXT SECTION */
-.scrolling-text-section {
-  background: var(--purple);
-  color: white;
-  padding: 20px 40px;
-  text-align: center;
-  font-weight: 600;
-  overflow: hidden;
-  margin-bottom: 40px;
-}
-
-.scrolling-text-content {
-  animation: scroll 30s linear infinite;
-  white-space: nowrap;
-  display: inline-block;
-}
-
-@keyframes scroll {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
-/* IMAGE SECTION */
-.image-section {
-  position: relative;
-  width: 100%;
-  height: 320px;
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 40px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.image-section-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.3);
-}
-
-.image-section-content {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  color: white;
-  padding: 40px;
-}
-
-.image-section-title {
-  font-size: 36px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.image-section-subtitle {
-  font-size: 16px;
-  margin-bottom: 20px;
-  opacity: 0.9;
-}
-
-.image-section-btn {
-  display: inline-block;
-  background: var(--purple);
-  color: white;
-  padding: 12px 35px;
-  border-radius: 50px;
-  font-weight: 600;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 13px;
-}
-
-.image-section-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-  background: var(--purple-light);
-}
-
-@media (max-width: 768px) {
-  .preview-section { padding: 40px 20px; }
-  .section-title { font-size: 24px; }
-  .preview-banner-section { height: 300px; }
-  .preview-banner-title { font-size: 32px; }
-  .products-grid { grid-template-columns: repeat(2, 1fr); }
-  .categories-grid { grid-template-columns: repeat(3, 1fr); }
-  .stats-grid { grid-template-columns: 1fr; }
-}
+    body { background-color: #fafbfc; }
+    /* El preview no tiene JS del carrusel: mostramos siempre el primer banner. */
+    .banner { position: relative; opacity: 1; }
+    .banner-carousel { height: auto; min-height: 580px; }
+    /* Sin interacciones dentro del preview. */
+    a, button { pointer-events: none; }
   `;
 }
 
@@ -578,184 +224,219 @@ function renderPreviewSection(section, index) {
   return html;
 }
 
+// ======================== HELPERS ========================
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[c]);
+}
+
+function formatPreviewPrice(value) {
+  const number = parseFloat(value);
+  if (isNaN(number)) return '';
+  return '$' + number.toLocaleString('es-AR');
+}
+
+function getIconoCategoriaPreview(nombre) {
+  const iconos = {
+    'CUMPLEAÑOS': '🎉',
+    'REGALOS': '🎁',
+    'EMPRENDEDORES': '💼',
+    'PROMOS': '🎊'
+  };
+  return iconos[nombre] || '📦';
+}
+
+function previewPlaceholder(text) {
+  return `<div style="padding: 60px 40px; text-align: center; color: #999; font-family: 'Poppins', sans-serif;">${escapeHTML(text)}</div>`;
+}
+
 // ======================== RENDERIZAR BANNER EN PREVIEW ========================
+// Replica el markup de .banner-carousel en index.html
 function renderPreviewBanner(config) {
   if (!config.title) return '';
 
-  const bgStyle = config.image_url ? `style="background-image: url('${config.image_url}');"` : '';
+  const bgStyle = config.image_url
+    ? ` style="background-image: url('${escapeHTML(config.image_url)}'); background-size: cover; background-position: center;"`
+    : '';
 
   return `
-    <div class="preview-banner-section" ${bgStyle}>
-      <div class="preview-banner-section-overlay"></div>
-      <div class="preview-banner-content">
-        ${config.eyebrow ? `<div class="preview-banner-eyebrow">${config.eyebrow}</div>` : ''}
-        <h1 class="preview-banner-title">${config.title}</h1>
-        ${config.subtitle ? `<p class="preview-banner-subtitle">${config.subtitle}</p>` : ''}
-        ${config.button_text ? `<button class="preview-banner-btn">${config.button_text}</button>` : ''}
+    <div class="banner-carousel"${bgStyle}>
+      <div class="banner active">
+        <div class="banner-content">
+          ${config.eyebrow ? `<div class="banner-eyebrow">${escapeHTML(config.eyebrow)}</div>` : ''}
+          <h1>${escapeHTML(config.title)}</h1>
+          ${config.subtitle ? `<p>${escapeHTML(config.subtitle)}</p>` : ''}
+          ${config.button_text ? `<a href="#" class="banner-btn">${escapeHTML(config.button_text)}</a>` : ''}
+        </div>
       </div>
+      <div class="carousel-dots"><div class="dot active"></div></div>
     </div>
   `;
 }
 
 // ======================== RENDERIZAR PRODUCTOS EN PREVIEW ========================
+// Replica el markup de .featured-products en index.html / home.js
 function renderPreviewProducts(config) {
-  if (!config.ids || config.ids.length === 0) {
-    return '<div class="preview-section"><div style="padding: 40px; background: #f0f0f0; border-radius: 8px; color: #999; text-align: center;">Sin productos seleccionados</div></div>';
+  const title = config.title || 'Productos Destacados';
+  const selectedProducts = (config.ids && config.ids.length > 0)
+    ? allProducts.filter(p => config.ids.includes(p.id)).slice(0, config.limit || 6)
+    : allProducts.slice(0, config.limit || 6);
+
+  if (selectedProducts.length === 0) {
+    return previewPlaceholder('Sin productos seleccionados');
   }
 
-  const title = config.title || 'Productos Destacados';
-  const selectedProducts = allProducts.filter(p => config.ids.includes(p.id)).slice(0, config.limit || 10);
-
-  let productsHTML = selectedProducts.map(product => `
-    <div class="product-card">
-      <img src="${product.image_url || 'https://via.placeholder.com/200x150'}" alt="${product.nombre}" class="product-image">
-      <div class="product-info">
-        <div class="product-name">${product.nombre}</div>
-        ${product.precio ? `<div class="product-price">$${product.precio}</div>` : ''}
+  const productsHTML = selectedProducts.map(product => {
+    const categoria = product.categorias && product.categorias.length > 0 ? product.categorias[0].nombre : '';
+    return `
+      <div class="product-card">
+        <div class="product-image">${getIconoCategoriaPreview(categoria)}</div>
+        <div class="product-info">
+          <div class="product-name">${escapeHTML(product.nombre)}</div>
+          <div class="product-price">${formatPreviewPrice(product.precio)}</div>
+          <button class="product-btn">Agregar al Carrito</button>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   return `
-    <div class="preview-section">
-      <h2 class="section-title">${title}</h2>
-      <div class="products-grid">
-        ${productsHTML}
+    <section class="featured-products">
+      <h2 class="section-title">${escapeHTML(title)}</h2>
+      <p class="section-subtitle">Nuestros favoritos, elegidos por nuestras clientes</p>
+      <div class="products-grid">${productsHTML}</div>
+      <div class="see-more-container">
+        <a href="#" class="see-more-btn">Ver Todos los Productos →</a>
       </div>
-    </div>
+    </section>
   `;
 }
 
 // ======================== RENDERIZAR CATEGORÍAS EN PREVIEW ========================
+// Replica el markup de .categories-section en index.html / categorias.js
 function renderPreviewCategories(config) {
-  const title = config.title || 'Categorías';
-  let categoriesToShow = [];
-
-  if (config.show_all !== false && allCategories.length > 0) {
-    categoriesToShow = allCategories.slice(0, config.limit || 10);
-  } else if (config.ids && config.ids.length > 0) {
-    categoriesToShow = allCategories.filter(c => config.ids.includes(c.id)).slice(0, config.limit || 10);
-  }
+  const title = config.title || 'Categorías Destacadas';
+  const limit = config.limit || 10;
+  const categoriesToShow = (config.show_all === false && config.ids && config.ids.length > 0)
+    ? allCategories.filter(c => config.ids.includes(c.id)).slice(0, limit)
+    : allCategories.slice(0, limit);
 
   if (categoriesToShow.length === 0) {
-    return '<div class="preview-section"><div style="padding: 40px; background: #f0f0f0; border-radius: 8px; color: #999; text-align: center;">Sin categorías disponibles</div></div>';
+    return previewPlaceholder('Sin categorías disponibles');
   }
 
-  let categoriesHTML = categoriesToShow.map(category => `
+  const categoriesHTML = categoriesToShow.map(category => `
     <div class="category-card">
-      <img src="${category.image_url || 'https://via.placeholder.com/200x150'}" alt="${category.nombre}" class="category-image">
-      <div class="category-name">${category.nombre}</div>
+      <div class="category-card-icon">${getIconoCategoriaPreview(category.nombre)}</div>
+      <div class="category-card-name">${escapeHTML(category.nombre)}</div>
+      <p style="color: #999; font-size: 14px; margin-top: 8px;">${escapeHTML(category.descripcion || '')}</p>
     </div>
   `).join('');
 
   return `
-    <div class="preview-section">
-      <h2 class="section-title">${title}</h2>
-      <div class="categories-grid">
-        ${categoriesHTML}
-      </div>
-    </div>
+    <section class="categories-section">
+      <h2 class="section-title">${escapeHTML(title)}</h2>
+      <p class="section-subtitle">Explorá nuestras principales opciones personalizadas</p>
+      <div class="categories-grid">${categoriesHTML}</div>
+    </section>
   `;
 }
 
 // ======================== RENDERIZAR TESTIMONIOS EN PREVIEW ========================
+// Replica el markup de .testimonials-section en index.html
 function renderPreviewTestimonials(config) {
   const title = config.title || 'Lo que dicen nuestras clientas';
   const testimonios = [
-    {
-      text: 'Excelente trabajo, hermosa calidad y presentación. Entrega en tiempo y forma, además la atención excelente. ¡Un gusto!',
-      author: 'Clienta verificada',
-      rating: 5
-    },
-    {
-      text: 'Son muy amables y comprometidas en su trabajo. Productos de calidad y buen precio. Entregas en tiempo y forma. Super recomendables.',
-      author: 'Clienta verificada',
-      rating: 5
-    },
-    {
-      text: 'Excelente atención, muy amables, entregaron en tiempo y forma. Super recomiendo a Puchia para cualquier regalo especial.',
-      author: 'Clienta verificada',
-      rating: 5
-    }
+    { text: 'Excelente trabajo, hermosa calidad y presentación. Entrega en tiempo y forma, además la atención excelente. ¡Un gusto!', author: 'Clienta verificada' },
+    { text: 'Son muy amables y comprometidas en su trabajo. Productos de calidad y buen precio. Entregas en tiempo y forma. Super recomendables.', author: 'Clienta verificada' },
+    { text: 'Excelente atención, muy amables, entregaron en tiempo y forma. Super recomiendo a Puchia para cualquier regalo especial.', author: 'Clienta verificada' }
   ];
 
-  const limit = config.limit || 3;
-  const filtered = testimonios.slice(0, limit);
-
-  let testimonialsHTML = filtered.map(testi => `
+  const testimonialsHTML = testimonios.slice(0, config.limit || 3).map(testi => `
     <div class="testimonial-card">
-      <div class="testimonial-badge">Google Reviews</div>
-      <div class="testimonial-stars">★★★★★</div>
-      <p class="testimonial-text">"${testi.text}"</p>
-      <p class="testimonial-author">${testi.author}</p>
+      <div class="google-badge">
+        <div class="google-icon">G</div>
+        <span class="google-label">Google Reviews</span>
+      </div>
+      <div class="stars">★★★★★</div>
+      <div class="testimonial-text">${escapeHTML(testi.text)}</div>
+      <div class="testimonial-author">${escapeHTML(testi.author)}</div>
     </div>
   `).join('');
 
   return `
-    <div class="testimonials-section">
-      <h2 class="testimonials-title">${title}</h2>
+    <section class="testimonials-section">
+      <h2 class="testimonials-title">${escapeHTML(title)}</h2>
       <p class="testimonials-subtitle">Opiniones reales verificadas en Google</p>
-      <div class="testimonials-grid">
-        ${testimonialsHTML}
+      <div class="testimonials-grid">${testimonialsHTML}</div>
+      <div style="text-align: center; margin-top: 50px;">
+        <a href="#" class="btn btn-primary" style="display: inline-block; background: var(--purple); color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+          ✨ Dejanos tu opinión
+        </a>
       </div>
-    </div>
+    </section>
   `;
 }
 
 // ======================== RENDERIZAR TEXTO DESPLAZABLE EN PREVIEW ========================
+// Replica el markup de .announcement-bar en index.html
 function renderPreviewScrollingText(config) {
   if (!config.text) return '';
 
-  const bgColor = config.background_color || '#7f1f6e';
-  const textColor = config.text_color || '#FFFFFF';
+  const styles = [];
+  if (config.background_color) styles.push(`background-color: ${escapeHTML(config.background_color)}`);
+  if (config.text_color) styles.push(`color: ${escapeHTML(config.text_color)}`);
 
-  return `
-    <div class="scrolling-text-section" style="background: ${bgColor}; color: ${textColor};">
-      <div class="scrolling-text-content">${config.text}</div>
-    </div>
-  `;
+  return `<div class="announcement-bar" style="${styles.join('; ')}">${escapeHTML(config.text)}</div>`;
 }
 
 // ======================== RENDERIZAR STATS EN PREVIEW ========================
+// Replica el markup de .stats-section en index.html
 function renderPreviewStats(config) {
   if (!config.stats || config.stats.length === 0) {
-    return '<div class="preview-section"><div style="padding: 40px; background: #f0f0f0; border-radius: 8px; color: #999; text-align: center;">Sin estadísticas configuradas</div></div>';
+    return previewPlaceholder('Sin estadísticas configuradas');
   }
 
-  const title = config.title || 'Nuestros Logros';
-
-  let statsHTML = config.stats.map(stat => `
+  const statsHTML = config.stats.map(stat => `
     <div class="stat-item">
-      <div class="stat-number">${stat.number}</div>
-      <div class="stat-label">${stat.label}</div>
+      <div class="stat-number">${escapeHTML((stat.prefix || '') + stat.number + (stat.suffix || ''))}</div>
+      <div class="stat-label">${escapeHTML(stat.label)}</div>
+    </div>
+  `).join('<div class="stat-divider"></div>');
+
+  return `
+    <section class="stats-section">
+      <div class="stats-grid">${statsHTML}</div>
+    </section>
+  `;
+}
+
+// ======================== RENDERIZAR SECCIÓN IMAGEN / CÓMO FUNCIONA EN PREVIEW ========================
+// Replica el markup de .how-section en index.html
+function renderPreviewImage(config) {
+  if (!config.title && !config.steps) return '';
+
+  const steps = config.steps && config.steps.length > 0 ? config.steps : [
+    { icon: '1️⃣', title: 'Elige tu Producto', description: 'Explora nuestro catálogo con cientos de opciones personalizadas' },
+    { icon: '2️⃣', title: 'Personaliza', description: 'Agrega tu toque especial: nombres, colores, mensajes' },
+    { icon: '3️⃣', title: 'Recibe tu Regalo', description: 'Entrega rápida y segura a tu domicilio' }
+  ];
+
+  const stepsHTML = steps.map(step => `
+    <div class="how-step">
+      <div class="how-icon">${escapeHTML(step.icon || '')}</div>
+      <h3>${escapeHTML(step.title || '')}</h3>
+      <p>${escapeHTML(step.description || '')}</p>
     </div>
   `).join('');
 
   return `
-    <div class="stats-section">
-      <h2 class="section-title">${title}</h2>
-      <div class="stats-grid">
-        ${statsHTML}
-      </div>
-    </div>
-  `;
-}
-
-// ======================== RENDERIZAR IMAGEN EN PREVIEW ========================
-function renderPreviewImage(config) {
-  if (!config.title && !config.image_url) return '';
-
-  const bgStyle = config.image_url ? `style="background-image: url('${config.image_url}');"` : '';
-
-  return `
-    <div class="image-section" ${bgStyle}>
-      <div class="image-section-overlay"></div>
-      <div class="image-section-content">
-        ${config.title ? `<h2 class="image-section-title">${config.title}</h2>` : ''}
-        ${config.subtitle ? `<p class="image-section-subtitle">${config.subtitle}</p>` : ''}
-        ${config.button_text ? `<button class="image-section-btn">${config.button_text}</button>` : ''}
-      </div>
-    </div>
+    <section class="how-section">
+      <h2 class="section-title">${escapeHTML(config.title || '¿Cómo Funciona?')}</h2>
+      <p class="section-subtitle">${escapeHTML(config.subtitle || '3 pasos simples para obtener tu regalo perfecto')}</p>
+      <div class="how-grid">${stepsHTML}</div>
+    </section>
   `;
 }
 
