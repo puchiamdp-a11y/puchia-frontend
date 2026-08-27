@@ -119,8 +119,7 @@ function updatePreview() {
 
   // Generar documento HTML completo con todos los estilos CSS reales
   const previewHTML = generateCompletePreviewDocument();
-  previewFrame.innerHTML = previewHTML;
-  previewFrame.style.padding = '0';
+  previewFrame.srcdoc = previewHTML;
   console.log('✅ Preview updated with', sections.length, 'sections');
 }
 
