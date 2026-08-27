@@ -705,16 +705,36 @@ function fillFormWithSectionData(section) {
       const textColor = config.text_color || '#FFFFFF';
       const scrollSpeed = config.scroll_speed || 50;
 
-      document.getElementById('scrolling-bg-color').value = bgColor;
-      document.getElementById('scrolling-text-color').value = textColor;
+      document.getElementById('scrolling-bg-color').value = bgColor.replace('#', '');
+      document.getElementById('scrolling-bg-color-picker').value = bgColor;
+      document.getElementById('scrolling-text-color').value = textColor.replace('#', '');
+      document.getElementById('scrolling-text-color-picker').value = textColor;
       document.getElementById('scrolling-speed').value = scrollSpeed;
 
-      // Actualizar previsualizaciones de color
-      const bgPreview = document.getElementById('scrolling-bg-preview');
-      if (bgPreview) bgPreview.style.backgroundColor = bgColor;
+      // Sincronizar color picker con text input
+      const bgColorPicker = document.getElementById('scrolling-bg-color-picker');
+      const bgColorInput = document.getElementById('scrolling-bg-color');
+      if (bgColorPicker && bgColorInput) {
+        bgColorPicker.addEventListener('input', () => {
+          bgColorInput.value = bgColorPicker.value.replace('#', '');
+        });
+        bgColorInput.addEventListener('input', () => {
+          const hexVal = bgColorInput.value.startsWith('#') ? bgColorInput.value : '#' + bgColorInput.value;
+          bgColorPicker.value = hexVal;
+        });
+      }
 
-      const textPreview = document.getElementById('scrolling-text-preview');
-      if (textPreview) textPreview.style.backgroundColor = textColor;
+      const textColorPicker = document.getElementById('scrolling-text-color-picker');
+      const textColorInput = document.getElementById('scrolling-text-color');
+      if (textColorPicker && textColorInput) {
+        textColorPicker.addEventListener('input', () => {
+          textColorInput.value = textColorPicker.value.replace('#', '');
+        });
+        textColorInput.addEventListener('input', () => {
+          const hexVal = textColorInput.value.startsWith('#') ? textColorInput.value : '#' + textColorInput.value;
+          textColorPicker.value = hexVal;
+        });
+      }
 
       // Actualizar valor mostrado de velocidad
       const speedValue = document.getElementById('scrolling-speed-value');
