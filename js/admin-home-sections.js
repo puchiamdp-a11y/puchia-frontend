@@ -453,24 +453,10 @@ async function saveSectionFromForm(e) {
     renderSections();
     updatePreview(); // Refrescar preview
     hasUnsavedChanges = true;
-    showStatus('✅ Cambios guardados en borrador (sin publicar aún)', 'success');
+    showStatus('✅ Cambios en memoria (clickea "Guardar Cambios" para publicar)', 'success');
     closeModal('editSectionModal');
-
-    // Guardar en borrador (sin publicar)
-    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-    const draftResponse = await fetch(saveDraftUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
-    });
-
-    if (!draftResponse.ok) {
-    }
   } catch (error) {
-    console.error('Error saving section:', error);
+    console.error('Error updating section:', error);
     showStatus('Error: ' + error.message, 'error');
   }
 }
