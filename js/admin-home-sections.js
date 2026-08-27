@@ -959,8 +959,12 @@ async function saveSectionFromForm(e) {
       limit: parseInt(document.getElementById('testimonials-limit').value) || 5
     };
   } else if (currentEditingSection.section_type === 'scrolling_text') {
-    const bgColor = document.getElementById('scrolling-bg-color').value.trim();
-    const textColor = document.getElementById('scrolling-text-color').value.trim();
+    let bgColorVal = document.getElementById('scrolling-bg-color').value.trim();
+    let textColorVal = document.getElementById('scrolling-text-color').value.trim();
+
+    // Agregar # si no lo tiene (los inputs text no lo guardan)
+    const bgColor = bgColorVal.startsWith('#') ? bgColorVal : '#' + bgColorVal;
+    const textColor = textColorVal.startsWith('#') ? textColorVal : '#' + textColorVal;
 
     // Validar formato de colores HEX
     const isValidHex = (color) => /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color);
