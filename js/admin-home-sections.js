@@ -186,8 +186,9 @@ function getCSSStyles() {
   return `
     body { background-color: #fafbfc; }
     /* El preview no tiene JS del carrusel: mostramos siempre el primer banner. */
-    .banner { position: relative; opacity: 1; }
-    .banner-carousel { height: auto; min-height: 580px; }
+    .banner { opacity: 0; display: none; }
+    .banner.active { opacity: 1; display: flex; }
+    .banner-carousel { height: 580px; position: relative; }
     /* Sin interacciones dentro del preview. */
     a, button { pointer-events: none; }
   `;
