@@ -195,7 +195,7 @@ function setupEventListeners() {
         if (!container) {
           container = document.createElement('div');
           container.id = 'admin-home-iframe-container';
-          container.style.cssText = 'display: flex; flex-direction: column; flex: 1; width: 100%;';
+          container.style.cssText = 'display: flex; flex-direction: column; flex: 1; width: 100%; min-height: 0;';
           document.querySelector('.admin-content').appendChild(container);
         }
 
