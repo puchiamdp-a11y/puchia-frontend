@@ -653,7 +653,17 @@ function fillFormWithSectionData(section) {
 
       const rotationSpeedGroup = document.getElementById('banner-rotation-speed-group');
       if (rotationSpeedGroup) {
-        rotationSpeedGroup.style.display = config.auto_rotate === true ? 'block' : 'none';
+        rotationSpeedGroup.style.display = config.auto_rotate === true ? 'flex' : 'none';
+      }
+
+      // Inicializar drag-drop para reordenar banners
+      if (window.Sortable && bannersList) {
+        Sortable.create(bannersList, {
+          handle: '.banner-item',
+          ghostClass: 'dragging',
+          animation: 150,
+          onEnd: updatePreview
+        });
       }
       break;
 
