@@ -6,6 +6,7 @@ let allProducts = [];
 let allCategories = [];
 let hasUnsavedChanges = false;
 let previewRefreshInterval = null;
+let previewUpdateTimeout = null;
 
 // ======================== INICIALIZACIÓN ========================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -498,6 +499,24 @@ async function loadCategoriesForSelector() {
   }
 }
 
+// ======================== CONFIGURAR PREVIEW EN VIVO ========================
+function setupPreviewAutoUpdate() {
+  const formInputs = document.querySelectorAll('#editSectionForm input, #editSectionForm select, #editSectionForm textarea');
+
+  formInputs.forEach(input => {
+    input.addEventListener('change', debouncePreviewUpdate);
+    input.addEventListener('input', debouncePreviewUpdate);
+  });
+}
+
+function debouncePreviewUpdate() {
+  clearTimeout(previewUpdateTimeout);
+  previewUpdateTimeout = setTimeout(() => {
+    console.log('🎨 Updating preview (user edited field)');
+    updatePreview();
+  }, 2000); // 2s debounce
+}
+
 // ======================== EDITAR SECCIÓN ========================
 async function editSection(sectionId) {
   const section = sections.find(s => s.id === sectionId);
@@ -514,6 +533,9 @@ async function editSection(sectionId) {
 
   // Mostrar modal
   document.getElementById('editSectionModal').classList.add('show');
+
+  // Configurar preview en vivo cuando edita
+  setupPreviewAutoUpdate();
 }
 
 // ======================== LLENAR FORMULARIO ========================
@@ -716,24 +738,10 @@ async function saveSectionFromForm(e) {
     renderSections();
     updatePreview(); // Refrescar preview
     hasUnsavedChanges = true;
-    showStatus('✅ Cambios guardados en borrador (sin publicar aún)', 'success');
+    showStatus('✅ Cambios en memoria (clickea "Guardar Cambios" para publicar)', 'success');
     closeModal('editSectionModal');
-
-    // Guardar en borrador (sin publicar)
-    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-    const draftResponse = await fetch(saveDraftUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
-    });
-
-    if (!draftResponse.ok) {
-    }
   } catch (error) {
-    console.error('Error saving section:', error);
+    console.error('Error updating section:', error);
     showStatus('Error: ' + error.message, 'error');
   }
 }

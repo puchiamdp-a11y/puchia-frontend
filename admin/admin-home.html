@@ -13,6 +13,9 @@
     <!-- Common utilities and API configuration -->
     <script src="../js/common.js?v=2026082705"></script>
     <style>
+        /* Hide cart in admin panel */
+        #cartSidebar, #cartOverlay { display: none !important; }
+
         .home-sections-container { display: grid; grid-template-columns: 30% 70%; gap: 24px; max-width: 1600px; margin: 0 auto; }
         .home-sections-left { display: flex; flex-direction: column; gap: 0; height: 600px; }
         .home-sections-right { border-left: 1px solid #e0e0e0; padding-left: 24px; display: flex; flex-direction: column; gap: 0; height: 600px; }
