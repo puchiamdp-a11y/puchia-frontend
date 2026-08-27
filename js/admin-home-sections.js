@@ -117,15 +117,278 @@ function updatePreview() {
     return;
   }
 
-  // El preview muestra un IFRAME del HOME cliente real
-  // Con un query param para forzar refresco cada vez que hay cambios
-  const timestamp = new Date().getTime();
-  const iframeUrl = `https://puchia-web.vercel.app/?_t=${timestamp}`;
+  // Generar HTML de preview basado en las secciones en memoria
+  const previewHTML = generatePreviewHTML();
+  previewFrame.innerHTML = previewHTML;
+  previewFrame.style.padding = '20px';
+  console.log('✅ Preview updated with', sections.length, 'sections');
+}
 
-  previewFrame.innerHTML = `<iframe src="${iframeUrl}" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>`;
-  previewFrame.style.padding = '0';
-  console.log('✅ Preview iframe loaded');
+// ======================== GENERAR HTML DEL PREVIEW ========================
+function generatePreviewHTML() {
+  let html = `
+    <div style="font-family: 'Poppins', sans-serif; background: #f5f5f5; color: #333;">
+      <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  `;
 
+  if (sections.length === 0) {
+    html += '<div style="text-align: center; padding: 40px; color: #999;">Sin secciones configuradas</div>';
+  } else {
+    sections.forEach((section, index) => {
+      html += renderPreviewSection(section, index);
+    });
+  }
+
+  html += `
+      </div>
+    </div>
+  `;
+  return html;
+}
+
+// ======================== RENDERIZAR SECCIÓN EN PREVIEW ========================
+function renderPreviewSection(section, index) {
+  const config = section.config || {};
+  let html = '';
+
+  switch (section.section_type) {
+    case 'scrolling_text':
+      html = renderPreviewScrollingText(config);
+      break;
+    case 'banner':
+      html = renderPreviewBanner(config);
+      break;
+    case 'stats':
+      html = renderPreviewStats(config);
+      break;
+    case 'image':
+      html = renderPreviewImage(config);
+      break;
+    case 'categories':
+      html = renderPreviewCategories(config);
+      break;
+    case 'products':
+      html = renderPreviewProducts(config);
+      break;
+    case 'testimonials':
+      html = renderPreviewTestimonials(config);
+      break;
+    default:
+      html = `<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Tipo desconocido: ${section.section_type}</div>`;
+  }
+
+  return html;
+}
+
+// ======================== RENDERIZAR BANNER EN PREVIEW ========================
+function renderPreviewBanner(config) {
+  if (!config.title) return '';
+
+  const bgImage = config.image_url ? `background-image: url('${config.image_url}'); background-size: cover; background-position: center;` : 'background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);';
+
+  return `
+    <div style="position: relative; width: 100%; height: 300px; border-radius: 8px; overflow: hidden; margin-bottom: 20px; ${bgImage}">
+      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
+        ${config.eyebrow ? `<div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">${config.eyebrow}</div>` : ''}
+        <h1 style="font-size: 32px; font-weight: 700; margin: 10px 0;">${config.title}</h1>
+        ${config.subtitle ? `<p style="font-size: 16px; margin: 10px 0; max-width: 600px;">${config.subtitle}</p>` : ''}
+        ${config.button_text ? `<a href="${config.button_url || '#'}" style="display: inline-block; margin-top: 20px; background: #ff1493; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600;">${config.button_text}</a>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ======================== RENDERIZAR PRODUCTOS EN PREVIEW ========================
+function renderPreviewProducts(config) {
+  if (!config.ids || config.ids.length === 0) {
+    return '<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Sin productos seleccionados</div>';
+  }
+
+  const title = config.title || 'Productos Destacados';
+  const selectedProducts = allProducts.filter(p => config.ids.includes(p.id)).slice(0, config.limit || 10);
+
+  let html = `
+    <div style="margin-bottom: 30px;">
+      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${title}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+  `;
+
+  selectedProducts.forEach(product => {
+    const imageUrl = product.image_url || 'https://via.placeholder.com/150';
+    html += `
+      <div style="background: white; border-radius: 8px; padding: 12px; text-align: center; border: 1px solid #e0e0e0;">
+        <img src="${imageUrl}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;" alt="${product.nombre}">
+        <h3 style="font-size: 14px; font-weight: 600; margin: 8px 0;">${product.nombre}</h3>
+        ${product.precio ? `<p style="font-size: 13px; color: #7f1f6e; font-weight: 700;">$${product.precio}</p>` : ''}
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+// ======================== RENDERIZAR CATEGORÍAS EN PREVIEW ========================
+function renderPreviewCategories(config) {
+  const title = config.title || 'Categorías';
+  let categoriesToShow = [];
+
+  if (config.show_all !== false && allCategories.length > 0) {
+    categoriesToShow = allCategories.slice(0, config.limit || 10);
+  } else if (config.ids && config.ids.length > 0) {
+    categoriesToShow = allCategories.filter(c => config.ids.includes(c.id)).slice(0, config.limit || 10);
+  }
+
+  if (categoriesToShow.length === 0) {
+    return '<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Sin categorías disponibles</div>';
+  }
+
+  let html = `
+    <div style="margin-bottom: 30px;">
+      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${title}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 20px;">
+  `;
+
+  categoriesToShow.forEach(category => {
+    const imageUrl = category.image_url || 'https://via.placeholder.com/140';
+    html += `
+      <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; cursor: pointer; text-align: center;">
+        <img src="${imageUrl}" style="width: 100%; height: 120px; object-fit: cover;" alt="${category.nombre}">
+        <div style="padding: 10px;">
+          <h3 style="font-size: 13px; font-weight: 600;">${category.nombre}</h3>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+// ======================== RENDERIZAR TESTIMONIOS EN PREVIEW ========================
+function renderPreviewTestimonials(config) {
+  const title = config.title || 'Lo que dicen nuestras clientas';
+  const testimonios = [
+    {
+      text: 'Excelente trabajo, hermosa calidad y presentación. Entrega en tiempo y forma, además la atención excelente. ¡Un gusto!',
+      author: 'Clienta verificada',
+      rating: 5
+    },
+    {
+      text: 'Son muy amables y comprometidas en su trabajo. Productos de calidad y buen precio. Entregas en tiempo y forma. Super recomendables.',
+      author: 'Clienta verificada',
+      rating: 5
+    },
+    {
+      text: 'Excelente atención, muy amables, entregaron en tiempo y forma. Super recomiendo a Puchia para cualquier regalo especial.',
+      author: 'Clienta verificada',
+      rating: 5
+    }
+  ];
+
+  const limit = config.limit || 3;
+  const filtered = testimonios.slice(0, limit);
+
+  let html = `
+    <div style="margin-bottom: 30px;">
+      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${title}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+  `;
+
+  filtered.forEach(testi => {
+    html += `
+      <div style="background: white; border-radius: 8px; padding: 15px; border: 1px solid #e0e0e0;">
+        <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Google Reviews</div>
+        <div style="font-size: 14px; color: #ff1493; margin-bottom: 10px;">★★★★★</div>
+        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 10px; color: #555;">"${testi.text}"</p>
+        <p style="font-size: 12px; font-weight: 600; color: #7f1f6e;">${testi.author}</p>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+// ======================== RENDERIZAR TEXTO DESPLAZABLE EN PREVIEW ========================
+function renderPreviewScrollingText(config) {
+  if (!config.text) return '';
+
+  return `
+    <div style="background: ${config.background_color || '#FF1493'}; color: ${config.text_color || '#FFFFFF'}; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 600; overflow: hidden;">
+      <div style="animation: scroll 30s linear infinite; white-space: nowrap;">
+        ${config.text}
+      </div>
+    </div>
+    <style>
+      @keyframes scroll {
+        0% { transform: translateX(100%); }
+        100% { transform: translateX(-100%); }
+      }
+    </style>
+  `;
+}
+
+// ======================== RENDERIZAR STATS EN PREVIEW ========================
+function renderPreviewStats(config) {
+  if (!config.stats || config.stats.length === 0) {
+    return '<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Sin estadísticas configuradas</div>';
+  }
+
+  const title = config.title || 'Nuestros Logros';
+  let html = `
+    <div style="margin-bottom: 30px;">
+      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 20px;">${title}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+  `;
+
+  config.stats.forEach((stat, idx) => {
+    if (idx > 0) {
+      html += '<div style="display: none;"></div>';
+    }
+    html += `
+      <div style="text-align: center; padding: 20px;">
+        <div style="font-size: 28px; font-weight: 700; color: #7f1f6e; margin-bottom: 8px;">${stat.number}</div>
+        <div style="font-size: 14px; color: #666;">${stat.label}</div>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+// ======================== RENDERIZAR IMAGEN EN PREVIEW ========================
+function renderPreviewImage(config) {
+  if (!config.title && !config.image_url) return '';
+
+  const bgImage = config.image_url ? `background-image: url('${config.image_url}'); background-size: cover; background-position: center;` : 'background: linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 100%);';
+
+  return `
+    <div style="position: relative; width: 100%; height: 250px; border-radius: 8px; overflow: hidden; margin-bottom: 20px; ${bgImage}">
+      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
+        ${config.title ? `<h2 style="font-size: 28px; font-weight: 700; margin: 0;">${config.title}</h2>` : ''}
+        ${config.subtitle ? `<p style="font-size: 14px; margin: 8px 0;">${config.subtitle}</p>` : ''}
+        ${config.button_text ? `<a href="${config.button_url || '#'}" style="display: inline-block; margin-top: 15px; background: #7f1f6e; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 13px;">${config.button_text}</a>` : ''}
+      </div>
+    </div>
+  `;
 }
 
 // ======================== RENDERIZAR SECCIONES ========================
