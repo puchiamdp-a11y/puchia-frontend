@@ -76,7 +76,9 @@ async function loadSections() {
     // Si hay borrador, usarlo; si no, cargar secciones publicadas
     if (draftSections && draftSections.length > 0) {
       sections = draftSections;
+      console.log('✅ Draft sections loaded:', sections.length, 'sections');
     } else {
+      console.log('📥 Loading published sections...');
       const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -93,8 +95,10 @@ async function loadSections() {
 
       const result = await response.json();
       sections = result.data || [];
+      console.log('✅ Published sections loaded:', sections.length, 'sections');
     }
 
+    console.log('🎨 Calling renderSections()...');
     renderSections();
   } catch (error) {
     console.error('Error al cargar secciones:', error);
@@ -105,6 +109,12 @@ async function loadSections() {
 // ======================== ACTUALIZAR PREVIEW EN VIVO ========================
 function updatePreview() {
   const previewFrame = document.getElementById('previewFrame');
+  console.log('🎬 updatePreview() called. previewFrame found:', !!previewFrame);
+
+  if (!previewFrame) {
+    console.error('❌ previewFrame element not found in DOM');
+    return;
+  }
 
   // El preview muestra un IFRAME del HOME cliente real
   // Con un query param para forzar refresco cada vez que hay cambios
@@ -113,6 +123,7 @@ function updatePreview() {
 
   previewFrame.innerHTML = `<iframe src="${iframeUrl}" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>`;
   previewFrame.style.padding = '0';
+  console.log('✅ Preview iframe loaded');
 
 }
 
@@ -121,20 +132,30 @@ function renderSections() {
   const listContainer = document.getElementById('sectionsList');
   const noSections = document.getElementById('noSections');
 
+  console.log('🔍 renderSections() called. Sections count:', sections.length);
+  console.log('🔍 listContainer found:', !!listContainer);
+  console.log('🔍 noSections found:', !!noSections);
+
   if (!listContainer) {
-    console.error('sectionsList element not found in DOM');
+    console.error('❌ sectionsList element not found in DOM');
     return;
   }
 
   if (sections.length === 0) {
+    console.log('⚠️ No sections found, showing empty state');
     listContainer.style.display = 'none';
-    noSections.style.display = 'block';
+    if (noSections) {
+      noSections.style.display = 'block';
+    }
     updatePreview();
     return;
   }
 
+  console.log('✅ Rendering', sections.length, 'sections');
   listContainer.style.display = 'flex';
-  noSections.style.display = 'none';
+  if (noSections) {
+    noSections.style.display = 'none';
+  }
   updatePreview();
 
   listContainer.innerHTML = sections.map((section, index) => `
@@ -160,6 +181,9 @@ function renderSections() {
       </div>
     </div>
   `).join('');
+
+  console.log('✅ HTML inserted into sectionsList. Children count:', listContainer.children.length);
+  console.log('✅ listContainer innerHTML length:', listContainer.innerHTML.length);
 
   // Inicializar SortableJS para drag-drop con verificación defensiva
   if (listContainer && listContainer.children.length > 0) {
