@@ -1069,7 +1069,10 @@ function getSectionTypeLabel(type) {
     banner: 'Banner',
     products: 'Productos',
     categories: 'Categorías',
-    testimonials: 'Testimonios'
+    testimonials: 'Opiniones',
+    scrolling_text: 'Zona de Texto',
+    stats: 'Animación de Números',
+    image: 'Imagen'
   };
   return labels[type] || type;
 }
