@@ -108,7 +108,13 @@
         .type-option-icon { font-size: 28px; margin-bottom: 8px; }
         .type-option-label { font-weight: 600; }
 
-        .products-selector { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 12px; }
+        .products-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; max-height: 600px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 12px; }
+        .product-card { padding: 12px; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .product-card:hover { border-color: #7b2d8e; background: #f9f9f9; }
+        .product-card.selected { border-color: #7b2d8e; background: #f5f0ff; }
+        .product-card-icon { font-size: 32px; margin-bottom: 8px; }
+        .product-card-name { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #333; }
+        .product-badge-select { width: 100%; padding: 6px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
         .product-item { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid #f0f0f0; }
         .product-item:last-child { border-bottom: none; }
         .product-item input[type="checkbox"] { margin-top: 2px; }

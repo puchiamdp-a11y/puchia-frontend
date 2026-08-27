@@ -308,8 +308,10 @@ function renderPreviewProducts(config) {
 
   const productsHTML = selectedProducts.map(product => {
     const categoria = product.categorias && product.categorias.length > 0 ? product.categorias[0].nombre : '';
+    const badge = config.badges && config.badges[product.id];
     return `
       <div class="product-card">
+        ${badge ? `<div class="product-badge badge-${badge.toLowerCase().replace(/ /g, '-')}">${escapeHTML(badge)}</div>` : ''}
         <div class="product-image">${getIconoCategoriaPreview(categoria)}</div>
         <div class="product-info">
           <div class="product-name">${escapeHTML(product.nombre)}</div>
@@ -679,7 +681,7 @@ function fillFormWithSectionData(section) {
     case 'products':
       document.getElementById('products-title').value = config.title || 'Productos Destacados';
       document.getElementById('products-limit').value = config.limit || 10;
-      renderProductSelector(config.ids || []);
+      renderProductSelector(config.ids || [], config.badges || {});
       break;
 
     case 'categories':
@@ -746,14 +748,50 @@ function fillFormWithSectionData(section) {
 }
 
 // ======================== RENDERIZAR SELECTOR DE PRODUCTOS ========================
-function renderProductSelector(selectedIds = []) {
+function renderProductSelector(selectedIds = [], productBadges = {}) {
   const container = document.getElementById('products-list');
-  container.innerHTML = allProducts.map(product => `
-    <div class="product-item">
-      <input type="checkbox" class="product-checkbox" value="${product.id}" ${selectedIds.includes(product.id) ? 'checked' : ''}>
-      <label>${product.nombre}</label>
-    </div>
-  `).join('');
+  productBadges = productBadges || {};
+
+  const badgeOptions = ['', 'Nuevo', 'Más vendido', 'Últimas unidades', 'En oferta'];
+
+  container.innerHTML = allProducts.map(product => {
+    const isSelected = selectedIds.includes(product.id);
+    const badge = productBadges[product.id] || '';
+    return `
+      <div class="product-card ${isSelected ? 'selected' : ''}" data-product-id="${product.id}" onclick="toggleProductSelection(this)">
+        <div class="product-card-icon">${product.icon || '📦'}</div>
+        <div class="product-card-name">${product.nombre}</div>
+        ${isSelected ? `
+          <select class="product-badge-select" data-product-id="${product.id}" onclick="event.stopPropagation();">
+            ${badgeOptions.map(opt => `<option value="${opt}" ${badge === opt ? 'selected' : ''}>${opt || 'Sin etiqueta'}</option>`).join('')}
+          </select>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  // Agregar event listeners a los selects de badges
+  document.querySelectorAll('.product-badge-select').forEach(select => {
+    select.addEventListener('change', (e) => {
+      e.stopPropagation();
+    });
+  });
+}
+
+// ======================== TOGGLE PRODUCT SELECTION ========================
+function toggleProductSelection(element) {
+  const productId = parseInt(element.dataset.productId);
+  element.classList.toggle('selected');
+
+  // Recargar el selector para mostrar/ocultar el campo de badge
+  const selectedIds = Array.from(document.querySelectorAll('.product-card.selected')).map(card => parseInt(card.dataset.productId));
+  const productBadges = {};
+  document.querySelectorAll('.product-badge-select').forEach(select => {
+    const pid = parseInt(select.dataset.productId);
+    const badge = select.value;
+    if (badge) productBadges[pid] = badge;
+  });
+  renderProductSelector(selectedIds, productBadges);
 }
 
 // ======================== RENDERIZAR SELECTOR DE CATEGORÍAS ========================
@@ -814,10 +852,17 @@ async function saveSectionFromForm(e) {
       rotation_interval: parseInt(document.getElementById('banner-rotation-speed').value) || 5000
     };
   } else if (currentEditingSection.section_type === 'products') {
-    const selectedIds = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => parseInt(cb.value));
+    const selectedIds = Array.from(document.querySelectorAll('.product-card.selected')).map(card => parseInt(card.dataset.productId));
+    const productBadges = {};
+    document.querySelectorAll('.product-badge-select').forEach(select => {
+      const pid = parseInt(select.dataset.productId);
+      const badge = select.value;
+      if (badge) productBadges[pid] = badge;
+    });
     config = {
       title: document.getElementById('products-title').value.trim() || 'Productos Destacados',
       ids: selectedIds,
+      badges: productBadges,
       limit: parseInt(document.getElementById('products-limit').value) || 10
     };
     if (selectedIds.length === 0) {
