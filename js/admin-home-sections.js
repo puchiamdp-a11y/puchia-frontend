@@ -905,7 +905,7 @@ async function saveSectionFromForm(e) {
       rotation_interval: parseInt(document.getElementById('banner-rotation-speed').value) || 5000
     };
   } else if (currentEditingSection.section_type === 'products') {
-    const selectedIds = Array.from(document.querySelectorAll('.product-card.selected')).map(card => parseInt(card.dataset.productId));
+    const selectedIds = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => parseInt(cb.value));
     const productBadges = {};
     document.querySelectorAll('.product-badge-select').forEach(select => {
       const pid = parseInt(select.dataset.productId);
