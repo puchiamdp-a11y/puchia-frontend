@@ -84,12 +84,9 @@ let adminCategories = [];
 
 async function loadAdminCategories() {
   try {
-    console.log('📍 [loadAdminCategories] Iniciando carga de categorías...');
     const response = await fetch(`${API_BASE_URL}/categorias`);
     const data = await response.json();
     adminCategories = data.data || [];
-    console.log('✅ [loadAdminCategories] Categorías cargadas:', adminCategories.length, 'categorías');
-    adminCategories.forEach(cat => console.log('  -', cat.nombre));
   } catch (error) {
     console.error('❌ [loadAdminCategories] Error cargando categorías:', error);
   }
@@ -99,7 +96,6 @@ function populateProductCategoryDropdown() {
   const select = document.getElementById('productCategoria');
   if (!select) return;
 
-  console.log('📍 [populateProductCategoryDropdown] Llenando dropdown con', adminCategories.length, 'categorías');
 
   if (adminCategories.length === 0) {
     select.innerHTML = '<option value="">-- Sin categorías disponibles --</option>';
@@ -171,19 +167,16 @@ function setupEventListeners() {
       e.preventDefault();
       const toggleItem = menuToggle.closest('.menu-toggle-item');
       toggleItem.classList.toggle('expanded');
-      console.log('Stock menu toggled:', toggleItem.classList.contains('expanded'));
     });
   }
 
   // Navegación sidebar
   const sidebarLinks = document.querySelectorAll('.sidebar-nav a:not(.menu-toggle)');
-  console.log('Links encontrados:', sidebarLinks.length);
 
   sidebarLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const page = link.dataset.page;
-      console.log('Navegando a:', page);
 
       // Remover activo de todos
       document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
@@ -214,7 +207,6 @@ function setupEventListeners() {
         </iframe>`;
         container.style.display = 'flex';
 
-        console.log('✅ [admin.js] CMS HOME iframe cargado. El iframe accederá al token del dashboard');
         return;
       }
 
@@ -344,7 +336,6 @@ function updateDashboardStatsFromOrders() {
   if (statPendingEl) statPendingEl.textContent = pendientes;
   if (statCompletedEl) statCompletedEl.textContent = completadas;
 
-  console.log(`Dashboard stats actualizados: Pendientes=${pendientes}, Completadas=${completadas}`);
 }
 
 async function loadRecentOrders() {
@@ -582,8 +573,6 @@ function editProduct(id) {
   loadInsumosForForm().then(() => {
     // Si es producto tipo insumo, restaurar insumo_id y variante
     if (productoActualEnEdicion.stock_type === 'insumo' && productoActualEnEdicion.producto_insumo) {
-      console.log('📍 [editProduct] Restaurando insumo para producto:', id);
-      console.log('📍 [editProduct] producto_insumo:', productoActualEnEdicion.producto_insumo);
 
       const insumoId = productoActualEnEdicion.producto_insumo.insumo_id;
       document.getElementById('productInsumo').value = insumoId || '';
@@ -592,7 +581,6 @@ function editProduct(id) {
       loadInsumoVariantes().then(() => {
         if (productoActualEnEdicion.producto_insumo?.insumo_variant_id) {
           document.getElementById('productInsumoVariante').value = productoActualEnEdicion.producto_insumo.insumo_variant_id;
-          console.log('✅ [editProduct] Variante restaurada:', productoActualEnEdicion.producto_insumo.insumo_variant_id);
         }
       });
     }
@@ -606,10 +594,8 @@ function editProduct(id) {
   // Cargar descripción en el editor Quill
   setTimeout(() => {
     initQuillEditor();
-    console.log('Descripción desde BD:', productoActualEnEdicion.descripcion);
     if (quillEditor && productoActualEnEdicion.descripcion) {
       quillEditor.root.innerHTML = productoActualEnEdicion.descripcion;
-      console.log('Contenido del editor después de cargar:', quillEditor.root.innerHTML);
     } else if (quillEditor) {
       quillEditor.setContents([]);
     }

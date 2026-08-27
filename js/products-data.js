@@ -30,15 +30,6 @@ async function loadProductsFromAPI() {
         // Usar stock_disponible del backend (calculado para 'insumo' y 'simple')
         const effectiveStock = p.stock_disponible || 0;
 
-        // DEBUG: Verificar datos de insumo
-        if (p.producto_insumo || p.stock_type === 'insumo') {
-          console.log(`📍 [loadProductsFromAPI] Producto ${p.id} (${p.nombre}):`, {
-            stock_type: p.stock_type,
-            producto_insumo: p.producto_insumo,
-            insumo_id: p.producto_insumo?.insumo_id,
-            insumo_variant: p.producto_insumo?.insumo_variant
-          });
-        }
 
         return {
           id: p.id,

@@ -6,7 +6,6 @@
 
 async function loadAndRenderHomeSections() {
   try {
-    console.log('🔄 Cargando secciones del HOME desde API...');
 
     const response = await fetch(`${window.API_BASE_URL}/home-sections`);
     if (!response.ok) {
@@ -15,7 +14,6 @@ async function loadAndRenderHomeSections() {
 
     const result = await response.json();
     const sections = result.data || result;
-    console.log('✅ Secciones cargadas:', sections.length);
 
     // Ordenar secciones por display_order
     sections.sort((a, b) => a.display_order - b.display_order);
