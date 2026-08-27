@@ -215,10 +215,15 @@ function renderHomeBanner(config) {
 
   const dotsHTML = banners.map((_, index) => `<div class="dot${index === 0 ? ' active' : ''}"></div>`).join('');
   const autoRotateClass = config.auto_rotate === true ? ' data-auto-rotate="true" data-rotation-interval="' + (config.rotation_interval || 5000) + '"' : '';
+  const arrowsHTML = banners.length > 1 ? `
+    <button class="banner-arrow banner-arrow-left" aria-label="Banner anterior">&#10094;</button>
+    <button class="banner-arrow banner-arrow-right" aria-label="Siguiente banner">&#10095;</button>
+  ` : '';
 
   return `
     <div class="banner-carousel"${autoRotateClass}>
       ${bannersHTML}
+      ${arrowsHTML}
       ${banners.length > 1 ? `<div class="carousel-dots">${dotsHTML}</div>` : ''}
     </div>
   `;
@@ -404,10 +409,34 @@ function startHomeSectionsPolling() {
   }, 60000);
 }
 
-// Inicializar cuando la página terminó de cargar, para que los datos de productos
-// y las funciones de home.js ya estén disponibles.
-if (document.readyState === 'complete') {
-  loadAndRenderHomeSections();
-} else {
-  window.addEventListener('load', loadAndRenderHomeSections);
-}
+// Inicializar tan pronto como el script carga para minimizar el "flash" del contenido fallback.
+// Ocultar el contenido por defecto mientras se carga el CMS.
+(function() {
+  const container = document.getElementById('homeSections');
+  if (container) {
+    container.style.opacity = '0.5';
+    container.style.transition = 'opacity 0.5s ease';
+  }
+
+  // Iniciar carga del CMS lo antes posible
+  if (document.readyState === 'complete') {
+    loadAndRenderHomeSections();
+  } else {
+    window.addEventListener('load', () => {
+      loadAndRenderHomeSections();
+      // Restaurar opacidad después de un delay si el CMS no cargó
+      setTimeout(() => {
+        if (!window.__cmsHomeActive) {
+          if (container) container.style.opacity = '1';
+        }
+      }, 3000);
+    });
+  }
+
+  // Si el CMS cargó exitosamente, restaurar opacidad normal
+  const originalRenderHomeSections = renderHomeSections;
+  renderHomeSections = function() {
+    if (container) container.style.opacity = '1';
+    return originalRenderHomeSections.apply(this, arguments);
+  };
+})();

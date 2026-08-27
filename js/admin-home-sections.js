@@ -265,22 +265,35 @@ function renderPreviewBanner(config) {
       ? ` style="background-image: url('${escapeHTML(banner.image_url)}'); background-size: cover; background-position: center;"`
       : '';
 
-    return `
-      <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
-        <div class="banner-content">
+    // Si tiene URL, la imagen es clickeable pero sin botón
+    const bannerContent = banner.url && banner.url !== ''
+      ? `<a href="#" class="banner-content" style="cursor: pointer; text-decoration: none; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;">
           <h1>${escapeHTML(banner.title || '')}</h1>
           ${banner.subtitle ? `<p>${escapeHTML(banner.subtitle)}</p>` : ''}
-        </div>
+        </a>`
+      : `<div class="banner-content">
+          <h1>${escapeHTML(banner.title || '')}</h1>
+          ${banner.subtitle ? `<p>${escapeHTML(banner.subtitle)}</p>` : ''}
+        </div>`;
+
+    return `
+      <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
+        ${bannerContent}
       </div>
     `;
   }).join('');
 
   const dotsHTML = banners.map((_, index) => `<div class="dot${index === 0 ? ' active' : ''}"></div>`).join('');
+  const arrowsHTML = banners.length > 1 ? `
+    <button class="banner-arrow banner-arrow-left" aria-label="Banner anterior" style="pointer-events: none;">&#10094;</button>
+    <button class="banner-arrow banner-arrow-right" aria-label="Siguiente banner" style="pointer-events: none;">&#10095;</button>
+  ` : '';
 
   return `
     <div class="banner-carousel">
       ${bannersHTML}
-      <div class="carousel-dots">${dotsHTML}</div>
+      ${arrowsHTML}
+      ${banners.length > 1 ? `<div class="carousel-dots">${dotsHTML}</div>` : ''}
     </div>
   `;
 }
@@ -653,7 +666,17 @@ function fillFormWithSectionData(section) {
 
       const rotationSpeedGroup = document.getElementById('banner-rotation-speed-group');
       if (rotationSpeedGroup) {
-        rotationSpeedGroup.style.display = config.auto_rotate === true ? 'block' : 'none';
+        rotationSpeedGroup.style.display = config.auto_rotate === true ? 'flex' : 'none';
+      }
+
+      // Inicializar drag-drop para reordenar banners
+      if (window.Sortable && bannersList) {
+        Sortable.create(bannersList, {
+          handle: '.banner-item',
+          ghostClass: 'dragging',
+          animation: 150,
+          onEnd: updatePreview
+        });
       }
       break;
 
@@ -684,16 +707,29 @@ function fillFormWithSectionData(section) {
       const textColor = config.text_color || '#FFFFFF';
       const scrollSpeed = config.scroll_speed || 50;
 
-      document.getElementById('scrolling-bg-color').value = bgColor;
-      document.getElementById('scrolling-text-color').value = textColor;
+      // Normalizar colores a formato #RRGGBB
+      const normalizeColor = (color) => {
+        if (!color) return '#000000';
+        if (color.startsWith('#')) return color.toUpperCase();
+        return '#' + color.toUpperCase();
+      };
+
+      const bgColorFull = normalizeColor(bgColor);
+      const textColorFull = normalizeColor(textColor);
+
+      // Actualizar los color pickers
+      const bgColorPickerElem = document.getElementById('scrolling-bg-color-picker');
+      const textColorPickerElem = document.getElementById('scrolling-text-color-picker');
+      if (bgColorPickerElem) bgColorPickerElem.value = bgColorFull;
+      if (textColorPickerElem) textColorPickerElem.value = textColorFull;
+
+      // Actualizar los inputs HEX (sin el "#")
+      const bgColorInputElem = document.getElementById('scrolling-bg-color');
+      const textColorInputElem = document.getElementById('scrolling-text-color');
+      if (bgColorInputElem) bgColorInputElem.value = bgColorFull.substring(1);
+      if (textColorInputElem) textColorInputElem.value = textColorFull.substring(1);
+
       document.getElementById('scrolling-speed').value = scrollSpeed;
-
-      // Actualizar previsualizaciones de color
-      const bgPreview = document.getElementById('scrolling-bg-preview');
-      if (bgPreview) bgPreview.style.backgroundColor = bgColor;
-
-      const textPreview = document.getElementById('scrolling-text-preview');
-      if (textPreview) textPreview.style.backgroundColor = textColor;
 
       // Actualizar valor mostrado de velocidad
       const speedValue = document.getElementById('scrolling-speed-value');
@@ -822,8 +858,12 @@ async function saveSectionFromForm(e) {
       limit: parseInt(document.getElementById('testimonials-limit').value) || 5
     };
   } else if (currentEditingSection.section_type === 'scrolling_text') {
-    const bgColor = document.getElementById('scrolling-bg-color').value.trim();
-    const textColor = document.getElementById('scrolling-text-color').value.trim();
+    let bgColor = document.getElementById('scrolling-bg-color').value.trim();
+    let textColor = document.getElementById('scrolling-text-color').value.trim();
+
+    // Agregar "#" si no está presente
+    if (!bgColor.startsWith('#')) bgColor = '#' + bgColor;
+    if (!textColor.startsWith('#')) textColor = '#' + textColor;
 
     // Validar formato de colores HEX
     const isValidHex = (color) => /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color);
@@ -1149,37 +1189,46 @@ function addBannerField(banner = {}, index = null) {
   if (!bannersList) return;
 
   const bannerId = index !== null ? index : Date.now();
+  const totalBanners = bannersList.querySelectorAll('.banner-item').length + 1;
+
   const html = `
-    <div class="banner-item" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 6px; background-color: #fafafa;">
+    <div class="banner-item" style="margin-bottom: 15px; padding: 15px; border: 2px solid #ddd; border-radius: 6px; background-color: white; cursor: move; position: relative;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Banner ${bannersList.querySelectorAll('.banner-item').length + 1}</h4>
-        <button type="button" class="btn-delete-banner" data-banner-id="${bannerId}" style="padding: 4px 8px; background: #ff4444; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">Eliminar</button>
+        <h4 style="margin: 0; font-size: 13px; font-weight: 600; color: #666;">📌 Banner ${totalBanners}</h4>
+        <button type="button" class="btn-delete-banner" data-banner-id="${bannerId}" style="padding: 4px 8px; background: #ff4444; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">🗑️ Eliminar</button>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 10px;">
+        <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Etiqueta (identificación)</label>
+        <input type="text" class="form-input banner-item-label" placeholder="Ej: Banner Principal" value="${escapeHTML(banner.label || '')}" style="font-size: 12px; padding: 6px;">
+      </div>
+
+      <!-- Image Upload Area -->
+      <div class="banner-image-upload" style="margin-bottom: 10px; padding: 12px; border: 2px dashed #999; border-radius: 4px; background-color: #f9f9f9; text-align: center; cursor: pointer;">
+        <input type="file" class="banner-image-input" accept="image/*" style="display: none;">
+        <div class="banner-image-preview" style="display: none; margin-bottom: 8px;">
+          <img src="" style="max-width: 100%; max-height: 150px; border-radius: 4px;">
+        </div>
+        <div class="banner-image-placeholder">
+          <div style="font-size: 24px; margin-bottom: 4px;">📷</div>
+          <div style="font-size: 12px; color: #666;">Arrastra imagen aquí o haz click</div>
+        </div>
+      </div>
+      <input type="hidden" class="banner-item-image" value="${escapeHTML(banner.image_url || '')}">
+
+      <div class="form-group" style="margin-bottom: 10px;">
+        <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Título *</label>
+        <input type="text" class="form-input banner-item-title" placeholder="Título del banner" value="${escapeHTML(banner.title || '')}" style="font-size: 12px; padding: 6px;">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 10px;">
+        <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Subtítulo</label>
+        <input type="text" class="form-input banner-item-subtitle" placeholder="Subtítulo (opcional)" value="${escapeHTML(banner.subtitle || '')}" style="font-size: 12px; padding: 6px;">
       </div>
 
       <div class="form-group">
-        <label class="form-label" style="font-size: 13px;">Etiqueta (solo para identificar)</label>
-        <input type="text" class="form-input banner-item-label" placeholder="Ej: Banner de Verano" value="${escapeHTML(banner.label || '')}" style="font-size: 13px;">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" style="font-size: 13px;">Título *</label>
-        <input type="text" class="form-input banner-item-title" placeholder="Título principal" value="${escapeHTML(banner.title || '')}" style="font-size: 13px;">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" style="font-size: 13px;">Subtítulo</label>
-        <input type="text" class="form-input banner-item-subtitle" placeholder="Subtítulo descriptivo" value="${escapeHTML(banner.subtitle || '')}" style="font-size: 13px;">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" style="font-size: 13px;">URL de Imagen *</label>
-        <input type="url" class="form-input banner-item-image" placeholder="https://ejemplo.com/imagen.jpg" value="${escapeHTML(banner.image_url || '')}" style="font-size: 13px;">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" style="font-size: 13px;">URL de Redirección (opcional)</label>
-        <input type="url" class="form-input banner-item-url" placeholder="https://ejemplo.com" value="${escapeHTML(banner.url || '')}" style="font-size: 13px;">
-        <small style="color: #666; margin-top: 5px; display: block;">Adónde ir si el cliente hace click en el banner</small>
+        <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">URL al hacer click (opcional)</label>
+        <input type="url" class="form-input banner-item-url" placeholder="https://ejemplo.com" value="${escapeHTML(banner.url || '')}" style="font-size: 12px; padding: 6px;">
       </div>
     </div>
   `;
@@ -1192,16 +1241,98 @@ function addBannerField(banner = {}, index = null) {
   // Agregar event listener para eliminar banner
   const deleteBtn = bannerElement.querySelector('.btn-delete-banner');
   if (deleteBtn) {
-    deleteBtn.addEventListener('click', () => {
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       bannerElement.remove();
       updatePreview();
     });
   }
 
+  // Manejar upload de imagen
+  const imageUploadArea = bannerElement.querySelector('.banner-image-upload');
+  const imageInput = bannerElement.querySelector('.banner-image-input');
+  const imagePreview = bannerElement.querySelector('.banner-image-preview');
+  const imagePlaceholder = bannerElement.querySelector('.banner-image-placeholder');
+  const imageHiddenInput = bannerElement.querySelector('.banner-item-image');
+
+  if (imageUploadArea && imageInput) {
+    imageUploadArea.addEventListener('click', () => imageInput.click());
+
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        uploadBannerImage(file, bannerElement, imageHiddenInput, imagePreview, imagePlaceholder);
+      }
+    });
+
+    // Drag and drop
+    imageUploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      imageUploadArea.style.backgroundColor = '#e8e8e8';
+    });
+
+    imageUploadArea.addEventListener('dragleave', () => {
+      imageUploadArea.style.backgroundColor = '#f9f9f9';
+    });
+
+    imageUploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      imageUploadArea.style.backgroundColor = '#f9f9f9';
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        uploadBannerImage(file, bannerElement, imageHiddenInput, imagePreview, imagePlaceholder);
+      }
+    });
+  }
+
+  // Mostrar preview si ya hay imagen
+  if (banner.image_url) {
+    const img = imagePreview.querySelector('img');
+    if (img) {
+      img.src = banner.image_url;
+      imagePreview.style.display = 'block';
+      imagePlaceholder.style.display = 'none';
+    }
+  }
+
   // Agregar event listeners para actualizar preview
-  bannerElement.querySelectorAll('input').forEach(input => {
+  bannerElement.querySelectorAll('input[type="text"], input[type="url"]').forEach(input => {
     input.addEventListener('input', updatePreview);
   });
+}
+
+async function uploadBannerImage(file, bannerElement, imageHiddenInput, imagePreview, imagePlaceholder) {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const formData = new FormData();
+    formData.append('archivo', file);
+
+    const response = await fetch(`${API_BASE_URL}/admin/media/home-banners`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Error al subir imagen');
+    }
+
+    const imageUrl = data.data?.url || data.data;
+    imageHiddenInput.value = imageUrl;
+
+    const img = imagePreview.querySelector('img');
+    if (img) {
+      img.src = imageUrl;
+      imagePreview.style.display = 'block';
+      imagePlaceholder.style.display = 'none';
+    }
+
+    updatePreview();
+    showStatus(`✅ Imagen cargada correctamente`, 'success');
+  } catch (error) {
+    showStatus(`❌ Error al subir imagen: ${error.message}`, 'error');
+  }
 }
 
 // ======================== PREVIEW ========================
@@ -1299,29 +1430,45 @@ function setupEventListeners() {
     });
   }
 
-  // Evento para actualizar preview de color de fondo en Zona de Texto
+  // Color picker para color de fondo de Zona de Texto (bidireccional)
+  const scrollingBgColorPicker = document.getElementById('scrolling-bg-color-picker');
   const scrollingBgColorInput = document.getElementById('scrolling-bg-color');
-  if (scrollingBgColorInput) {
+  if (scrollingBgColorPicker && scrollingBgColorInput) {
+    // Cuando cambia el color picker, actualizar el HEX input
+    scrollingBgColorPicker.addEventListener('input', (e) => {
+      const hexValue = e.target.value.substring(1);
+      scrollingBgColorInput.value = hexValue;
+      updatePreview();
+    });
+
+    // Cuando cambia el HEX input, actualizar el color picker
     scrollingBgColorInput.addEventListener('input', (e) => {
-      const value = e.target.value.trim();
-      const isValidHex = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value);
-      if (isValidHex) {
-        const preview = document.getElementById('scrolling-bg-preview');
-        if (preview) preview.style.backgroundColor = value;
+      let value = e.target.value.trim();
+      if (!value.startsWith('#')) value = '#' + value;
+      if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value)) {
+        scrollingBgColorPicker.value = value;
       }
       updatePreview();
     });
   }
 
-  // Evento para actualizar preview de color de texto en Zona de Texto
+  // Color picker para color de texto de Zona de Texto (bidireccional)
+  const scrollingTextColorPicker = document.getElementById('scrolling-text-color-picker');
   const scrollingTextColorInput = document.getElementById('scrolling-text-color');
-  if (scrollingTextColorInput) {
+  if (scrollingTextColorPicker && scrollingTextColorInput) {
+    // Cuando cambia el color picker, actualizar el HEX input
+    scrollingTextColorPicker.addEventListener('input', (e) => {
+      const hexValue = e.target.value.substring(1);
+      scrollingTextColorInput.value = hexValue;
+      updatePreview();
+    });
+
+    // Cuando cambia el HEX input, actualizar el color picker
     scrollingTextColorInput.addEventListener('input', (e) => {
-      const value = e.target.value.trim();
-      const isValidHex = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value);
-      if (isValidHex) {
-        const preview = document.getElementById('scrolling-text-preview');
-        if (preview) preview.style.backgroundColor = value;
+      let value = e.target.value.trim();
+      if (!value.startsWith('#')) value = '#' + value;
+      if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value)) {
+        scrollingTextColorPicker.value = value;
       }
       updatePreview();
     });
@@ -1343,7 +1490,7 @@ function setupEventListeners() {
     bannerAutoRotateCheckbox.addEventListener('change', (e) => {
       const rotationSpeedGroup = document.getElementById('banner-rotation-speed-group');
       if (rotationSpeedGroup) {
-        rotationSpeedGroup.style.display = e.target.checked ? 'block' : 'none';
+        rotationSpeedGroup.style.display = e.target.checked ? 'flex' : 'none';
       }
       updatePreview();
     });
