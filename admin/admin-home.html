@@ -108,11 +108,22 @@
         .type-option-icon { font-size: 28px; margin-bottom: 8px; }
         .type-option-label { font-weight: 600; }
 
-        .products-selector { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 12px; }
-        .product-item { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid #f0f0f0; }
+        .products-search { margin-bottom: 12px; }
+        .products-search-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; box-sizing: border-box; }
+        .products-search-input::placeholder { color: #999; }
+        .products-selector { max-height: 350px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 8px; background: white; }
+        .product-item { display: flex; gap: 10px; padding: 10px 8px; border-bottom: 1px solid #f0f0f0; align-items: center; }
         .product-item:last-child { border-bottom: none; }
-        .product-item input[type="checkbox"] { margin-top: 2px; }
-        .product-item label { flex: 1; cursor: pointer; }
+        .product-item input[type="checkbox"] { width: 18px; height: 18px; margin: 0; flex-shrink: 0; cursor: pointer; }
+        .product-item label { cursor: pointer; margin: 0; font-size: 13px; min-width: 0; flex: 1; word-break: break-word; }
+        .products-selected { margin-top: 20px; padding-top: 16px; border-top: 2px solid #f0f0f0; }
+        .products-selected-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #666; }
+        .selected-product-item { display: flex; gap: 8px; padding: 10px; background: #f9f9f9; border-radius: 6px; margin-bottom: 8px; align-items: stretch; }
+        .selected-product-name { flex: 0 1 150px; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+        .selected-product-badge { flex: 1 1 180px; min-width: 0; }
+        .product-badge-select { width: 100%; padding: 6px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
+        .remove-product-btn { padding: 6px 10px; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; flex-shrink: 0; white-space: nowrap; }
+        .remove-product-btn:hover { background: #ff5252; }
 
         .status-bar { background: #fff9e6; border-left: 4px solid #fbbf24; padding: 12px; border-radius: 4px; margin-bottom: 16px; font-size: 13px; }
         .status-bar.success { background: #e6f4ea; border-left-color: #1a7c3a; color: #1a7c3a; }
@@ -249,7 +260,7 @@
                     <div class="form-group">
                         <label class="form-label">Seleccionar Productos *</label>
                         <p style="font-size: 12px; color: #999; margin-bottom: 8px;">Cargando productos...</p>
-                        <div class="products-selector" id="products-list">
+                        <div id="products-list">
                             <!-- Products will be loaded here -->
                         </div>
                     </div>
@@ -274,7 +285,7 @@
                     <div id="categories-selector" style="display: none;">
                         <label class="form-label">Seleccionar Categorías Específicas</label>
                         <p style="font-size: 12px; color: #999; margin-bottom: 8px;">Cargando categorías...</p>
-                        <div class="products-selector" id="categories-list">
+                        <div id="categories-list">
                             <!-- Categories will be loaded here -->
                         </div>
                     </div>
