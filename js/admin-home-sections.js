@@ -159,16 +159,17 @@ function generateCompletePreviewDocument() {
     });
   }
 
+  const baseURL = window.location.origin;
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Preview - Puchia</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/common.css">
-  <link rel="stylesheet" href="/css/home-critical.css">
-  <link rel="stylesheet" href="/css/home.css">
-  <link rel="stylesheet" href="/css/cliente.css">
+  <link rel="stylesheet" href="${baseURL}/css/common.css">
+  <link rel="stylesheet" href="${baseURL}/css/home-critical.css">
+  <link rel="stylesheet" href="${baseURL}/css/home.css">
+  <link rel="stylesheet" href="${baseURL}/css/cliente.css">
   <style>
     ${cssStyles}
   </style>
