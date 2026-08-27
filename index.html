@@ -19,6 +19,22 @@
         <link rel="stylesheet" href="css/cliente.css">
         <link rel="stylesheet" href="css/common-responsive.css">
     </noscript>
+    <!-- Hide home sections while CMS loads to prevent flash of default content -->
+    <style>
+        #homeSections.loading { opacity: 0; }
+        #homeSections.loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            background: #f9f9f9;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('homeSections').classList.add('loading');
+        });
+    </script>
 </head>
 <body>
 

@@ -92,6 +92,7 @@ async function loadAndRenderHomeSections() {
 
     if (!data || data.length === 0) {
       console.log('[CMS] Sin secciones publicadas, se mantiene el HOME por defecto');
+      container.classList.remove('loading');
       return;
     }
 
@@ -99,11 +100,13 @@ async function loadAndRenderHomeSections() {
     await ensureHomeSectionsDependencies(data);
 
     renderHomeSections();
+    container.classList.remove('loading');
     startHomeSectionsPolling();
     console.log('[CMS] HOME renderizado desde el CMS:', data.length, 'secciones');
   } catch (error) {
     console.error('[CMS] Error cargando secciones:', error.message);
     console.log('[CMS] Se mantienen las secciones por defecto del HTML');
+    container.classList.remove('loading');
   }
 }
 
