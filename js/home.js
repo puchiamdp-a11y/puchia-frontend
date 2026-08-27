@@ -103,6 +103,13 @@ function nextBanner() {
     changeBanner(currentBanner);
 }
 
+function prevBanner() {
+    const banners = document.querySelectorAll('.banner');
+    if (banners.length === 0) return;
+    currentBanner = (currentBanner - 1 + banners.length) % banners.length;
+    changeBanner(currentBanner);
+}
+
 setInterval(nextBanner, 5000);
 
 /* ════════════════════════════════════════════════════════════════

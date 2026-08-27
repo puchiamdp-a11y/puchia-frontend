@@ -225,7 +225,11 @@ function renderHomeBanner(config) {
   return `
     <div class="banner-carousel"${autoRotateClass}>
       ${bannersHTML}
-      ${banners.length > 1 ? `<div class="carousel-dots">${dotsHTML}</div>` : ''}
+      ${banners.length > 1 ? `
+        <button class="banner-arrow banner-arrow-left" onclick="prevBanner()" title="Banner anterior" aria-label="Banner anterior">❮</button>
+        <button class="banner-arrow banner-arrow-right" onclick="nextBanner()" title="Siguiente banner" aria-label="Siguiente banner">❯</button>
+        <div class="carousel-dots">${dotsHTML}</div>
+      ` : ''}
     </div>
   `;
 }

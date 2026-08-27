@@ -1194,6 +1194,10 @@ function addBannerField(banner = {}, index = null) {
       </div>
       <input type="hidden" class="banner-item-image" value="${escapeHTML(banner.image_url || '')}">
 
+      <div style="margin-bottom: 10px; padding: 10px; background-color: #fffbea; border-left: 3px solid #fbbf24; border-radius: 4px; font-size: 12px; color: #666;">
+        <strong style="color: #f59e0b;">💡 Tamaño recomendado:</strong> 1200px (ancho) × 400px (alto) para que la imagen se vea perfecta en todos los dispositivos.
+      </div>
+
       <div class="form-group" style="margin-bottom: 10px;">
         <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Título *</label>
         <input type="text" class="form-input banner-item-title" placeholder="Título del banner" value="${escapeHTML(banner.title || '')}" style="font-size: 12px; padding: 6px;">
@@ -1408,18 +1412,46 @@ function setupEventListeners() {
     });
   }
 
-  // Color picker para color de fondo de Zona de Texto
+  // Color picker para color de fondo de Zona de Texto (bidireccional)
+  const scrollingBgColorPicker = document.getElementById('scrolling-bg-color-picker');
   const scrollingBgColorInput = document.getElementById('scrolling-bg-color');
-  if (scrollingBgColorInput) {
+  if (scrollingBgColorPicker && scrollingBgColorInput) {
+    // Cuando cambia el color picker, actualizar el texto HEX
+    scrollingBgColorPicker.addEventListener('input', (e) => {
+      const hexValue = e.target.value.substring(1);
+      scrollingBgColorInput.value = hexValue;
+      updatePreview();
+    });
+
+    // Cuando cambia el texto HEX, actualizar el color picker
     scrollingBgColorInput.addEventListener('input', (e) => {
+      let value = e.target.value.trim();
+      if (!value.startsWith('#')) value = '#' + value;
+      if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value)) {
+        scrollingBgColorPicker.value = value;
+      }
       updatePreview();
     });
   }
 
-  // Color picker para color de texto de Zona de Texto
+  // Color picker para color de texto de Zona de Texto (bidireccional)
+  const scrollingTextColorPicker = document.getElementById('scrolling-text-color-picker');
   const scrollingTextColorInput = document.getElementById('scrolling-text-color');
-  if (scrollingTextColorInput) {
+  if (scrollingTextColorPicker && scrollingTextColorInput) {
+    // Cuando cambia el color picker, actualizar el texto HEX
+    scrollingTextColorPicker.addEventListener('input', (e) => {
+      const hexValue = e.target.value.substring(1);
+      scrollingTextColorInput.value = hexValue;
+      updatePreview();
+    });
+
+    // Cuando cambia el texto HEX, actualizar el color picker
     scrollingTextColorInput.addEventListener('input', (e) => {
+      let value = e.target.value.trim();
+      if (!value.startsWith('#')) value = '#' + value;
+      if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value)) {
+        scrollingTextColorPicker.value = value;
+      }
       updatePreview();
     });
   }
