@@ -4,13 +4,11 @@
  * Reemplaza las secciones hardcodeadas en index.html
  */
 
-const API_BASE_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
-
 async function loadAndRenderHomeSections() {
   try {
     console.log('🔄 Cargando secciones del HOME desde API...');
 
-    const response = await fetch(`${API_BASE_URL}/home-sections`);
+    const response = await fetch(`${window.API_BASE_URL}/home-sections`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
