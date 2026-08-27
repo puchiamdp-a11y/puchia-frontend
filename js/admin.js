@@ -201,7 +201,7 @@ function setupEventListeners() {
 
         container.innerHTML = `<iframe
           id="admin-home-iframe"
-          src="./admin-home.html"
+          src="./admin/admin-home.html"
           style="width: 100%; height: 100%; border: none; flex: 1;"
           title="Gestor de Secciones del HOME">
         </iframe>`;
