@@ -751,40 +751,84 @@ function fillFormWithSectionData(section) {
 function renderProductSelector(selectedIds = [], productBadges = {}) {
   const container = document.getElementById('products-list');
   productBadges = productBadges || {};
-
   const badgeOptions = ['', 'Nuevo', 'Más vendido', 'Últimas unidades', 'En oferta'];
 
-  container.innerHTML = allProducts.map(product => {
-    const isSelected = selectedIds.includes(product.id);
-    const badge = productBadges[product.id] || '';
-    return `
-      <div class="product-card ${isSelected ? 'selected' : ''}" data-product-id="${product.id}" onclick="toggleProductSelection(this)">
-        <div class="product-card-icon">${product.icon || '📦'}</div>
-        <div class="product-card-name">${product.nombre}</div>
-        ${isSelected ? `
-          <select class="product-badge-select" data-product-id="${product.id}" onclick="event.stopPropagation();">
-            ${badgeOptions.map(opt => `<option value="${opt}" ${badge === opt ? 'selected' : ''}>${opt || 'Sin etiqueta'}</option>`).join('')}
-          </select>
-        ` : ''}
-      </div>
-    `;
-  }).join('');
+  // HTML para el buscador
+  const searchHTML = `
+    <div class="products-search">
+      <input type="text" class="products-search-input" id="productSearch" placeholder="🔍 Buscar producto por nombre..." onkeyup="filterProducts(this.value)">
+    </div>
+  `;
 
-  // Agregar event listeners a los selects de badges
-  document.querySelectorAll('.product-badge-select').forEach(select => {
-    select.addEventListener('change', (e) => {
-      e.stopPropagation();
-    });
-  });
+  // HTML para la lista de productos (todos disponibles para búsqueda)
+  const listHTML = `
+    <div class="products-selector" id="productsList">
+      ${allProducts.map(product => `
+        <div class="product-item" data-product-id="${product.id}" data-product-name="${product.nombre.toLowerCase()}">
+          <input type="checkbox" class="product-checkbox" value="${product.id}" ${selectedIds.includes(product.id) ? 'checked' : ''} onchange="updateSelectedProducts()">
+          <label>${escapeHTML(product.nombre)}</label>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // HTML para productos seleccionados
+  const selectedProducts = allProducts.filter(p => selectedIds.includes(p.id));
+  const selectedHTML = selectedIds.length > 0 ? `
+    <div class="products-selected">
+      <div class="products-selected-title">✓ Productos seleccionados (${selectedIds.length})</div>
+      ${selectedProducts.map(product => `
+        <div class="selected-product-item" data-product-id="${product.id}">
+          <div class="selected-product-name">${escapeHTML(product.nombre)}</div>
+          <div class="selected-product-badge">
+            <select class="product-badge-select" data-product-id="${product.id}" onchange="updateSelectedProducts()">
+              ${badgeOptions.map(opt => `<option value="${opt}" ${(productBadges[product.id] || '') === opt ? 'selected' : ''}>${opt || 'Sin etiqueta'}</option>`).join('')}
+            </select>
+          </div>
+          <button class="remove-product-btn" onclick="removeSelectedProduct(${product.id})">✕ Quitar</button>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  container.innerHTML = searchHTML + listHTML + selectedHTML;
 }
 
-// ======================== TOGGLE PRODUCT SELECTION ========================
-function toggleProductSelection(element) {
-  const productId = parseInt(element.dataset.productId);
-  element.classList.toggle('selected');
+// ======================== FILTRAR PRODUCTOS POR BÚSQUEDA ========================
+function filterProducts(searchTerm) {
+  const term = searchTerm.toLowerCase().trim();
+  const items = document.querySelectorAll('.product-item');
+  let visibleCount = 0;
 
-  // Recargar el selector para mostrar/ocultar el campo de badge
-  const selectedIds = Array.from(document.querySelectorAll('.product-card.selected')).map(card => parseInt(card.dataset.productId));
+  items.forEach(item => {
+    const name = item.dataset.productName;
+    if (term === '' || name.includes(term)) {
+      item.style.display = '';
+      visibleCount++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+
+  // Mostrar mensaje si no hay resultados
+  const list = document.getElementById('productsList');
+  let noResults = list.querySelector('.no-results');
+  if (visibleCount === 0 && term !== '') {
+    if (!noResults) {
+      noResults = document.createElement('div');
+      noResults.className = 'no-results';
+      noResults.style.cssText = 'padding: 20px; text-align: center; color: #999; font-size: 13px;';
+      noResults.textContent = 'No se encontraron productos';
+      list.appendChild(noResults);
+    }
+  } else if (noResults) {
+    noResults.remove();
+  }
+}
+
+// ======================== ACTUALIZAR PRODUCTOS SELECCIONADOS ========================
+function updateSelectedProducts() {
+  const selectedIds = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => parseInt(cb.value));
   const productBadges = {};
   document.querySelectorAll('.product-badge-select').forEach(select => {
     const pid = parseInt(select.dataset.productId);
@@ -792,6 +836,15 @@ function toggleProductSelection(element) {
     if (badge) productBadges[pid] = badge;
   });
   renderProductSelector(selectedIds, productBadges);
+}
+
+// ======================== REMOVER PRODUCTO SELECCIONADO ========================
+function removeSelectedProduct(productId) {
+  const checkbox = document.querySelector(`.product-checkbox[value="${productId}"]`);
+  if (checkbox) {
+    checkbox.checked = false;
+    updateSelectedProducts();
+  }
 }
 
 // ======================== RENDERIZAR SELECTOR DE CATEGORÍAS ========================
