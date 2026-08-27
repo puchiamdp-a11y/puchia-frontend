@@ -200,15 +200,21 @@ function renderHomeBanner(config) {
     const bgStyle = banner.image_url
       ? ` style="background-image: url('${escapeHomeHTML(banner.image_url)}'); background-size: cover; background-position: center;"`
       : '';
-    const bannerUrl = banner.url || 'proceso-compra.html';
+
+    // Si tiene URL, la imagen es clickeable pero sin botón
+    const bannerContent = banner.url && banner.url !== ''
+      ? `<a href="${escapeHomeHTML(banner.url)}" class="banner-content" style="cursor: pointer; text-decoration: none;">
+          <h1>${escapeHomeHTML(banner.title || '')}</h1>
+          ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
+        </a>`
+      : `<div class="banner-content">
+          <h1>${escapeHomeHTML(banner.title || '')}</h1>
+          ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
+        </div>`;
 
     return `
       <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
-        <div class="banner-content">
-          <h1>${escapeHomeHTML(banner.title || '')}</h1>
-          ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
-          ${bannerUrl && bannerUrl !== '' ? `<a href="${escapeHomeHTML(bannerUrl)}" class="banner-btn">Explorar</a>` : ''}
-        </div>
+        ${bannerContent}
       </div>
     `;
   }).join('');

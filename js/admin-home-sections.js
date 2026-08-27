@@ -265,12 +265,20 @@ function renderPreviewBanner(config) {
       ? ` style="background-image: url('${escapeHTML(banner.image_url)}'); background-size: cover; background-position: center;"`
       : '';
 
-    return `
-      <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
-        <div class="banner-content">
+    // Si tiene URL, la imagen es clickeable pero sin botón
+    const bannerContent = banner.url && banner.url !== ''
+      ? `<a href="#" class="banner-content" style="cursor: pointer; text-decoration: none; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;">
           <h1>${escapeHTML(banner.title || '')}</h1>
           ${banner.subtitle ? `<p>${escapeHTML(banner.subtitle)}</p>` : ''}
-        </div>
+        </a>`
+      : `<div class="banner-content">
+          <h1>${escapeHTML(banner.title || '')}</h1>
+          ${banner.subtitle ? `<p>${escapeHTML(banner.subtitle)}</p>` : ''}
+        </div>`;
+
+    return `
+      <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
+        ${bannerContent}
       </div>
     `;
   }).join('');
@@ -280,7 +288,7 @@ function renderPreviewBanner(config) {
   return `
     <div class="banner-carousel">
       ${bannersHTML}
-      <div class="carousel-dots">${dotsHTML}</div>
+      ${banners.length > 1 ? `<div class="carousel-dots">${dotsHTML}</div>` : ''}
     </div>
   `;
 }
@@ -1401,53 +1409,17 @@ function setupEventListeners() {
   }
 
   // Color picker para color de fondo de Zona de Texto
-  const scrollingBgColorPicker = document.getElementById('scrolling-bg-color-picker');
   const scrollingBgColorInput = document.getElementById('scrolling-bg-color');
-  if (scrollingBgColorPicker && scrollingBgColorInput) {
-    scrollingBgColorPicker.addEventListener('input', (e) => {
-      const value = e.target.value;
-      scrollingBgColorInput.value = value;
-      const preview = document.getElementById('scrolling-bg-preview');
-      if (preview) preview.style.backgroundColor = value;
-      updatePreview();
-    });
-  }
-
   if (scrollingBgColorInput) {
     scrollingBgColorInput.addEventListener('input', (e) => {
-      const value = e.target.value.trim();
-      const isValidHex = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value);
-      if (isValidHex) {
-        if (scrollingBgColorPicker) scrollingBgColorPicker.value = value;
-        const preview = document.getElementById('scrolling-bg-preview');
-        if (preview) preview.style.backgroundColor = value;
-      }
       updatePreview();
     });
   }
 
   // Color picker para color de texto de Zona de Texto
-  const scrollingTextColorPicker = document.getElementById('scrolling-text-color-picker');
   const scrollingTextColorInput = document.getElementById('scrolling-text-color');
-  if (scrollingTextColorPicker && scrollingTextColorInput) {
-    scrollingTextColorPicker.addEventListener('input', (e) => {
-      const value = e.target.value;
-      scrollingTextColorInput.value = value;
-      const preview = document.getElementById('scrolling-text-preview');
-      if (preview) preview.style.backgroundColor = value;
-      updatePreview();
-    });
-  }
-
   if (scrollingTextColorInput) {
     scrollingTextColorInput.addEventListener('input', (e) => {
-      const value = e.target.value.trim();
-      const isValidHex = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value);
-      if (isValidHex) {
-        if (scrollingTextColorPicker) scrollingTextColorPicker.value = value;
-        const preview = document.getElementById('scrolling-text-preview');
-        if (preview) preview.style.backgroundColor = value;
-      }
       updatePreview();
     });
   }
