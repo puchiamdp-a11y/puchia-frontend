@@ -164,12 +164,11 @@ function generateCompletePreviewDocument() {
 <head>
   <meta charset="UTF-8">
   <title>Preview - Puchia</title>
-  <base href="${new URL('.', window.location.href).href}">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/common.css">
-  <link rel="stylesheet" href="../css/home-critical.css">
-  <link rel="stylesheet" href="../css/home.css">
-  <link rel="stylesheet" href="../css/cliente.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/home-critical.css">
+  <link rel="stylesheet" href="/css/home.css">
+  <link rel="stylesheet" href="/css/cliente.css">
   <style>
     ${cssStyles}
   </style>
