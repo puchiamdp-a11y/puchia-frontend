@@ -216,29 +216,32 @@
             <form id="editSectionForm">
                 <!-- BANNER FIELDS -->
                 <div id="banner-fields" class="edit-fields" style="display: none;">
-                    <div class="form-group">
-                        <label class="form-label">Eyebrow (Etiqueta pequeña)</label>
-                        <input type="text" name="eyebrow" class="form-input" id="banner-eyebrow" placeholder="Ej: NUEVO CATÁLOGO">
+                    <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <label class="form-label" style="margin: 0;">Banners</label>
+                            <button type="button" id="add-banner-btn" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">+ Agregar Banner</button>
+                        </div>
+                        <div id="banners-list" style="max-height: 400px; overflow-y: auto;">
+                            <!-- Los banners se cargarán dinámicamente aquí -->
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Título *</label>
-                        <input type="text" name="title" class="form-input" id="banner-title" placeholder="Título principal">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Subtítulo</label>
-                        <input type="text" name="subtitle" class="form-input" id="banner-subtitle" placeholder="Subtítulo descriptivo">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL de Imagen *</label>
-                        <input type="url" name="image_url" class="form-input" id="banner-image" placeholder="https://ejemplo.com/imagen.jpg">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Texto del Botón</label>
-                        <input type="text" name="button_text" class="form-input" id="banner-button-text" placeholder="Ver Más">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL del Botón</label>
-                        <input type="url" name="button_url" class="form-input" id="banner-button-url" placeholder="https://ejemplo.com">
+
+                    <div style="margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 6px;">
+                        <label class="form-label">Rotación Automática</label>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                <input type="checkbox" id="banner-auto-rotate" name="auto_rotate">
+                                <span>Activar rotación automática de banners</span>
+                            </label>
+                        </div>
+                        <div class="form-group" id="banner-rotation-speed-group" style="display: none;">
+                            <label class="form-label">Intervalo de Rotación</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="range" name="rotation_speed" class="form-input" id="banner-rotation-speed" value="5000" min="1000" max="10000" step="500" style="flex: 1; cursor: pointer;">
+                                <span id="banner-rotation-speed-value" style="min-width: 60px; text-align: center; font-weight: 600;">5.0s</span>
+                            </div>
+                            <small style="color: #666; margin-top: 5px; display: block;">1 a 10 segundos</small>
+                        </div>
                     </div>
                 </div>
 
@@ -323,15 +326,25 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Color de Fondo</label>
-                        <input type="color" name="background_color" class="form-input" id="scrolling-bg-color" value="#FF1493">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" name="background_color" class="form-input" id="scrolling-bg-color" value="#FF1493" placeholder="#FF1493" style="flex: 1;">
+                            <div id="scrolling-bg-preview" style="width: 40px; height: 40px; border: 2px solid #ddd; border-radius: 4px; background-color: #FF1493; cursor: pointer;" title="Click para abrir selector de color"></div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Color del Texto</label>
-                        <input type="color" name="text_color" class="form-input" id="scrolling-text-color" value="#FFFFFF">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" name="text_color" class="form-input" id="scrolling-text-color" value="#FFFFFF" placeholder="#FFFFFF" style="flex: 1;">
+                            <div id="scrolling-text-preview" style="width: 40px; height: 40px; border: 2px solid #ddd; border-radius: 4px; background-color: #FFFFFF; cursor: pointer;" title="Click para abrir selector de color"></div>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Velocidad de Scroll (10-200)</label>
-                        <input type="number" name="scroll_speed" class="form-input" id="scrolling-speed" value="50" min="10" max="200">
+                        <label class="form-label">Velocidad de Scroll</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="range" name="scroll_speed" class="form-input" id="scrolling-speed" value="50" min="10" max="200" style="flex: 1; cursor: pointer;">
+                            <span id="scrolling-speed-value" style="min-width: 50px; text-align: center; font-weight: 600;">50</span>
+                        </div>
+                        <small style="color: #666; margin-top: 5px; display: block;">10 = Más lento, 200 = Más rápido</small>
                     </div>
                 </div>
 

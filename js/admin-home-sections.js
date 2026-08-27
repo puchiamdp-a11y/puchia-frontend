@@ -257,23 +257,30 @@ function previewPlaceholder(text) {
 // ======================== RENDERIZAR BANNER EN PREVIEW ========================
 // Replica el markup de .banner-carousel en index.html
 function renderPreviewBanner(config) {
-  if (!config.title) return '';
+  const banners = Array.isArray(config.banners) ? config.banners : [];
+  if (banners.length === 0) return '';
 
-  const bgStyle = config.image_url
-    ? ` style="background-image: url('${escapeHTML(config.image_url)}'); background-size: cover; background-position: center;"`
-    : '';
+  const bannersHTML = banners.map((banner, index) => {
+    const bgStyle = banner.image_url
+      ? ` style="background-image: url('${escapeHTML(banner.image_url)}'); background-size: cover; background-position: center;"`
+      : '';
 
-  return `
-    <div class="banner-carousel"${bgStyle}>
-      <div class="banner active">
+    return `
+      <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
         <div class="banner-content">
-          ${config.eyebrow ? `<div class="banner-eyebrow">${escapeHTML(config.eyebrow)}</div>` : ''}
-          <h1>${escapeHTML(config.title)}</h1>
-          ${config.subtitle ? `<p>${escapeHTML(config.subtitle)}</p>` : ''}
-          ${config.button_text ? `<a href="#" class="banner-btn">${escapeHTML(config.button_text)}</a>` : ''}
+          <h1>${escapeHTML(banner.title || '')}</h1>
+          ${banner.subtitle ? `<p>${escapeHTML(banner.subtitle)}</p>` : ''}
         </div>
       </div>
-      <div class="carousel-dots"><div class="dot active"></div></div>
+    `;
+  }).join('');
+
+  const dotsHTML = banners.map((_, index) => `<div class="dot${index === 0 ? ' active' : ''}"></div>`).join('');
+
+  return `
+    <div class="banner-carousel">
+      ${bannersHTML}
+      <div class="carousel-dots">${dotsHTML}</div>
     </div>
   `;
 }
@@ -613,12 +620,41 @@ function fillFormWithSectionData(section) {
 
   switch (section.section_type) {
     case 'banner':
-      document.getElementById('banner-title').value = config.title || '';
-      document.getElementById('banner-subtitle').value = config.subtitle || '';
-      document.getElementById('banner-image').value = config.image_url || '';
-      document.getElementById('banner-button-text').value = config.button_text || 'Ver Más';
-      document.getElementById('banner-button-url').value = config.button_url || '#';
-      document.getElementById('banner-eyebrow').value = config.eyebrow || '';
+      // Cargar banners
+      const banners = Array.isArray(config.banners) ? config.banners : [];
+      const bannersList = document.getElementById('banners-list');
+      if (bannersList) {
+        bannersList.innerHTML = '';
+        banners.forEach((banner, index) => {
+          addBannerField(banner, index);
+        });
+      }
+
+      // Si no hay banners, agregar uno vacío por defecto
+      if (banners.length === 0) {
+        addBannerField();
+      }
+
+      // Cargar opciones de rotación automática
+      const autoRotateCheckbox = document.getElementById('banner-auto-rotate');
+      if (autoRotateCheckbox) {
+        autoRotateCheckbox.checked = config.auto_rotate === true;
+      }
+
+      const rotationSpeedInput = document.getElementById('banner-rotation-speed');
+      if (rotationSpeedInput) {
+        rotationSpeedInput.value = config.rotation_interval || 5000;
+        const valueDisplay = document.getElementById('banner-rotation-speed-value');
+        if (valueDisplay) {
+          const seconds = (parseInt(rotationSpeedInput.value) / 1000).toFixed(1);
+          valueDisplay.textContent = seconds + 's';
+        }
+      }
+
+      const rotationSpeedGroup = document.getElementById('banner-rotation-speed-group');
+      if (rotationSpeedGroup) {
+        rotationSpeedGroup.style.display = config.auto_rotate === true ? 'block' : 'none';
+      }
       break;
 
     case 'products':
@@ -644,9 +680,24 @@ function fillFormWithSectionData(section) {
 
     case 'scrolling_text':
       document.getElementById('scrolling-text-content').value = config.text || '';
-      document.getElementById('scrolling-bg-color').value = config.background_color || '#FF1493';
-      document.getElementById('scrolling-text-color').value = config.text_color || '#FFFFFF';
-      document.getElementById('scrolling-speed').value = config.scroll_speed || 50;
+      const bgColor = config.background_color || '#FF1493';
+      const textColor = config.text_color || '#FFFFFF';
+      const scrollSpeed = config.scroll_speed || 50;
+
+      document.getElementById('scrolling-bg-color').value = bgColor;
+      document.getElementById('scrolling-text-color').value = textColor;
+      document.getElementById('scrolling-speed').value = scrollSpeed;
+
+      // Actualizar previsualizaciones de color
+      const bgPreview = document.getElementById('scrolling-bg-preview');
+      if (bgPreview) bgPreview.style.backgroundColor = bgColor;
+
+      const textPreview = document.getElementById('scrolling-text-preview');
+      if (textPreview) textPreview.style.backgroundColor = textColor;
+
+      // Actualizar valor mostrado de velocidad
+      const speedValue = document.getElementById('scrolling-speed-value');
+      if (speedValue) speedValue.textContent = scrollSpeed;
       break;
 
     case 'stats':
@@ -713,18 +764,36 @@ async function saveSectionFromForm(e) {
 
   // Validar y recopilar datos según tipo
   if (currentEditingSection.section_type === 'banner') {
-    config = {
-      title: document.getElementById('banner-title').value.trim(),
-      subtitle: document.getElementById('banner-subtitle').value.trim(),
-      image_url: document.getElementById('banner-image').value.trim(),
-      button_text: document.getElementById('banner-button-text').value.trim() || 'Ver Más',
-      button_url: document.getElementById('banner-button-url').value.trim() || '#',
-      eyebrow: document.getElementById('banner-eyebrow').value.trim()
-    };
-    if (!config.title || !config.image_url) {
-      showStatus('Falta llenar: Título e Imagen', 'error');
+    const banners = [];
+    const bannerItems = document.querySelectorAll('.banner-item');
+
+    bannerItems.forEach((item, index) => {
+      const title = item.querySelector('.banner-item-title').value.trim();
+      const subtitle = item.querySelector('.banner-item-subtitle').value.trim();
+      const imageUrl = item.querySelector('.banner-item-image').value.trim();
+      const url = item.querySelector('.banner-item-url').value.trim();
+
+      // Al menos un banner debe tener título e imagen
+      if (title || imageUrl) {
+        banners.push({
+          title: title,
+          subtitle: subtitle,
+          image_url: imageUrl,
+          url: url || ''
+        });
+      }
+    });
+
+    if (banners.length === 0) {
+      showStatus('Agrega al menos un banner con título e imagen', 'error');
       isValid = false;
     }
+
+    config = {
+      banners: banners,
+      auto_rotate: document.getElementById('banner-auto-rotate').checked,
+      rotation_interval: parseInt(document.getElementById('banner-rotation-speed').value) || 5000
+    };
   } else if (currentEditingSection.section_type === 'products') {
     const selectedIds = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => parseInt(cb.value));
     config = {
@@ -753,10 +822,26 @@ async function saveSectionFromForm(e) {
       limit: parseInt(document.getElementById('testimonials-limit').value) || 5
     };
   } else if (currentEditingSection.section_type === 'scrolling_text') {
+    const bgColor = document.getElementById('scrolling-bg-color').value.trim();
+    const textColor = document.getElementById('scrolling-text-color').value.trim();
+
+    // Validar formato de colores HEX
+    const isValidHex = (color) => /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color);
+
+    if (!isValidHex(bgColor)) {
+      showStatus('Color de fondo inválido. Usa formato HEX (ej: #FF1493)', 'error');
+      isValid = false;
+    }
+
+    if (!isValidHex(textColor)) {
+      showStatus('Color de texto inválido. Usa formato HEX (ej: #FFFFFF)', 'error');
+      isValid = false;
+    }
+
     config = {
       text: document.getElementById('scrolling-text-content').value.trim() || '',
-      background_color: document.getElementById('scrolling-bg-color').value,
-      text_color: document.getElementById('scrolling-text-color').value,
+      background_color: bgColor,
+      text_color: textColor,
       scroll_speed: parseInt(document.getElementById('scrolling-speed').value) || 50
     };
     if (!config.text) {
@@ -1058,6 +1143,67 @@ async function publishChanges() {
   }
 }
 
+// ======================== MANEJO DE BANNERS ========================
+function addBannerField(banner = {}, index = null) {
+  const bannersList = document.getElementById('banners-list');
+  if (!bannersList) return;
+
+  const bannerId = index !== null ? index : Date.now();
+  const html = `
+    <div class="banner-item" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 6px; background-color: #fafafa;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Banner ${bannersList.querySelectorAll('.banner-item').length + 1}</h4>
+        <button type="button" class="btn-delete-banner" data-banner-id="${bannerId}" style="padding: 4px 8px; background: #ff4444; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">Eliminar</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size: 13px;">Etiqueta (solo para identificar)</label>
+        <input type="text" class="form-input banner-item-label" placeholder="Ej: Banner de Verano" value="${escapeHTML(banner.label || '')}" style="font-size: 13px;">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size: 13px;">Título *</label>
+        <input type="text" class="form-input banner-item-title" placeholder="Título principal" value="${escapeHTML(banner.title || '')}" style="font-size: 13px;">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size: 13px;">Subtítulo</label>
+        <input type="text" class="form-input banner-item-subtitle" placeholder="Subtítulo descriptivo" value="${escapeHTML(banner.subtitle || '')}" style="font-size: 13px;">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size: 13px;">URL de Imagen *</label>
+        <input type="url" class="form-input banner-item-image" placeholder="https://ejemplo.com/imagen.jpg" value="${escapeHTML(banner.image_url || '')}" style="font-size: 13px;">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size: 13px;">URL de Redirección (opcional)</label>
+        <input type="url" class="form-input banner-item-url" placeholder="https://ejemplo.com" value="${escapeHTML(banner.url || '')}" style="font-size: 13px;">
+        <small style="color: #666; margin-top: 5px; display: block;">Adónde ir si el cliente hace click en el banner</small>
+      </div>
+    </div>
+  `;
+
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  const bannerElement = temp.firstElementChild;
+  bannersList.appendChild(bannerElement);
+
+  // Agregar event listener para eliminar banner
+  const deleteBtn = bannerElement.querySelector('.btn-delete-banner');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => {
+      bannerElement.remove();
+      updatePreview();
+    });
+  }
+
+  // Agregar event listeners para actualizar preview
+  bannerElement.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', updatePreview);
+  });
+}
+
 // ======================== PREVIEW ========================
 function openPreview() {
   window.open('../index.html', '_blank');
@@ -1151,6 +1297,75 @@ function setupEventListeners() {
         categoriesSelector.style.display = e.target.checked ? 'none' : 'block';
       }
     });
+  }
+
+  // Evento para actualizar preview de color de fondo en Zona de Texto
+  const scrollingBgColorInput = document.getElementById('scrolling-bg-color');
+  if (scrollingBgColorInput) {
+    scrollingBgColorInput.addEventListener('input', (e) => {
+      const value = e.target.value.trim();
+      const isValidHex = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value);
+      if (isValidHex) {
+        const preview = document.getElementById('scrolling-bg-preview');
+        if (preview) preview.style.backgroundColor = value;
+      }
+      updatePreview();
+    });
+  }
+
+  // Evento para actualizar preview de color de texto en Zona de Texto
+  const scrollingTextColorInput = document.getElementById('scrolling-text-color');
+  if (scrollingTextColorInput) {
+    scrollingTextColorInput.addEventListener('input', (e) => {
+      const value = e.target.value.trim();
+      const isValidHex = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value);
+      if (isValidHex) {
+        const preview = document.getElementById('scrolling-text-preview');
+        if (preview) preview.style.backgroundColor = value;
+      }
+      updatePreview();
+    });
+  }
+
+  // Evento para actualizar el valor mostrado de velocidad de scroll
+  const scrollingSpeedInput = document.getElementById('scrolling-speed');
+  if (scrollingSpeedInput) {
+    scrollingSpeedInput.addEventListener('input', (e) => {
+      const valueDisplay = document.getElementById('scrolling-speed-value');
+      if (valueDisplay) valueDisplay.textContent = e.target.value;
+      updatePreview();
+    });
+  }
+
+  // Evento para mostrar/ocultar opciones de velocidad de rotación de banners
+  const bannerAutoRotateCheckbox = document.getElementById('banner-auto-rotate');
+  if (bannerAutoRotateCheckbox) {
+    bannerAutoRotateCheckbox.addEventListener('change', (e) => {
+      const rotationSpeedGroup = document.getElementById('banner-rotation-speed-group');
+      if (rotationSpeedGroup) {
+        rotationSpeedGroup.style.display = e.target.checked ? 'block' : 'none';
+      }
+      updatePreview();
+    });
+  }
+
+  // Evento para actualizar el valor mostrado de velocidad de rotación
+  const bannerRotationSpeedInput = document.getElementById('banner-rotation-speed');
+  if (bannerRotationSpeedInput) {
+    bannerRotationSpeedInput.addEventListener('input', (e) => {
+      const valueDisplay = document.getElementById('banner-rotation-speed-value');
+      if (valueDisplay) {
+        const seconds = (parseInt(e.target.value) / 1000).toFixed(1);
+        valueDisplay.textContent = seconds + 's';
+      }
+      updatePreview();
+    });
+  }
+
+  // Evento para agregar un nuevo banner
+  const addBannerBtn = document.getElementById('add-banner-btn');
+  if (addBannerBtn) {
+    addBannerBtn.addEventListener('click', addBannerField);
   }
 
   const logoutBtn = document.getElementById('logoutBtn');
