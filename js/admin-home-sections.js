@@ -117,33 +117,432 @@ function updatePreview() {
     return;
   }
 
-  // Generar HTML de preview basado en las secciones en memoria
-  const previewHTML = generatePreviewHTML();
+  // Generar documento HTML completo con todos los estilos CSS reales
+  const previewHTML = generateCompletePreviewDocument();
   previewFrame.innerHTML = previewHTML;
-  previewFrame.style.padding = '20px';
+  previewFrame.style.padding = '0';
   console.log('✅ Preview updated with', sections.length, 'sections');
 }
 
-// ======================== GENERAR HTML DEL PREVIEW ========================
-function generatePreviewHTML() {
-  let html = `
-    <div style="font-family: 'Poppins', sans-serif; background: #f5f5f5; color: #333;">
-      <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-  `;
+// ======================== GENERAR DOCUMENTO HTML COMPLETO ========================
+function generateCompletePreviewDocument() {
+  const cssStyles = getCSSStyles();
 
+  let sectionsHTML = '';
   if (sections.length === 0) {
-    html += '<div style="text-align: center; padding: 40px; color: #999;">Sin secciones configuradas</div>';
+    sectionsHTML = '<div style="text-align: center; padding: 60px 40px; color: #999;">Sin secciones configuradas</div>';
   } else {
     sections.forEach((section, index) => {
-      html += renderPreviewSection(section, index);
+      sectionsHTML += renderPreviewSection(section, index);
     });
   }
 
-  html += `
-      </div>
-    </div>
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview - Puchia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    ${cssStyles}
+  </style>
+</head>
+<body>
+  <div class="preview-content">
+    ${sectionsHTML}
+  </div>
+</body>
+</html>`;
+}
+
+// ======================== OBTENER ESTILOS CSS PARA PREVIEW ========================
+function getCSSStyles() {
+  return `
+/* Root variables */
+:root {
+  --purple: #7f1f6e;
+  --purple-light: #a01f8a;
+  --yellow: #F3E93F;
+  --white: #ffffff;
+  --gray-light: #f5f5f5;
+  --gray-text: #7a8794;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #fafbfc;
+  color: #2c3e50;
+  line-height: 1.6;
+}
+
+.preview-content {
+  width: 100%;
+  background: white;
+}
+
+/* BANNER STYLES */
+.preview-banner-section {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background: linear-gradient(135deg, var(--purple) 0%, #5a1f5c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.preview-banner-section-overlay {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.preview-banner-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  padding: 40px;
+}
+
+.preview-banner-eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
+
+.preview-banner-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  line-height: 1.2;
+}
+
+.preview-banner-subtitle {
+  font-size: 18px;
+  margin-bottom: 30px;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+.preview-banner-btn {
+  display: inline-block;
+  background: white;
+  color: var(--purple);
+  padding: 13px 40px;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+}
+
+.preview-banner-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+  background: var(--yellow);
+}
+
+/* PRODUCTS SECTION */
+.preview-section {
+  padding: 60px 40px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.section-subtitle {
+  font-size: 16px;
+  color: var(--gray-text);
+  margin-bottom: 40px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.product-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
+}
+
+.product-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  background: #f5f5f5;
+}
+
+.product-info {
+  padding: 15px;
+}
+
+.product-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #2c3e50;
+}
+
+.product-price {
+  color: var(--purple);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* CATEGORIES SECTION */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.category-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.category-image {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  background: #f5f5f5;
+}
+
+.category-name {
+  padding: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #2c3e50;
+}
+
+/* STATS SECTION */
+.stats-section {
+  background: white;
+  padding: 60px 40px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+  text-align: center;
+}
+
+.stat-item {
+  padding: 20px;
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--purple);
+  margin-bottom: 10px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--gray-text);
+}
+
+/* TESTIMONIALS SECTION */
+.testimonials-section {
+  padding: 60px 40px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.testimonials-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.testimonials-subtitle {
+  font-size: 16px;
+  color: var(--gray-text);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.testimonial-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.testimonial-badge {
+  font-size: 11px;
+  color: #999;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.testimonial-stars {
+  color: #fbbf24;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.testimonial-text {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.testimonial-author {
+  font-size: 12px;
+  color: var(--purple);
+  font-weight: 600;
+}
+
+/* SCROLLING TEXT SECTION */
+.scrolling-text-section {
+  background: var(--purple);
+  color: white;
+  padding: 20px 40px;
+  text-align: center;
+  font-weight: 600;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.scrolling-text-content {
+  animation: scroll 30s linear infinite;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* IMAGE SECTION */
+.image-section {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.image-section-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+.image-section-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  padding: 40px;
+}
+
+.image-section-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.image-section-subtitle {
+  font-size: 16px;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.image-section-btn {
+  display: inline-block;
+  background: var(--purple);
+  color: white;
+  padding: 12px 35px;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 13px;
+}
+
+.image-section-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  background: var(--purple-light);
+}
+
+@media (max-width: 768px) {
+  .preview-section { padding: 40px 20px; }
+  .section-title { font-size: 24px; }
+  .preview-banner-section { height: 300px; }
+  .preview-banner-title { font-size: 32px; }
+  .products-grid { grid-template-columns: repeat(2, 1fr); }
+  .categories-grid { grid-template-columns: repeat(3, 1fr); }
+  .stats-grid { grid-template-columns: 1fr; }
+}
   `;
-  return html;
 }
 
 // ======================== RENDERIZAR SECCIÓN EN PREVIEW ========================
@@ -184,15 +583,16 @@ function renderPreviewSection(section, index) {
 function renderPreviewBanner(config) {
   if (!config.title) return '';
 
-  const bgImage = config.image_url ? `background-image: url('${config.image_url}'); background-size: cover; background-position: center;` : 'background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);';
+  const bgStyle = config.image_url ? `style="background-image: url('${config.image_url}');"` : '';
 
   return `
-    <div style="position: relative; width: 100%; height: 300px; border-radius: 8px; overflow: hidden; margin-bottom: 20px; ${bgImage}">
-      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
-        ${config.eyebrow ? `<div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">${config.eyebrow}</div>` : ''}
-        <h1 style="font-size: 32px; font-weight: 700; margin: 10px 0;">${config.title}</h1>
-        ${config.subtitle ? `<p style="font-size: 16px; margin: 10px 0; max-width: 600px;">${config.subtitle}</p>` : ''}
-        ${config.button_text ? `<a href="${config.button_url || '#'}" style="display: inline-block; margin-top: 20px; background: #ff1493; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600;">${config.button_text}</a>` : ''}
+    <div class="preview-banner-section" ${bgStyle}>
+      <div class="preview-banner-section-overlay"></div>
+      <div class="preview-banner-content">
+        ${config.eyebrow ? `<div class="preview-banner-eyebrow">${config.eyebrow}</div>` : ''}
+        <h1 class="preview-banner-title">${config.title}</h1>
+        ${config.subtitle ? `<p class="preview-banner-subtitle">${config.subtitle}</p>` : ''}
+        ${config.button_text ? `<button class="preview-banner-btn">${config.button_text}</button>` : ''}
       </div>
     </div>
   `;
@@ -201,35 +601,30 @@ function renderPreviewBanner(config) {
 // ======================== RENDERIZAR PRODUCTOS EN PREVIEW ========================
 function renderPreviewProducts(config) {
   if (!config.ids || config.ids.length === 0) {
-    return '<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Sin productos seleccionados</div>';
+    return '<div class="preview-section"><div style="padding: 40px; background: #f0f0f0; border-radius: 8px; color: #999; text-align: center;">Sin productos seleccionados</div></div>';
   }
 
   const title = config.title || 'Productos Destacados';
   const selectedProducts = allProducts.filter(p => config.ids.includes(p.id)).slice(0, config.limit || 10);
 
-  let html = `
-    <div style="margin-bottom: 30px;">
-      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${title}</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
-  `;
-
-  selectedProducts.forEach(product => {
-    const imageUrl = product.image_url || 'https://via.placeholder.com/150';
-    html += `
-      <div style="background: white; border-radius: 8px; padding: 12px; text-align: center; border: 1px solid #e0e0e0;">
-        <img src="${imageUrl}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;" alt="${product.nombre}">
-        <h3 style="font-size: 14px; font-weight: 600; margin: 8px 0;">${product.nombre}</h3>
-        ${product.precio ? `<p style="font-size: 13px; color: #7f1f6e; font-weight: 700;">$${product.precio}</p>` : ''}
+  let productsHTML = selectedProducts.map(product => `
+    <div class="product-card">
+      <img src="${product.image_url || 'https://via.placeholder.com/200x150'}" alt="${product.nombre}" class="product-image">
+      <div class="product-info">
+        <div class="product-name">${product.nombre}</div>
+        ${product.precio ? `<div class="product-price">$${product.precio}</div>` : ''}
       </div>
-    `;
-  });
+    </div>
+  `).join('');
 
-  html += `
+  return `
+    <div class="preview-section">
+      <h2 class="section-title">${title}</h2>
+      <div class="products-grid">
+        ${productsHTML}
       </div>
     </div>
   `;
-
-  return html;
 }
 
 // ======================== RENDERIZAR CATEGORÍAS EN PREVIEW ========================
@@ -244,33 +639,24 @@ function renderPreviewCategories(config) {
   }
 
   if (categoriesToShow.length === 0) {
-    return '<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Sin categorías disponibles</div>';
+    return '<div class="preview-section"><div style="padding: 40px; background: #f0f0f0; border-radius: 8px; color: #999; text-align: center;">Sin categorías disponibles</div></div>';
   }
 
-  let html = `
-    <div style="margin-bottom: 30px;">
-      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${title}</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 20px;">
-  `;
+  let categoriesHTML = categoriesToShow.map(category => `
+    <div class="category-card">
+      <img src="${category.image_url || 'https://via.placeholder.com/200x150'}" alt="${category.nombre}" class="category-image">
+      <div class="category-name">${category.nombre}</div>
+    </div>
+  `).join('');
 
-  categoriesToShow.forEach(category => {
-    const imageUrl = category.image_url || 'https://via.placeholder.com/140';
-    html += `
-      <div style="background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; cursor: pointer; text-align: center;">
-        <img src="${imageUrl}" style="width: 100%; height: 120px; object-fit: cover;" alt="${category.nombre}">
-        <div style="padding: 10px;">
-          <h3 style="font-size: 13px; font-weight: 600;">${category.nombre}</h3>
-        </div>
-      </div>
-    `;
-  });
-
-  html += `
+  return `
+    <div class="preview-section">
+      <h2 class="section-title">${title}</h2>
+      <div class="categories-grid">
+        ${categoriesHTML}
       </div>
     </div>
   `;
-
-  return html;
 }
 
 // ======================== RENDERIZAR TESTIMONIOS EN PREVIEW ========================
@@ -297,95 +683,78 @@ function renderPreviewTestimonials(config) {
   const limit = config.limit || 3;
   const filtered = testimonios.slice(0, limit);
 
-  let html = `
-    <div style="margin-bottom: 30px;">
-      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${title}</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
-  `;
+  let testimonialsHTML = filtered.map(testi => `
+    <div class="testimonial-card">
+      <div class="testimonial-badge">Google Reviews</div>
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"${testi.text}"</p>
+      <p class="testimonial-author">${testi.author}</p>
+    </div>
+  `).join('');
 
-  filtered.forEach(testi => {
-    html += `
-      <div style="background: white; border-radius: 8px; padding: 15px; border: 1px solid #e0e0e0;">
-        <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Google Reviews</div>
-        <div style="font-size: 14px; color: #ff1493; margin-bottom: 10px;">★★★★★</div>
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 10px; color: #555;">"${testi.text}"</p>
-        <p style="font-size: 12px; font-weight: 600; color: #7f1f6e;">${testi.author}</p>
-      </div>
-    `;
-  });
-
-  html += `
+  return `
+    <div class="testimonials-section">
+      <h2 class="testimonials-title">${title}</h2>
+      <p class="testimonials-subtitle">Opiniones reales verificadas en Google</p>
+      <div class="testimonials-grid">
+        ${testimonialsHTML}
       </div>
     </div>
   `;
-
-  return html;
 }
 
 // ======================== RENDERIZAR TEXTO DESPLAZABLE EN PREVIEW ========================
 function renderPreviewScrollingText(config) {
   if (!config.text) return '';
 
+  const bgColor = config.background_color || '#7f1f6e';
+  const textColor = config.text_color || '#FFFFFF';
+
   return `
-    <div style="background: ${config.background_color || '#FF1493'}; color: ${config.text_color || '#FFFFFF'}; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 600; overflow: hidden;">
-      <div style="animation: scroll 30s linear infinite; white-space: nowrap;">
-        ${config.text}
-      </div>
+    <div class="scrolling-text-section" style="background: ${bgColor}; color: ${textColor};">
+      <div class="scrolling-text-content">${config.text}</div>
     </div>
-    <style>
-      @keyframes scroll {
-        0% { transform: translateX(100%); }
-        100% { transform: translateX(-100%); }
-      }
-    </style>
   `;
 }
 
 // ======================== RENDERIZAR STATS EN PREVIEW ========================
 function renderPreviewStats(config) {
   if (!config.stats || config.stats.length === 0) {
-    return '<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Sin estadísticas configuradas</div>';
+    return '<div class="preview-section"><div style="padding: 40px; background: #f0f0f0; border-radius: 8px; color: #999; text-align: center;">Sin estadísticas configuradas</div></div>';
   }
 
   const title = config.title || 'Nuestros Logros';
-  let html = `
-    <div style="margin-bottom: 30px;">
-      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 20px;">${title}</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
-  `;
 
-  config.stats.forEach((stat, idx) => {
-    if (idx > 0) {
-      html += '<div style="display: none;"></div>';
-    }
-    html += `
-      <div style="text-align: center; padding: 20px;">
-        <div style="font-size: 28px; font-weight: 700; color: #7f1f6e; margin-bottom: 8px;">${stat.number}</div>
-        <div style="font-size: 14px; color: #666;">${stat.label}</div>
-      </div>
-    `;
-  });
+  let statsHTML = config.stats.map(stat => `
+    <div class="stat-item">
+      <div class="stat-number">${stat.number}</div>
+      <div class="stat-label">${stat.label}</div>
+    </div>
+  `).join('');
 
-  html += `
+  return `
+    <div class="stats-section">
+      <h2 class="section-title">${title}</h2>
+      <div class="stats-grid">
+        ${statsHTML}
       </div>
     </div>
   `;
-
-  return html;
 }
 
 // ======================== RENDERIZAR IMAGEN EN PREVIEW ========================
 function renderPreviewImage(config) {
   if (!config.title && !config.image_url) return '';
 
-  const bgImage = config.image_url ? `background-image: url('${config.image_url}'); background-size: cover; background-position: center;` : 'background: linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 100%);';
+  const bgStyle = config.image_url ? `style="background-image: url('${config.image_url}');"` : '';
 
   return `
-    <div style="position: relative; width: 100%; height: 250px; border-radius: 8px; overflow: hidden; margin-bottom: 20px; ${bgImage}">
-      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
-        ${config.title ? `<h2 style="font-size: 28px; font-weight: 700; margin: 0;">${config.title}</h2>` : ''}
-        ${config.subtitle ? `<p style="font-size: 14px; margin: 8px 0;">${config.subtitle}</p>` : ''}
-        ${config.button_text ? `<a href="${config.button_url || '#'}" style="display: inline-block; margin-top: 15px; background: #7f1f6e; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 13px;">${config.button_text}</a>` : ''}
+    <div class="image-section" ${bgStyle}>
+      <div class="image-section-overlay"></div>
+      <div class="image-section-content">
+        ${config.title ? `<h2 class="image-section-title">${config.title}</h2>` : ''}
+        ${config.subtitle ? `<p class="image-section-subtitle">${config.subtitle}</p>` : ''}
+        ${config.button_text ? `<button class="image-section-btn">${config.button_text}</button>` : ''}
       </div>
     </div>
   `;
