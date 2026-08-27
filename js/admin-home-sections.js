@@ -32,7 +32,6 @@ async function getTokenWithRetry(maxAttempts = 30, delayMs = 100) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const token = localStorage.getItem('puchia_admin_token');
     if (token) {
-      console.log(`[TokenRetry] Token obtenido en intento ${attempt}/${maxAttempts}`);
       return token;
     }
 
@@ -69,18 +68,15 @@ async function loadSections() {
         const draftResult = await draftResponse.json();
         if (draftResult.data && Array.isArray(draftResult.data.sections) && draftResult.data.sections.length > 0) {
           draftSections = draftResult.data.sections;
-          console.log('📝 [Admin Panel] Borrador cargado: ' + draftSections.length + ' secciones');
         }
       }
     } catch (draftError) {
-      console.warn('⚠️ Error al cargar borrador:', draftError.message);
     }
 
     // Si hay borrador, usarlo; si no, cargar secciones publicadas
     if (draftSections && draftSections.length > 0) {
       sections = draftSections;
     } else {
-      console.log('📌 No hay borrador o está vacío, cargando secciones publicadas...');
       const response = await fetch(`${API_BASE_URL}/admin/home-sections`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -97,7 +93,6 @@ async function loadSections() {
 
       const result = await response.json();
       sections = result.data || [];
-      console.log('📝 [Admin Panel] Secciones publicadas cargadas: ' + sections.length + ' secciones');
     }
 
     renderSections();
@@ -119,7 +114,6 @@ function updatePreview() {
   previewFrame.innerHTML = `<iframe src="${iframeUrl}" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>`;
   previewFrame.style.padding = '0';
 
-  console.log('🔄 Preview refrescado');
 }
 
 // ======================== RENDERIZAR SECCIONES ========================
@@ -128,7 +122,7 @@ function renderSections() {
   const noSections = document.getElementById('noSections');
 
   if (!listContainer) {
-    console.error('❌ Elemento sectionsList no encontrado en el DOM');
+    console.error('sectionsList element not found in DOM');
     return;
   }
 
@@ -187,9 +181,8 @@ function renderSections() {
           updatePreview();
         }
       });
-      console.log('✅ SortableJS inicializado correctamente');
     } catch (error) {
-      console.error('❌ Error al inicializar SortableJS:', error);
+      console.error('Error initializing SortableJS:', error);
     }
   }
 }
@@ -336,7 +329,6 @@ async function saveSectionFromForm(e) {
     return;
   }
 
-  console.log('📝 saveSectionFromForm - Saving section:', currentEditingSection.section_type, 'ID:', currentEditingSection.id);
 
   let config = {};
   let isValid = true;
@@ -420,7 +412,7 @@ async function saveSectionFromForm(e) {
       button_url: document.getElementById('image-button-url').value.trim() || '/productos'
     };
   } else {
-    console.warn('⚠️ saveSectionFromForm - Unsupported section type:', currentEditingSection.section_type);
+    console.error('Unsupported section type:', currentEditingSection.section_type);
     showStatus('Tipo de sección no soportado aún en el formulario. El backend usará valores por defecto.', 'warning');
   }
 
@@ -452,10 +444,9 @@ async function saveSectionFromForm(e) {
     });
 
     if (!draftResponse.ok) {
-      console.warn('⚠️ Borrador no guardado en servidor:', draftResponse.status);
     }
   } catch (error) {
-    console.error('❌ saveSectionFromForm - Error:', error);
+    console.error('Error saving section:', error);
     showStatus('Error: ' + error.message, 'error');
   }
 }
@@ -468,7 +459,6 @@ async function selectSectionType(type) {
     return;
   }
 
-  console.log('📝 selectSectionType - Creating section type:', type);
 
   try {
     // Crear sección en memoria con ID temporal
@@ -502,9 +492,9 @@ async function selectSectionType(type) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ sections })
-    }).catch(err => console.warn('⚠️ Borrador no guardado:', err));
+    }).catch(err => console.error('Draft save failed:', err));
   } catch (error) {
-    console.error('❌ selectSectionType - Error:', error);
+    console.error('Error selecting section type:', error);
     showStatus('Error: ' + error.message, 'error');
   }
 }
@@ -553,7 +543,7 @@ async function reorderSections(order) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ sections })
-    }).catch(err => console.warn('⚠️ Borrador no guardado:', err));
+    }).catch(err => console.error('Draft save failed:', err));
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -602,7 +592,7 @@ async function duplicateSection(sectionId) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ sections })
-    }).catch(err => console.warn('⚠️ Borrador no guardado:', err));
+    }).catch(err => console.error('Draft save failed:', err));
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -638,7 +628,7 @@ async function deleteSection(sectionId) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ sections })
-    }).catch(err => console.warn('⚠️ Borrador no guardado:', err));
+    }).catch(err => console.error('Draft save failed:', err));
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
