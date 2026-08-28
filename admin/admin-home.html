@@ -208,9 +208,13 @@
                     <div class="type-option-icon">📊</div>
                     <div class="type-option-label">Animación de Números</div>
                 </div>
+                <div class="type-option" onclick="selectSectionType('como_funciona')">
+                    <div class="type-option-icon">❓</div>
+                    <div class="type-option-label">¿Cómo Funciona?</div>
+                </div>
                 <div class="type-option" onclick="selectSectionType('image')">
-                    <div class="type-option-icon">🎨</div>
-                    <div class="type-option-label">Imagen</div>
+                    <div class="type-option-icon">🖼️</div>
+                    <div class="type-option-label">Galería de Imágenes</div>
                 </div>
             </div>
         </div>
@@ -393,26 +397,50 @@
                 </div>
 
                 <!-- IMAGE FIELDS -->
-                <div id="image-fields" class="edit-fields" style="display: none;">
+                <div id="como_funciona-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Título</label>
-                        <input type="text" name="title" class="form-input" id="image-title" placeholder="¿Cómo Funciona?">
+                        <input type="text" name="title" class="form-input" id="como_funciona-title" placeholder="¿Cómo Funciona?">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Subtítulo</label>
-                        <input type="text" name="subtitle" class="form-input" id="image-subtitle" placeholder="Describe brevemente">
+                        <input type="text" name="subtitle" class="form-input" id="como_funciona-subtitle" placeholder="Describe brevemente">
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL de Imagen</label>
-                        <input type="text" name="image_url" class="form-input" id="image-url" placeholder="https://ejemplo.com/imagen.jpg">
+                        <input type="text" name="image_url" class="form-input" id="como_funciona-url" placeholder="https://ejemplo.com/imagen.jpg">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Texto del Botón</label>
-                        <input type="text" name="button_text" class="form-input" id="image-button-text" placeholder="Crear Mi Regalo">
+                        <input type="text" name="button_text" class="form-input" id="como_funciona-button-text" placeholder="Crear Mi Regalo">
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL del Botón</label>
-                        <input type="text" name="button_url" class="form-input" id="image-button-url" placeholder="https://ejemplo.com">
+                        <input type="text" name="button_url" class="form-input" id="como_funciona-button-url" placeholder="https://ejemplo.com">
+                    </div>
+                </div>
+
+                <div id="image-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Título (Opcional)</label>
+                        <input type="text" name="title" class="form-input" id="image-title" placeholder="Título de la galería">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripción (Opcional)</label>
+                        <textarea name="description" class="form-input" id="image-description" placeholder="Describe tu galería" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Columnas</label>
+                        <select id="image-columns" class="form-input">
+                            <option value="2">2 Columnas</option>
+                            <option value="3" selected>3 Columnas</option>
+                            <option value="4">4 Columnas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fotos (máximo 10)</label>
+                        <div id="images-list" style="margin-bottom: 10px;"></div>
+                        <button type="button" onclick="addImageToGallery()" class="btn btn-secondary" style="width: 100%;">+ Agregar Foto</button>
                     </div>
                 </div>
 
