@@ -1455,8 +1455,6 @@ function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('show');
 }
 
-<<<<<<< Updated upstream
-=======
 // ======================== IMAGE GALLERY FUNCTIONS ========================
 function renderImageGalleryForm(images = []) {
   const container = document.getElementById('images-list-gallery');
