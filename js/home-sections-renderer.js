@@ -41,6 +41,23 @@ function homeSectionsPlaceholder(text) {
   return `<div style="padding: 60px 40px; text-align: center; color: #999;">${escapeHomeHTML(text)}</div>`;
 }
 
+// Detecta el tipo real de sección (compatibilidad con secciones antiguas)
+function getActualSectionType(section) {
+  const type = section.section_type;
+  const config = section.config || {};
+
+  if (type === 'image') {
+    if (config.image_url || config.button_text) {
+      return 'como_funciona';
+    }
+    if (Array.isArray(config.images)) {
+      return 'image';
+    }
+  }
+
+  return type;
+}
+
 // ======================== CARGA DE DATOS ========================
 async function loadHomeSectionsData() {
   const response = await fetch(`${HOME_SECTIONS_API}/home-sections`);
@@ -122,9 +139,10 @@ function renderHomeSections() {
     if (section.enabled === false) return;
 
     const config = section.config || {};
+    const actualType = getActualSectionType(section);
 
     try {
-      switch (section.section_type) {
+      switch (actualType) {
         case 'scrolling_text':
           // La barra de anuncios vive arriba del header, se actualiza en su lugar.
           applyHomeScrollingText(config);
