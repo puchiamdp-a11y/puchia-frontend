@@ -517,3 +517,99 @@ select:focus {
         padding: 15px;
     }
 }
+
+/* ==================== IMAGE GALLERY FORM STYLES ==================== */
+
+.images-gallery-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background-color: #fafbfc;
+    border-radius: 8px;
+    min-height: 120px;
+}
+
+.image-gallery-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.image-square-wrapper {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #d0d0d0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.image-square-wrapper:hover {
+    border-color: #a01f8a;
+    background-color: #faf5ff;
+}
+
+.image-square-wrapper.has-image {
+    border-color: #a01f8a;
+    padding: 4px;
+}
+
+.image-square-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    background-color: transparent;
+}
+
+.image-square-wrapper.empty {
+    color: #999;
+    font-size: 32px;
+}
+
+.image-gallery-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 120px;
+}
+
+.image-url-field {
+    font-size: 11px;
+    padding: 4px;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.image-link-field {
+    font-size: 11px;
+    padding: 4px;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.image-remove-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.image-remove-btn:hover {
+    background-color: #fee;
+    border-color: #f00;
+    color: #f00;
+}

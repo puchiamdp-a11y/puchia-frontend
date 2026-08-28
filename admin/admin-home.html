@@ -281,7 +281,7 @@
                         <input type="text" name="title" class="form-input" id="categories-title" placeholder="Categorías">
                     </div>
                     <div class="form-group">
-                        <label>
+                        <label class="checkbox-label">
                             <input type="checkbox" name="show_all" id="categories-show-all" checked>
                             Mostrar todas las categorías
                         </label>
@@ -289,7 +289,7 @@
                     <div id="categories-selector" style="display: none;">
                         <label class="form-label">Seleccionar Categorías Específicas</label>
                         <p style="font-size: 12px; color: #999; margin-bottom: 8px;">Cargando categorías...</p>
-                        <div id="categories-list">
+                        <div id="categories-list" class="products-selector">
                             <!-- Categories will be loaded here -->
                         </div>
                     </div>
@@ -396,7 +396,7 @@
                     </div>
                 </div>
 
-                <!-- IMAGE FIELDS -->
+                <!-- COMO FUNCIONA FIELDS (formerly image) -->
                 <div id="como_funciona-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Título</label>
@@ -420,27 +420,20 @@
                     </div>
                 </div>
 
+                <!-- IMAGE GALLERY FIELDS -->
                 <div id="image-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
+                        <label class="form-label">Fotos (máximo 10)</label>
+                        <div id="images-list-gallery" class="images-gallery-grid"></div>
+                        <button type="button" onclick="addImageToGallery()" class="btn btn-secondary" style="width: 100%; margin-top: 16px;">+ Agregar Foto</button>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Título (Opcional)</label>
-                        <input type="text" name="title" class="form-input" id="image-title" placeholder="Título de la galería">
+                        <input type="text" name="title" class="form-input" id="image-title" placeholder="Ej: Nuestros Clientes" maxlength="50">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Descripción (Opcional)</label>
-                        <textarea name="description" class="form-input" id="image-description" placeholder="Describe tu galería" rows="2"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Columnas</label>
-                        <select id="image-columns" class="form-input">
-                            <option value="2">2 Columnas</option>
-                            <option value="3" selected>3 Columnas</option>
-                            <option value="4">4 Columnas</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Fotos (máximo 10)</label>
-                        <div id="images-list" style="margin-bottom: 10px;"></div>
-                        <button type="button" onclick="addImageToGallery()" class="btn btn-secondary" style="width: 100%;">+ Agregar Foto</button>
+                        <textarea name="description" class="form-textarea" id="image-description" placeholder="Ej: Mira cómo usan nuestros stickers" maxlength="200" style="resize: vertical; height: 60px;"></textarea>
                     </div>
                 </div>
 

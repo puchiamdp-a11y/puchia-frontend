@@ -107,27 +107,6 @@ async function loadSections() {
   }
 }
 
-// ======================== DETECTAR TIPO REAL DE SECCIÓN ========================
-// Detecta si una sección "image" antigua es realmente "como_funciona"
-function getActualSectionType(section) {
-  const type = section.section_type;
-  const config = section.config || {};
-
-  // Si es "image", verificar si es realmente "como_funciona" (antigua)
-  if (type === 'image') {
-    // Si tiene image_url y button_text, es la sección antigua "como_funciona"
-    if (config.image_url || config.button_text) {
-      return 'como_funciona';
-    }
-    // Si tiene array de images, es la nueva galería
-    if (Array.isArray(config.images)) {
-      return 'image';
-    }
-  }
-
-  return type;
-}
-
 // ======================== ACTUALIZAR PREVIEW EN VIVO ========================
 function updatePreview() {
   const previewFrame = document.getElementById('previewFrame');
@@ -180,17 +159,17 @@ function generateCompletePreviewDocument() {
     });
   }
 
-  const baseURL = window.location.origin;
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Preview - Puchia</title>
+  <base href="${new URL('.', window.location.href).href}">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="${baseURL}/css/common.css">
-  <link rel="stylesheet" href="${baseURL}/css/home-critical.css">
-  <link rel="stylesheet" href="${baseURL}/css/home.css">
-  <link rel="stylesheet" href="${baseURL}/css/cliente.css">
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/home-critical.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/cliente.css">
   <style>
     ${cssStyles}
   </style>
@@ -207,9 +186,8 @@ function getCSSStyles() {
   return `
     body { background-color: #fafbfc; }
     /* El preview no tiene JS del carrusel: mostramos siempre el primer banner. */
-    .banner { opacity: 0; display: none; }
-    .banner.active { opacity: 1; display: flex; }
-    .banner-carousel { height: 580px; position: relative; }
+    .banner { position: relative; opacity: 1; }
+    .banner-carousel { height: auto; min-height: 580px; }
     /* Sin interacciones dentro del preview. */
     a, button { pointer-events: none; }
   `;
@@ -333,10 +311,8 @@ function renderPreviewProducts(config) {
 
   const productsHTML = selectedProducts.map(product => {
     const categoria = product.categorias && product.categorias.length > 0 ? product.categorias[0].nombre : '';
-    const badge = config.badges && config.badges[product.id];
     return `
       <div class="product-card">
-        ${badge ? `<div class="product-badge badge-${badge.toLowerCase().replace(/ /g, '-')}">${escapeHTML(badge)}</div>` : ''}
         <div class="product-image">${getIconoCategoriaPreview(categoria)}</div>
         <div class="product-info">
           <div class="product-name">${escapeHTML(product.nombre)}</div>
@@ -461,33 +437,56 @@ function renderPreviewStats(config) {
 // ======================== RENDERIZAR SECCIÓN IMAGEN / CÓMO FUNCIONA EN PREVIEW ========================
 // Replica el markup de .how-section en index.html
 function renderPreviewComoFunciona(config) {
-  if (!config.title && !config.image_url) return '';
+  if (!config.title && !config.steps) return '';
+
+  const steps = config.steps && config.steps.length > 0 ? config.steps : [
+    { icon: '1️⃣', title: 'Elige tu Producto', description: 'Explora nuestro catálogo con cientos de opciones personalizadas' },
+    { icon: '2️⃣', title: 'Personaliza', description: 'Agrega tu toque especial: nombres, colores, mensajes' },
+    { icon: '3️⃣', title: 'Recibe tu Regalo', description: 'Entrega rápida y segura a tu domicilio' }
+  ];
+
+  const stepsHTML = steps.map(step => `
+    <div class="how-step">
+      <div class="how-icon">${escapeHTML(step.icon || '')}</div>
+      <h3>${escapeHTML(step.title || '')}</h3>
+      <p>${escapeHTML(step.description || '')}</p>
+    </div>
+  `).join('');
 
   return `
-    <section class="como-funciona-section" style="padding: 40px 20px; background: #f9f9f9; text-align: center;">
-      <h2 style="font-size: 28px; margin-bottom: 10px;">${escapeHTML(config.title || '¿Cómo Funciona?')}</h2>
-      <p style="font-size: 16px; color: #666; margin-bottom: 20px;">${escapeHTML(config.subtitle || '')}</p>
-      ${config.image_url ? `<img src="${escapeHTML(config.image_url)}" alt="${escapeHTML(config.title)}" style="max-width: 100%; height: auto; margin-bottom: 20px; max-height: 300px;">` : ''}
-      <a href="#" style="display: inline-block; padding: 12px 24px; background: #7f1f6e; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">${escapeHTML(config.button_text || 'Crear Mi Regalo')}</a>
+    <section class="how-section">
+      <h2 class="section-title">${escapeHTML(config.title || '¿Cómo Funciona?')}</h2>
+      <p class="section-subtitle">${escapeHTML(config.subtitle || '3 pasos simples para obtener tu regalo perfecto')}</p>
+      <div class="how-grid">${stepsHTML}</div>
     </section>
   `;
 }
 
 function renderPreviewImageGallery(config) {
-  if (!config.images || config.images.length === 0) return '';
+  if (!config.images || config.images.length === 0) {
+    return `<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Galería vacía - Agrega fotos</div>`;
+  }
 
-  const columns = Math.min(4, Math.max(1, config.columns || 3));
-  const imagesHTML = config.images.map(img => `
-    <div style="display: flex; align-items: center; justify-content: center; background: #f9f9f9; border-radius: 8px; padding: 10px; min-height: 200px;">
-      ${img.url ? `<img src="${escapeHTML(img.url)}" alt="Imagen" style="max-width: 100%; max-height: 200px; object-fit: contain;">` : '<div style="color: #ccc;">Sin imagen</div>'}
-    </div>
-  `).join('');
+  const title = config.title ? `<h2 class="section-title">${escapeHTML(config.title)}</h2>` : '';
+  const description = config.description ? `<p class="section-subtitle">${escapeHTML(config.description)}</p>` : '';
+  const columns = config.columns || 3;
+
+  const imagesHTML = (config.images || []).map(img => {
+    const url = img.url || '';
+    const imageStyle = `width: 100%; height: 200px; object-fit: contain; background: white; border-radius: 6px;`;
+    const imgHTML = `<img src="${url}" alt="gallery" style="${imageStyle}" onerror="this.style.display='none';">`;
+
+    if (img.link) {
+      return `<a href="${escapeHTML(img.link)}" style="text-decoration: none;">${imgHTML}</a>`;
+    }
+    return imgHTML;
+  }).join('');
 
   return `
-    <section style="padding: 40px 20px;">
-      ${config.title ? `<h2 style="font-size: 28px; margin-bottom: 10px;">${escapeHTML(config.title)}</h2>` : ''}
-      ${config.description ? `<p style="font-size: 16px; color: #666; margin-bottom: 20px;">${escapeHTML(config.description)}</p>` : ''}
-      <div style="display: grid; grid-template-columns: repeat(${columns}, 1fr); gap: 16px;">
+    <section style="padding: 20px; margin-bottom: 20px;">
+      ${title}
+      ${description}
+      <div style="display: grid; grid-template-columns: repeat(${columns}, 1fr); gap: 12px; justify-items: center;">
         ${imagesHTML}
       </div>
     </section>
@@ -661,6 +660,27 @@ async function editSection(sectionId) {
   setupPreviewAutoUpdate();
 }
 
+// ======================== DETECTAR TIPO REAL DE SECCIÓN ========================
+// Detecta si una sección "image" antigua es realmente "como_funciona"
+function getActualSectionType(section) {
+  const type = section.section_type;
+  const config = section.config || {};
+
+  // Si es "image", verificar si es realmente "como_funciona" (antigua)
+  if (type === 'image') {
+    // Si tiene image_url y button_text, es la sección antigua "como_funciona"
+    if (config.image_url || config.button_text) {
+      return 'como_funciona';
+    }
+    // Si tiene array de images, es la nueva galería
+    if (Array.isArray(config.images)) {
+      return 'image';
+    }
+  }
+
+  return type;
+}
+
 // ======================== LLENAR FORMULARIO ========================
 function fillFormWithSectionData(section) {
   const config = section.config || {};
@@ -718,7 +738,7 @@ function fillFormWithSectionData(section) {
     case 'products':
       document.getElementById('products-title').value = config.title || 'Productos Destacados';
       document.getElementById('products-limit').value = config.limit || 10;
-      renderProductSelector(config.ids || [], config.badges || {});
+      renderProductSelector(config.ids || []);
       break;
 
     case 'categories':
@@ -742,36 +762,16 @@ function fillFormWithSectionData(section) {
       const textColor = config.text_color || '#FFFFFF';
       const scrollSpeed = config.scroll_speed || 50;
 
-      document.getElementById('scrolling-bg-color').value = bgColor.replace('#', '');
-      document.getElementById('scrolling-bg-color-picker').value = bgColor;
-      document.getElementById('scrolling-text-color').value = textColor.replace('#', '');
-      document.getElementById('scrolling-text-color-picker').value = textColor;
+      document.getElementById('scrolling-bg-color').value = bgColor;
+      document.getElementById('scrolling-text-color').value = textColor;
       document.getElementById('scrolling-speed').value = scrollSpeed;
 
-      // Sincronizar color picker con text input
-      const bgColorPicker = document.getElementById('scrolling-bg-color-picker');
-      const bgColorInput = document.getElementById('scrolling-bg-color');
-      if (bgColorPicker && bgColorInput) {
-        bgColorPicker.addEventListener('input', () => {
-          bgColorInput.value = bgColorPicker.value.replace('#', '');
-        });
-        bgColorInput.addEventListener('input', () => {
-          const hexVal = bgColorInput.value.startsWith('#') ? bgColorInput.value : '#' + bgColorInput.value;
-          bgColorPicker.value = hexVal;
-        });
-      }
+      // Actualizar previsualizaciones de color
+      const bgPreview = document.getElementById('scrolling-bg-preview');
+      if (bgPreview) bgPreview.style.backgroundColor = bgColor;
 
-      const textColorPicker = document.getElementById('scrolling-text-color-picker');
-      const textColorInput = document.getElementById('scrolling-text-color');
-      if (textColorPicker && textColorInput) {
-        textColorPicker.addEventListener('input', () => {
-          textColorInput.value = textColorPicker.value.replace('#', '');
-        });
-        textColorInput.addEventListener('input', () => {
-          const hexVal = textColorInput.value.startsWith('#') ? textColorInput.value : '#' + textColorInput.value;
-          textColorPicker.value = hexVal;
-        });
-      }
+      const textPreview = document.getElementById('scrolling-text-preview');
+      if (textPreview) textPreview.style.backgroundColor = textColor;
 
       // Actualizar valor mostrado de velocidad
       const speedValue = document.getElementById('scrolling-speed-value');
@@ -794,113 +794,31 @@ function fillFormWithSectionData(section) {
       }
       break;
 
+    case 'como_funciona':
+      document.getElementById('como_funciona-title').value = config.title || '';
+      document.getElementById('como_funciona-subtitle').value = config.subtitle || '';
+      document.getElementById('como_funciona-url').value = config.image_url || '';
+      document.getElementById('como_funciona-button-text').value = config.button_text || 'Crear Mi Regalo';
+      document.getElementById('como_funciona-button-url').value = config.button_url || '/productos';
+      break;
+
     case 'image':
       document.getElementById('image-title').value = config.title || '';
       document.getElementById('image-description').value = config.description || '';
-      document.getElementById('image-columns').value = config.columns || 3;
       renderImageGalleryForm(config.images || []);
       break;
   }
 }
 
 // ======================== RENDERIZAR SELECTOR DE PRODUCTOS ========================
-function renderProductSelector(selectedIds = [], productBadges = {}) {
+function renderProductSelector(selectedIds = []) {
   const container = document.getElementById('products-list');
-  productBadges = productBadges || {};
-  const badgeOptions = ['', 'Nuevo', 'Más vendido', 'Últimas unidades', 'En oferta'];
-
-  // HTML para el buscador
-  const searchHTML = `
-    <div class="products-search">
-      <input type="text" class="products-search-input" id="productSearch" placeholder="🔍 Buscar producto por nombre..." onkeyup="filterProducts(this.value)">
+  container.innerHTML = allProducts.map(product => `
+    <div class="product-item">
+      <input type="checkbox" class="product-checkbox" value="${product.id}" ${selectedIds.includes(product.id) ? 'checked' : ''}>
+      <label>${product.nombre}</label>
     </div>
-  `;
-
-  // HTML para la lista de productos (todos disponibles para búsqueda)
-  const listHTML = `
-    <div class="products-selector" id="productsList">
-      ${allProducts.map(product => `
-        <div class="product-item" data-product-id="${product.id}" data-product-name="${product.nombre.toLowerCase()}">
-          <input type="checkbox" class="product-checkbox" value="${product.id}" ${selectedIds.includes(product.id) ? 'checked' : ''} onchange="updateSelectedProducts()">
-          <label>${escapeHTML(product.nombre)}</label>
-        </div>
-      `).join('')}
-    </div>
-  `;
-
-  // HTML para productos seleccionados
-  const selectedProducts = allProducts.filter(p => selectedIds.includes(p.id));
-  const selectedHTML = selectedIds.length > 0 ? `
-    <div class="products-selected">
-      <div class="products-selected-title">✓ Productos seleccionados (${selectedIds.length})</div>
-      ${selectedProducts.map(product => `
-        <div class="selected-product-item" data-product-id="${product.id}">
-          <div class="selected-product-name">${escapeHTML(product.nombre)}</div>
-          <div class="selected-product-badge">
-            <select class="product-badge-select" data-product-id="${product.id}" onchange="updateSelectedProducts()">
-              ${badgeOptions.map(opt => `<option value="${opt}" ${(productBadges[product.id] || '') === opt ? 'selected' : ''}>${opt || 'Sin etiqueta'}</option>`).join('')}
-            </select>
-          </div>
-          <button class="remove-product-btn" onclick="removeSelectedProduct(${product.id})">✕ Quitar</button>
-        </div>
-      `).join('')}
-    </div>
-  ` : '';
-
-  container.innerHTML = searchHTML + listHTML + selectedHTML;
-}
-
-// ======================== FILTRAR PRODUCTOS POR BÚSQUEDA ========================
-function filterProducts(searchTerm) {
-  const term = searchTerm.toLowerCase().trim();
-  const items = document.querySelectorAll('.product-item');
-  let visibleCount = 0;
-
-  items.forEach(item => {
-    const name = item.dataset.productName;
-    if (term === '' || name.includes(term)) {
-      item.style.display = '';
-      visibleCount++;
-    } else {
-      item.style.display = 'none';
-    }
-  });
-
-  // Mostrar mensaje si no hay resultados
-  const list = document.getElementById('productsList');
-  let noResults = list.querySelector('.no-results');
-  if (visibleCount === 0 && term !== '') {
-    if (!noResults) {
-      noResults = document.createElement('div');
-      noResults.className = 'no-results';
-      noResults.style.cssText = 'padding: 20px; text-align: center; color: #999; font-size: 13px;';
-      noResults.textContent = 'No se encontraron productos';
-      list.appendChild(noResults);
-    }
-  } else if (noResults) {
-    noResults.remove();
-  }
-}
-
-// ======================== ACTUALIZAR PRODUCTOS SELECCIONADOS ========================
-function updateSelectedProducts() {
-  const selectedIds = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => parseInt(cb.value));
-  const productBadges = {};
-  document.querySelectorAll('.product-badge-select').forEach(select => {
-    const pid = parseInt(select.dataset.productId);
-    const badge = select.value;
-    if (badge) productBadges[pid] = badge;
-  });
-  renderProductSelector(selectedIds, productBadges);
-}
-
-// ======================== REMOVER PRODUCTO SELECCIONADO ========================
-function removeSelectedProduct(productId) {
-  const checkbox = document.querySelector(`.product-checkbox[value="${productId}"]`);
-  if (checkbox) {
-    checkbox.checked = false;
-    updateSelectedProducts();
-  }
+  `).join('');
 }
 
 // ======================== RENDERIZAR SELECTOR DE CATEGORÍAS ========================
@@ -963,16 +881,9 @@ async function saveSectionFromForm(e) {
     };
   } else if (actualType === 'products') {
     const selectedIds = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => parseInt(cb.value));
-    const productBadges = {};
-    document.querySelectorAll('.product-badge-select').forEach(select => {
-      const pid = parseInt(select.dataset.productId);
-      const badge = select.value;
-      if (badge) productBadges[pid] = badge;
-    });
     config = {
       title: document.getElementById('products-title').value.trim() || 'Productos Destacados',
       ids: selectedIds,
-      badges: productBadges,
       limit: parseInt(document.getElementById('products-limit').value) || 10
     };
     if (selectedIds.length === 0) {
@@ -996,12 +907,8 @@ async function saveSectionFromForm(e) {
       limit: parseInt(document.getElementById('testimonials-limit').value) || 5
     };
   } else if (actualType === 'scrolling_text') {
-    let bgColorVal = document.getElementById('scrolling-bg-color').value.trim();
-    let textColorVal = document.getElementById('scrolling-text-color').value.trim();
-
-    // Agregar # si no lo tiene (los inputs text no lo guardan)
-    const bgColor = bgColorVal.startsWith('#') ? bgColorVal : '#' + bgColorVal;
-    const textColor = textColorVal.startsWith('#') ? textColorVal : '#' + textColorVal;
+    const bgColor = document.getElementById('scrolling-bg-color').value.trim();
+    const textColor = document.getElementById('scrolling-text-color').value.trim();
 
     // Validar formato de colores HEX
     const isValidHex = (color) => /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color);
@@ -1044,22 +951,16 @@ async function saveSectionFromForm(e) {
         }
       ]
     };
+  } else if (actualType === 'como_funciona') {
+    config = {
+      title: document.getElementById('como_funciona-title').value.trim() || '',
+      subtitle: document.getElementById('como_funciona-subtitle').value.trim() || '',
+      image_url: document.getElementById('como_funciona-url').value.trim() || '',
+      button_text: document.getElementById('como_funciona-button-text').value.trim() || 'Crear Mi Regalo',
+      button_url: document.getElementById('como_funciona-button-url').value.trim() || '/productos'
+    };
   } else if (actualType === 'image') {
-    const images = [];
-    const imageItems = document.querySelectorAll('.image-gallery-item');
-
-    imageItems.forEach(item => {
-      const url = item.dataset.url?.trim() || item.querySelector('input[type="text"]')?.value?.trim() || '';
-      const link = item.querySelector('.image-gallery-link')?.value?.trim() || '';
-
-      if (url) {
-        images.push({
-          url: url,
-          link: link || '',
-          file: ''
-        });
-      }
-    });
+    const images = getImageGalleryFromForm();
 
     if (images.length === 0) {
       showStatus('Agrega al menos una foto a la galería', 'error');
@@ -1069,7 +970,6 @@ async function saveSectionFromForm(e) {
     config = {
       title: document.getElementById('image-title').value.trim() || '',
       description: document.getElementById('image-description').value.trim() || '',
-      columns: parseInt(document.getElementById('image-columns').value) || 3,
       images: images
     };
   } else {
@@ -1080,14 +980,7 @@ async function saveSectionFromForm(e) {
   if (!isValid) return;
 
   try {
-    // Si es una sección nueva (id === null), agregarla a la lista
-    if (currentEditingSection.id === null) {
-      const tempId = Math.max(...sections.map(s => s.id || 0), 0) + 1;
-      currentEditingSection.id = tempId;
-      sections.push(currentEditingSection);
-    }
-
-    // Actualizar config de la sección
+    // Actualizar sección en memoria primero
     const sectionIndex = sections.findIndex(s => s.id === currentEditingSection.id);
     if (sectionIndex !== -1) {
       sections[sectionIndex].config = config;
@@ -1107,37 +1000,50 @@ async function saveSectionFromForm(e) {
 
 // ======================== CREAR SECCIÓN ========================
 async function selectSectionType(type) {
-  // Solo prepara el formulario para una sección nueva del tipo seleccionado
-  // No crea la sección todavía - eso ocurre cuando el usuario presiona "Guardar"
+  const token = await getTokenWithRetry();
+  if (!token) {
+    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
+    return;
+  }
 
-  currentEditingSection = {
-    id: null, // null indica que es nueva
-    section_type: type,
-    display_order: sections.length + 1,
-    enabled: true,
-    config: {},
-    created_by: null,
-    updated_by: null
-  };
 
-  // Mostrar el formulario correcto
-  const actualType = getActualSectionType(currentEditingSection);
-  document.querySelectorAll('.edit-fields').forEach(f => f.style.display = 'none');
-  document.getElementById(`${actualType}-fields`).style.display = 'block';
+  try {
+    // Crear sección en memoria con ID temporal
+    const tempId = Math.max(...sections.map(s => s.id || 0), 0) + 1;
+    const newSection = {
+      id: tempId,
+      section_type: type,
+      display_order: sections.length + 1,
+      enabled: true,
+      config: {},
+      created_by: null,
+      updated_by: null
+    };
 
-  // Limpiar los campos del formulario
-  document.querySelectorAll('input[type="text"], textarea, select').forEach(field => {
-    if (field.id && field.id.startsWith(actualType + '-')) {
-      field.value = '';
-    }
-  });
+    sections.push(newSection);
 
-  closeModal('selectTypeModal');
-  document.getElementById('editSectionModal').classList.add('show');
+    closeModal('selectTypeModal');
+    renderSections();
+    updatePreview(); // Refrescar preview
+    hasUnsavedChanges = true;
+    editSection(newSection.id);
 
-  showStatus('⚠️ Rellena el formulario y presiona "Guardar Sección"', 'info');
+    showStatus('✅ Nueva sección creada en borrador (sin publicar aún)', 'success');
 
-  // Resto del código de guardado en borrador se hace en saveSectionFromForm
+    // Guardar en borrador de forma asincrónica
+    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
+    await fetch(saveDraftUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sections })
+    }).catch(err => console.error('Draft save failed:', err));
+  } catch (error) {
+    console.error('Error selecting section type:', error);
+    showStatus('Error: ' + error.message, 'error');
+  }
 }
 
 // ======================== MOVER SECCIÓN ========================
@@ -1551,61 +1457,122 @@ function closeModal(modalId) {
 
 // ======================== IMAGE GALLERY FUNCTIONS ========================
 function renderImageGalleryForm(images = []) {
-  const container = document.getElementById('images-list');
+  const container = document.getElementById('images-list-gallery');
   if (!container) return;
 
   container.innerHTML = '';
   images.forEach((img, idx) => {
-    const div = document.createElement('div');
-    div.className = 'image-gallery-item';
-    div.dataset.url = img.url || '';
-    div.dataset.file = img.file || '';
-    div.innerHTML = `
-      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-        <input type="text" class="form-input image-gallery-link" placeholder="URL del enlace (opcional)" value="${escapeHTML(img.link || '')}" style="flex: 1;">
-        <input type="text" class="form-input" placeholder="URL de imagen" value="${escapeHTML(img.url || '')}" onchange="updateImageUrl(this, ${idx})" style="flex: 1;">
-        <button type="button" onclick="removeImageFromGallery(${idx})" class="btn btn-danger btn-sm">Quitar</button>
-      </div>
-    `;
-    container.appendChild(div);
+    renderImageSquare(img, idx, images.length);
   });
 }
 
+function renderImageSquare(img, idx, totalCount) {
+  const container = document.getElementById('images-list-gallery');
+  if (!container) return;
+
+  const itemDiv = document.createElement('div');
+  itemDiv.className = 'image-gallery-item';
+  itemDiv.dataset.index = idx;
+  itemDiv.dataset.url = img.url || '';
+  itemDiv.dataset.link = img.link || '';
+
+  const squareDiv = document.createElement('div');
+  squareDiv.className = img.url ? 'image-square-wrapper has-image' : 'image-square-wrapper empty';
+
+  if (img.url) {
+    const imgEl = document.createElement('img');
+    imgEl.src = img.url;
+    imgEl.alt = 'Galería de imagen';
+    squareDiv.appendChild(imgEl);
+  } else {
+    squareDiv.innerHTML = '📷';
+  }
+
+  const controlsDiv = document.createElement('div');
+  controlsDiv.className = 'image-gallery-controls';
+
+  const urlInput = document.createElement('input');
+  urlInput.type = 'text';
+  urlInput.className = 'image-url-field';
+  urlInput.placeholder = 'URL imagen';
+  urlInput.value = escapeHTML(img.url || '');
+  urlInput.addEventListener('change', (e) => {
+    itemDiv.dataset.url = e.target.value;
+    updateImageSquareDisplay(idx, e.target.value);
+  });
+
+  const linkInput = document.createElement('input');
+  linkInput.type = 'text';
+  linkInput.className = 'image-link-field';
+  linkInput.placeholder = 'Link (opcional)';
+  linkInput.value = escapeHTML(img.link || '');
+  linkInput.addEventListener('change', (e) => {
+    itemDiv.dataset.link = e.target.value;
+  });
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'image-remove-btn';
+  removeBtn.textContent = 'Quitar';
+  removeBtn.addEventListener('click', () => {
+    removeImageFromGallery(idx);
+  });
+
+  controlsDiv.appendChild(urlInput);
+  controlsDiv.appendChild(linkInput);
+  controlsDiv.appendChild(removeBtn);
+
+  itemDiv.appendChild(squareDiv);
+  itemDiv.appendChild(controlsDiv);
+  container.appendChild(itemDiv);
+}
+
+function updateImageSquareDisplay(idx, url) {
+  const items = document.querySelectorAll('.image-gallery-item');
+  if (items[idx]) {
+    const squareWrapper = items[idx].querySelector('.image-square-wrapper');
+    if (url) {
+      squareWrapper.className = 'image-square-wrapper has-image';
+      squareWrapper.innerHTML = `<img src="${url}" alt="Galería de imagen">`;
+    } else {
+      squareWrapper.className = 'image-square-wrapper empty';
+      squareWrapper.innerHTML = '📷';
+    }
+  }
+}
+
 function addImageToGallery() {
-  const container = document.getElementById('images-list');
+  const container = document.getElementById('images-list-gallery');
   if (!container || container.children.length >= 10) {
     alert('Máximo 10 imágenes permitidas');
     return;
   }
 
-  const div = document.createElement('div');
-  div.className = 'image-gallery-item';
-  div.dataset.url = '';
-  div.dataset.file = '';
-  div.innerHTML = `
-    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-      <input type="text" class="form-input image-gallery-link" placeholder="URL del enlace (opcional)" style="flex: 1;">
-      <input type="text" class="form-input" placeholder="URL de imagen" onchange="updateImageUrl(this)" style="flex: 1;">
-      <button type="button" onclick="removeImageFromGallery()" class="btn btn-danger btn-sm">Quitar</button>
-    </div>
-  `;
-  container.appendChild(div);
+  const newImage = { url: '', link: '' };
+  const newIdx = container.children.length;
+  renderImageSquare(newImage, newIdx, newIdx + 1);
 }
 
 function removeImageFromGallery(idx) {
-  const container = document.getElementById('images-list');
-  if (idx !== undefined) {
-    container.children[idx]?.remove();
-  } else {
-    event.target.closest('.image-gallery-item')?.remove();
+  const container = document.getElementById('images-list-gallery');
+  if (idx !== undefined && container.children[idx]) {
+    container.children[idx].remove();
   }
 }
 
-function updateImageUrl(input, idx) {
-  const item = input.closest('.image-gallery-item');
-  if (item) {
-    item.dataset.url = input.value;
-  }
+function getImageGalleryFromForm() {
+  const container = document.getElementById('images-list-gallery');
+  if (!container) return [];
+
+  const images = [];
+  container.querySelectorAll('.image-gallery-item').forEach((item) => {
+    const url = item.dataset.url || '';
+    const link = item.dataset.link || '';
+    if (url) {
+      images.push({ url, link });
+    }
+  });
+  return images;
 }
 
 // ======================== EVENT LISTENERS ========================
@@ -1747,4 +1714,124 @@ function setupEventListeners() {
     if (e.target === selectTypeModal) selectTypeModal.classList.remove('show');
     if (e.target === editSectionModal) editSectionModal.classList.remove('show');
   });
+}
+
+// ======================== IMAGE GALLERY FUNCTIONS ========================
+function renderImageGalleryForm(images = []) {
+  const container = document.getElementById('image-gallery-container');
+  if (!container) return;
+
+  container.innerHTML = (images || []).map((img, index) => `
+    <div class="image-gallery-item" data-index="${index}" data-url="${img.url || ''}" data-file="${img.file || ''}">
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 12px; align-items: start; padding: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 6px;">
+        <div style="width: 80px; height: 80px; background: #f5f5f5; border: 1px dashed #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          ${img.url ? `<img src="${img.url}" style="width: 100%; height: 100%; object-fit: contain;">` : '<span style="font-size: 24px;">📸</span>'}
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 12px; color: #666; margin-bottom: 6px;">URL o archivo</div>
+          <input type="text" class="form-input" value="${img.url || ''}" placeholder="URL de la imagen" style="margin-bottom: 6px; font-size: 12px;" onchange="updateImageUrl(${index}, this.value)">
+          <input type="file" class="form-input" accept="image/*" onchange="handleImageUpload(${index}, this)" style="font-size: 12px; padding: 4px;">
+          <label class="form-label" style="margin-top: 6px; margin-bottom: 4px; font-size: 12px;">Link (opcional)</label>
+          <input type="text" class="image-gallery-link form-input" value="${img.link || ''}" placeholder="/categoria/stickers" style="font-size: 12px;">
+        </div>
+        <button type="button" class="btn-danger btn-sm" onclick="removeImageFromGallery(${index})" style="flex-shrink: 0;">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addImageToGallery() {
+  const container = document.getElementById('image-gallery-container');
+  if (!container) return;
+
+  const itemCount = container.querySelectorAll('.image-gallery-item').length;
+  if (itemCount >= 10) {
+    alert('Máximo 10 fotos permitidas');
+    return;
+  }
+
+  const newIndex = itemCount;
+  const html = `
+    <div class="image-gallery-item" data-index="${newIndex}" data-url="" data-file="">
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 12px; align-items: start; padding: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 6px;">
+        <div style="width: 80px; height: 80px; background: #f5f5f5; border: 1px dashed #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <span style="font-size: 24px;">📸</span>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 12px; color: #666; margin-bottom: 6px;">URL o archivo</div>
+          <input type="text" class="form-input" placeholder="URL de la imagen" style="margin-bottom: 6px; font-size: 12px;" onchange="updateImageUrl(${newIndex}, this.value)">
+          <input type="file" class="form-input" accept="image/*" onchange="handleImageUpload(${newIndex}, this)" style="font-size: 12px; padding: 4px;">
+          <label class="form-label" style="margin-top: 6px; margin-bottom: 4px; font-size: 12px;">Link (opcional)</label>
+          <input type="text" class="image-gallery-link form-input" value="" placeholder="/categoria/stickers" style="font-size: 12px;">
+        </div>
+        <button type="button" class="btn-danger btn-sm" onclick="removeImageFromGallery(${newIndex})" style="flex-shrink: 0;">🗑️</button>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeImageFromGallery(index) {
+  const container = document.getElementById('image-gallery-container');
+  if (!container) return;
+
+  const items = container.querySelectorAll('.image-gallery-item');
+  if (items[index]) {
+    items[index].remove();
+  }
+}
+
+function updateImageUrl(index, url) {
+  const container = document.getElementById('image-gallery-container');
+  if (!container) return;
+
+  const items = container.querySelectorAll('.image-gallery-item');
+  if (items[index]) {
+    items[index].dataset.url = url;
+    const imgPreview = items[index].querySelector('img');
+    if (imgPreview) {
+      imgPreview.src = url;
+    }
+  }
+}
+
+async function handleImageUpload(index, input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('Por favor sube solo archivos de imagen (JPG, PNG)');
+    return;
+  }
+
+  // Validar tamaño (máx 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('El archivo es muy grande. Máximo 5MB');
+    return;
+  }
+
+  try {
+    // Crear URL temporal para vista previa
+    const tempUrl = URL.createObjectURL(file);
+    const container = document.getElementById('image-gallery-container');
+    if (!container) return;
+
+    const items = container.querySelectorAll('.image-gallery-item');
+    if (items[index]) {
+      items[index].dataset.file = file.name;
+      const imgContainer = items[index].querySelector('div > div:first-child');
+      if (imgContainer) {
+        imgContainer.innerHTML = `<img src="${tempUrl}" style="width: 100%; height: 100%; object-fit: contain;">`;
+      }
+
+      // Guardar referencia al archivo para subir después
+      items[index]._uploadFile = file;
+    }
+
+    showStatus('📸 Foto agregada (se subirá al guardar)', 'success');
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    showStatus('Error al cargar la imagen', 'error');
+  }
 }
