@@ -805,7 +805,6 @@ function fillFormWithSectionData(section) {
     case 'image':
       document.getElementById('image-title').value = config.title || '';
       document.getElementById('image-description').value = config.description || '';
-      document.getElementById('image-columns').value = config.columns || 3;
       renderImageGalleryForm(config.images || []);
       break;
   }
@@ -961,22 +960,7 @@ async function saveSectionFromForm(e) {
       button_url: document.getElementById('como_funciona-button-url').value.trim() || '/productos'
     };
   } else if (actualType === 'image') {
-    const images = [];
-    const imageItems = document.querySelectorAll('.image-gallery-item');
-
-    imageItems.forEach(item => {
-      const file = item.dataset.file;
-      const url = item.dataset.url;
-      const link = item.querySelector('.image-gallery-link')?.value.trim() || '';
-
-      if (file || url) {
-        images.push({
-          url: url || '',
-          link: link || '',
-          file: file || ''
-        });
-      }
-    });
+    const images = getImageGalleryFromForm();
 
     if (images.length === 0) {
       showStatus('Agrega al menos una foto a la galería', 'error');
@@ -986,7 +970,6 @@ async function saveSectionFromForm(e) {
     config = {
       title: document.getElementById('image-title').value.trim() || '',
       description: document.getElementById('image-description').value.trim() || '',
-      columns: parseInt(document.getElementById('image-columns').value) || 3,
       images: images
     };
   } else {
@@ -1470,6 +1453,128 @@ function showStatus(message, type = 'info') {
 
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('show');
+}
+
+<<<<<<< Updated upstream
+=======
+// ======================== IMAGE GALLERY FUNCTIONS ========================
+function renderImageGalleryForm(images = []) {
+  const container = document.getElementById('images-list-gallery');
+  if (!container) return;
+
+  container.innerHTML = '';
+  images.forEach((img, idx) => {
+    renderImageSquare(img, idx, images.length);
+  });
+}
+
+function renderImageSquare(img, idx, totalCount) {
+  const container = document.getElementById('images-list-gallery');
+  if (!container) return;
+
+  const itemDiv = document.createElement('div');
+  itemDiv.className = 'image-gallery-item';
+  itemDiv.dataset.index = idx;
+  itemDiv.dataset.url = img.url || '';
+  itemDiv.dataset.link = img.link || '';
+
+  const squareDiv = document.createElement('div');
+  squareDiv.className = img.url ? 'image-square-wrapper has-image' : 'image-square-wrapper empty';
+
+  if (img.url) {
+    const imgEl = document.createElement('img');
+    imgEl.src = img.url;
+    imgEl.alt = 'Galería de imagen';
+    squareDiv.appendChild(imgEl);
+  } else {
+    squareDiv.innerHTML = '📷';
+  }
+
+  const controlsDiv = document.createElement('div');
+  controlsDiv.className = 'image-gallery-controls';
+
+  const urlInput = document.createElement('input');
+  urlInput.type = 'text';
+  urlInput.className = 'image-url-field';
+  urlInput.placeholder = 'URL imagen';
+  urlInput.value = escapeHTML(img.url || '');
+  urlInput.addEventListener('change', (e) => {
+    itemDiv.dataset.url = e.target.value;
+    updateImageSquareDisplay(idx, e.target.value);
+  });
+
+  const linkInput = document.createElement('input');
+  linkInput.type = 'text';
+  linkInput.className = 'image-link-field';
+  linkInput.placeholder = 'Link (opcional)';
+  linkInput.value = escapeHTML(img.link || '');
+  linkInput.addEventListener('change', (e) => {
+    itemDiv.dataset.link = e.target.value;
+  });
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'image-remove-btn';
+  removeBtn.textContent = 'Quitar';
+  removeBtn.addEventListener('click', () => {
+    removeImageFromGallery(idx);
+  });
+
+  controlsDiv.appendChild(urlInput);
+  controlsDiv.appendChild(linkInput);
+  controlsDiv.appendChild(removeBtn);
+
+  itemDiv.appendChild(squareDiv);
+  itemDiv.appendChild(controlsDiv);
+  container.appendChild(itemDiv);
+}
+
+function updateImageSquareDisplay(idx, url) {
+  const items = document.querySelectorAll('.image-gallery-item');
+  if (items[idx]) {
+    const squareWrapper = items[idx].querySelector('.image-square-wrapper');
+    if (url) {
+      squareWrapper.className = 'image-square-wrapper has-image';
+      squareWrapper.innerHTML = `<img src="${url}" alt="Galería de imagen">`;
+    } else {
+      squareWrapper.className = 'image-square-wrapper empty';
+      squareWrapper.innerHTML = '📷';
+    }
+  }
+}
+
+function addImageToGallery() {
+  const container = document.getElementById('images-list-gallery');
+  if (!container || container.children.length >= 10) {
+    alert('Máximo 10 imágenes permitidas');
+    return;
+  }
+
+  const newImage = { url: '', link: '' };
+  const newIdx = container.children.length;
+  renderImageSquare(newImage, newIdx, newIdx + 1);
+}
+
+function removeImageFromGallery(idx) {
+  const container = document.getElementById('images-list-gallery');
+  if (idx !== undefined && container.children[idx]) {
+    container.children[idx].remove();
+  }
+}
+
+function getImageGalleryFromForm() {
+  const container = document.getElementById('images-list-gallery');
+  if (!container) return [];
+
+  const images = [];
+  container.querySelectorAll('.image-gallery-item').forEach((item) => {
+    const url = item.dataset.url || '';
+    const link = item.dataset.link || '';
+    if (url) {
+      images.push({ url, link });
+    }
+  });
+  return images;
 }
 
 // ======================== EVENT LISTENERS ========================

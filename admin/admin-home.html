@@ -423,25 +423,17 @@
                 <!-- IMAGE GALLERY FIELDS -->
                 <div id="image-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
+                        <label class="form-label">Fotos (máximo 10)</label>
+                        <div id="images-list-gallery" class="images-gallery-grid"></div>
+                        <button type="button" onclick="addImageToGallery()" class="btn btn-secondary" style="width: 100%; margin-top: 16px;">+ Agregar Foto</button>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Título (Opcional)</label>
                         <input type="text" name="title" class="form-input" id="image-title" placeholder="Ej: Nuestros Clientes" maxlength="50">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Descripción (Opcional)</label>
                         <textarea name="description" class="form-textarea" id="image-description" placeholder="Ej: Mira cómo usan nuestros stickers" maxlength="200" style="resize: vertical; height: 60px;"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Columnas</label>
-                        <select class="form-select" name="columns" id="image-columns">
-                            <option value="2">2 columnas</option>
-                            <option value="3" selected>3 columnas</option>
-                            <option value="4">4 columnas</option>
-                        </select>
-                    </div>
-                    <div style="border: 1px solid #ddd; border-radius: 6px; padding: 12px; margin-bottom: 16px; background: #f9f9f9;">
-                        <label class="form-label" style="margin-bottom: 12px;">Fotos</label>
-                        <div id="image-gallery-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
-                        <button type="button" class="btn-secondary" style="width: 100%; margin-top: 8px;" onclick="addImageToGallery()">+ Agregar Foto</button>
                     </div>
                 </div>
 
