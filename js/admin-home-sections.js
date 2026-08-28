@@ -460,28 +460,36 @@ function renderPreviewStats(config) {
 
 // ======================== RENDERIZAR SECCIÓN IMAGEN / CÓMO FUNCIONA EN PREVIEW ========================
 // Replica el markup de .how-section en index.html
-function renderPreviewImage(config) {
-  if (!config.title && !config.steps) return '';
+function renderPreviewComoFunciona(config) {
+  if (!config.title && !config.image_url) return '';
 
-  const steps = config.steps && config.steps.length > 0 ? config.steps : [
-    { icon: '1️⃣', title: 'Elige tu Producto', description: 'Explora nuestro catálogo con cientos de opciones personalizadas' },
-    { icon: '2️⃣', title: 'Personaliza', description: 'Agrega tu toque especial: nombres, colores, mensajes' },
-    { icon: '3️⃣', title: 'Recibe tu Regalo', description: 'Entrega rápida y segura a tu domicilio' }
-  ];
+  return `
+    <section class="como-funciona-section" style="padding: 40px 20px; background: #f9f9f9; text-align: center;">
+      <h2 style="font-size: 28px; margin-bottom: 10px;">${escapeHTML(config.title || '¿Cómo Funciona?')}</h2>
+      <p style="font-size: 16px; color: #666; margin-bottom: 20px;">${escapeHTML(config.subtitle || '')}</p>
+      ${config.image_url ? `<img src="${escapeHTML(config.image_url)}" alt="${escapeHTML(config.title)}" style="max-width: 100%; height: auto; margin-bottom: 20px; max-height: 300px;">` : ''}
+      <a href="#" style="display: inline-block; padding: 12px 24px; background: #7f1f6e; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">${escapeHTML(config.button_text || 'Crear Mi Regalo')}</a>
+    </section>
+  `;
+}
 
-  const stepsHTML = steps.map(step => `
-    <div class="how-step">
-      <div class="how-icon">${escapeHTML(step.icon || '')}</div>
-      <h3>${escapeHTML(step.title || '')}</h3>
-      <p>${escapeHTML(step.description || '')}</p>
+function renderPreviewImageGallery(config) {
+  if (!config.images || config.images.length === 0) return '';
+
+  const columns = Math.min(4, Math.max(1, config.columns || 3));
+  const imagesHTML = config.images.map(img => `
+    <div style="display: flex; align-items: center; justify-content: center; background: #f9f9f9; border-radius: 8px; padding: 10px; min-height: 200px;">
+      ${img.url ? `<img src="${escapeHTML(img.url)}" alt="Imagen" style="max-width: 100%; max-height: 200px; object-fit: contain;">` : '<div style="color: #ccc;">Sin imagen</div>'}
     </div>
   `).join('');
 
   return `
-    <section class="how-section">
-      <h2 class="section-title">${escapeHTML(config.title || '¿Cómo Funciona?')}</h2>
-      <p class="section-subtitle">${escapeHTML(config.subtitle || '3 pasos simples para obtener tu regalo perfecto')}</p>
-      <div class="how-grid">${stepsHTML}</div>
+    <section style="padding: 40px 20px;">
+      ${config.title ? `<h2 style="font-size: 28px; margin-bottom: 10px;">${escapeHTML(config.title)}</h2>` : ''}
+      ${config.description ? `<p style="font-size: 16px; color: #666; margin-bottom: 20px;">${escapeHTML(config.description)}</p>` : ''}
+      <div style="display: grid; grid-template-columns: repeat(${columns}, 1fr); gap: 16px;">
+        ${imagesHTML}
+      </div>
     </section>
   `;
 }
