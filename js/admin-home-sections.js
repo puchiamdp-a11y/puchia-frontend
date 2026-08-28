@@ -981,10 +981,18 @@ async function saveSectionFromForm(e) {
   if (!isValid) return;
 
   try {
-    // Actualizar sección en memoria primero
-    const sectionIndex = sections.findIndex(s => s.id === currentEditingSection.id);
-    if (sectionIndex !== -1) {
-      sections[sectionIndex].config = config;
+    // Si es una sección nueva (id === null), crearla en memoria
+    if (currentEditingSection.id === null) {
+      const tempId = Math.max(...sections.map(s => s.id || 0), 0) + 1;
+      currentEditingSection.id = tempId;
+      currentEditingSection.config = config;
+      sections.push(currentEditingSection);
+    } else {
+      // Si es existente, solo actualizar config
+      const sectionIndex = sections.findIndex(s => s.id === currentEditingSection.id);
+      if (sectionIndex !== -1) {
+        sections[sectionIndex].config = config;
+      }
     }
 
     // Actualizar UI inmediatamente
@@ -1001,46 +1009,35 @@ async function saveSectionFromForm(e) {
 
 // ======================== CREAR SECCIÓN ========================
 async function selectSectionType(type) {
-  const token = await getTokenWithRetry();
-  if (!token) {
-    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
-    return;
-  }
-
-
   try {
-    // Crear sección en memoria con ID temporal
+    // Solo preparar el formulario - NO crear la sección todavía
     const tempId = Math.max(...sections.map(s => s.id || 0), 0) + 1;
     const newSection = {
-      id: tempId,
+      id: null,
       section_type: type,
       display_order: sections.length + 1,
       enabled: true,
-      config: {},
+      config: type === 'image' ? { images: [{ url: '', link: '' }] } : {},
       created_by: null,
       updated_by: null
     };
 
-    sections.push(newSection);
+    currentEditingSection = newSection;
 
     closeModal('selectTypeModal');
-    renderSections();
-    updatePreview(); // Refrescar preview
-    hasUnsavedChanges = true;
-    editSection(newSection.id);
 
-    showStatus('✅ Nueva sección creada en borrador (sin publicar aún)', 'success');
+    // Mostrar el formulario apropiado
+    document.querySelectorAll('.edit-fields').forEach(f => f.style.display = 'none');
+    const fieldsId = type === 'image' ? 'image-fields' : type === 'como_funciona' ? 'como_funciona-fields' : type + '-fields';
+    const fieldsEl = document.getElementById(fieldsId);
+    if (fieldsEl) fieldsEl.style.display = 'block';
 
-    // Guardar en borrador de forma asincrónica
-    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-    await fetch(saveDraftUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
-    }).catch(err => console.error('Draft save failed:', err));
+    // Llenar el formulario con valores iniciales
+    fillFormWithSectionData(newSection);
+
+    // Abrir el modal de edición
+    document.getElementById('editSectionModal').classList.add('show');
+    showStatus('Completa el formulario y presiona "Guardar Sección"', 'info');
   } catch (error) {
     console.error('Error selecting section type:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -1454,6 +1451,11 @@ function showStatus(message, type = 'info') {
 
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('show');
+
+  // Si se está cerrando el modal de edición, limpiar la sección si es nueva sin guardar
+  if (modalId === 'editSectionModal' && currentEditingSection && currentEditingSection.id === null) {
+    currentEditingSection = null;
+  }
 }
 
 // ======================== IMAGE GALLERY FUNCTIONS ========================
