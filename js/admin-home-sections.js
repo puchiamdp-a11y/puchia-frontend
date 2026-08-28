@@ -2023,3 +2023,208 @@ async function removeFavicon() {
     status.style.color = '#c5221f';
   }
 }
+
+// ======================== BRANDING: Logo & Favicon ========================
+async function loadBrandingOnPageLoad() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/home-branding`);
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      const { logo_url, favicon_url } = data.data;
+      
+      if (logo_url) {
+        console.log('🖼️ Loading logo');
+        displayLogo(logo_url);
+      }
+      
+      if (favicon_url) {
+        console.log('🎨 Loading favicon');
+        displayFavicon(favicon_url);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error loading branding:', error);
+  }
+}
+
+function displayLogo(logoUrl) {
+  console.log(`🖼️ displayLogo called with:`, logoUrl?.substring(0, 100) || 'null/undefined');
+  const preview = document.getElementById('logoPreview');
+  const placeholder = document.getElementById('logoPlaceholder');
+  const removeBtn = document.getElementById('logoRemoveBtn');
+  
+  if (!logoUrl) {
+    console.error('❌ Logo URL is null or undefined');
+    return;
+  }
+  if (!preview) {
+    console.error('❌ logoPreview element not found');
+    return;
+  }
+  
+  // For data URLs, do NOT add query params. For file URLs, add timestamp for cache-busting
+  if (logoUrl.startsWith('data:')) {
+    console.log('✅ Using data URL directly');
+    preview.src = logoUrl;
+  } else {
+    console.log('✅ Using file URL with cache-busting');
+    preview.src = `${logoUrl}?t=${Date.now()}`;
+  }
+  preview.style.display = 'block';
+  placeholder.style.display = 'none';
+  if (removeBtn) removeBtn.style.display = 'inline-block';
+}
+
+function displayFavicon(faviconUrl) {
+  console.log(`🎨 displayFavicon called with:`, faviconUrl?.substring(0, 100) || 'null/undefined');
+  const preview = document.getElementById('faviconPreview');
+  const placeholder = document.getElementById('faviconPlaceholder');
+  const removeBtn = document.getElementById('faviconRemoveBtn');
+  
+  if (!faviconUrl) {
+    console.error('❌ Favicon URL is null or undefined');
+    return;
+  }
+  if (!preview) {
+    console.error('❌ faviconPreview element not found');
+    return;
+  }
+  
+  // For data URLs, do NOT add query params. For file URLs, add timestamp for cache-busting
+  if (faviconUrl.startsWith('data:')) {
+    console.log('✅ Using data URL directly');
+    preview.src = faviconUrl;
+  } else {
+    console.log('✅ Using file URL with cache-busting');
+    preview.src = `${faviconUrl}?t=${Date.now()}`;
+  }
+  preview.style.display = 'block';
+  placeholder.style.display = 'none';
+  if (removeBtn) removeBtn.style.display = 'inline-block';
+}
+
+async function uploadBrandingFile(type) {
+  const inputId = type === 'logo' ? 'logoInput' : 'faviconInput';
+  const input = document.getElementById(inputId);
+  const file = input.files[0];
+  
+  if (!file) {
+    console.error('❌ No file selected');
+    return;
+  }
+
+  console.log(`📤 Uploading ${type}:`, file.name, file.size, file.type);
+  const statusDiv = document.getElementById('brandingStatus');
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+
+    console.log(`🔄 Sending ${type} to backend...`);
+    const response = await fetch(`${API_BASE_URL}/admin/home-branding/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+      }
+    });
+
+    const result = await response.json();
+    console.log(`📊 Backend response for ${type}:`, result);
+
+    if (result.success) {
+      console.log(`✅ ${type} uploaded successfully - storage_strategy: ${result.data.storage_strategy}`);
+      
+      if (type === 'logo') {
+        displayLogo(result.data.logo_url);
+      } else if (type === 'favicon') {
+        displayFavicon(result.data.favicon_url);
+      }
+      
+      showBrandingStatus(`✅ ${type === 'logo' ? 'Logo' : 'Favicon'} actualizado correctamente`, 'success');
+      input.value = '';
+    } else {
+      console.error(`❌ Upload failed:`, result.error);
+      showBrandingStatus(`❌ Error: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    console.error(`❌ Error uploading ${type}:`, error);
+    showBrandingStatus(`❌ Error al subir ${type}: ${error.message}`, 'error');
+  }
+}
+
+async function removeBranding(type) {
+  if (!confirm(`¿Eliminar ${type === 'logo' ? 'logo' : 'favicon'}?`)) {
+    return;
+  }
+
+  console.log(`🗑️ Removing ${type}...`);
+  const statusDiv = document.getElementById('brandingStatus');
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/home-branding/remove`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+      },
+      body: JSON.stringify({ type })
+    });
+
+    const result = await response.json();
+    console.log(`📊 Backend response for remove ${type}:`, result);
+
+    if (result.success) {
+      console.log(`✅ ${type} removed successfully`);
+      
+      if (type === 'logo') {
+        document.getElementById('logoPreview').style.display = 'none';
+        document.getElementById('logoPlaceholder').style.display = 'flex';
+        document.getElementById('logoRemoveBtn').style.display = 'none';
+      } else if (type === 'favicon') {
+        document.getElementById('faviconPreview').style.display = 'none';
+        document.getElementById('faviconPlaceholder').style.display = 'flex';
+        document.getElementById('faviconRemoveBtn').style.display = 'none';
+      }
+      
+      showBrandingStatus(`✅ ${type === 'logo' ? 'Logo' : 'Favicon'} eliminado correctamente`, 'success');
+    } else {
+      console.error(`❌ Remove failed:`, result.error);
+      showBrandingStatus(`❌ Error: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    console.error(`❌ Error removing ${type}:`, error);
+    showBrandingStatus(`❌ Error al eliminar ${type}: ${error.message}`, 'error');
+  }
+}
+
+function showBrandingStatus(message, type = 'info') {
+  const statusDiv = document.getElementById('brandingStatus');
+  if (!statusDiv) return;
+  
+  statusDiv.textContent = message;
+  statusDiv.className = `status-bar ${type}`;
+  statusDiv.style.display = 'block';
+  
+  setTimeout(() => {
+    statusDiv.style.display = 'none';
+  }, 4000);
+}
+
+// File input change handlers
+document.addEventListener('DOMContentLoaded', () => {
+  const logoInput = document.getElementById('logoInput');
+  const faviconInput = document.getElementById('faviconInput');
+  
+  if (logoInput) {
+    logoInput.addEventListener('change', () => uploadBrandingFile('logo'));
+  }
+  if (faviconInput) {
+    faviconInput.addEventListener('change', () => uploadBrandingFile('favicon'));
+  }
+  
+  // Load branding on page load
+  loadBrandingOnPageLoad();
+});
