@@ -1139,12 +1139,6 @@ async function selectSectionType(type) {
 
   // Resto del código de guardado en borrador se hace en saveSectionFromForm
 }
-    }).catch(err => console.error('Draft save failed:', err));
-  } catch (error) {
-    console.error('Error selecting section type:', error);
-    showStatus('Error: ' + error.message, 'error');
-  }
-}
 
 // ======================== MOVER SECCIÓN ========================
 async function moveSection(sectionId, direction) {
