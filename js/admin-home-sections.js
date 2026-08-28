@@ -107,6 +107,27 @@ async function loadSections() {
   }
 }
 
+// ======================== DETECTAR TIPO REAL DE SECCIÓN ========================
+// Detecta si una sección "image" antigua es realmente "como_funciona"
+function getActualSectionType(section) {
+  const type = section.section_type;
+  const config = section.config || {};
+
+  // Si es "image", verificar si es realmente "como_funciona" (antigua)
+  if (type === 'image') {
+    // Si tiene image_url y button_text, es la sección antigua "como_funciona"
+    if (config.image_url || config.button_text) {
+      return 'como_funciona';
+    }
+    // Si tiene array de images, es la nueva galería
+    if (Array.isArray(config.images)) {
+      return 'image';
+    }
+  }
+
+  return type;
+}
+
 // ======================== ACTUALIZAR PREVIEW EN VIVO ========================
 function updatePreview() {
   const previewFrame = document.getElementById('previewFrame');
@@ -198,8 +219,9 @@ function getCSSStyles() {
 function renderPreviewSection(section, index) {
   const config = section.config || {};
   let html = '';
+  const actualType = getActualSectionType(section);
 
-  switch (section.section_type) {
+  switch (actualType) {
     case 'scrolling_text':
       html = renderPreviewScrollingText(config);
       break;
@@ -209,8 +231,11 @@ function renderPreviewSection(section, index) {
     case 'stats':
       html = renderPreviewStats(config);
       break;
+    case 'como_funciona':
+      html = renderPreviewComoFunciona(config);
+      break;
     case 'image':
-      html = renderPreviewImage(config);
+      html = renderPreviewImageGallery(config);
       break;
     case 'categories':
       html = renderPreviewCategories(config);
@@ -611,9 +636,12 @@ async function editSection(sectionId) {
 
   currentEditingSection = section;
 
+  // Detectar tipo real (para compatibilidad con secciones antiguas)
+  const actualType = getActualSectionType(section);
+
   // Mostrar formulario según tipo
   document.querySelectorAll('.edit-fields').forEach(f => f.style.display = 'none');
-  document.getElementById(`${section.section_type}-fields`).style.display = 'block';
+  document.getElementById(`${actualType}-fields`).style.display = 'block';
 
   // Llenar formulario con datos actuales
   fillFormWithSectionData(section);
@@ -628,8 +656,9 @@ async function editSection(sectionId) {
 // ======================== LLENAR FORMULARIO ========================
 function fillFormWithSectionData(section) {
   const config = section.config || {};
+  const actualType = getActualSectionType(section);
 
-  switch (section.section_type) {
+  switch (actualType) {
     case 'banner':
       // Cargar banners
       const banners = Array.isArray(config.banners) ? config.banners : [];
@@ -891,9 +920,10 @@ async function saveSectionFromForm(e) {
 
   let config = {};
   let isValid = true;
+  const actualType = getActualSectionType(currentEditingSection);
 
   // Validar y recopilar datos según tipo
-  if (currentEditingSection.section_type === 'banner') {
+  if (actualType === 'banner') {
     const banners = [];
     const bannerItems = document.querySelectorAll('.banner-item');
 
@@ -924,7 +954,7 @@ async function saveSectionFromForm(e) {
       auto_rotate: document.getElementById('banner-auto-rotate').checked,
       rotation_interval: parseInt(document.getElementById('banner-rotation-speed').value) || 5000
     };
-  } else if (currentEditingSection.section_type === 'products') {
+  } else if (actualType === 'products') {
     const selectedIds = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => parseInt(cb.value));
     const productBadges = {};
     document.querySelectorAll('.product-badge-select').forEach(select => {
@@ -942,7 +972,7 @@ async function saveSectionFromForm(e) {
       showStatus('Selecciona al menos un producto', 'error');
       isValid = false;
     }
-  } else if (currentEditingSection.section_type === 'categories') {
+  } else if (actualType === 'categories') {
     const showAll = document.getElementById('categories-show-all').checked;
     const selectedIds = showAll ? [] : Array.from(document.querySelectorAll('.category-checkbox:checked')).map(cb => parseInt(cb.value));
     config = {
@@ -951,14 +981,14 @@ async function saveSectionFromForm(e) {
       ids: selectedIds,
       limit: parseInt(document.getElementById('categories-limit').value) || 10
     };
-  } else if (currentEditingSection.section_type === 'testimonials') {
+  } else if (actualType === 'testimonials') {
     config = {
       title: document.getElementById('testimonials-title').value.trim() || 'Lo que Dicen Nuestros Clientes',
       show_all: document.getElementById('testimonials-show-all').checked,
       min_rating: parseInt(document.getElementById('testimonials-rating').value) || 0,
       limit: parseInt(document.getElementById('testimonials-limit').value) || 5
     };
-  } else if (currentEditingSection.section_type === 'scrolling_text') {
+  } else if (actualType === 'scrolling_text') {
     let bgColorVal = document.getElementById('scrolling-bg-color').value.trim();
     let textColorVal = document.getElementById('scrolling-text-color').value.trim();
 
@@ -989,7 +1019,7 @@ async function saveSectionFromForm(e) {
       showStatus('El texto del anuncio es requerido', 'error');
       isValid = false;
     }
-  } else if (currentEditingSection.section_type === 'stats') {
+  } else if (actualType === 'stats') {
     config = {
       title: document.getElementById('stats-title').value.trim() || 'Nuestros Logros',
       stats: [
@@ -1007,7 +1037,7 @@ async function saveSectionFromForm(e) {
         }
       ]
     };
-  } else if (currentEditingSection.section_type === 'image') {
+  } else if (actualType === 'image') {
     config = {
       title: document.getElementById('image-title').value.trim() || '',
       subtitle: document.getElementById('image-subtitle').value.trim() || '',
