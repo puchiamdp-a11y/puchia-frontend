@@ -208,8 +208,11 @@ function renderPreviewSection(section, index) {
     case 'stats':
       html = renderPreviewStats(config);
       break;
+    case 'como_funciona':
+      html = renderPreviewComoFunciona(config);
+      break;
     case 'image':
-      html = renderPreviewImage(config);
+      html = renderPreviewImageGallery(config);
       break;
     case 'categories':
       html = renderPreviewCategories(config);
@@ -432,7 +435,7 @@ function renderPreviewStats(config) {
 
 // ======================== RENDERIZAR SECCIÓN IMAGEN / CÓMO FUNCIONA EN PREVIEW ========================
 // Replica el markup de .how-section en index.html
-function renderPreviewImage(config) {
+function renderPreviewComoFunciona(config) {
   if (!config.title && !config.steps) return '';
 
   const steps = config.steps && config.steps.length > 0 ? config.steps : [
@@ -454,6 +457,37 @@ function renderPreviewImage(config) {
       <h2 class="section-title">${escapeHTML(config.title || '¿Cómo Funciona?')}</h2>
       <p class="section-subtitle">${escapeHTML(config.subtitle || '3 pasos simples para obtener tu regalo perfecto')}</p>
       <div class="how-grid">${stepsHTML}</div>
+    </section>
+  `;
+}
+
+function renderPreviewImageGallery(config) {
+  if (!config.images || config.images.length === 0) {
+    return `<div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px; color: #999;">Galería vacía - Agrega fotos</div>`;
+  }
+
+  const title = config.title ? `<h2 class="section-title">${escapeHTML(config.title)}</h2>` : '';
+  const description = config.description ? `<p class="section-subtitle">${escapeHTML(config.description)}</p>` : '';
+  const columns = config.columns || 3;
+
+  const imagesHTML = (config.images || []).map(img => {
+    const url = img.url || '';
+    const imageStyle = `width: 100%; height: 200px; object-fit: contain; background: white; border-radius: 6px;`;
+    const imgHTML = `<img src="${url}" alt="gallery" style="${imageStyle}" onerror="this.style.display='none';">`;
+
+    if (img.link) {
+      return `<a href="${escapeHTML(img.link)}" style="text-decoration: none;">${imgHTML}</a>`;
+    }
+    return imgHTML;
+  }).join('');
+
+  return `
+    <section style="padding: 20px; margin-bottom: 20px;">
+      ${title}
+      ${description}
+      <div style="display: grid; grid-template-columns: repeat(${columns}, 1fr); gap: 12px; justify-items: center;">
+        ${imagesHTML}
+      </div>
     </section>
   `;
 }
@@ -734,12 +768,19 @@ function fillFormWithSectionData(section) {
       }
       break;
 
+    case 'como_funciona':
+      document.getElementById('como_funciona-title').value = config.title || '';
+      document.getElementById('como_funciona-subtitle').value = config.subtitle || '';
+      document.getElementById('como_funciona-url').value = config.image_url || '';
+      document.getElementById('como_funciona-button-text').value = config.button_text || 'Crear Mi Regalo';
+      document.getElementById('como_funciona-button-url').value = config.button_url || '/productos';
+      break;
+
     case 'image':
       document.getElementById('image-title').value = config.title || '';
-      document.getElementById('image-subtitle').value = config.subtitle || '';
-      document.getElementById('image-url').value = config.image_url || '';
-      document.getElementById('image-button-text').value = config.button_text || 'Crear Mi Regalo';
-      document.getElementById('image-button-url').value = config.button_url || '/productos';
+      document.getElementById('image-description').value = config.description || '';
+      document.getElementById('image-columns').value = config.columns || 3;
+      renderImageGalleryForm(config.images || []);
       break;
   }
 }
@@ -884,13 +925,42 @@ async function saveSectionFromForm(e) {
         }
       ]
     };
+  } else if (currentEditingSection.section_type === 'como_funciona') {
+    config = {
+      title: document.getElementById('como_funciona-title').value.trim() || '',
+      subtitle: document.getElementById('como_funciona-subtitle').value.trim() || '',
+      image_url: document.getElementById('como_funciona-url').value.trim() || '',
+      button_text: document.getElementById('como_funciona-button-text').value.trim() || 'Crear Mi Regalo',
+      button_url: document.getElementById('como_funciona-button-url').value.trim() || '/productos'
+    };
   } else if (currentEditingSection.section_type === 'image') {
+    const images = [];
+    const imageItems = document.querySelectorAll('.image-gallery-item');
+
+    imageItems.forEach(item => {
+      const file = item.dataset.file;
+      const url = item.dataset.url;
+      const link = item.querySelector('.image-gallery-link')?.value.trim() || '';
+
+      if (file || url) {
+        images.push({
+          url: url || '',
+          link: link || '',
+          file: file || ''
+        });
+      }
+    });
+
+    if (images.length === 0) {
+      showStatus('Agrega al menos una foto a la galería', 'error');
+      isValid = false;
+    }
+
     config = {
       title: document.getElementById('image-title').value.trim() || '',
-      subtitle: document.getElementById('image-subtitle').value.trim() || '',
-      image_url: document.getElementById('image-url').value.trim() || '',
-      button_text: document.getElementById('image-button-text').value.trim() || 'Crear Mi Regalo',
-      button_url: document.getElementById('image-button-url').value.trim() || '/productos'
+      description: document.getElementById('image-description').value.trim() || '',
+      columns: parseInt(document.getElementById('image-columns').value) || 3,
+      images: images
     };
   } else {
     console.error('Unsupported section type:', currentEditingSection.section_type);
@@ -1514,4 +1584,124 @@ function setupEventListeners() {
     if (e.target === selectTypeModal) selectTypeModal.classList.remove('show');
     if (e.target === editSectionModal) editSectionModal.classList.remove('show');
   });
+}
+
+// ======================== IMAGE GALLERY FUNCTIONS ========================
+function renderImageGalleryForm(images = []) {
+  const container = document.getElementById('image-gallery-container');
+  if (!container) return;
+
+  container.innerHTML = (images || []).map((img, index) => `
+    <div class="image-gallery-item" data-index="${index}" data-url="${img.url || ''}" data-file="${img.file || ''}">
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 12px; align-items: start; padding: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 6px;">
+        <div style="width: 80px; height: 80px; background: #f5f5f5; border: 1px dashed #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          ${img.url ? `<img src="${img.url}" style="width: 100%; height: 100%; object-fit: contain;">` : '<span style="font-size: 24px;">📸</span>'}
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 12px; color: #666; margin-bottom: 6px;">URL o archivo</div>
+          <input type="text" class="form-input" value="${img.url || ''}" placeholder="URL de la imagen" style="margin-bottom: 6px; font-size: 12px;" onchange="updateImageUrl(${index}, this.value)">
+          <input type="file" class="form-input" accept="image/*" onchange="handleImageUpload(${index}, this)" style="font-size: 12px; padding: 4px;">
+          <label class="form-label" style="margin-top: 6px; margin-bottom: 4px; font-size: 12px;">Link (opcional)</label>
+          <input type="text" class="image-gallery-link form-input" value="${img.link || ''}" placeholder="/categoria/stickers" style="font-size: 12px;">
+        </div>
+        <button type="button" class="btn-danger btn-sm" onclick="removeImageFromGallery(${index})" style="flex-shrink: 0;">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addImageToGallery() {
+  const container = document.getElementById('image-gallery-container');
+  if (!container) return;
+
+  const itemCount = container.querySelectorAll('.image-gallery-item').length;
+  if (itemCount >= 10) {
+    alert('Máximo 10 fotos permitidas');
+    return;
+  }
+
+  const newIndex = itemCount;
+  const html = `
+    <div class="image-gallery-item" data-index="${newIndex}" data-url="" data-file="">
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 12px; align-items: start; padding: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 6px;">
+        <div style="width: 80px; height: 80px; background: #f5f5f5; border: 1px dashed #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <span style="font-size: 24px;">📸</span>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 12px; color: #666; margin-bottom: 6px;">URL o archivo</div>
+          <input type="text" class="form-input" placeholder="URL de la imagen" style="margin-bottom: 6px; font-size: 12px;" onchange="updateImageUrl(${newIndex}, this.value)">
+          <input type="file" class="form-input" accept="image/*" onchange="handleImageUpload(${newIndex}, this)" style="font-size: 12px; padding: 4px;">
+          <label class="form-label" style="margin-top: 6px; margin-bottom: 4px; font-size: 12px;">Link (opcional)</label>
+          <input type="text" class="image-gallery-link form-input" value="" placeholder="/categoria/stickers" style="font-size: 12px;">
+        </div>
+        <button type="button" class="btn-danger btn-sm" onclick="removeImageFromGallery(${newIndex})" style="flex-shrink: 0;">🗑️</button>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeImageFromGallery(index) {
+  const container = document.getElementById('image-gallery-container');
+  if (!container) return;
+
+  const items = container.querySelectorAll('.image-gallery-item');
+  if (items[index]) {
+    items[index].remove();
+  }
+}
+
+function updateImageUrl(index, url) {
+  const container = document.getElementById('image-gallery-container');
+  if (!container) return;
+
+  const items = container.querySelectorAll('.image-gallery-item');
+  if (items[index]) {
+    items[index].dataset.url = url;
+    const imgPreview = items[index].querySelector('img');
+    if (imgPreview) {
+      imgPreview.src = url;
+    }
+  }
+}
+
+async function handleImageUpload(index, input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('Por favor sube solo archivos de imagen (JPG, PNG)');
+    return;
+  }
+
+  // Validar tamaño (máx 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('El archivo es muy grande. Máximo 5MB');
+    return;
+  }
+
+  try {
+    // Crear URL temporal para vista previa
+    const tempUrl = URL.createObjectURL(file);
+    const container = document.getElementById('image-gallery-container');
+    if (!container) return;
+
+    const items = container.querySelectorAll('.image-gallery-item');
+    if (items[index]) {
+      items[index].dataset.file = file.name;
+      const imgContainer = items[index].querySelector('div > div:first-child');
+      if (imgContainer) {
+        imgContainer.innerHTML = `<img src="${tempUrl}" style="width: 100%; height: 100%; object-fit: contain;">`;
+      }
+
+      // Guardar referencia al archivo para subir después
+      items[index]._uploadFile = file;
+    }
+
+    showStatus('📸 Foto agregada (se subirá al guardar)', 'success');
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    showStatus('Error al cargar la imagen', 'error');
+  }
 }

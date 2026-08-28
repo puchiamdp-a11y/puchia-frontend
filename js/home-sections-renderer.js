@@ -135,8 +135,11 @@ function renderHomeSections() {
         case 'stats':
           html += renderHomeStats(config);
           break;
-        case 'image':
+        case 'como_funciona':
           html += renderHomeHowItWorks(config);
+          break;
+        case 'image':
+          html += renderHomeImageGallery(config);
           break;
         case 'categories':
           html += renderHomeCategories(config);
@@ -385,6 +388,59 @@ function renderHomeTestimonials(config) {
         <a href="${escapeHomeHTML(reviewsLink)}" target="_blank" class="btn btn-primary" style="display: inline-block; background: var(--purple); color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
           ✨ Dejanos tu opinión
         </a>
+      </div>
+    </section>
+  `;
+}
+
+function renderHomeImageGallery(config) {
+  if (!config.images || config.images.length === 0) return '';
+
+  const title = config.title ? `<h2 class="section-title">${escapeHomeHTML(config.title)}</h2>` : '';
+  const description = config.description ? `<p class="section-subtitle">${escapeHomeHTML(config.description)}</p>` : '';
+  const columns = config.columns || 3;
+
+  // Responsive columns
+  const responsiveColumns = `
+    @media (max-width: 1200px) {
+      .image-gallery-grid-${Math.random().toString(36).substr(2, 9)} {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+    @media (max-width: 768px) {
+      .image-gallery-grid-${Math.random().toString(36).substr(2, 9)} {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  `;
+
+  const gridClass = `image-gallery-grid-${Math.random().toString(36).substr(2, 9)}`;
+
+  const imagesHTML = (config.images || []).map(img => {
+    const url = img.url || '';
+    if (!url) return '';
+
+    const imageHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; min-height: 200px; background: #f9f9f9; border-radius: 8px; overflow: hidden;">
+        <img src="${escapeHomeHTML(url)}" alt="gallery" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+      </div>
+    `;
+
+    if (img.link) {
+      return `<a href="${escapeHomeHTML(img.link)}" style="text-decoration: none; display: block; transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">${imageHTML}</a>`;
+    }
+    return imageHTML;
+  }).filter(html => html).join('');
+
+  if (!imagesHTML) return '';
+
+  return `
+    <section style="padding: 40px 20px;">
+      <style>${responsiveColumns}</style>
+      ${title}
+      ${description}
+      <div class="${gridClass}" style="display: grid; grid-template-columns: repeat(${columns}, 1fr); gap: 20px; justify-items: center;">
+        ${imagesHTML}
       </div>
     </section>
   `;

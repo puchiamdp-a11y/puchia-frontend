@@ -392,27 +392,52 @@
                     </div>
                 </div>
 
-                <!-- IMAGE FIELDS -->
-                <div id="image-fields" class="edit-fields" style="display: none;">
+                <!-- COMO FUNCIONA FIELDS (formerly image) -->
+                <div id="como_funciona-fields" class="edit-fields" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Título</label>
-                        <input type="text" name="title" class="form-input" id="image-title" placeholder="¿Cómo Funciona?">
+                        <input type="text" name="title" class="form-input" id="como_funciona-title" placeholder="¿Cómo Funciona?">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Subtítulo</label>
-                        <input type="text" name="subtitle" class="form-input" id="image-subtitle" placeholder="Describe brevemente">
+                        <input type="text" name="subtitle" class="form-input" id="como_funciona-subtitle" placeholder="Describe brevemente">
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL de Imagen</label>
-                        <input type="url" name="image_url" class="form-input" id="image-url" placeholder="https://ejemplo.com/imagen.jpg">
+                        <input type="text" name="image_url" class="form-input" id="como_funciona-url" placeholder="https://ejemplo.com/imagen.jpg">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Texto del Botón</label>
-                        <input type="text" name="button_text" class="form-input" id="image-button-text" placeholder="Crear Mi Regalo">
+                        <input type="text" name="button_text" class="form-input" id="como_funciona-button-text" placeholder="Crear Mi Regalo">
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL del Botón</label>
-                        <input type="url" name="button_url" class="form-input" id="image-button-url" placeholder="https://ejemplo.com">
+                        <input type="text" name="button_url" class="form-input" id="como_funciona-button-url" placeholder="https://ejemplo.com">
+                    </div>
+                </div>
+
+                <!-- IMAGE GALLERY FIELDS -->
+                <div id="image-fields" class="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Título (Opcional)</label>
+                        <input type="text" name="title" class="form-input" id="image-title" placeholder="Ej: Nuestros Clientes" maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripción (Opcional)</label>
+                        <textarea name="description" class="form-textarea" id="image-description" placeholder="Ej: Mira cómo usan nuestros stickers" maxlength="200" style="resize: vertical; height: 60px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Columnas</label>
+                        <select class="form-select" name="columns" id="image-columns">
+                            <option value="2">2 columnas</option>
+                            <option value="3" selected>3 columnas</option>
+                            <option value="4">4 columnas</option>
+                        </select>
+                    </div>
+                    <div style="border: 1px solid #ddd; border-radius: 6px; padding: 12px; margin-bottom: 16px; background: #f9f9f9;">
+                        <label class="form-label" style="margin-bottom: 12px;">Fotos</label>
+                        <div id="image-gallery-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                        <button type="button" class="btn-secondary" style="width: 100%; margin-top: 8px;" onclick="addImageToGallery()">+ Agregar Foto</button>
                     </div>
                 </div>
 
