@@ -224,7 +224,9 @@ function applyHomeScrollingText(config) {
 }
 
 function renderHomeBanner(config) {
-  const banners = Array.isArray(config.banners) ? config.banners : [];
+  // Compatibilidad: buscar en 'slides' (estructura anterior) o 'banners' (nueva estructura)
+  const banners = Array.isArray(config.slides) ? config.slides :
+                  Array.isArray(config.banners) ? config.banners : [];
   if (banners.length === 0) return '';
 
   const bannersHTML = banners.map((banner, index) => {
@@ -232,16 +234,30 @@ function renderHomeBanner(config) {
       ? ` style="background-image: url('${escapeHomeHTML(banner.image_url)}'); background-size: cover; background-position: center;"`
       : '';
 
-    // Si tiene URL, la imagen es clickeable pero sin botón
-    const bannerContent = banner.url && banner.url !== ''
-      ? `<a href="${escapeHomeHTML(banner.url)}" class="banner-content" style="cursor: pointer; text-decoration: none;">
-          <h1>${escapeHomeHTML(banner.title || '')}</h1>
-          ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
-        </a>`
-      : `<div class="banner-content">
-          <h1>${escapeHomeHTML(banner.title || '')}</h1>
-          ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
-        </div>`;
+    // Compatibilidad: usar button_url (backend) o url (frontend)
+    const bannerUrl = banner.button_url || banner.url || '';
+
+    // Si tiene botón o URL, mostrar como link
+    if (bannerUrl) {
+      const buttonText = banner.button_text || 'Ver más';
+      return `
+        <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
+          <a href="${escapeHomeHTML(bannerUrl)}" class="banner-content" style="cursor: pointer; text-decoration: none;">
+            ${banner.eyebrow ? `<div class="banner-eyebrow">${escapeHomeHTML(banner.eyebrow)}</div>` : ''}
+            <h1>${escapeHomeHTML(banner.title || '')}</h1>
+            ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
+            <div class="banner-btn">${escapeHomeHTML(buttonText)}</div>
+          </a>
+        </div>
+      `;
+    }
+
+    // Sin botón: solo contenido de texto
+    const bannerContent = `<div class="banner-content">
+      ${banner.eyebrow ? `<div class="banner-eyebrow">${escapeHomeHTML(banner.eyebrow)}</div>` : ''}
+      <h1>${escapeHomeHTML(banner.title || '')}</h1>
+      ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
+    </div>`;
 
     return `
       <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>

@@ -1797,7 +1797,12 @@ function displayLogo(logoUrl) {
   const placeholder = document.getElementById('logoPlaceholder');
   const removeBtn = document.getElementById('logoRemoveBtn');
 
-  preview.src = `${logoUrl}?t=${Date.now()}`;
+  // Para data URLs, no agregar query params. Para file URLs, agregar timestamp para cache-busting
+  if (logoUrl.startsWith('data:')) {
+    preview.src = logoUrl;
+  } else {
+    preview.src = `${logoUrl}?t=${Date.now()}`;
+  }
   preview.style.display = 'block';
   placeholder.style.display = 'none';
   removeBtn.style.display = 'inline-block';
@@ -1808,7 +1813,12 @@ function displayFavicon(faviconUrl) {
   const placeholder = document.getElementById('faviconPlaceholder');
   const removeBtn = document.getElementById('faviconRemoveBtn');
 
-  preview.src = `${faviconUrl}?t=${Date.now()}`;
+  // Para data URLs, no agregar query params. Para file URLs, agregar timestamp para cache-busting
+  if (faviconUrl.startsWith('data:')) {
+    preview.src = faviconUrl;
+  } else {
+    preview.src = `${faviconUrl}?t=${Date.now()}`;
+  }
   preview.style.display = 'block';
   placeholder.style.display = 'none';
   removeBtn.style.display = 'inline-block';
