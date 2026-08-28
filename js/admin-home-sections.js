@@ -796,10 +796,9 @@ function fillFormWithSectionData(section) {
 
     case 'image':
       document.getElementById('image-title').value = config.title || '';
-      document.getElementById('image-subtitle').value = config.subtitle || '';
-      document.getElementById('image-url').value = config.image_url || '';
-      document.getElementById('image-button-text').value = config.button_text || 'Crear Mi Regalo';
-      document.getElementById('image-button-url').value = config.button_url || '/productos';
+      document.getElementById('image-description').value = config.description || '';
+      document.getElementById('image-columns').value = config.columns || 3;
+      renderImageGalleryForm(config.images || []);
       break;
   }
 }
@@ -1046,12 +1045,32 @@ async function saveSectionFromForm(e) {
       ]
     };
   } else if (actualType === 'image') {
+    const images = [];
+    const imageItems = document.querySelectorAll('.image-gallery-item');
+
+    imageItems.forEach(item => {
+      const url = item.dataset.url?.trim() || item.querySelector('input[type="text"]')?.value?.trim() || '';
+      const link = item.querySelector('.image-gallery-link')?.value?.trim() || '';
+
+      if (url) {
+        images.push({
+          url: url,
+          link: link || '',
+          file: ''
+        });
+      }
+    });
+
+    if (images.length === 0) {
+      showStatus('Agrega al menos una foto a la galería', 'error');
+      isValid = false;
+    }
+
     config = {
       title: document.getElementById('image-title').value.trim() || '',
-      subtitle: document.getElementById('image-subtitle').value.trim() || '',
-      image_url: document.getElementById('image-url').value.trim() || '',
-      button_text: document.getElementById('image-button-text').value.trim() || 'Crear Mi Regalo',
-      button_url: document.getElementById('image-button-url').value.trim() || '/productos'
+      description: document.getElementById('image-description').value.trim() || '',
+      columns: parseInt(document.getElementById('image-columns').value) || 3,
+      images: images
     };
   } else {
     console.error('Unsupported section type:', currentEditingSection.section_type);
@@ -1061,7 +1080,14 @@ async function saveSectionFromForm(e) {
   if (!isValid) return;
 
   try {
-    // Actualizar sección en memoria primero
+    // Si es una sección nueva (id === null), agregarla a la lista
+    if (currentEditingSection.id === null) {
+      const tempId = Math.max(...sections.map(s => s.id || 0), 0) + 1;
+      currentEditingSection.id = tempId;
+      sections.push(currentEditingSection);
+    }
+
+    // Actualizar config de la sección
     const sectionIndex = sections.findIndex(s => s.id === currentEditingSection.id);
     if (sectionIndex !== -1) {
       sections[sectionIndex].config = config;
@@ -1081,45 +1107,38 @@ async function saveSectionFromForm(e) {
 
 // ======================== CREAR SECCIÓN ========================
 async function selectSectionType(type) {
-  const token = await getTokenWithRetry();
-  if (!token) {
-    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
-    return;
-  }
+  // Solo prepara el formulario para una sección nueva del tipo seleccionado
+  // No crea la sección todavía - eso ocurre cuando el usuario presiona "Guardar"
 
+  currentEditingSection = {
+    id: null, // null indica que es nueva
+    section_type: type,
+    display_order: sections.length + 1,
+    enabled: true,
+    config: {},
+    created_by: null,
+    updated_by: null
+  };
 
-  try {
-    // Crear sección en memoria con ID temporal
-    const tempId = Math.max(...sections.map(s => s.id || 0), 0) + 1;
-    const newSection = {
-      id: tempId,
-      section_type: type,
-      display_order: sections.length + 1,
-      enabled: true,
-      config: {},
-      created_by: null,
-      updated_by: null
-    };
+  // Mostrar el formulario correcto
+  const actualType = getActualSectionType(currentEditingSection);
+  document.querySelectorAll('.edit-fields').forEach(f => f.style.display = 'none');
+  document.getElementById(`${actualType}-fields`).style.display = 'block';
 
-    sections.push(newSection);
+  // Limpiar los campos del formulario
+  document.querySelectorAll('input[type="text"], textarea, select').forEach(field => {
+    if (field.id && field.id.startsWith(actualType + '-')) {
+      field.value = '';
+    }
+  });
 
-    closeModal('selectTypeModal');
-    renderSections();
-    updatePreview(); // Refrescar preview
-    hasUnsavedChanges = true;
-    editSection(newSection.id);
+  closeModal('selectTypeModal');
+  document.getElementById('editSectionModal').classList.add('show');
 
-    showStatus('✅ Nueva sección creada en borrador (sin publicar aún)', 'success');
+  showStatus('⚠️ Rellena el formulario y presiona "Guardar Sección"', 'info');
 
-    // Guardar en borrador de forma asincrónica
-    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-    await fetch(saveDraftUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
+  // Resto del código de guardado en borrador se hace en saveSectionFromForm
+}
     }).catch(err => console.error('Draft save failed:', err));
   } catch (error) {
     console.error('Error selecting section type:', error);
@@ -1534,6 +1553,65 @@ function showStatus(message, type = 'info') {
 
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('show');
+}
+
+// ======================== IMAGE GALLERY FUNCTIONS ========================
+function renderImageGalleryForm(images = []) {
+  const container = document.getElementById('images-list');
+  if (!container) return;
+
+  container.innerHTML = '';
+  images.forEach((img, idx) => {
+    const div = document.createElement('div');
+    div.className = 'image-gallery-item';
+    div.dataset.url = img.url || '';
+    div.dataset.file = img.file || '';
+    div.innerHTML = `
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <input type="text" class="form-input image-gallery-link" placeholder="URL del enlace (opcional)" value="${escapeHTML(img.link || '')}" style="flex: 1;">
+        <input type="text" class="form-input" placeholder="URL de imagen" value="${escapeHTML(img.url || '')}" onchange="updateImageUrl(this, ${idx})" style="flex: 1;">
+        <button type="button" onclick="removeImageFromGallery(${idx})" class="btn btn-danger btn-sm">Quitar</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addImageToGallery() {
+  const container = document.getElementById('images-list');
+  if (!container || container.children.length >= 10) {
+    alert('Máximo 10 imágenes permitidas');
+    return;
+  }
+
+  const div = document.createElement('div');
+  div.className = 'image-gallery-item';
+  div.dataset.url = '';
+  div.dataset.file = '';
+  div.innerHTML = `
+    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+      <input type="text" class="form-input image-gallery-link" placeholder="URL del enlace (opcional)" style="flex: 1;">
+      <input type="text" class="form-input" placeholder="URL de imagen" onchange="updateImageUrl(this)" style="flex: 1;">
+      <button type="button" onclick="removeImageFromGallery()" class="btn btn-danger btn-sm">Quitar</button>
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+function removeImageFromGallery(idx) {
+  const container = document.getElementById('images-list');
+  if (idx !== undefined) {
+    container.children[idx]?.remove();
+  } else {
+    event.target.closest('.image-gallery-item')?.remove();
+  }
+}
+
+function updateImageUrl(input, idx) {
+  const item = input.closest('.image-gallery-item');
+  if (item) {
+    item.dataset.url = input.value;
+  }
 }
 
 // ======================== EVENT LISTENERS ========================
