@@ -1717,4 +1717,223 @@ function setupEventListeners() {
     if (e.target === selectTypeModal) selectTypeModal.classList.remove('show');
     if (e.target === editSectionModal) editSectionModal.classList.remove('show');
   });
+
+  // ======================== BRANDING SETUP ========================
+  initBrandingUpload();
+}
+
+// ======================== BRANDING FUNCTIONS ========================
+async function initBrandingUpload() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/home-branding`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
+      }
+    });
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      const { logo_url, favicon_url } = result.data;
+
+      if (logo_url) {
+        displayLogo(logo_url);
+      }
+      if (favicon_url) {
+        displayFavicon(favicon_url);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading branding:', error);
+  }
+
+  setupLogoUpload();
+  setupFaviconUpload();
+}
+
+function displayLogo(logoUrl) {
+  const preview = document.getElementById('logoPreview');
+  const placeholder = document.getElementById('logoPlaceholder');
+  const removeBtn = document.getElementById('logoRemoveBtn');
+
+  preview.src = `${logoUrl}?t=${Date.now()}`;
+  preview.style.display = 'block';
+  placeholder.style.display = 'none';
+  removeBtn.style.display = 'inline-block';
+}
+
+function displayFavicon(faviconUrl) {
+  const preview = document.getElementById('faviconPreview');
+  const placeholder = document.getElementById('faviconPlaceholder');
+  const removeBtn = document.getElementById('faviconRemoveBtn');
+
+  preview.src = `${faviconUrl}?t=${Date.now()}`;
+  preview.style.display = 'block';
+  placeholder.style.display = 'none';
+  removeBtn.style.display = 'inline-block';
+}
+
+function setupLogoUpload() {
+  const fileInput = document.getElementById('logoFileInput');
+  const status = document.getElementById('logoStatus');
+
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    await uploadBrandingFile(file, 'logo', status);
+  });
+}
+
+function setupFaviconUpload() {
+  const fileInput = document.getElementById('faviconFileInput');
+  const status = document.getElementById('faviconStatus');
+
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    await uploadBrandingFile(file, 'favicon', status);
+  });
+}
+
+async function uploadBrandingFile(file, type, statusElement) {
+  if (!file.type.startsWith('image/')) {
+    statusElement.textContent = '❌ Por favor, sube solo archivos de imagen';
+    statusElement.style.display = 'block';
+    statusElement.style.color = '#c5221f';
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    statusElement.textContent = '❌ Archivo muy grande (máximo 2MB)';
+    statusElement.style.display = 'block';
+    statusElement.style.color = '#c5221f';
+    return;
+  }
+
+  statusElement.textContent = '⏳ Subiendo...';
+  statusElement.style.display = 'block';
+  statusElement.style.color = '#666';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', type);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/home-branding/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
+      },
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      statusElement.textContent = `✅ ${type === 'logo' ? 'Foto de perfil' : 'Favicon'} actualizado correctamente`;
+      statusElement.style.color = '#1a7c3a';
+
+      if (type === 'logo') {
+        displayLogo(result.data.logo_url);
+      } else {
+        displayFavicon(result.data.favicon_url);
+      }
+
+      setTimeout(() => {
+        statusElement.style.display = 'none';
+      }, 3000);
+    } else {
+      statusElement.textContent = `❌ ${result.error || 'Error al subir archivo'}`;
+      statusElement.style.color = '#c5221f';
+    }
+  } catch (error) {
+    console.error('Error uploading branding:', error);
+    statusElement.textContent = '❌ Error al subir archivo';
+    statusElement.style.color = '#c5221f';
+  }
+}
+
+async function removeLogo() {
+  if (!confirm('¿Estás seguro que deseas eliminar la foto de perfil?')) return;
+
+  const preview = document.getElementById('logoPreview');
+  const placeholder = document.getElementById('logoPlaceholder');
+  const removeBtn = document.getElementById('logoRemoveBtn');
+  const status = document.getElementById('logoStatus');
+
+  status.textContent = '⏳ Eliminando...';
+  status.style.display = 'block';
+  status.style.color = '#666';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/home-branding/remove`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
+      },
+      body: JSON.stringify({ type: 'logo' })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      preview.style.display = 'none';
+      placeholder.style.display = 'block';
+      removeBtn.style.display = 'none';
+      status.textContent = '✅ Foto de perfil eliminada';
+      status.style.color = '#1a7c3a';
+
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 2000);
+    }
+  } catch (error) {
+    console.error('Error removing logo:', error);
+    status.textContent = '❌ Error al eliminar';
+    status.style.color = '#c5221f';
+  }
+}
+
+async function removeFavicon() {
+  if (!confirm('¿Estás seguro que deseas eliminar el favicon?')) return;
+
+  const preview = document.getElementById('faviconPreview');
+  const placeholder = document.getElementById('faviconPlaceholder');
+  const removeBtn = document.getElementById('faviconRemoveBtn');
+  const status = document.getElementById('faviconStatus');
+
+  status.textContent = '⏳ Eliminando...';
+  status.style.display = 'block';
+  status.style.color = '#666';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/home-branding/remove`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
+      },
+      body: JSON.stringify({ type: 'favicon' })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      preview.style.display = 'none';
+      placeholder.style.display = 'block';
+      removeBtn.style.display = 'none';
+      status.textContent = '✅ Favicon eliminado';
+      status.style.color = '#1a7c3a';
+
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 2000);
+    }
+  } catch (error) {
+    console.error('Error removing favicon:', error);
+    status.textContent = '❌ Error al eliminar';
+    status.style.color = '#c5221f';
+  }
 }

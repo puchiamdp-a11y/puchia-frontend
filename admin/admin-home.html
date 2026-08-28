@@ -139,6 +139,53 @@
         <h1 style="margin-top: 0;">Editar Tienda</h1>
         <p style="color: #666; margin-bottom: 24px;">Reordena, edita, duplica o elimina secciones. Los cambios se guardan automáticamente.</p>
 
+        <!-- CONFIGURACIÓN DE TIENDA -->
+        <div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+            <h2 style="margin-top: 0; margin-bottom: 24px; font-size: 18px;">⚙️ Configuración de Tienda</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                <!-- Foto de Perfil -->
+                <div>
+                    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 14px; font-weight: 600;">📷 Foto de Perfil</h3>
+                    <div style="border: 2px dashed #d0d0d0; border-radius: 8px; padding: 20px; text-align: center; background: #fafbfc; position: relative;">
+                        <div id="logoPreviewContainer" style="margin-bottom: 16px; display: flex; justify-content: center; align-items: center; min-height: 120px;">
+                            <div id="logoPlaceholder" style="text-align: center; color: #999;">
+                                <div style="font-size: 48px; margin-bottom: 8px;">📷</div>
+                                <div style="font-size: 12px;">Cargando...</div>
+                            </div>
+                            <img id="logoPreview" style="display: none; max-width: 120px; max-height: 120px; object-fit: contain; border-radius: 6px;" alt="Foto de perfil">
+                        </div>
+                        <input type="file" id="logoFileInput" accept="image/*" style="display: none;">
+                        <div style="display: flex; gap: 8px; justify-content: center;">
+                            <button type="button" class="btn-primary btn-sm" onclick="document.getElementById('logoFileInput').click();">Cambiar Foto</button>
+                            <button type="button" class="btn-danger btn-sm" id="logoRemoveBtn" style="display: none;" onclick="removeLogo();">Eliminar</button>
+                        </div>
+                    </div>
+                    <div id="logoStatus" style="margin-top: 12px; font-size: 12px; color: #666; display: none;"></div>
+                </div>
+
+                <!-- Favicon -->
+                <div>
+                    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 14px; font-weight: 600;">🔗 Favicon</h3>
+                    <div style="border: 2px dashed #d0d0d0; border-radius: 8px; padding: 20px; text-align: center; background: #fafbfc; position: relative;">
+                        <div id="faviconPreviewContainer" style="margin-bottom: 16px; display: flex; justify-content: center; align-items: center; min-height: 120px;">
+                            <div id="faviconPlaceholder" style="text-align: center; color: #999;">
+                                <div style="font-size: 48px; margin-bottom: 8px;">🔗</div>
+                                <div style="font-size: 12px;">Cargando...</div>
+                            </div>
+                            <img id="faviconPreview" style="display: none; max-width: 120px; max-height: 120px; object-fit: contain; border-radius: 6px;" alt="Favicon">
+                        </div>
+                        <input type="file" id="faviconFileInput" accept="image/*" style="display: none;">
+                        <div style="display: flex; gap: 8px; justify-content: center;">
+                            <button type="button" class="btn-primary btn-sm" onclick="document.getElementById('faviconFileInput').click();">Cambiar Favicon</button>
+                            <button type="button" class="btn-danger btn-sm" id="faviconRemoveBtn" style="display: none;" onclick="removeFavicon();">Eliminar</button>
+                        </div>
+                    </div>
+                    <div id="faviconStatus" style="margin-top: 12px; font-size: 12px; color: #666; display: none;"></div>
+                </div>
+            </div>
+        </div>
+
             <!-- TOOLBAR -->
             <div class="sections-toolbar">
                 <button class="btn-primary" id="addSectionBtn">➕ Agregar Sección</button>
