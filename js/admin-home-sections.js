@@ -1744,12 +1744,30 @@ function setupEventListeners() {
 
 // ======================== BRANDING FUNCTIONS ========================
 async function initBrandingUpload() {
+  const token = localStorage.getItem('puchia_admin_token');
+
+  // Si no hay token, mostrar placeholders y permitir upload después
+  if (!token) {
+    console.log('Token no disponible aún, inicializando controles de branding...');
+    setupLogoUpload();
+    setupFaviconUpload();
+    return;
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}/admin/home-branding`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
+        'Authorization': `Bearer ${token}`
       }
     });
+
+    if (!response.ok) {
+      console.warn(`No se pudo cargar branding (${response.status}), usando placeholders`);
+      setupLogoUpload();
+      setupFaviconUpload();
+      return;
+    }
+
     const result = await response.json();
 
     if (result.success && result.data) {
