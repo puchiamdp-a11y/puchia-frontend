@@ -771,7 +771,11 @@ function fillFormWithSectionData(section) {
       if (bgPreview) bgPreview.style.backgroundColor = bgColor;
 
       const textPreview = document.getElementById('scrolling-text-preview');
-      if (textPreview) textPreview.style.backgroundColor = textColor;
+      if (textPreview) textPreview.style.color = textColor;
+
+      // Actualizar color picker de texto
+      const scrollingTextColorPicker = document.getElementById('scrolling-text-color-picker');
+      if (scrollingTextColorPicker) scrollingTextColorPicker.value = textColor;
 
       // Actualizar valor mostrado de velocidad
       const speedValue = document.getElementById('scrolling-speed-value');
