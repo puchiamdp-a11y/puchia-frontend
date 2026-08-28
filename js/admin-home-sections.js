@@ -530,7 +530,7 @@ function renderSections() {
 
       <div class="section-content">
         <div>
-          <span class="section-type-badge">${getSectionTypeLabel(section.section_type)}</span>
+          <span class="section-type-badge" style="background-color: ${getSectionTypeColor(section.section_type)};">${getSectionTypeLabel(section.section_type)}</span>
           <div class="section-title">${getSectionTitle(section)}</div>
         </div>
         <div class="section-config">
@@ -1409,9 +1409,24 @@ function getSectionTypeLabel(type) {
     testimonials: 'Opiniones',
     scrolling_text: 'Zona de Texto',
     stats: 'Animación de Números',
-    image: 'Imagen'
+    image: 'Imagen',
+    como_funciona: '¿Cómo Funciona?'
   };
   return labels[type] || type;
+}
+
+function getSectionTypeColor(type) {
+  const colors = {
+    banner: '#2563EB',           // Azul
+    products: '#16A34A',         // Verde
+    categories: '#EA580C',       // Naranja
+    testimonials: '#DC2626',     // Rojo
+    scrolling_text: '#9333EA',   // Púrpura
+    stats: '#EAB308',            // Amarillo
+    image: '#0891B2',            // Turquesa
+    como_funciona: '#64748B'     // Gris
+  };
+  return colors[type] || '#7b2d8e';
 }
 
 function getSectionTitle(section) {
@@ -1619,10 +1634,12 @@ function setupEventListeners() {
   const scrollingBgColorPicker = document.getElementById('scrolling-bg-color-picker');
   const scrollingBgColorInput = document.getElementById('scrolling-bg-color');
   if (scrollingBgColorPicker && scrollingBgColorInput) {
+    // Inicializar con valor por defecto
+    scrollingBgColorInput.value = '#FF1493';
+
     // Cuando cambia el color picker, actualizar el texto HEX
     scrollingBgColorPicker.addEventListener('input', (e) => {
-      const hexValue = e.target.value.substring(1);
-      scrollingBgColorInput.value = hexValue;
+      scrollingBgColorInput.value = e.target.value;
       updatePreview();
     });
 
@@ -1632,6 +1649,7 @@ function setupEventListeners() {
       if (!value.startsWith('#')) value = '#' + value;
       if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(value)) {
         scrollingBgColorPicker.value = value;
+        scrollingBgColorInput.value = value;
       }
       updatePreview();
     });
@@ -1641,10 +1659,12 @@ function setupEventListeners() {
   const scrollingTextColorPicker = document.getElementById('scrolling-text-color-picker');
   const scrollingTextColorInput = document.getElementById('scrolling-text-color');
   if (scrollingTextColorPicker && scrollingTextColorInput) {
+    // Inicializar con valor por defecto
+    scrollingTextColorInput.value = '#FFFFFF';
+
     // Cuando cambia el color picker, actualizar el texto HEX
     scrollingTextColorPicker.addEventListener('input', (e) => {
-      const hexValue = e.target.value.substring(1);
-      scrollingTextColorInput.value = hexValue;
+      scrollingTextColorInput.value = e.target.value;
       updatePreview();
     });
 
