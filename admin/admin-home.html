@@ -139,6 +139,33 @@
         <h1 style="margin-top: 0;">Editar Tienda</h1>
         <p style="color: #666; margin-bottom: 24px;">Reordena, edita, duplica o elimina secciones. Los cambios se guardan automáticamente.</p>
 
+            <!-- BRANDING SECTION: Logo and Favicon -->
+            <div style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+                <h3 style="margin-top: 0; margin-bottom: 16px;">🎨 Identidad Visual</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Logo Upload -->
+                    <div>
+                        <label class="form-label">Logo</label>
+                        <div id="logoPreview" style="display: none; width: 100%; height: 120px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px; object-fit: contain; background: white;"></div>
+                        <div id="logoPlaceholder" style="width: 100%; height: 120px; border: 2px dashed #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #999; margin-bottom: 12px; font-size: 14px;">Sin logo</div>
+                        <input type="file" id="logoInput" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display: none;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('logoInput').click()" style="width: 100%; margin-bottom: 8px;">Cambiar Logo</button>
+                        <button type="button" id="logoRemoveBtn" class="btn-danger" onclick="removeBranding('logo')" style="width: 100%; display: none;">Eliminar Logo</button>
+                    </div>
+
+                    <!-- Favicon Upload -->
+                    <div>
+                        <label class="form-label">Favicon</label>
+                        <div id="faviconPreview" style="display: none; width: 100%; height: 120px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px; object-fit: contain; background: white;"></div>
+                        <div id="faviconPlaceholder" style="width: 100%; height: 120px; border: 2px dashed #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #999; margin-bottom: 12px; font-size: 14px;">Sin favicon</div>
+                        <input type="file" id="faviconInput" accept="image/png,image/jpeg,image/svg+xml,image/x-icon,image/webp" style="display: none;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('faviconInput').click()" style="width: 100%; margin-bottom: 8px;">Cambiar Favicon</button>
+                        <button type="button" id="faviconRemoveBtn" class="btn-danger" onclick="removeBranding('favicon')" style="width: 100%; display: none;">Eliminar Favicon</button>
+                    </div>
+                </div>
+                <div id="brandingStatus" class="status-bar" style="display: none; margin-top: 16px;"></div>
+            </div>
+
             <!-- TOOLBAR -->
             <div class="sections-toolbar">
                 <button class="btn-primary" id="addSectionBtn">➕ Agregar Sección</button>
