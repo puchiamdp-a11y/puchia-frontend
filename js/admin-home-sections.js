@@ -805,7 +805,8 @@ function fillFormWithSectionData(section) {
     case 'image':
       document.getElementById('image-title').value = config.title || '';
       document.getElementById('image-description').value = config.description || '';
-      renderImageGalleryForm(config.images || []);
+      const images = config.images && config.images.length > 0 ? config.images : [{ url: '', link: '' }];
+      renderImageGalleryForm(images);
       break;
   }
 }
