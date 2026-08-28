@@ -421,6 +421,26 @@
     color: var(--white);
 }
 
+.badge-nuevo {
+    background: #4ecdc4;
+    color: var(--white);
+}
+
+.badge-mas-vendido {
+    background: #fbbf24;
+    color: #333;
+}
+
+.badge-ultimas-unidades {
+    background: #ff6b6b;
+    color: var(--white);
+}
+
+.badge-en-oferta {
+    background: #10b981;
+    color: var(--white);
+}
+
 .product-image {
     font-size: 80px;
     text-align: center;

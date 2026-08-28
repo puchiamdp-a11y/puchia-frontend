@@ -109,6 +109,7 @@ async function loadAndRenderHomeSections() {
 
     if (!data || data.length === 0) {
       console.log('[CMS] Sin secciones publicadas, se mantiene el HOME por defecto');
+      hideLoadingScreen();
       return;
     }
 
@@ -116,11 +117,20 @@ async function loadAndRenderHomeSections() {
     await ensureHomeSectionsDependencies(data);
 
     renderHomeSections();
+    hideLoadingScreen();
     startHomeSectionsPolling();
     console.log('[CMS] HOME renderizado desde el CMS:', data.length, 'secciones');
   } catch (error) {
     console.error('[CMS] Error cargando secciones:', error.message);
     console.log('[CMS] Se mantienen las secciones por defecto del HTML');
+    hideLoadingScreen();
+  }
+}
+
+function hideLoadingScreen() {
+  const loadingScreen = document.getElementById('cms-loading-screen');
+  if (loadingScreen) {
+    loadingScreen.classList.add('hidden');
   }
 }
 
@@ -350,8 +360,11 @@ function renderHomeProducts(config) {
 
   const productsHTML = selectedProducts.length === 0
     ? homeSectionsPlaceholder('Sin productos disponibles')
-    : `<div class="products-grid" id="productsGrid">${selectedProducts.map(product => `
+    : `<div class="products-grid" id="productsGrid">${selectedProducts.map(product => {
+        const badge = config.badges && config.badges[product.id];
+        return `
         <div class="product-card" data-product-id="${product.id}">
+          ${badge ? `<div class="product-badge badge-${badge.toLowerCase().replace(/ /g, '-')}">${escapeHomeHTML(badge)}</div>` : ''}
           <div class="product-image" style="cursor: pointer;">${escapeHomeHTML(product.icon || '📦')}</div>
           <div class="product-info">
             <div class="product-name" style="cursor: pointer;">${escapeHomeHTML(product.name)}</div>
@@ -361,7 +374,8 @@ function renderHomeProducts(config) {
             </button>
           </div>
         </div>
-      `).join('')}</div>`;
+      `;
+      }).join('')}</div>`;
 
   return `
     <section class="featured-products" id="productos">
