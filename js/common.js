@@ -10,10 +10,38 @@ function getSettings() {
         logo: 'P',
         logoText: 'Puchia',
         announceText: 'Envío gratis en compras mayores a $2.000 🎉',
+        announceBgColor: '#bd0cd4',
+        announceTextColor: '#ffffff',
+        announceScrollSpeed: 50,
         whatsappNumber: '5492235847353',
     };
     const saved = localStorage.getItem('puchia_settings');
     return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+}
+
+async function loadSettingsFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/settings`);
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        const data = await response.json();
+
+        if (data.success && data.data) {
+            const settings = {
+                logo: 'P',
+                logoText: data.data.logo_text || 'Puchia',
+                announceText: data.data.announcement_text || 'Envío gratis en compras mayores a $2.000 🎉',
+                announceBgColor: data.data.announcement_bg_color || '#bd0cd4',
+                announceTextColor: data.data.announcement_text_color || '#ffffff',
+                announceScrollSpeed: data.data.announcement_scroll_speed || 50,
+                whatsappNumber: data.data.whatsapp_number || '5492235847353'
+            };
+            saveSettings(settings);
+            return settings;
+        }
+    } catch (error) {
+        console.warn('No se pudieron cargar settings de API, usando valores locales:', error);
+    }
+    return getSettings();
 }
 
 function saveSettings(settings) {

@@ -16,10 +16,15 @@ function updateUIWithSettings() {
     if (logoText) logoText.textContent = settings.logoText;
     if (footerLogo) footerLogo.textContent = settings.logo;
     if (footerBrandText) footerBrandText.textContent = settings.logoText;
-    if (announcementBar) announcementBar.textContent = settings.announceText;
+    if (announcementBar) {
+        announcementBar.textContent = settings.announceText;
+        announcementBar.style.backgroundColor = settings.announceBgColor || '#bd0cd4';
+        announcementBar.style.color = settings.announceTextColor || '#ffffff';
+    }
 }
 
-function loadInterface() {
+async function loadInterface() {
+    await loadSettingsFromAPI();
     updateUIWithSettings();
 
     // Check URL parameters for category/promos view
@@ -555,7 +560,7 @@ function goToHome() {
 
 window.addEventListener('load', async () => {
     // Load defaults immediately, then fetch API in background
-    loadInterface();
+    await loadInterface();
     renderCategoryFilters();
     updateCartCount();
     renderCartSidebar();
