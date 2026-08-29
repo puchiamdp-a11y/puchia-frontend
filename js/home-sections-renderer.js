@@ -237,16 +237,14 @@ function renderHomeBanner(config) {
     // Compatibilidad: usar button_url (backend) o url (frontend)
     const bannerUrl = banner.button_url || banner.url || '';
 
-    // Si tiene botón o URL, mostrar como link
+    // Si tiene URL, hacer el banner clickable (sin botón)
     if (bannerUrl) {
-      const buttonText = banner.button_text || 'Ver más';
       return `
         <div class="banner${index === 0 ? ' active' : ''}"${bgStyle}>
           <a href="${escapeHomeHTML(bannerUrl)}" class="banner-content" style="cursor: pointer; text-decoration: none;">
             ${banner.eyebrow ? `<div class="banner-eyebrow">${escapeHomeHTML(banner.eyebrow)}</div>` : ''}
             <h1>${escapeHomeHTML(banner.title || '')}</h1>
             ${banner.subtitle ? `<p>${escapeHomeHTML(banner.subtitle)}</p>` : ''}
-            <div class="banner-btn">${escapeHomeHTML(buttonText)}</div>
           </a>
         </div>
       `;
