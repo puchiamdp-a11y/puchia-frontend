@@ -62,8 +62,8 @@ async function performSearch(query, dropdownElement) {
     try {
         // Fetch both products and categories in parallel
         const [productsResponse, categoriesResponse] = await Promise.all([
-            fetch(`/api/v1/productos?search=${encodeURIComponent(query)}&limit=5`),
-            fetch(`/api/v1/categorias?search=${encodeURIComponent(query)}&limit=5`)
+            fetch(`/api/v1/productos?search=${encodeURIComponent(query)}&limite=5`),
+            fetch(`/api/v1/categorias?search=${encodeURIComponent(query)}&limite=5`)
         ]);
 
         const productsData = await productsResponse.json();
