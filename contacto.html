@@ -31,6 +31,10 @@
             </nav>
         </div>
         <div class="header-right">
+            <div class="search-container">
+                <input type="text" id="globalSearch" class="search-input" placeholder="Buscar productos..." autocomplete="off">
+                <div class="search-dropdown" id="searchDropdown"></div>
+            </div>
             <button class="cart-btn" onclick="toggleCart(event)" title="Ver carrito" style="background: none; border: none; cursor: pointer; position: relative; font-size: 22px;">
                 🛒
                 <span class="cart-count" id="cartCount">0</span>
@@ -80,6 +84,7 @@
     </footer>
 
     <script src="js/common.js"></script>
+    <script src="js/global-search.js?v=2026082901"></script>
     <script src="js/home.js"></script>
 
 </body>

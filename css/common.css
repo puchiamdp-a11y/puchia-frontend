@@ -205,6 +205,120 @@ nav a:hover:after {
     gap: 20px;
 }
 
+/* ═════════════════════════════════════════════════════════════════
+   GLOBAL SEARCH
+   ═════════════════════════════════════════════════════════════════ */
+
+.search-container {
+    position: relative;
+    width: 200px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--purple);
+    background-color: var(--white);
+    box-shadow: 0 0 0 3px rgba(127, 31, 110, 0.1);
+}
+
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1001;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-dropdown.active {
+    display: block;
+}
+
+.search-section {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.search-section:last-child {
+    border-bottom: none;
+}
+
+.search-section-title {
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-result-item:hover,
+.search-result-item.highlighted {
+    background-color: #f9f9f9;
+}
+
+.search-result-thumbnail {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.search-result-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-result-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2c3e50;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-result-type {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+}
+
+.search-no-results {
+    padding: 20px 12px;
+    text-align: center;
+    font-size: 13px;
+    color: #999;
+}
+
 .admin-link {
     background: none;
     border: none;
