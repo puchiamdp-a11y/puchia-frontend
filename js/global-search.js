@@ -72,31 +72,7 @@ async function performSearch(query, dropdownElement) {
         currentSearchResults = [];
         let html = '';
 
-        // Add category results
-        if (categoriesData.data && categoriesData.data.length > 0) {
-            html += '<div class="search-section"><div class="search-section-title">Categorías</div>';
-            categoriesData.data.forEach(category => {
-                currentSearchResults.push({
-                    type: 'category',
-                    id: category.id,
-                    name: category.nombre || category.name,
-                    thumbnail: category.imagen_url || category.thumbnail
-                });
-                const thumbnail = category.imagen_url || category.thumbnail;
-                html += `
-                    <div class="search-result-item" data-type="category" data-id="${category.id}">
-                        ${thumbnail ? `<img src="${thumbnail}" alt="${escapeHtml(category.nombre || category.name)}" class="search-result-thumbnail">` : ''}
-                        <div class="search-result-text">
-                            <div class="search-result-name">${escapeHtml(category.nombre || category.name)}</div>
-                            <div class="search-result-type">Categoría</div>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-        }
-
-        // Add product results
+        // Add product results first
         if (productsData.data && productsData.data.length > 0) {
             html += '<div class="search-section"><div class="search-section-title">Productos</div>';
             productsData.data.forEach(product => {
@@ -114,6 +90,30 @@ async function performSearch(query, dropdownElement) {
                         <div class="search-result-text">
                             <div class="search-result-name">${escapeHtml(product.nombre || product.name)}</div>
                             <div class="search-result-type">Producto</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+
+        // Add category results after products
+        if (categoriesData.data && categoriesData.data.length > 0) {
+            html += '<div class="search-section"><div class="search-section-title">Categorías</div>';
+            categoriesData.data.forEach(category => {
+                currentSearchResults.push({
+                    type: 'category',
+                    id: category.id,
+                    name: category.nombre || category.name,
+                    thumbnail: category.imagen_url || category.thumbnail
+                });
+                const thumbnail = category.imagen_url || category.thumbnail;
+                html += `
+                    <div class="search-result-item" data-type="category" data-id="${category.id}">
+                        ${thumbnail ? `<img src="${thumbnail}" alt="${escapeHtml(category.nombre || category.name)}" class="search-result-thumbnail">` : ''}
+                        <div class="search-result-text">
+                            <div class="search-result-name">${escapeHtml(category.nombre || category.name)}</div>
+                            <div class="search-result-type">Categoría</div>
                         </div>
                     </div>
                 `;
