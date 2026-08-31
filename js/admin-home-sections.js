@@ -1116,14 +1116,28 @@ async function reorderSections(order) {
 
     // Guardar en borrador de forma asincrónica
     const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-    await fetch(saveDraftUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
-    }).catch(err => console.error('Draft save failed:', err));
+    try {
+      const response = await fetch(saveDraftUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sections })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Draft save failed (HTTP ' + response.status + '):', errorData);
+        showStatus('⚠️ Error guardando reorden en servidor: ' + errorData.message, 'error');
+      } else {
+        const result = await response.json();
+        console.log('✅ Draft saved successfully after reorder:', result.data.sections_count, 'sections');
+      }
+    } catch (saveErr) {
+      console.error('❌ Draft save network error:', saveErr);
+      showStatus('⚠️ Error de red guardando reorden', 'error');
+    }
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
