@@ -548,7 +548,7 @@ function startHomeSectionsPolling() {
     } catch (error) {
       console.warn('[CMS Polling] Error:', error.message);
     }
-  }, 10000);  // ⚠️ Reducido de 60000ms (1 min) a 10000ms (10 seg)
+  }, 45000);  // Polling cada 45 segundos para evitar rate limiting (429)
 }
 
 // Inicializar cuando la página terminó de cargar, para que los datos de productos
