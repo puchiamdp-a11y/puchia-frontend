@@ -4671,11 +4671,15 @@ async function loadBrandingImages() {
     if (data.success && data.data) {
       if (data.data.logo_url) {
         updateLogoPreview(data.data.logo_url);
-        document.getElementById('logo').value = data.data.logo_url;
+        // Only set value if element exists (not used in current admin layout)
+        const logoInput = document.getElementById('logo');
+        if (logoInput) logoInput.value = data.data.logo_url;
       }
       if (data.data.favicon_url) {
         updateFaviconPreview(data.data.favicon_url);
-        document.getElementById('favicon').value = data.data.favicon_url;
+        // Only set value if element exists (favicon field may not be in all pages)
+        const faviconInput = document.getElementById('favicon');
+        if (faviconInput) faviconInput.value = data.data.favicon_url;
       }
     }
   } catch (error) {
