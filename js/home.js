@@ -11,18 +11,22 @@ let currentBanner = 0;
 
 function updateUIWithSettings() {
     const settings = getSettings();
-    
+
     const logo = document.getElementById('headerLogo');
     const logoText = document.getElementById('headerLogoText');
     const footerLogo = document.getElementById('footerLogo');
     const footerBrandText = document.getElementById('footerBrandText');
     const announcementBar = document.getElementById('announcementBar');
-    
+
     if (logo) logo.textContent = settings.logo;
     if (logoText) logoText.textContent = settings.logoText;
     if (footerLogo) footerLogo.textContent = settings.logo;
     if (footerBrandText) footerBrandText.textContent = settings.logoText;
-    if (announcementBar) announcementBar.textContent = settings.announceText;
+    if (announcementBar) {
+        announcementBar.textContent = settings.announceText;
+        announcementBar.style.backgroundColor = settings.announceBgColor || '#bd0cd4';
+        announcementBar.style.color = settings.announceTextColor || '#ffffff';
+    }
 }
 
 function loadAndRenderProducts() {
@@ -159,7 +163,11 @@ function animateCounters() {
    INICIALIZACIÓN
    ════════════════════════════════════════════════════════════════ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Cargar settings desde la API antes de actualizar UI
+    await loadSettingsFromAPI();
+    updateUIWithSettings();
+
     document.querySelectorAll('a[href^="#"]').forEach(link => {
         link.addEventListener('click', function(e) {
             const href = this.getAttribute('href');

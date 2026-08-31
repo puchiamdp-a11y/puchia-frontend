@@ -157,6 +157,7 @@ function goBackToCategories() {
 // Initialize on page load
 window.addEventListener('load', async () => {
     // Load UI immediately with default products
+    await loadSettingsFromAPI();
     updateUIWithSettings();
     updateCartCount();
     renderCartSidebar();
