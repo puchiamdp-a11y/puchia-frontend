@@ -1370,11 +1370,27 @@ function addBannerField(banner = {}, index = null) {
 
 async function uploadBannerImage(file, bannerElement, imageHiddenInput, imagePreview, imagePlaceholder) {
   try {
-    const token = localStorage.getItem('puchia_admin_token');
-    const formData = new FormData();
-    formData.append('archivo', file);
+    if (!currentEditingSection) {
+      throw new Error('No hay sección siendo editada');
+    }
 
-    const response = await fetch(`${API_BASE_URL}/admin/media/home-banners`, {
+    const token = localStorage.getItem('puchia_admin_token');
+
+    // Determinar el índice del banner en la lista
+    const bannersList = document.getElementById('banners-list');
+    const bannerIndex = Array.from(bannersList.querySelectorAll('.banner-item')).indexOf(bannerElement);
+
+    if (bannerIndex === -1) {
+      throw new Error('No se pudo determinar el índice del banner');
+    }
+
+    const formData = new FormData();
+    formData.append('imagen', file);
+
+    const sectionId = currentEditingSection.id;
+    const endpoint = `${API_BASE_URL}/admin/home-sections/${sectionId}/banner/${bannerIndex}/upload`;
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: formData
@@ -1385,7 +1401,12 @@ async function uploadBannerImage(file, bannerElement, imageHiddenInput, imagePre
       throw new Error(data.error || 'Error al subir imagen');
     }
 
-    const imageUrl = data.data?.url || data.data;
+    // La respuesta contiene la imagen en base64
+    const imageUrl = data.data?.image_url || data.data?.url;
+    if (!imageUrl) {
+      throw new Error('Respuesta del servidor sin URL de imagen');
+    }
+
     imageHiddenInput.value = imageUrl;
 
     const img = imagePreview.querySelector('img');
@@ -1396,9 +1417,10 @@ async function uploadBannerImage(file, bannerElement, imageHiddenInput, imagePre
     }
 
     updatePreview();
-    showStatus(`✅ Imagen cargada correctamente`, 'success');
+    showStatus(`✅ Imagen cargada correctamente (${data.data?.storage_strategy || 'base64'})`, 'success');
   } catch (error) {
     showStatus(`❌ Error al subir imagen: ${error.message}`, 'error');
+    console.error('Banner upload error:', error);
   }
 }
 
