@@ -567,9 +567,8 @@ function renderSections() {
           sections.sort((a, b) => {
             return newOrder.indexOf(a.id) - newOrder.indexOf(b.id);
           });
-          // Actualizar preview en tiempo real
-          hasUnsavedChanges = true;
-          updatePreview();
+          // ⚠️ CRÍTICO: Guardar el nuevo orden en el servidor
+          reorderSections(newOrder);
         }
       });
     } catch (error) {
