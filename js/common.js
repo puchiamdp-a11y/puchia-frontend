@@ -57,7 +57,7 @@ function updateWhatsappLinks() {
 
 async function updateLogoAndFavicon() {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/home-branding`);
+        const response = await fetch(`${API_BASE_URL}/home-branding`);
         if (!response.ok) return;
         const data = await response.json();
 
