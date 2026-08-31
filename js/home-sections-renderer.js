@@ -225,10 +225,10 @@ function renderHomeScrollingText(config) {
   const bgColor = config.background_color || '#FF1493';
   const textColor = config.text_color || '#FFFFFF';
   const scrollSpeed = config.scroll_speed || 50;
-  const padding = config.padding || '12px 0';
+  const padding = config.padding || '8px 0';
 
   return `
-    <div class="home-scrolling-text-section" style="background-color: ${escapeHomeHTML(bgColor)}; color: ${escapeHomeHTML(textColor)}; padding: ${escapeHomeHTML(padding)}; text-align: center; font-weight: bold;">
+    <div class="home-scrolling-text-section" style="background-color: ${escapeHomeHTML(bgColor)}; color: ${escapeHomeHTML(textColor)}; padding: ${escapeHomeHTML(padding)};">
       <div style="animation: scroll-left ${Math.max(10, 100 - scrollSpeed)}s linear infinite; white-space: nowrap;">
         ${escapeHomeHTML(config.text)}
       </div>
