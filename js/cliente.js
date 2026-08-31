@@ -10,17 +10,12 @@ function updateUIWithSettings() {
     const logoText = document.getElementById('headerLogoText');
     const footerLogo = document.getElementById('footerLogo');
     const footerBrandText = document.getElementById('footerBrandText');
-    const announcementBar = document.getElementById('announcementBar');
 
     if (logo) logo.textContent = settings.logo;
     if (logoText) logoText.textContent = settings.logoText;
     if (footerLogo) footerLogo.textContent = settings.logo;
     if (footerBrandText) footerBrandText.textContent = settings.logoText;
-    if (announcementBar) {
-        announcementBar.textContent = settings.announceText;
-        announcementBar.style.backgroundColor = settings.announceBgColor || '#bd0cd4';
-        announcementBar.style.color = settings.announceTextColor || '#ffffff';
-    }
+    // La zona de texto es una sección del CMS y sólo va en el HOME.
 }
 
 async function loadInterface() {
