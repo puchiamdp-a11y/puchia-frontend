@@ -706,16 +706,16 @@
 /* En móvil forzamos el alto: el CMS manda el padding como estilo inline. */
 @media (max-width: 768px) {
     .home-scrolling-text-section {
-        padding: 7px 0 !important;
-        font-size: 13px;
+        padding: 6px 0 !important;
+        font-size: 12px;
         font-weight: 500;
     }
 }
 
 @media (max-width: 480px) {
     .home-scrolling-text-section {
-        padding: 6px 0 !important;
-        font-size: 12px;
+        padding: 4px 0 !important;
+        font-size: 11px;
         font-weight: 400;
         line-height: 1.2;
     }
@@ -723,8 +723,8 @@
 
 @media (max-width: 360px) {
     .home-scrolling-text-section {
-        padding: 5px 0 !important;
-        font-size: 11px;
+        padding: 4px 0 !important;
+        font-size: 10px;
         font-weight: 400;
         line-height: 1.2;
     }
