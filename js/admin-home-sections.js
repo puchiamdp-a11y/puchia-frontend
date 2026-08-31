@@ -1558,13 +1558,6 @@ function setupEventListeners() {
     previewBtn.addEventListener('click', openPreview);
   }
 
-  const saveSectionOrderBtn = document.getElementById('saveSectionOrderBtn');
-  if (saveSectionOrderBtn) {
-    saveSectionOrderBtn.addEventListener('click', async () => {
-      await saveDraft();
-    });
-  }
-
   const publishChangesBtn = document.getElementById('publishChangesBtn');
   if (publishChangesBtn) {
     publishChangesBtn.addEventListener('click', async () => {
@@ -1998,39 +1991,6 @@ function showBrandingStatus(message, type = 'info') {
   setTimeout(() => {
     statusDiv.style.display = 'none';
   }, 4000);
-}
-
-// ======================== GUARDAR DRAFT ========================
-async function saveDraft() {
-  try {
-    const token = localStorage.getItem('puchia_admin_token');
-    if (!token) {
-      showStatus('❌ No autenticado. Por favor inicia sesión nuevamente.', 'error');
-      return;
-    }
-
-    showStatus('💾 Guardando cambios...', 'info');
-
-    const response = await fetch(`${API_BASE_URL}/admin/home-draft/save`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Error al guardar draft: ${error}`);
-    }
-
-    hasUnsavedChanges = false;
-    showStatus(`✅ ${sections.length} secciones guardadas en draft. Los cambios se guardarán en el servidor. Usa "Publicar Cambios" para hacer visibles los cambios en el sitio público.`, 'success');
-  } catch (error) {
-    showStatus(`❌ Error al guardar: ${error.message}`, 'error');
-    console.error('Save draft error:', error);
-  }
 }
 
 // ======================== PUBLICAR CAMBIOS ========================
