@@ -2,6 +2,7 @@
 
 let allProducts = [];
 let promoProducts = [];
+let productsLoadError = false;
 
 // Usar la constante global de common.js
 const API_BASE_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
@@ -61,6 +62,7 @@ async function loadProductsFromAPI() {
     console.error('Error cargando productos desde API:', error);
     allProducts = [];
     promoProducts = [];
+    productsLoadError = true;
   }
 }
 

@@ -130,8 +130,7 @@ async function loadAndRenderHomeSections() {
     console.log('[CMS] HOME renderizado desde el CMS:', data.length, 'secciones');
   } catch (error) {
     console.error('[CMS] Error cargando secciones:', error.message);
-    console.log('[CMS] Se mantienen las secciones por defecto del HTML');
-    hideLoadingScreen();
+    showCMSErrorScreen('No pudimos cargar las secciones del sitio');
   }
 }
 
@@ -139,6 +138,23 @@ function hideLoadingScreen() {
   const loadingScreen = document.getElementById('cms-loading-screen');
   if (loadingScreen) {
     loadingScreen.classList.add('hidden');
+  }
+}
+
+function showCMSErrorScreen(errorMessage = 'Error cargando el sitio') {
+  const loadingScreen = document.getElementById('cms-loading-screen');
+  if (loadingScreen) {
+    loadingScreen.innerHTML = `
+      <div style="text-align: center; color: white; max-width: 500px; padding: 40px;">
+        <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+        <h2 style="margin: 0 0 15px 0; font-size: 24px;">Página en Mantenimiento</h2>
+        <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6;">
+          ${errorMessage}. Estamos trabajando para resolverlo lo antes posible.
+        </p>
+        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Disculpas por las molestias 🙏</p>
+      </div>
+    `;
+    loadingScreen.classList.remove('hidden');
   }
 }
 

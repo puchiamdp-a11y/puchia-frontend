@@ -383,6 +383,7 @@
         </div>
     </div>
 
+    <script src="js/common.js?v=2026083108"></script>
     <script>
         // Configuración
         const urlParams = new URLSearchParams(window.location.search);
@@ -434,7 +435,7 @@
                 mostrarOrden(data.data);
             } catch (error) {
                 console.error('Error:', error);
-                mostrarError('Error al cargar la orden: ' + error.message);
+                showCMSErrorPage('No pudimos cargar el estado de tu orden');
             }
         }
 

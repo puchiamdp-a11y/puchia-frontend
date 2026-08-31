@@ -17,6 +17,7 @@ async function loadCategoriasFromAPI() {
     console.log('Categorías cargadas:', categories);
   } catch (error) {
     console.error('Error cargando categorías:', error);
+    showCMSErrorPage('No pudimos cargar las categorías');
   }
 }
 

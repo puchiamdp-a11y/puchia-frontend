@@ -635,3 +635,48 @@ function animateStats() {
         }, 50);
     });
 }
+
+// Función global para mostrar cartel de error de CMS
+function showCMSErrorPage(message = 'No pudimos cargar correctamente el sitio') {
+  // Si existe un loader screen (index.html), úsalo
+  const loadingScreen = document.getElementById('cms-loading-screen');
+  if (loadingScreen) {
+    loadingScreen.innerHTML = `
+      <div style="text-align: center; color: white; max-width: 500px; padding: 40px;">
+        <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+        <h2 style="margin: 0 0 15px 0; font-size: 24px;">Página en Mantenimiento</h2>
+        <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6;">
+          ${message}. Estamos trabajando para resolverlo lo antes posible.
+        </p>
+        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Disculpas por las molestias 🙏</p>
+      </div>
+    `;
+    loadingScreen.classList.remove('hidden');
+  } else {
+    // Si no hay loader screen (otras páginas), crear uno
+    const errorScreen = document.createElement('div');
+    errorScreen.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #7b2d8e, #9d4cb8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    `;
+    errorScreen.innerHTML = `
+      <div style="text-align: center; color: white; max-width: 500px; padding: 40px;">
+        <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+        <h2 style="margin: 0 0 15px 0; font-size: 24px;">Página en Mantenimiento</h2>
+        <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6;">
+          ${message}. Estamos trabajando para resolverlo lo antes posible.
+        </p>
+        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Disculpas por las molestias 🙏</p>
+      </div>
+    `;
+    document.body.appendChild(errorScreen);
+  }
+}

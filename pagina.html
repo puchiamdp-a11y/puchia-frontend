@@ -160,14 +160,7 @@
                 `;
             } catch (error) {
                 console.error('Error cargando página:', error);
-                const container = document.getElementById('pageContent');
-                container.innerHTML = `
-                    <div class="page-error">
-                        <h2>Página no encontrada</h2>
-                        <p>La página que buscas no existe o no está disponible.</p>
-                        <a href="index.html" style="color: #7f1f6e; text-decoration: none;">← Volver al inicio</a>
-                    </div>
-                `;
+                showCMSErrorPage('No pudimos cargar la página solicitada');
             }
         }
 

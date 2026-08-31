@@ -73,6 +73,12 @@ function showOnlyPromos() {
 }
 
 function loadAndRenderProducts() {
+    // Verificar si hubo error cargando productos
+    if (productsLoadError) {
+        showCMSErrorPage('No pudimos cargar los productos');
+        return;
+    }
+
     // Filtrar productos por categoría
     const filtered = currentFilter === 'todas'
         ? allProducts
@@ -137,6 +143,12 @@ function loadAndRenderProducts() {
 }
 
 function loadAndRenderPromos() {
+    // Verificar si hubo error cargando productos
+    if (productsLoadError) {
+        showCMSErrorPage('No pudimos cargar las promociones');
+        return;
+    }
+
     const grid = document.getElementById('promosGrid');
     if (!grid) return;
 
