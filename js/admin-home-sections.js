@@ -1795,7 +1795,7 @@ function displayLogo(logoUrl) {
   const preview = document.getElementById('logoPreview');
   const placeholder = document.getElementById('logoPlaceholder');
   const removeBtn = document.getElementById('logoRemoveBtn');
-  
+
   if (!logoUrl) {
     console.error('❌ Logo URL is null or undefined');
     return;
@@ -1804,15 +1804,20 @@ function displayLogo(logoUrl) {
     console.error('❌ logoPreview element not found');
     return;
   }
-  
+
   // For data URLs, do NOT add query params. For file URLs, add timestamp for cache-busting
-  if (logoUrl.startsWith('data:')) {
-    console.log('✅ Using data URL directly');
-    preview.src = logoUrl;
-  } else {
+  let imageUrl = logoUrl;
+  if (!logoUrl.startsWith('data:')) {
+    imageUrl = `${logoUrl}?t=${Date.now()}`;
     console.log('✅ Using file URL with cache-busting');
-    preview.src = `${logoUrl}?t=${Date.now()}`;
+  } else {
+    console.log('✅ Using data URL directly');
   }
+
+  preview.style.backgroundImage = `url('${imageUrl}')`;
+  preview.style.backgroundSize = 'contain';
+  preview.style.backgroundPosition = 'center';
+  preview.style.backgroundRepeat = 'no-repeat';
   preview.style.display = 'block';
   placeholder.style.display = 'none';
   if (removeBtn) removeBtn.style.display = 'inline-block';
@@ -1823,7 +1828,7 @@ function displayFavicon(faviconUrl) {
   const preview = document.getElementById('faviconPreview');
   const placeholder = document.getElementById('faviconPlaceholder');
   const removeBtn = document.getElementById('faviconRemoveBtn');
-  
+
   if (!faviconUrl) {
     console.error('❌ Favicon URL is null or undefined');
     return;
@@ -1832,15 +1837,20 @@ function displayFavicon(faviconUrl) {
     console.error('❌ faviconPreview element not found');
     return;
   }
-  
+
   // For data URLs, do NOT add query params. For file URLs, add timestamp for cache-busting
-  if (faviconUrl.startsWith('data:')) {
-    console.log('✅ Using data URL directly');
-    preview.src = faviconUrl;
-  } else {
+  let imageUrl = faviconUrl;
+  if (!faviconUrl.startsWith('data:')) {
+    imageUrl = `${faviconUrl}?t=${Date.now()}`;
     console.log('✅ Using file URL with cache-busting');
-    preview.src = `${faviconUrl}?t=${Date.now()}`;
+  } else {
+    console.log('✅ Using data URL directly');
   }
+
+  preview.style.backgroundImage = `url('${imageUrl}')`;
+  preview.style.backgroundSize = 'contain';
+  preview.style.backgroundPosition = 'center';
+  preview.style.backgroundRepeat = 'no-repeat';
   preview.style.display = 'block';
   placeholder.style.display = 'none';
   if (removeBtn) removeBtn.style.display = 'inline-block';
