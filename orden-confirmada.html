@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puchia - Orden Confirmada</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/common.css?v=2026083103">
+    <link rel="stylesheet" href="css/common.css?v=2026083104">
     <style>
         body {
             background: linear-gradient(135deg, #7f1f6e 0%, #a01f8a 100%);
@@ -282,6 +282,9 @@
     <script>
         async function loadOrderConfirmation() {
             try {
+                // Cargar settings para obtener whatsappNumber dinámico
+                await loadSettingsFromAPI();
+
                 // Obtener ID de orden del localStorage (guardado en submitOrder)
                 const orderId = localStorage.getItem('lastOrderId');
                 if (!orderId) {
@@ -316,7 +319,7 @@
                     </div>
                 `).join('');
 
-                const whatsappNumber = '5492235847353'; // WhatsApp de Puchia
+                const whatsappNumber = getSettings().whatsappNumber;
                 const message = encodeURIComponent(
                     `Hola! Acabo de hacer una orden en Puchia\n\n` +
                     `Orden: ${order.id}\n` +

@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Cargar settings desde la API antes de actualizar UI
     await loadSettingsFromAPI();
     updateUIWithSettings();
+    updateWhatsappLinks();
 
     document.querySelectorAll('a[href^="#"]').forEach(link => {
         link.addEventListener('click', function(e) {

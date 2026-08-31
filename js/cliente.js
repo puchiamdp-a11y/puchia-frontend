@@ -21,6 +21,7 @@ function updateUIWithSettings() {
 async function loadInterface() {
     await loadSettingsFromAPI();
     updateUIWithSettings();
+    updateWhatsappLinks();
 
     // Check URL parameters for category/promos view
     const urlParams = new URLSearchParams(window.location.search);

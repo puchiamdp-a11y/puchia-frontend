@@ -48,6 +48,13 @@ function saveSettings(settings) {
     localStorage.setItem('puchia_settings', JSON.stringify(settings));
 }
 
+function updateWhatsappLinks() {
+    const whatsappNumber = getSettings().whatsappNumber || '5492235847353';
+    document.querySelectorAll('a[data-whatsapp]').forEach(link => {
+        link.href = `https://wa.me/${whatsappNumber}`;
+    });
+}
+
 function showToast(message, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = 'toast';
