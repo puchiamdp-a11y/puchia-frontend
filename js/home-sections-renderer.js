@@ -313,6 +313,7 @@ function renderHomeBanner(config) {
 function renderHomeStats(config) {
   if (!config.stats || config.stats.length === 0) return '';
 
+  const title = config.title || 'Nuestros Logros';
   const statsHTML = config.stats.map(stat => {
     const prefix = stat.prefix || '';
     const suffix = stat.suffix || '';
@@ -326,6 +327,7 @@ function renderHomeStats(config) {
 
   return `
     <section class="stats-section">
+      <h2 class="section-title">${escapeHomeHTML(title)}</h2>
       <div class="stats-grid">${statsHTML}</div>
     </section>
   `;
