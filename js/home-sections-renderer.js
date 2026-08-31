@@ -218,13 +218,22 @@ function attachHomeSectionsBehaviour() {
 }
 
 // ======================== SECCIONES ========================
-function applyHomeScrollingText(config) {
-  const bar = document.getElementById('announcementBar');
-  if (!bar || !config.text) return;
+// Renderizar zona de texto como sección del contenido (permite múltiples)
+function renderHomeScrollingText(config) {
+  if (!config.text) return '';
 
-  bar.textContent = config.text;
-  if (config.background_color) bar.style.backgroundColor = config.background_color;
-  if (config.text_color) bar.style.color = config.text_color;
+  const bgColor = config.background_color || '#FF1493';
+  const textColor = config.text_color || '#FFFFFF';
+  const scrollSpeed = config.scroll_speed || 50;
+  const padding = config.padding || '12px 0';
+
+  return `
+    <div class="home-scrolling-text-section" style="background-color: ${escapeHomeHTML(bgColor)}; color: ${escapeHomeHTML(textColor)}; padding: ${escapeHomeHTML(padding)}; text-align: center; font-weight: bold;">
+      <div style="animation: scroll-left ${Math.max(10, 100 - scrollSpeed)}s linear infinite; white-space: nowrap;">
+        ${escapeHomeHTML(config.text)}
+      </div>
+    </div>
+  `;
 }
 
 // Renderizar zona de texto como sección del contenido (permite múltiples)
