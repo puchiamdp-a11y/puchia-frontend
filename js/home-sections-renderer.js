@@ -60,13 +60,10 @@ function getActualSectionType(section) {
 
 // ======================== CARGA DE DATOS ========================
 async function loadHomeSectionsData() {
-  const response = await fetch(`${HOME_SECTIONS_API}/home-sections`, {
-    cache: 'no-store',
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    }
+  // Agregar timestamp para evitar caché del navegador
+  const timestamp = new Date().getTime();
+  const response = await fetch(`${HOME_SECTIONS_API}/home-sections?t=${timestamp}`, {
+    cache: 'no-store'
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
 

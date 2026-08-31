@@ -773,7 +773,10 @@ function fillFormWithSectionData(section) {
       const textPreview = document.getElementById('scrolling-text-preview');
       if (textPreview) textPreview.style.color = textColor;
 
-      // Actualizar color picker de texto
+      // Actualizar color pickers
+      const scrollingBgColorPicker = document.getElementById('scrolling-bg-color-picker');
+      if (scrollingBgColorPicker) scrollingBgColorPicker.value = bgColor;
+
       const scrollingTextColorPicker = document.getElementById('scrolling-text-color-picker');
       if (scrollingTextColorPicker) scrollingTextColorPicker.value = textColor;
 
