@@ -621,6 +621,71 @@ footer {
         display: flex !important;
     }
 
+    /* El buscador queda como ícono y se expande al tocarlo,
+       así no tapa el logo centrado del header. */
+    .search-container {
+        width: 36px;
+        flex: 0 0 36px;
+        transition: width 0.25s ease, flex-basis 0.25s ease;
+    }
+
+    .search-container::before {
+        content: '🔍';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 15px;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .search-input {
+        height: 36px;
+        padding: 0;
+        border-radius: 50%;
+        background-color: transparent;
+        border-color: transparent;
+        color: transparent;
+        cursor: pointer;
+    }
+
+    .search-input::placeholder {
+        color: transparent;
+    }
+
+    .search-container:focus-within {
+        width: 190px;
+        flex: 0 0 190px;
+    }
+
+    header:has(.search-container:focus-within) .logo-container {
+        opacity: 0;
+    }
+
+    .search-container:focus-within::before {
+        opacity: 0;
+    }
+
+    .search-container:focus-within .search-input {
+        padding: 0 12px;
+        border-radius: 6px;
+        background-color: #f9f9f9;
+        border-color: #e0e0e0;
+        color: #333;
+        cursor: text;
+    }
+
+    .search-container:focus-within .search-input::placeholder {
+        color: #999;
+    }
+
+    .search-dropdown {
+        left: auto;
+        right: 0;
+        min-width: 240px;
+    }
+
     footer {
         flex-direction: column;
         gap: 20px;

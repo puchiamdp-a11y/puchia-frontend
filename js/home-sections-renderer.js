@@ -380,7 +380,6 @@ function renderHomeCategories(config) {
       <div class="category-card" onclick="goToPromos('${escapeHomeHTML(slug)}')">
         <div class="category-card-icon">${getIconoCategoriaHome(category.nombre)}</div>
         <div class="category-card-name">${escapeHomeHTML(category.nombre)}</div>
-        <p style="color: #999; font-size: 14px; margin-top: 8px;">${escapeHomeHTML(category.descripcion || '')}</p>
       </div>
     `;
   }).join('');
