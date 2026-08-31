@@ -21,7 +21,11 @@ function escapeHomeHTML(value) {
   })[c]);
 }
 
-function getIconoCategoriaHome(nombre) {
+function getIconoCategoriaHome(nombre, emojiFromDB) {
+  // Si viene emoji de la BD, usarlo
+  if (emojiFromDB) return emojiFromDB;
+
+  // Fallback: mapa hardcodeado para categorías antiguas sin emoji
   const iconos = {
     'CUMPLEAÑOS': '🎉',
     'REGALOS': '🎁',
@@ -380,7 +384,7 @@ function renderHomeCategories(config) {
     const slug = String(category.nombre || '').toLowerCase().replace(/ñ/g, 'n');
     return `
       <div class="category-card" onclick="goToPromos('${escapeHomeHTML(slug)}')">
-        <div class="category-card-icon">${getIconoCategoriaHome(category.nombre)}</div>
+        <div class="category-card-icon">${getIconoCategoriaHome(category.nombre, category.emoji)}</div>
         <div class="category-card-name">${escapeHomeHTML(category.nombre)}</div>
       </div>
     `;
