@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Páginas - Puchia Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css?v=2026083108">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .admin-header .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .admin-header .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .admin-content {
+            padding: 30px;
+        }
+
+        .pages-section {
+            display: grid;
+            gap: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+
+        .pages-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .pages-table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .pages-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .pages-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .pages-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .pages-table .page-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .pages-table .page-slug {
+            color: #666;
+            font-size: 13px;
+            font-family: monospace;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .no-pages {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 200px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        .status-bar {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+        }
+
+        .status-bar.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-bar.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>📄 Gestión de Páginas</h1>
+            <button class="btn-secondary" onclick="window.location.href='admin-home.html'">← Volver</button>
+        </div>
+
+        <div class="admin-content">
+            <div class="pages-section">
+                <div class="section-title">
+                    <span>Páginas Creadas</span>
+                    <button class="btn-primary" onclick="openCreatePageModal()">➕ Nueva Página</button>
+                </div>
+
+                <div id="pagesContainer">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <div class="spinner"></div>
+                        <p>Cargando páginas...</p>
+                    </div>
+                </div>
+
+                <div id="statusMessage" class="status-bar" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar página -->
+    <div id="pageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="pageModalTitle">Nueva Página</div>
+
+            <form id="pageForm">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Página</label>
+                    <input type="text" id="pageTitle" class="form-input" placeholder="Ej: Contacto, Sobre Nosotros, etc." required>
+                    <small style="color: #999; font-size: 12px;">Este será el nombre visible de la página</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Slug (URL)</label>
+                    <input type="text" id="pageSlug" class="form-input" placeholder="Ej: contacto" required>
+                    <small style="color: #999; font-size: 12px;">URL amigable (solo letras, números y guiones)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contenido</label>
+                    <textarea id="pageContent" class="form-input" placeholder="Escribe el contenido de la página aquí..." required></textarea>
+                    <small style="color: #999; font-size: 12px;">Puedes usar HTML para formatear el contenido</small>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closePageModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Página</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/common.js?v=2026083108"></script>
+    <script src="../js/admin-pages.js?v=2026083108"></script>
+</body>
+</html>
