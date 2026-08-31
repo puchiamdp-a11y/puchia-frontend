@@ -162,6 +162,7 @@ function animateCounters() {
 document.addEventListener('DOMContentLoaded', async () => {
     // Cargar settings desde la API antes de actualizar UI
     await loadSettingsFromAPI();
+    await updateLogoAndFavicon();
     updateUIWithSettings();
     updateWhatsappLinks();
 

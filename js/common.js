@@ -55,6 +55,38 @@ function updateWhatsappLinks() {
     });
 }
 
+async function updateLogoAndFavicon() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/home-branding`);
+        if (!response.ok) return;
+        const data = await response.json();
+
+        if (!data.success || !data.data) return;
+
+        // Actualizar logo
+        if (data.data.logo_url) {
+            const logos = document.querySelectorAll('.logo');
+            logos.forEach(logo => {
+                logo.style.backgroundImage = `url('${data.data.logo_url}')`;
+            });
+        }
+
+        // Actualizar favicon
+        if (data.data.favicon_url) {
+            let faviconLink = document.querySelector("link[rel='icon']");
+            if (!faviconLink) {
+                faviconLink = document.createElement('link');
+                faviconLink.rel = 'icon';
+                faviconLink.type = 'image/png';
+                document.head.appendChild(faviconLink);
+            }
+            faviconLink.href = data.data.favicon_url;
+        }
+    } catch (error) {
+        console.warn('No se pudo cargar logo/favicon:', error);
+    }
+}
+
 function showToast(message, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = 'toast';

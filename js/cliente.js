@@ -20,6 +20,7 @@ function updateUIWithSettings() {
 
 async function loadInterface() {
     await loadSettingsFromAPI();
+    await updateLogoAndFavicon();
     updateUIWithSettings();
     updateWhatsappLinks();
 
