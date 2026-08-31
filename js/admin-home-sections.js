@@ -1187,65 +1187,6 @@ async function deleteSection(sectionId) {
   }
 }
 
-// ======================== PUBLICAR CAMBIOS ========================
-async function publishChanges() {
-  const token = await getTokenWithRetry();
-  if (!token) {
-    showStatus('Error: No autenticado. Por favor recarga la página e inicia sesión nuevamente.', 'error');
-    return;
-  }
-
-  try {
-    console.log('📤 Publicando cambios...');
-    showStatus('Guardando y publicando cambios...', 'success');
-
-    // 1) Guardar el estado actual en el borrador.
-    // Las ediciones del formulario solo viven en memoria hasta este punto, así que
-    // hay que persistirlas antes de publicar o se publicaría una versión vieja.
-    const saveResponse = await fetch(`${API_BASE_URL}/admin/home-draft/save`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
-    });
-
-    if (!saveResponse.ok) {
-      const saveText = await saveResponse.text();
-      throw new Error(`No se pudo guardar el borrador (HTTP ${saveResponse.status}): ${saveText}`);
-    }
-
-    console.log('💾 Borrador guardado con', sections.length, 'secciones');
-
-    // 2) Publicar el borrador para que sea visible al público.
-    const response = await fetch(`${API_BASE_URL}/admin/home-draft/publish`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const responseText = await response.text();
-    console.log('📤 publishChanges - Response:', response.status, responseText);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${responseText}`);
-    }
-
-    const result = JSON.parse(responseText);
-    hasUnsavedChanges = false;
-    showStatus('✅ Cambios publicados correctamente. Los cambios son visibles al público.', 'success');
-
-    // Recargar secciones para mostrar las publicadas
-    await loadSections();
-  } catch (error) {
-    console.error('❌ publishChanges - Error:', error);
-    showStatus('Error publicando cambios: ' + error.message, 'error');
-  }
-}
-
 // ======================== MANEJO DE BANNERS ========================
 function addBannerField(banner = {}, index = null) {
   const bannersList = document.getElementById('banners-list');
@@ -1620,6 +1561,13 @@ function setupEventListeners() {
   const saveSectionOrderBtn = document.getElementById('saveSectionOrderBtn');
   if (saveSectionOrderBtn) {
     saveSectionOrderBtn.addEventListener('click', async () => {
+      await saveDraft();
+    });
+  }
+
+  const publishChangesBtn = document.getElementById('publishChangesBtn');
+  if (publishChangesBtn) {
+    publishChangesBtn.addEventListener('click', async () => {
       await publishChanges();
     });
   }
@@ -2050,6 +1998,72 @@ function showBrandingStatus(message, type = 'info') {
   setTimeout(() => {
     statusDiv.style.display = 'none';
   }, 4000);
+}
+
+// ======================== GUARDAR DRAFT ========================
+async function saveDraft() {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    if (!token) {
+      showStatus('❌ No autenticado. Por favor inicia sesión nuevamente.', 'error');
+      return;
+    }
+
+    showStatus('💾 Guardando cambios...', 'info');
+
+    const response = await fetch(`${API_BASE_URL}/admin/home-draft/save`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sections })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Error al guardar draft: ${error}`);
+    }
+
+    hasUnsavedChanges = false;
+    showStatus(`✅ ${sections.length} secciones guardadas en draft. Los cambios se guardarán en el servidor. Usa "Publicar Cambios" para hacer visibles los cambios en el sitio público.`, 'success');
+  } catch (error) {
+    showStatus(`❌ Error al guardar: ${error.message}`, 'error');
+    console.error('Save draft error:', error);
+  }
+}
+
+// ======================== PUBLICAR CAMBIOS ========================
+async function publishChanges() {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    if (!token) {
+      showStatus('❌ No autenticado. Por favor inicia sesión nuevamente.', 'error');
+      return;
+    }
+
+    showStatus('📤 Publicando cambios...', 'info');
+
+    const response = await fetch(`${API_BASE_URL}/admin/home-sections/publish`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Error al publicar cambios');
+    }
+
+    showStatus(`✅ ${data.count} secciones publicadas correctamente. Los cambios aparecerán en el sitio público.`, 'success');
+    console.log('✅ Cambios publicados:', data);
+  } catch (error) {
+    showStatus(`❌ Error al publicar: ${error.message}`, 'error');
+    console.error('Publish error:', error);
+  }
 }
 
 // File input change handlers
