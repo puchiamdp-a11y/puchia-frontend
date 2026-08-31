@@ -60,7 +60,14 @@ function getActualSectionType(section) {
 
 // ======================== CARGA DE DATOS ========================
 async function loadHomeSectionsData() {
-  const response = await fetch(`${HOME_SECTIONS_API}/home-sections`);
+  const response = await fetch(`${HOME_SECTIONS_API}/home-sections`, {
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
+  });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
   const result = await response.json();
@@ -497,6 +504,7 @@ function renderHomeImageGallery(config) {
 function startHomeSectionsPolling() {
   if (homeSectionsPollingInterval) clearInterval(homeSectionsPollingInterval);
 
+  // Chequear cambios cada 10 segundos (en lugar de 60) para detectar cambios rápidamente
   homeSectionsPollingInterval = setInterval(async () => {
     if (document.hidden) return;
 
@@ -504,16 +512,19 @@ function startHomeSectionsPolling() {
       const data = await loadHomeSectionsData();
       if (!data || data.length === 0) return;
 
-      if (JSON.stringify(data) !== homeSectionsSnapshot) {
+      const newSnapshot = JSON.stringify(data);
+      if (newSnapshot !== homeSectionsSnapshot) {
+        console.log('[CMS] Cambios detectados, actualizando secciones...');
         homeSectionsData = data;
+        homeSectionsSnapshot = newSnapshot;  // ⚠️ CRÍTICO: Actualizar snapshot DESPUÉS de detectar cambios
         await ensureHomeSectionsDependencies(data);
         renderHomeSections();
-        console.log('[CMS] Secciones actualizadas via polling');
+        console.log('[CMS] Secciones actualizadas via polling', data.length, 'secciones');
       }
     } catch (error) {
       console.warn('[CMS Polling] Error:', error.message);
     }
-  }, 60000);
+  }, 10000);  // ⚠️ Reducido de 60000ms (1 min) a 10000ms (10 seg)
 }
 
 // Inicializar cuando la página terminó de cargar, para que los datos de productos

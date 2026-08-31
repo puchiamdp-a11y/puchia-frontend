@@ -1097,6 +1097,12 @@ async function reorderSections(order) {
   try {
     // Reordenar en memoria
     const reorderedSections = order.map(id => sections.find(s => s.id === id)).filter(Boolean);
+
+    // ⚠️ CRÍTICO: Actualizar display_order basado en la nueva posición
+    reorderedSections.forEach((section, index) => {
+      section.display_order = index;
+    });
+
     sections = reorderedSections;
 
     // Actualizar UI
