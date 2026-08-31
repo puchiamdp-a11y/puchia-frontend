@@ -158,8 +158,8 @@ function renderHomeSections() {
     try {
       switch (actualType) {
         case 'scrolling_text':
-          // La barra de anuncios vive arriba del header, se actualiza en su lugar.
-          applyHomeScrollingText(config);
+          // Renderizar como sección del contenido (permite múltiples zonas de texto)
+          html += renderHomeScrollingText(config);
           break;
         case 'banner':
           html += renderHomeBanner(config);
@@ -225,6 +225,24 @@ function applyHomeScrollingText(config) {
   bar.textContent = config.text;
   if (config.background_color) bar.style.backgroundColor = config.background_color;
   if (config.text_color) bar.style.color = config.text_color;
+}
+
+// Renderizar zona de texto como sección del contenido (permite múltiples)
+function renderHomeScrollingText(config) {
+  if (!config.text) return '';
+
+  const bgColor = config.background_color || '#FF1493';
+  const textColor = config.text_color || '#FFFFFF';
+  const scrollSpeed = config.scroll_speed || 50;
+  const padding = config.padding || '12px 0';
+
+  return `
+    <div class="home-scrolling-text-section" style="background-color: ${escapeHomeHTML(bgColor)}; color: ${escapeHomeHTML(textColor)}; padding: ${escapeHomeHTML(padding)}; text-align: center; font-weight: bold;">
+      <div style="animation: scroll-left ${Math.max(10, 100 - scrollSpeed)}s linear infinite; white-space: nowrap;">
+        ${escapeHomeHTML(config.text)}
+      </div>
+    </div>
+  `;
 }
 
 function renderHomeBanner(config) {
