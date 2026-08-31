@@ -63,9 +63,9 @@ async function updateLogoAndFavicon() {
 
         if (!data.success || !data.data) return;
 
-        // Actualizar logo
+        // Actualizar logo (header y footer)
         if (data.data.logo_url) {
-            const logos = document.querySelectorAll('.logo');
+            const logos = document.querySelectorAll('.logo, .footer-logo');
             logos.forEach(logo => {
                 logo.style.backgroundImage = `url('${data.data.logo_url}')`;
             });
