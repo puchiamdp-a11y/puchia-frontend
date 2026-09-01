@@ -22,6 +22,13 @@ let cajaState = {
 function initCaja() {
   console.log('🔄 Inicializando módulo de Caja...');
 
+  // Verificar que hay token antes de cargar
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.warn('⚠️ No hay token disponible, esperando autenticación...');
+    return;
+  }
+
   // Cargar categorías y transacciones
   loadCajaData();
 
@@ -654,11 +661,15 @@ function abrirModalNuevaCategoria() {
 
   titulo.textContent = '➕ Nueva Categoría';
   btnSubmit.textContent = 'Crear';
+
+  // Reset form
   form.reset();
 
-  // Valores por defecto
-  document.getElementById('inputIconoCategoria').value = '💰';
-  document.getElementById('inputColorCategoria').value = '#7f1f6e';
+  // Valores por defecto DESPUÉS del reset
+  setTimeout(() => {
+    document.getElementById('inputIconoCategoria').value = '💰';
+    document.getElementById('inputColorCategoria').value = '#7f1f6e';
+  }, 10);
 
   modal.classList.add('show');
 }
