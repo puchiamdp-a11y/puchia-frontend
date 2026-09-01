@@ -2,15 +2,37 @@
 
 let pages = [];
 let currentPageId = null;
+let pageEditor = null;
 
 // Constante global del API
 const API_BASE_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
 
 // Cargar páginas cuando se abre la página
 document.addEventListener('DOMContentLoaded', async () => {
+  initializePageEditor();
   await loadPages();
-  setupFormListener();
 });
+
+// Inicializar editor Quill
+function initializePageEditor() {
+  const editorElement = document.getElementById('pageEditor');
+  if (editorElement && !pageEditor) {
+    pageEditor = new Quill('#pageEditor', {
+      theme: 'snow',
+      placeholder: 'Escribe tu contenido aquí...',
+      modules: {
+        toolbar: [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          ['link', 'image'],
+          ['clean']
+        ]
+      }
+    });
+  }
+}
 
 // Cargar todas las páginas
 async function loadPages() {
@@ -55,8 +77,9 @@ function renderPages() {
     <table class="pages-table">
       <thead>
         <tr>
-          <th>Nombre</th>
+          <th>Título</th>
           <th>Slug</th>
+          <th>Estado</th>
           <th>Creada</th>
           <th>Acciones</th>
         </tr>
@@ -66,7 +89,12 @@ function renderPages() {
           <tr>
             <td><div class="page-title">${escapeHTML(page.title)}</div></td>
             <td><div class="page-slug">/${escapeHTML(page.slug)}</div></td>
-            <td style="color: #999; font-size: 13px;">${new Date(page.createdAt).toLocaleDateString('es-ES')}</td>
+            <td style="font-size: 12px;">
+              <span style="padding: 4px 8px; border-radius: 4px; ${page.is_published ? 'background: #e6f4ea; color: #1a7c3a;' : 'background: #fff3e0; color: #e65100;'}">
+                ${page.is_published ? '✅ Publicado' : '📝 Borrador'}
+              </span>
+            </td>
+            <td style="color: #999; font-size: 13px;">${new Date(page.created_at).toLocaleDateString('es-ES')}</td>
             <td>
               <div class="actions">
                 <button class="btn-edit" onclick="openEditPageModal(${page.id})">✏️ Editar</button>
@@ -86,7 +114,16 @@ function renderPages() {
 function openCreatePageModal() {
   currentPageId = null;
   document.getElementById('pageModalTitle').textContent = 'Nueva Página';
-  document.getElementById('pageForm').reset();
+  document.getElementById('pageId').value = '';
+  document.getElementById('pageTitle').value = '';
+  document.getElementById('pageSlug').value = '';
+  document.getElementById('pagePublished').checked = false;
+  document.getElementById('pageIsPublished').value = 'false';
+
+  if (pageEditor) {
+    pageEditor.setContents([]);
+  }
+
   document.getElementById('pageModal').classList.add('active');
 }
 
@@ -102,9 +139,20 @@ async function openEditPageModal(pageId) {
     }
 
     document.getElementById('pageModalTitle').textContent = '✏️ Editar Página';
+    document.getElementById('pageId').value = page.id;
     document.getElementById('pageTitle').value = page.title;
     document.getElementById('pageSlug').value = page.slug;
-    document.getElementById('pageContent').value = page.content;
+    document.getElementById('pagePublished').checked = page.is_published;
+    document.getElementById('pageIsPublished').value = page.is_published ? 'true' : 'false';
+
+    if (pageEditor) {
+      try {
+        pageEditor.root.innerHTML = page.content || '';
+      } catch (e) {
+        console.warn('Error setting editor content:', e);
+      }
+    }
+
     document.getElementById('pageModal').classList.add('active');
   } catch (error) {
     console.error('Error abriendo modal:', error);
@@ -115,21 +163,18 @@ async function openEditPageModal(pageId) {
 // Cerrar modal
 function closePageModal() {
   document.getElementById('pageModal').classList.remove('active');
-  document.getElementById('pageForm').reset();
-  currentPageId = null;
 }
 
-// Configurar listener del formulario
-function setupFormListener() {
-  const form = document.getElementById('pageForm');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    await savePage();
-  });
+// Actualizar estado de publicación
+function updatePageStatus() {
+  const isPublished = document.getElementById('pagePublished').checked;
+  document.getElementById('pageIsPublished').value = isPublished ? 'true' : 'false';
 }
 
 // Guardar página (crear o editar)
-async function savePage() {
+async function savePage(event) {
+  event.preventDefault();
+
   try {
     const token = localStorage.getItem('puchia_admin_token');
     if (!token) {
@@ -139,29 +184,41 @@ async function savePage() {
 
     const title = document.getElementById('pageTitle').value.trim();
     const slug = document.getElementById('pageSlug').value.trim();
-    const content = document.getElementById('pageContent').value.trim();
+    const isPublished = document.getElementById('pagePublished').checked;
+    const pageId = document.getElementById('pageId').value;
 
-    if (!title || !slug || !content) {
-      showStatus('Todos los campos son requeridos', 'error');
+    let content = '';
+    if (pageEditor) {
+      content = pageEditor.root.innerHTML;
+    }
+
+    if (!title || !slug) {
+      showStatus('Título y slug son requeridos', 'error');
       return;
     }
 
-    // Validar slug (solo letras, números y guiones)
+    // Validar slug
     if (!/^[a-z0-9-]+$/.test(slug)) {
       showStatus('El slug solo puede contener letras minúsculas, números y guiones', 'error');
       return;
     }
 
     // Verificar si el slug ya existe (para nuevas páginas)
-    if (!currentPageId && pages.some(p => p.slug === slug)) {
+    if (!pageId && pages.some(p => p.slug === slug)) {
       showStatus('Este slug ya existe', 'error');
       return;
     }
 
-    const payload = { title, slug, content };
-    const method = currentPageId ? 'PUT' : 'POST';
-    const url = currentPageId
-      ? `${API_BASE_URL}/admin/pages/${currentPageId}`
+    const payload = {
+      title,
+      slug,
+      content,
+      is_published: isPublished
+    };
+
+    const method = pageId ? 'PUT' : 'POST';
+    const url = pageId
+      ? `${API_BASE_URL}/admin/pages/${pageId}`
       : `${API_BASE_URL}/admin/pages`;
 
     const response = await fetch(url, {
@@ -179,7 +236,7 @@ async function savePage() {
     }
 
     showStatus(
-      currentPageId
+      pageId
         ? '✅ Página actualizada correctamente'
         : '✅ Página creada correctamente',
       'success'
@@ -225,7 +282,9 @@ async function deletePage(pageId) {
 
 // Mostrar mensaje de estado
 function showStatus(message, type = 'info') {
-  const statusEl = document.getElementById('statusMessage');
+  const statusEl = document.getElementById('pagesStatus');
+  if (!statusEl) return;
+
   statusEl.textContent = message;
   statusEl.className = `status-bar ${type}`;
   statusEl.style.display = 'block';

@@ -608,10 +608,13 @@
             <div class="page-modal-header" id="pageModalTitle">Nueva Página</div>
 
             <form id="pageForm" onsubmit="savePage(event)">
+                <input type="hidden" id="pageId">
+                <input type="hidden" id="pageIsPublished" value="false">
+
                 <div class="page-form-group">
-                    <label class="page-form-label">Nombre de la Página</label>
+                    <label class="page-form-label">Título de la Página</label>
                     <input type="text" id="pageTitle" class="page-form-input" placeholder="Ej: Contacto, Sobre Nosotros" required>
-                    <small style="color: #999; font-size: 12px;">Este será el nombre visible de la página</small>
+                    <small style="color: #999; font-size: 12px;">Puedes usar mayúsculas, minúsculas y caracteres especiales</small>
                 </div>
 
                 <div class="page-form-group">
@@ -621,9 +624,17 @@
                 </div>
 
                 <div class="page-form-group">
-                    <label class="page-form-label">Contenido</label>
-                    <textarea id="pageContent" class="page-form-textarea" placeholder="Escribe el contenido aquí..." required></textarea>
-                    <small style="color: #999; font-size: 12px;">Puedes usar HTML para formatear</small>
+                    <label class="page-form-label">Contenido (Editor WYSIWYG)</label>
+                    <div id="pageEditor" style="border: 1px solid #ddd; border-radius: 6px; background: white; min-height: 300px; font-family: inherit;"></div>
+                    <small style="color: #999; font-size: 12px;">Puedes insertar texto, imágenes, enlaces y dar formato al contenido</small>
+                </div>
+
+                <div class="page-form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="pagePublished" onchange="updatePageStatus()">
+                        <span style="font-weight: 600; font-size: 14px;">Publicar página</span>
+                    </label>
+                    <small style="color: #999; font-size: 12px;">Si no marcas esto, la página se guardará en borrador</small>
                 </div>
 
                 <div class="page-modal-actions">
