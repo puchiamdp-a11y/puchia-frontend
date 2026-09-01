@@ -12,6 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <!-- Common utilities and API configuration -->
     <script src="../js/common.js?v=2026082705"></script>
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.js"></script>
     <style>
         /* Hide cart in admin panel */
         #cartSidebar, #cartOverlay { display: none !important; }
@@ -624,9 +627,10 @@
                 </div>
 
                 <div class="page-form-group">
-                    <label class="page-form-label">Contenido (Editor WYSIWYG)</label>
-                    <div id="pageEditor" style="border: 1px solid #ddd; border-radius: 6px; background: white; min-height: 300px; font-family: inherit;"></div>
-                    <small style="color: #999; font-size: 12px;">Puedes insertar texto, imágenes, enlaces y dar formato al contenido</small>
+                    <label class="page-form-label">Contenido (Editor de Texto Completo)</label>
+                    <div id="pageEditorToolbar" style="background: #f8f8f8; border: 1px solid #ddd; border-bottom: none; border-radius: 6px 6px 0 0; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;"></div>
+                    <div id="pageEditor" style="border: 1px solid #ddd; border-radius: 0 0 6px 6px; background: white; min-height: 400px; font-family: inherit;"></div>
+                    <small style="color: #999; font-size: 12px;">✍️ Usa la barra de herramientas para formatear tu contenido</small>
                 </div>
 
                 <div class="page-form-group">
@@ -857,5 +861,6 @@
             if (e.target.id === 'pageModal') closePageModal();
         });
     </script>
+    <script src="../js/admin-pages.js?v=2026090101"></script>
 </body>
 </html>
