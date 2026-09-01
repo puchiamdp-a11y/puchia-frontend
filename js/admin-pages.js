@@ -13,25 +13,96 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadPages();
 });
 
-// Inicializar editor Quill
+// Inicializar editor Quill con todas las herramientas
 function initializePageEditor() {
   const editorElement = document.getElementById('pageEditor');
+  const toolbarElement = document.getElementById('pageEditorToolbar');
+
   if (editorElement && !pageEditor) {
     pageEditor = new Quill('#pageEditor', {
       theme: 'snow',
-      placeholder: 'Escribe tu contenido aquí...',
+      placeholder: '✍️ Comienza a escribir tu contenido aquí...\n\nUsa la barra de herramientas para:\n- Dar formato al texto\n- Insertar enlaces\n- Agregar imágenes\n- Crear listas\n- Y mucho más...',
       modules: {
-        toolbar: [
-          [{ 'header': [1, 2, 3, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          ['blockquote', 'code-block'],
-          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-          ['link', 'image'],
-          ['clean']
-        ]
+        toolbar: {
+          container: [
+            // Formato de texto
+            ['bold', 'italic', 'underline', 'strike'],
+
+            // Títulos y bloques
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'size': ['small', false, 'large', 'huge'] }],
+
+            // Colores
+            [{ 'color': [] }, { 'background': [] }],
+
+            // Listas
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+
+            // Alineación
+            [{ 'align': [] }],
+
+            // Elementos
+            ['blockquote', 'code-block'],
+            ['link', 'image', 'video'],
+
+            // Especiales
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+
+            // Limpiar formato
+            ['clean']
+          ],
+          handlers: {
+            'image': imageHandler
+          }
+        },
+        clipboard: {
+          matchVisual: false
+        }
       }
     });
+
+    // Mejorar estilos del editor
+    const qlEditor = document.querySelector('.ql-editor');
+    if (qlEditor) {
+      qlEditor.style.minHeight = '400px';
+      qlEditor.style.padding = '15px';
+      qlEditor.style.fontSize = '16px';
+      qlEditor.style.lineHeight = '1.6';
+      qlEditor.style.fontFamily = 'inherit';
+    }
+
+    // Mejorar estilos de la barra de herramientas
+    const qlToolbar = document.querySelector('.ql-toolbar');
+    if (qlToolbar) {
+      qlToolbar.style.borderRadius = '0';
+      qlToolbar.style.borderTop = 'none';
+      qlToolbar.style.padding = '8px';
+      qlToolbar.style.backgroundColor = '#f8f8f8';
+    }
   }
+}
+
+// Handler personalizado para imágenes
+function imageHandler() {
+  const input = document.createElement('input');
+  input.setAttribute('type', 'file');
+  input.setAttribute('accept', 'image/*');
+  input.click();
+
+  input.onchange = () => {
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const image = e.target.result;
+        const index = pageEditor.getSelection().index;
+        pageEditor.insertEmbed(index, 'image', image, 'user');
+        pageEditor.setSelection(index + 1);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 }
 
 // Cargar todas las páginas
