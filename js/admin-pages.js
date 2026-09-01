@@ -298,7 +298,7 @@ async function savePage(event) {
 
     const method = pageId ? 'PUT' : 'POST';
     const url = pageId
-      ? `${API_BASE_URL}/admin/pages/${pageId}`
+      ? `${window.API_BASE_URL}/admin/pages/${pageId}`
       : `${window.API_BASE_URL}/admin/pages`;
 
     const response = await fetch(url, {
@@ -343,7 +343,7 @@ async function deletePage(pageId) {
       return;
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/pages/${pageId}`, {
+    const response = await fetch(`${window.API_BASE_URL}/admin/pages/${pageId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
