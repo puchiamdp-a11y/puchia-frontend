@@ -613,9 +613,8 @@ async function loadCategoriesForSelector() {
     const result = await response.json();
 
     // Deduplicar categorías por ID para evitar duplicados
-    const uniqueCategorias = [];
     const seenIds = new Set();
-
+    const uniqueCategorias = [];
     (result.data || []).forEach(cat => {
       if (!seenIds.has(cat.id)) {
         seenIds.add(cat.id);
