@@ -3892,10 +3892,10 @@ function renderCategorias(categorias) {
   tbody.innerHTML = categorias.map(cat => `
     <tr>
       <td>${cat.id}</td>
-      <td><strong>${cat.nombre}</strong></td>
+      <td><strong>${(cat.emoji || '📦')} ${cat.nombre}</strong></td>
       <td style="color: #666; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${cat.descripcion || '—'}</td>
       <td>
-        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}')" title="Editar">✏️ Editar</button>
+        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.emoji || '📦').replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}')" title="Editar">✏️ Editar</button>
         <button class="btn btn-sm btn-danger" onclick="eliminarCategoria(${cat.id})" title="Eliminar">🗑️ Eliminar</button>
       </td>
     </tr>
@@ -3904,6 +3904,7 @@ function renderCategorias(categorias) {
 
 async function guardarCategoria() {
   const nombre = document.getElementById('categoriaNombre').value.trim();
+  const emoji = document.getElementById('categoriaEmoji').value.trim() || '📦';
   const descripcion = document.getElementById('categoriaDescripcion').value.trim();
   const categoriaId = document.getElementById('categoriaId').value;
 
@@ -3928,6 +3929,7 @@ async function guardarCategoria() {
       },
       body: JSON.stringify({
         nombre: nombre,
+        emoji: emoji,
         descripcion: descripcion || null
       })
     });
@@ -3941,6 +3943,7 @@ async function guardarCategoria() {
       // Limpiar formulario
       document.getElementById('categoriaId').value = '';
       document.getElementById('categoriaNombre').value = '';
+      document.getElementById('categoriaEmoji').value = '';
       document.getElementById('categoriaDescripcion').value = '';
       document.getElementById('cancelarCategoriaBtn').style.display = 'none';
 
@@ -3955,12 +3958,115 @@ async function guardarCategoria() {
   }
 }
 
-function editarCategoria(id, nombre, descripcion) {
+function editarCategoria(id, nombre, emoji, descripcion) {
   document.getElementById('categoriaId').value = id;
   document.getElementById('categoriaNombre').value = nombre;
+  document.getElementById('categoriaEmoji').value = emoji || '📦';
   document.getElementById('categoriaDescripcion').value = descripcion;
   document.getElementById('cancelarCategoriaBtn').style.display = 'inline-block';
   document.getElementById('categoriaNombre').focus();
+}
+
+// ======================== EMOJI PICKER ========================
+const emojisDisponibles = [
+  // SECCIÓN 1: Papelería, Regalos, Cumpleaños, Decoración, Corazones, Flores
+  // Papelería
+  '📝', '✏️', '📄', '📃', '📋', '📁', '📂', '📓', '📔', '📒', '📕', '📗', '📘', '📙',
+  // Regalos y Cumpleaños
+  '🎁', '🎀', '🎊', '🎉', '🎈', '🎂', '🧁', '🍰', '🕯️',
+  // Decoración
+  '🎆', '🎇', '✨', '💫', '⭐', '🌟', '🏵️', '🎗️',
+  // Corazones (ARRIBA)
+  '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟',
+  // Flores (ARRIBA)
+  '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🌿', '🍀', '🍁', '🍂', '🍃',
+
+  // SECCIÓN 2: Caras, Animales, Plantas, y lo demás
+  // Caras
+  '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪', '😌', '😔', '😑', '😐', '😶', '🥺', '😏', '😒', '😴', '😪', '🤐',
+  // Animales
+  '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🐐', '🦌', '🐕', '🐩', '🐈', '🐓', '🦃', '🦚', '🦜', '🦢',
+  // Plantas y naturaleza
+  '🌲', '🌳', '🌴', '🌵', '🌾', '🍀', '🌱',
+  // Lo demás (objetos, símbolos, etc)
+  '📦', '🎯', '⚽', '🏀', '🎾', '🎱', '🎮', '💻', '📱', '📷', '🎬', '🎵', '🎶', '🎤', '🎧', '🎸', '🎹', '🍕', '🍔', '🍟', '🌮', '🍜', '🍱', '☕', '🍷', '🏠', '🚗', '🚕', '🚙', '✈️', '🚁', '⛵', '🚂', '🚇', '⚡', '🔥', '💧', '❄️', '🌈', '☀️', '🌙', '⭐', '🎓', '👑', '🏆', '📚', '💼', '🎒', '👜', '👕', '👔', '👗', '👠', '👞', '⌚', '💎', '💍', '🔑', '🔓', '🔒', '🗝️', '🧲', '🔨', '⚒️', '🛠️', '⚙️', '🧰', '🌊', '🏖️', '🏝️', '⛰️', '🏔️', '🗻', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎮', '🎯', '🎲', '🎰', '🃏', '🎴', '🀄', '🧩', '🚀', '🛸', '🛰️', '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎳', '🏓', '🏸', '🥊', '🥋', '🥅', '⛳', '⛸️', '🎣', '🎽', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '⛹️', '🤺', '🤾', '🏌️',
+];
+
+// Inicializar emoji picker
+document.addEventListener('DOMContentLoaded', () => {
+  inicializarEmojiPicker();
+});
+
+function inicializarEmojiPicker() {
+  const gridEmojiBtn = document.getElementById('abrirEmojiPickerBtn');
+  const modal = document.getElementById('emojiPickerModal');
+  const cerrarBtn = document.getElementById('cerrarEmojiPickerBtn');
+  const grid = document.getElementById('emojiGrid');
+  const emojiInput = document.getElementById('categoriaEmoji');
+
+  // Cargar emojis en la grilla
+  if (grid) {
+    grid.innerHTML = emojisDisponibles.map(emoji => `
+      <button type="button" class="emoji-btn" data-emoji="${emoji}" style="
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 24px;
+        cursor: pointer;
+        background: white;
+        transition: all 0.2s;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">${emoji}</button>
+    `).join('');
+
+    // Event listeners para cada emoji
+    grid.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emoji = e.target.getAttribute('data-emoji');
+        emojiInput.value = emoji;
+        modal.style.display = 'none';
+      });
+
+      btn.addEventListener('mouseover', () => {
+        btn.style.background = '#f0e6f6';
+        btn.style.transform = 'scale(1.1)';
+      });
+
+      btn.addEventListener('mouseout', () => {
+        btn.style.background = 'white';
+        btn.style.transform = 'scale(1)';
+      });
+    });
+  }
+
+  // Abrir modal
+  if (gridEmojiBtn) {
+    gridEmojiBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (modal) modal.style.display = 'flex';
+    });
+  }
+
+  // Cerrar modal
+  if (cerrarBtn) {
+    cerrarBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (modal) modal.style.display = 'none';
+    });
+  }
+
+  // Cerrar modal al hacer clic afuera
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  }
 }
 
 async function eliminarCategoria(id) {
@@ -4671,11 +4777,15 @@ async function loadBrandingImages() {
     if (data.success && data.data) {
       if (data.data.logo_url) {
         updateLogoPreview(data.data.logo_url);
-        document.getElementById('logo').value = data.data.logo_url;
+        // Only set value if element exists (not used in current admin layout)
+        const logoInput = document.getElementById('logo');
+        if (logoInput) logoInput.value = data.data.logo_url;
       }
       if (data.data.favicon_url) {
         updateFaviconPreview(data.data.favicon_url);
-        document.getElementById('favicon').value = data.data.favicon_url;
+        // Only set value if element exists (favicon field may not be in all pages)
+        const faviconInput = document.getElementById('favicon');
+        if (faviconInput) faviconInput.value = data.data.favicon_url;
       }
     }
   } catch (error) {

@@ -4,92 +4,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página - Puchia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/common.css?v=2026083108">
-    <link rel="stylesheet" href="css/cliente-critical.css?v=2026083108">
-    <link rel="stylesheet" href="css/cliente.css?v=2026083108" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="css/common-responsive.css?v=2026083108" media="print" onload="this.media='all'">
-    <noscript>
-        <link rel="stylesheet" href="css/cliente.css?v=2026083108">
-        <link rel="stylesheet" href="css/common-responsive.css?v=2026083108">
-    </noscript>
+    <link rel="stylesheet" href="css/home-critical.css?v=2026083108">
+    <link rel="stylesheet" href="css/home.css?v=2026083108">
+    <link rel="stylesheet" href="css/cliente.css?v=2026083108">
+    <link rel="stylesheet" href="css/common-responsive.css?v=2026083108">
     <style>
         .page-container {
             max-width: 900px;
-            margin: 60px auto;
-            padding: 40px;
+            margin: 40px auto;
+            padding: 20px;
             background: white;
             border-radius: 8px;
+            min-height: 400px;
         }
+
         .page-title {
             font-size: 32px;
             font-weight: 700;
-            color: #1a1a1a;
+            color: #333;
             margin-bottom: 30px;
+            text-align: center;
         }
+
         .page-content {
             font-size: 16px;
-            line-height: 1.6;
-            color: #333;
+            line-height: 1.8;
+            color: #555;
         }
-        .page-content h2 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            color: #7f1f6e;
-        }
-        .page-content p {
+
+        .page-content h1, .page-content h2, .page-content h3 {
+            color: #7b2d8e;
+            margin-top: 25px;
             margin-bottom: 15px;
         }
+
+        .page-content h1 { font-size: 28px; }
+        .page-content h2 { font-size: 24px; }
+        .page-content h3 { font-size: 20px; }
+
+        .page-content p { margin-bottom: 15px; }
+
+        .page-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
         .page-content a {
-            color: #7f1f6e;
+            color: #7b2d8e;
             text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid #7b2d8e;
+            transition: all 0.3s;
         }
+
         .page-content a:hover {
-            text-decoration: underline;
+            background: #f0e6f6;
+            padding: 2px 4px;
         }
+
         .page-loading {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px;
+            color: #999;
         }
+
         .page-error {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
+            background: #fce8e6;
+            border-left: 4px solid #c5221f;
+            color: #c5221f;
             padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            border-radius: 4px;
+            margin: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .page-container {
+                margin: 20px 10px;
+                padding: 15px;
+            }
+
+            .page-title {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <button class="hamburger-btn" id="hamburgerBtn" title="Menú">☰</button>
-        <a class="logo-container" href="index.html">
-            <div class="logo" id="headerLogo">P</div>
-            <div class="logo-text" id="headerLogoText">Puchia</div>
-        </a>
         <div class="header-left">
+            <div class="logo-container">
+                <h1 class="logo">Puchia</h1>
+            </div>
             <nav>
                 <a href="index.html">Inicio</a>
                 <a href="categorias.html">Categorías</a>
                 <a href="proceso-compra.html">Productos</a>
                 <a href="proceso-compra.html?view=promos">Promos</a>
-                <a href="contacto.html">Contacto</a>
             </nav>
         </div>
         <div class="header-right">
-            <div class="search-container">
-                <input type="text" id="globalSearch" class="search-input" placeholder="Buscar productos..." autocomplete="off">
-                <div class="search-dropdown" id="searchDropdown"></div>
-            </div>
-            <button class="cart-btn" onclick="toggleCart(event)" title="Ver carrito" style="background: none; border: none; cursor: pointer; position: relative; font-size: 22px;">
+            <button class="cart-btn" onclick="toggleCart(event)" style="background: none; border: none; cursor: pointer; position: relative; font-size: 22px;">
                 🛒
                 <span class="cart-count" id="cartCount">0</span>
             </button>
-            <a href="perfil.html" class="admin-link" id="clienteNavLink" title="Mi cuenta">👤</a>
+            <a href="perfil.html" class="admin-link" id="clienteNavLink">👤</a>
         </div>
     </header>
 
@@ -99,77 +123,37 @@
             <a href="categorias.html">Categorías</a>
             <a href="proceso-compra.html">Productos</a>
             <a href="proceso-compra.html?view=promos">Promos</a>
-            <a href="contacto.html">Contacto</a>
         </div>
     </div>
 
-    <main>
-        <div class="page-container" id="pageContent">
-            <div class="page-loading">
-                <div class="spinner"></div>
-                <p>Cargando página...</p>
-            </div>
+    <main class="page-container">
+        <h1 class="page-title" id="pageTitle">Cargando página...</h1>
+        <div class="page-content" id="pageContent">
+            <div class="page-loading">Cargando contenido...</div>
         </div>
     </main>
 
-    <a href="#" data-whatsapp class="whatsapp-float" target="_blank" title="Contactanos por WhatsApp">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-    </a>
-
     <footer>
-        <div class="footer-brand">
-            <div class="footer-logo" id="footerLogo">P</div>
-            <div id="footerBrandText">Puchia</div>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Puchia</h4>
+                <p>Regalos personalizados con amor</p>
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces</h4>
+                <a href="index.html">Inicio</a>
+                <a href="categorias.html">Categorías</a>
+            </div>
         </div>
-        <div>© 2024 Puchia — Todos los derechos reservados</div>
-        <div>Regalos personalizados con amor 🤍</div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Puchia. Todos los derechos reservados.</p>
+        </div>
     </footer>
 
-    <script src="js/common.js?v=2026083108"></script>
-    <script src="js/productos-data.js?v=2026083108"></script>
-    <script src="js/global-search.js?v=2026083108"></script>
-    <script src="js/cliente.js?v=2026083108"></script>
-    <script>
-        async function loadPage() {
-            try {
-                await loadSettingsFromAPI();
-                await updateLogoAndFavicon();
-                updateUIWithSettings();
-                updateWhatsappLinks();
+    <a href="#" data-whatsapp class="whatsapp-float">💬</a>
 
-                const urlParams = new URLSearchParams(window.location.search);
-                const slug = urlParams.get('slug') || 'contacto';
-
-                const response = await fetch(`${API_BASE_URL}/pages/${slug}`);
-                
-                if (!response.ok) {
-                    throw new Error('Página no encontrada');
-                }
-
-                const data = await response.json();
-                const page = data.data;
-
-                document.title = `${page.title} - Puchia`;
-
-                const container = document.getElementById('pageContent');
-                container.innerHTML = `
-                    <h1 class="page-title">${escapeHTML(page.title)}</h1>
-                    <div class="page-content">${page.content}</div>
-                `;
-            } catch (error) {
-                console.error('Error cargando página:', error);
-                showCMSErrorPage('No pudimos cargar la página solicitada');
-            }
-        }
-
-        function escapeHTML(text) {
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-            return text.replace(/[&<>"']/g, c => map[c]);
-        }
-
-        window.addEventListener('load', loadPage);
-    </script>
+    <script src="js/common.js?v=2026082703"></script>
+    <script src="js/dynamic-pages.js?v=2026090101"></script>
+    <script src="js/page-loader.js?v=2026090101"></script>
 </body>
 </html>

@@ -131,17 +131,125 @@
 
         .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #f3e6f0; border-top-color: #7b2d8e; border-radius: 50%; animation: spin 0.6s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Section titles styling */
+        .section-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-top: 28px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #7b2d8e;
+            display: inline-block;
+        }
+
+        /* Pages section styling */
+        .pages-section {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+
+        .pages-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .pages-table thead {
+            background: #f0e6f6;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .pages-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .pages-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .pages-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .page-title { font-weight: 600; color: #333; }
+        .page-slug { color: #666; font-family: monospace; }
+        .page-date { color: #999; }
+
+        .no-pages {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .pages-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit-page {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .btn-edit-page:hover {
+            background: #2980b9;
+        }
+
+        .btn-delete-page {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .btn-delete-page:hover {
+            background: #c0392b;
+        }
+
+        /* Page modal */
+        .page-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1001; align-items: center; justify-content: center; }
+        .page-modal.show { display: flex; }
+        .page-modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .page-modal-header { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+        .page-form-group { margin-bottom: 16px; }
+        .page-form-label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        .page-form-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 14px; }
+        .page-form-textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 14px; resize: vertical; min-height: 150px; }
+        .page-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
     </style>
 </head>
 <body>
     <!-- CONTENIDO PRINCIPAL CMS -->
     <div class="cms-home-container" style="padding: 24px;">
         <h1 style="margin-top: 0;">Editar Tienda</h1>
-        <p style="color: #666; margin-bottom: 24px;">Reordena, edita, duplica o elimina secciones. Los cambios se guardan automáticamente.</p>
+        <p style="color: #666; margin-bottom: 24px;">Gestiona tu tienda: identidad visual, secciones del home y páginas estáticas.</p>
 
             <!-- BRANDING SECTION: Logo and Favicon -->
+            <div class="section-header">🎨 Identidad Visual</div>
             <div style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-                <h3 style="margin-top: 0; margin-bottom: 16px;">🎨 Identidad Visual</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <!-- Logo Upload -->
                     <div>
@@ -165,6 +273,9 @@
                 </div>
                 <div id="brandingStatus" class="status-bar" style="display: none; margin-top: 16px;"></div>
             </div>
+
+            <!-- INICIO SECTION -->
+            <div class="section-header">🏠 Inicio</div>
 
             <!-- TOOLBAR -->
             <div class="sections-toolbar">
@@ -473,6 +584,278 @@
         </div>
     </div>
 
+            <!-- PÁGINAS SECTION -->
+            <div class="section-header" style="margin-top: 40px;">📄 Páginas Estáticas</div>
+            <div class="pages-section">
+                <p style="color: #666; margin-top: 0; margin-bottom: 16px;">Crea páginas con contenido libre (contacto, sobre nosotros, etc.)</p>
+
+                <button class="btn-primary" onclick="openCreatePageModal()" style="margin-bottom: 16px;">➕ Nueva Página</button>
+
+                <div id="pagesContainer" style="min-height: 200px;">
+                    <div style="text-align: center; color: #999; padding: 20px;">
+                        Cargando páginas...
+                    </div>
+                </div>
+
+                <div id="pagesStatus" class="status-bar" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE MODAL -->
+    <div id="pageModal" class="page-modal">
+        <div class="page-modal-content">
+            <div class="page-modal-header" id="pageModalTitle">Nueva Página</div>
+
+            <form id="pageForm" onsubmit="savePage(event)">
+                <input type="hidden" id="pageId">
+                <input type="hidden" id="pageIsPublished" value="false">
+
+                <div class="page-form-group">
+                    <label class="page-form-label">Título de la Página</label>
+                    <input type="text" id="pageTitle" class="page-form-input" placeholder="Ej: Contacto, Sobre Nosotros" required>
+                    <small style="color: #999; font-size: 12px;">Puedes usar mayúsculas, minúsculas y caracteres especiales</small>
+                </div>
+
+                <div class="page-form-group">
+                    <label class="page-form-label">Slug (URL)</label>
+                    <input type="text" id="pageSlug" class="page-form-input" placeholder="Ej: contacto" required>
+                    <small style="color: #999; font-size: 12px;">URL amigable (solo letras, números y guiones)</small>
+                </div>
+
+                <div class="page-form-group">
+                    <label class="page-form-label">Contenido (Editor WYSIWYG)</label>
+                    <div id="pageEditor" style="border: 1px solid #ddd; border-radius: 6px; background: white; min-height: 300px; font-family: inherit;"></div>
+                    <small style="color: #999; font-size: 12px;">Puedes insertar texto, imágenes, enlaces y dar formato al contenido</small>
+                </div>
+
+                <div class="page-form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="pagePublished" onchange="updatePageStatus()">
+                        <span style="font-weight: 600; font-size: 14px;">Publicar página</span>
+                    </label>
+                    <small style="color: #999; font-size: 12px;">Si no marcas esto, la página se guardará en borrador</small>
+                </div>
+
+                <div class="page-modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closePageModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Página</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../js/admin-home-sections.js?v=2026082715"></script>
+    <script>
+        // ======================== PÁGINAS MANAGEMENT ========================
+        let pages = [];
+        let currentPageId = null;
+
+        // Load pages on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPages();
+        });
+
+        async function loadPages() {
+            try {
+                const token = localStorage.getItem('puchia_admin_token');
+                if (!token) return;
+
+                const response = await fetch(`${API_BASE_URL}/admin/pages`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+
+                const data = await response.json();
+                pages = data.data || [];
+                renderPages();
+            } catch (error) {
+                console.error('Error cargando páginas:', error);
+                showPageStatus('Error al cargar páginas', 'error');
+            }
+        }
+
+        function renderPages() {
+            const container = document.getElementById('pagesContainer');
+
+            if (pages.length === 0) {
+                container.innerHTML = `
+                    <div class="no-pages">
+                        <p style="font-size: 16px; margin-bottom: 12px;">📭 No hay páginas creadas aún</p>
+                        <p style="color: #ccc; font-size: 13px;">Crea tu primera página para agregar contenido estático</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <table class="pages-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Slug</th>
+                            <th>Creada</th>
+                            <th style="text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pages.map(page => `
+                            <tr>
+                                <td><div class="page-title">${escapeHTML(page.title)}</div></td>
+                                <td><div class="page-slug">/${escapeHTML(page.slug)}</div></td>
+                                <td class="page-date">${new Date(page.createdAt).toLocaleDateString('es-ES')}</td>
+                                <td style="text-align: right;">
+                                    <div class="pages-actions">
+                                        <button class="btn-edit-page" onclick="openEditPageModal(${page.id})">✏️ Editar</button>
+                                        <button class="btn-delete-page" onclick="deletePage(${page.id})">🗑️ Eliminar</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function openCreatePageModal() {
+            currentPageId = null;
+            document.getElementById('pageModalTitle').textContent = 'Nueva Página';
+            document.getElementById('pageForm').reset();
+            document.getElementById('pageModal').classList.add('show');
+        }
+
+        async function openEditPageModal(pageId) {
+            currentPageId = pageId;
+            const page = pages.find(p => p.id === pageId);
+
+            if (!page) {
+                showPageStatus('Página no encontrada', 'error');
+                return;
+            }
+
+            document.getElementById('pageModalTitle').textContent = '✏️ Editar Página';
+            document.getElementById('pageTitle').value = page.title;
+            document.getElementById('pageSlug').value = page.slug;
+            document.getElementById('pageContent').value = page.content;
+            document.getElementById('pageModal').classList.add('show');
+        }
+
+        function closePageModal() {
+            document.getElementById('pageModal').classList.remove('show');
+            document.getElementById('pageForm').reset();
+            currentPageId = null;
+        }
+
+        async function savePage(e) {
+            e.preventDefault();
+
+            try {
+                const token = localStorage.getItem('puchia_admin_token');
+                if (!token) {
+                    showPageStatus('No autenticado', 'error');
+                    return;
+                }
+
+                const title = document.getElementById('pageTitle').value.trim();
+                const slug = document.getElementById('pageSlug').value.trim();
+                const content = document.getElementById('pageContent').value.trim();
+
+                if (!title || !slug || !content) {
+                    showPageStatus('Todos los campos son requeridos', 'error');
+                    return;
+                }
+
+                if (!/^[a-z0-9-]+$/.test(slug)) {
+                    showPageStatus('El slug solo puede contener letras minúsculas, números y guiones', 'error');
+                    return;
+                }
+
+                if (!currentPageId && pages.some(p => p.slug === slug)) {
+                    showPageStatus('Este slug ya existe', 'error');
+                    return;
+                }
+
+                const method = currentPageId ? 'PUT' : 'POST';
+                const url = currentPageId
+                    ? `${API_BASE_URL}/admin/pages/${currentPageId}`
+                    : `${API_BASE_URL}/admin/pages`;
+
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, slug, content })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}`);
+                }
+
+                showPageStatus(
+                    currentPageId ? '✅ Página actualizada' : '✅ Página creada',
+                    'success'
+                );
+
+                closePageModal();
+                await loadPages();
+            } catch (error) {
+                console.error('Error guardando página:', error);
+                showPageStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function deletePage(pageId) {
+            if (!confirm('¿Eliminar esta página? Esta acción no se puede deshacer.')) return;
+
+            try {
+                const token = localStorage.getItem('puchia_admin_token');
+                if (!token) {
+                    showPageStatus('No autenticado', 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/admin/pages/${pageId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+
+                showPageStatus('✅ Página eliminada', 'success');
+                await loadPages();
+            } catch (error) {
+                console.error('Error eliminando página:', error);
+                showPageStatus('Error al eliminar', 'error');
+            }
+        }
+
+        function showPageStatus(message, type = 'info') {
+            const statusEl = document.getElementById('pagesStatus');
+            statusEl.textContent = message;
+            statusEl.className = `status-bar ${type}`;
+            statusEl.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function escapeHTML(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+            return text.replace(/[&<>"']/g, c => map[c]);
+        }
+
+        // Close modal clicking outside
+        document.getElementById('pageModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'pageModal') closePageModal();
+        });
+    </script>
 </body>
 </html>

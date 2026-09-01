@@ -366,6 +366,23 @@
                         <input type="text" id="categoriaNombre" placeholder="Nombre de la categoría" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
                     </div>
                     <div class="form-group">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="categoriaEmoji" placeholder="Emoji o icono" maxlength="10" readonly style="width: 60px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; text-align: center; font-size: 24px; cursor: pointer;">
+                            <button type="button" id="abrirEmojiPickerBtn" class="btn btn-secondary" style="padding: 8px 16px;">Elegir emoji</button>
+                        </div>
+                    </div>
+
+                    <!-- Emoji Picker Modal -->
+                    <div id="emojiPickerModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                        <div style="background: white; border-radius: 8px; padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top: 0; margin-bottom: 15px;">Selecciona un emoji</h3>
+                            <div id="emojiGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(45px, 1fr)); gap: 8px; margin-bottom: 15px;">
+                                <!-- Emojis se cargan aquí -->
+                            </div>
+                            <button type="button" id="cerrarEmojiPickerBtn" class="btn btn-secondary" style="width: 100%;">Cerrar</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <textarea id="categoriaDescripcion" placeholder="Descripción (opcional)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; min-height: 80px;"></textarea>
                     </div>
                     <button id="guardarCategoriaBtn" class="btn btn-primary">Guardar Categoría</button>
