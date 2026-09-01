@@ -13,7 +13,9 @@ let cajaState = {
     fecha_hasta: null
   },
   sortBy: 'fecha_transaccion',
-  sortOrder: 'DESC'
+  sortOrder: 'DESC',
+  modalTransaccionEditando: null,
+  modalCategoriaEditando: null
 };
 
 // ==================== INICIALIZACIÓN ====================
@@ -326,24 +328,67 @@ function aplicarFiltrosCaja() {
   loadCajaTransacciones(1);
 }
 
-// ==================== MODALES ====================
+// ==================== MODALES - TRANSACCIONES ====================
+
 function abrirModalNuevaTransaccion() {
-  console.log('Abrir modal nueva transacción');
-  // Se implementará en Phase 2
+  cajaState.modalTransaccionEditando = null;
+
+  const modal = document.getElementById('modalTransaccionCaja');
+  const titulo = document.getElementById('modalTransaccionTitulo');
+  const form = document.getElementById('formTransaccionCaja');
+  const btnSubmit = document.getElementById('btnSubmitTransaccion');
+
+  titulo.textContent = '➕ Nueva Transacción';
+  btnSubmit.textContent = 'Registrar';
+  form.reset();
+
+  // Setear fecha actual por defecto
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('inputFechaTransaccion').value = hoy;
+
+  modal.classList.add('show');
+  actualizarCategoriasDisponibles();
 }
 
-function abrirModalNuevaCategoria() {
-  console.log('Abrir modal nueva categoría');
-  // Se implementará en Phase 2
+function cerrarModalTransaccionCaja() {
+  const modal = document.getElementById('modalTransaccionCaja');
+  modal.classList.remove('show');
+  document.getElementById('formTransaccionCaja').reset();
+  cajaState.modalTransaccionEditando = null;
 }
 
 async function editarTransaccion(id) {
-  console.log('Editar transacción:', id);
-  // Se implementará en Phase 2
+  const transaccion = cajaState.transacciones.find(t => t.id === id);
+  if (!transaccion) return;
+
+  cajaState.modalTransaccionEditando = id;
+
+  const modal = document.getElementById('modalTransaccionCaja');
+  const titulo = document.getElementById('modalTransaccionTitulo');
+  const form = document.getElementById('formTransaccionCaja');
+  const btnSubmit = document.getElementById('btnSubmitTransaccion');
+
+  titulo.textContent = '✏️ Editar Transacción';
+  btnSubmit.textContent = 'Actualizar';
+
+  // Rellenar formulario
+  document.getElementById('inputTipoTransaccion').value = transaccion.tipo;
+  document.getElementById('inputMontoTransaccion').value = transaccion.monto;
+  document.getElementById('inputDescripcionTransaccion').value = transaccion.descripcion || '';
+  document.getElementById('inputFechaTransaccion').value = new Date(transaccion.fecha_transaccion).toISOString().split('T')[0];
+
+  actualizarCategoriasDisponibles();
+
+  // Esperar a que se carguen las categorías
+  setTimeout(() => {
+    document.getElementById('inputCategoriaTransaccion').value = transaccion.categoria_id;
+  }, 100);
+
+  modal.classList.add('show');
 }
 
 async function eliminarTransaccion(id) {
-  if (!confirm('¿Eliminar esta transacción?')) return;
+  if (!confirm('¿Eliminar esta transacción? Esta acción no se puede deshacer.')) return;
 
   try {
     const response = await fetch(`${API_BASE_URL}/admin/caja/transacciones/${id}`, {
@@ -353,28 +398,233 @@ async function eliminarTransaccion(id) {
       }
     });
 
-    if (response.ok) {
-      console.log('✅ Transacción eliminada');
-      loadCajaTransacciones();
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error: ${error.error || 'No se pudo eliminar la transacción'}`);
+      return;
     }
+
+    console.log('✅ Transacción eliminada');
+    await loadCajaTransacciones();
+    renderCajaTransacciones();
+    updateCajaResumen();
   } catch (error) {
     console.error('❌ Error eliminando transacción:', error);
+    alert('Error al eliminar la transacción');
   }
 }
 
+async function submitTransaccionCaja(event) {
+  event.preventDefault();
+
+  const tipo = document.getElementById('inputTipoTransaccion').value;
+  const categoria_id = parseInt(document.getElementById('inputCategoriaTransaccion').value);
+  const monto = parseFloat(document.getElementById('inputMontoTransaccion').value);
+  const descripcion = document.getElementById('inputDescripcionTransaccion').value || null;
+  const fecha_transaccion = document.getElementById('inputFechaTransaccion').value;
+
+  // Validar
+  if (!tipo || !categoria_id || !monto) {
+    alert('Por favor completa los campos requeridos');
+    return;
+  }
+
+  if (monto <= 0) {
+    alert('El monto debe ser mayor a 0');
+    return;
+  }
+
+  try {
+    const method = cajaState.modalTransaccionEditando ? 'PUT' : 'POST';
+    const url = cajaState.modalTransaccionEditando
+      ? `${API_BASE_URL}/admin/caja/transacciones/${cajaState.modalTransaccionEditando}`
+      : `${API_BASE_URL}/admin/caja/transacciones`;
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        tipo,
+        categoria_id,
+        monto,
+        descripcion,
+        fecha_transaccion
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error: ${error.error || 'No se pudo guardar la transacción'}`);
+      return;
+    }
+
+    console.log('✅ Transacción guardada');
+    cerrarModalTransaccionCaja();
+
+    await loadCajaTransacciones();
+    renderCajaTransacciones();
+    updateCajaResumen();
+  } catch (error) {
+    console.error('❌ Error guardando transacción:', error);
+    alert('Error al guardar la transacción');
+  }
+}
+
+function actualizarCategoriasDisponibles() {
+  const tipo = document.getElementById('inputTipoTransaccion').value;
+  const selectCategoria = document.getElementById('inputCategoriaTransaccion');
+
+  if (!tipo) {
+    selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>';
+    return;
+  }
+
+  const categoriasFiltridas = cajaState.categorias.filter(cat => cat.tipo === tipo && cat.activa);
+
+  selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
+    categoriasFiltridas.map(cat => `<option value="${cat.id}">${cat.icono} ${cat.nombre}</option>`).join('');
+}
+
+// ==================== MODALES - CATEGORÍAS ====================
+
+function abrirModalNuevaCategoria() {
+  cajaState.modalCategoriaEditando = null;
+
+  const modal = document.getElementById('modalCategoriaCaja');
+  const titulo = document.getElementById('modalCategoriaTitulo');
+  const form = document.getElementById('formCategoriaCaja');
+  const btnSubmit = document.getElementById('btnSubmitCategoria');
+
+  titulo.textContent = '➕ Nueva Categoría';
+  btnSubmit.textContent = 'Crear';
+  form.reset();
+
+  // Valores por defecto
+  document.getElementById('inputIconoCategoria').value = '💰';
+  document.getElementById('inputColorCategoria').value = '#7f1f6e';
+
+  modal.classList.add('show');
+}
+
+function cerrarModalCategoriaCaja() {
+  const modal = document.getElementById('modalCategoriaCaja');
+  modal.classList.remove('show');
+  document.getElementById('formCategoriaCaja').reset();
+  cajaState.modalCategoriaEditando = null;
+}
+
 async function editarCategoria(id) {
-  console.log('Editar categoría:', id);
-  // Se implementará en Phase 2
+  const categoria = cajaState.categorias.find(c => c.id === id);
+  if (!categoria) return;
+
+  cajaState.modalCategoriaEditando = id;
+
+  const modal = document.getElementById('modalCategoriaCaja');
+  const titulo = document.getElementById('modalCategoriaTitulo');
+  const form = document.getElementById('formCategoriaCaja');
+  const btnSubmit = document.getElementById('btnSubmitCategoria');
+
+  titulo.textContent = '✏️ Editar Categoría';
+  btnSubmit.textContent = 'Actualizar';
+
+  // Rellenar formulario
+  document.getElementById('inputNombreCategoria').value = categoria.nombre;
+  document.getElementById('inputTipoCategoria').value = categoria.tipo;
+  document.getElementById('inputDescripcionCategoria').value = categoria.descripcion || '';
+  document.getElementById('inputIconoCategoria').value = categoria.icono;
+  document.getElementById('inputColorCategoria').value = categoria.color;
+
+  modal.classList.add('show');
 }
 
 async function eliminarCategoria(id) {
-  console.log('Eliminar categoría:', id);
-  // Se implementará en Phase 2
+  if (!confirm('¿Eliminar esta categoría? Las transacciones asociadas no se eliminarán.')) return;
+
+  try {
+    // Por ahora usar actualizar para desactivar (soft delete)
+    const response = await fetch(`${API_BASE_URL}/admin/caja/categorias/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ activa: false })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error: ${error.error || 'No se pudo eliminar la categoría'}`);
+      return;
+    }
+
+    console.log('✅ Categoría eliminada');
+    await loadCajaCategorias();
+    renderCajaCategorias();
+  } catch (error) {
+    console.error('❌ Error eliminando categoría:', error);
+    alert('Error al eliminar la categoría');
+  }
+}
+
+async function submitCategoriaCaja(event) {
+  event.preventDefault();
+
+  const nombre = document.getElementById('inputNombreCategoria').value;
+  const tipo = document.getElementById('inputTipoCategoria').value;
+  const descripcion = document.getElementById('inputDescripcionCategoria').value || null;
+  const icono = document.getElementById('inputIconoCategoria').value || '💰';
+  const color = document.getElementById('inputColorCategoria').value || '#7f1f6e';
+
+  // Validar
+  if (!nombre || !tipo) {
+    alert('Por favor completa los campos requeridos');
+    return;
+  }
+
+  try {
+    const method = cajaState.modalCategoriaEditando ? 'PUT' : 'POST';
+    const url = cajaState.modalCategoriaEditando
+      ? `${API_BASE_URL}/admin/caja/categorias/${cajaState.modalCategoriaEditando}`
+      : `${API_BASE_URL}/admin/caja/categorias`;
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nombre,
+        tipo,
+        descripcion,
+        icono,
+        color
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error: ${error.error || 'No se pudo guardar la categoría'}`);
+      return;
+    }
+
+    console.log('✅ Categoría guardada');
+    cerrarModalCategoriaCaja();
+
+    await loadCajaCategorias();
+    renderCajaCategorias();
+  } catch (error) {
+    console.error('❌ Error guardando categoría:', error);
+    alert('Error al guardar la categoría');
+  }
 }
 
 function generarReporteCaja() {
   console.log('Generar reporte');
-  // Se implementará en Phase 3
+  // Se implementará en Phase 4
 }
 
 // ==================== INICIALIZAR CUANDO EL DOCUMENTO ESTÉ LISTO ====================

@@ -467,6 +467,95 @@
         </div>
     </div>
 
+    <!-- MODAL: NUEVA/EDITAR TRANSACCIÓN CAJA -->
+    <div id="modalTransaccionCaja" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="cerrarModalTransaccionCaja()">✕</button>
+            <h2 id="modalTransaccionTitulo" style="margin-bottom: 20px;">Nueva Transacción</h2>
+
+            <form id="formTransaccionCaja" onsubmit="submitTransaccionCaja(event)">
+                <div class="form-group">
+                    <label for="inputTipoTransaccion">Tipo *</label>
+                    <select id="inputTipoTransaccion" required onchange="actualizarCategoriasDisponibles()">
+                        <option value="">Seleccionar tipo...</option>
+                        <option value="ingreso">Ingreso</option>
+                        <option value="egreso">Egreso</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputCategoriaTransaccion">Categoría *</label>
+                    <select id="inputCategoriaTransaccion" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputMontoTransaccion">Monto ($) *</label>
+                    <input type="number" id="inputMontoTransaccion" step="0.01" min="0.01" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="inputDescripcionTransaccion">Descripción</label>
+                    <textarea id="inputDescripcionTransaccion" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputFechaTransaccion">Fecha</label>
+                    <input type="date" id="inputFechaTransaccion" />
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" id="btnSubmitTransaccion">Registrar</button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalTransaccionCaja()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: NUEVA/EDITAR CATEGORÍA CAJA -->
+    <div id="modalCategoriaCaja" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="cerrarModalCategoriaCaja()">✕</button>
+            <h2 id="modalCategoriaTitulo" style="margin-bottom: 20px;">Nueva Categoría</h2>
+
+            <form id="formCategoriaCaja" onsubmit="submitCategoriaCaja(event)">
+                <div class="form-group">
+                    <label for="inputNombreCategoria">Nombre *</label>
+                    <input type="text" id="inputNombreCategoria" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="inputTipoCategoria">Tipo *</label>
+                    <select id="inputTipoCategoria" required>
+                        <option value="">Seleccionar tipo...</option>
+                        <option value="ingreso">Ingreso</option>
+                        <option value="egreso">Egreso</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputDescripcionCategoria">Descripción</label>
+                    <textarea id="inputDescripcionCategoria" rows="2"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label for="inputIconoCategoria">Icono</label>
+                        <input type="text" id="inputIconoCategoria" maxlength="2" placeholder="💰" />
+                    </div>
+                    <div class="form-group">
+                        <label for="inputColorCategoria">Color</label>
+                        <input type="color" id="inputColorCategoria" />
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" id="btnSubmitCategoria">Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCategoriaCaja()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL NUEVO/EDITAR CLIENTE -->
     <div class="modal" id="modalCliente" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative;">
