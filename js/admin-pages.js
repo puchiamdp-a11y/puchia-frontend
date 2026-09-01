@@ -3,17 +3,16 @@
 let pages = [];
 let currentPageId = null;
 let pageEditor = null;
+let editorInitialized = false;
 
 // Cargar páginas cuando se abre la página
 document.addEventListener('DOMContentLoaded', async () => {
-  initializePageEditor();
   await loadPages();
 });
 
 // Inicializar editor Quill con todas las herramientas
 function initializePageEditor() {
   const editorElement = document.getElementById('pageEditor');
-  const toolbarElement = document.getElementById('pageEditorToolbar');
 
   if (editorElement && !pageEditor) {
     pageEditor = new Quill('#pageEditor', {
@@ -77,6 +76,8 @@ function initializePageEditor() {
       qlToolbar.style.padding = '8px';
       qlToolbar.style.backgroundColor = '#f8f8f8';
     }
+
+    editorInitialized = true;
   }
 }
 
@@ -188,6 +189,11 @@ function openCreatePageModal() {
   document.getElementById('pagePublished').checked = false;
   document.getElementById('pageIsPublished').value = 'false';
 
+  // Initialize Quill if not already initialized
+  if (!editorInitialized) {
+    initializePageEditor();
+  }
+
   if (pageEditor) {
     pageEditor.setContents([]);
   }
@@ -212,6 +218,11 @@ async function openEditPageModal(pageId) {
     document.getElementById('pageSlug').value = page.slug;
     document.getElementById('pagePublished').checked = page.is_published;
     document.getElementById('pageIsPublished').value = page.is_published ? 'true' : 'false';
+
+    // Initialize Quill if not already initialized
+    if (!editorInitialized) {
+      initializePageEditor();
+    }
 
     if (pageEditor) {
       try {
