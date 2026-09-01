@@ -4,9 +4,6 @@ let pages = [];
 let currentPageId = null;
 let pageEditor = null;
 
-// Constante global del API
-const API_BASE_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
-
 // Cargar páginas cuando se abre la página
 document.addEventListener('DOMContentLoaded', async () => {
   initializePageEditor();
@@ -114,7 +111,7 @@ async function loadPages() {
       return;
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/pages`, {
+    const response = await fetch(`${window.API_BASE_URL}/admin/pages`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
@@ -289,8 +286,8 @@ async function savePage(event) {
 
     const method = pageId ? 'PUT' : 'POST';
     const url = pageId
-      ? `${API_BASE_URL}/admin/pages/${pageId}`
-      : `${API_BASE_URL}/admin/pages`;
+      ? `${window.API_BASE_URL}/admin/pages/${pageId}`
+      : `${window.API_BASE_URL}/admin/pages`;
 
     const response = await fetch(url, {
       method,
@@ -334,7 +331,7 @@ async function deletePage(pageId) {
       return;
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/pages/${pageId}`, {
+    const response = await fetch(`${window.API_BASE_URL}/admin/pages/${pageId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
