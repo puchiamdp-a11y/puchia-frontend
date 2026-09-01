@@ -139,7 +139,8 @@ function renderCajaInterface() {
 
       <!-- FILTROS -->
       <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 12px;">
+          <input type="text" id="filtroBusqueda" placeholder="Buscar por descripción o ID orden..." onkeyup="aplicarFiltrosCaja()" />
           <select id="filtroTipo" onchange="aplicarFiltrosCaja()">
             <option value="">Todos los tipos</option>
             <option value="ingreso">Ingresos</option>
@@ -151,6 +152,9 @@ function renderCajaInterface() {
           </select>
           <input type="date" id="filtroFechaDesde" onchange="aplicarFiltrosCaja()" />
           <input type="date" id="filtroFechaHasta" onchange="aplicarFiltrosCaja()" />
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <button class="btn btn-small btn-secondary" onclick="limpiarFiltrosCaja()">🔄 Limpiar filtros</button>
         </div>
       </div>
 
@@ -371,15 +375,61 @@ function aplicarFiltrosCaja() {
   const categoria = document.getElementById('filtroCategoria')?.value || null;
   const fechaDesde = document.getElementById('filtroFechaDesde')?.value || null;
   const fechaHasta = document.getElementById('filtroFechaHasta')?.value || null;
+  const busqueda = document.getElementById('filtroBusqueda')?.value || null;
 
   cajaState.filters = {
     tipo: tipo || null,
     categoria_id: categoria ? parseInt(categoria) : null,
     fecha_desde: fechaDesde,
-    fecha_hasta: fechaHasta
+    fecha_hasta: fechaHasta,
+    busqueda: busqueda
+  };
+
+  // Si hay búsqueda, filtrar en cliente
+  if (busqueda) {
+    filtrarTransaccionesLocal(busqueda);
+  } else {
+    loadCajaTransacciones(1);
+  }
+}
+
+function limpiarFiltrosCaja() {
+  document.getElementById('filtroBusqueda').value = '';
+  document.getElementById('filtroTipo').value = '';
+  document.getElementById('filtroCategoria').value = '';
+  document.getElementById('filtroFechaDesde').value = '';
+  document.getElementById('filtroFechaHasta').value = '';
+
+  cajaState.filters = {
+    tipo: null,
+    categoria_id: null,
+    fecha_desde: null,
+    fecha_hasta: null,
+    busqueda: null
   };
 
   loadCajaTransacciones(1);
+}
+
+function filtrarTransaccionesLocal(busqueda) {
+  const termino = busqueda.toLowerCase();
+
+  // Primero cargar todas las transacciones, luego filtrar
+  const transaccionesOriginales = cajaState.transacciones;
+
+  // Si ya tenemos las transacciones cargadas, filtrar en cliente
+  const transaccionesFiltradas = transaccionesOriginales.filter(t => {
+    const descripcion = (t.descripcion || '').toLowerCase();
+    const ordenId = (t.orden?.id_unico || '').toLowerCase();
+
+    return descripcion.includes(termino) || ordenId.includes(termino);
+  });
+
+  // Tempor almacenar para renderizar
+  const transaccionesBackup = cajaState.transacciones;
+  cajaState.transacciones = transaccionesFiltradas;
+  renderCajaTransacciones();
+  cajaState.transacciones = transaccionesBackup;
 }
 
 // ==================== MODALES - TRANSACCIONES ====================
