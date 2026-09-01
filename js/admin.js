@@ -79,6 +79,19 @@ function formatDateLong(dateStr) {
   });
 }
 
+// ==================== ESTADO COLORS ====================
+function getEstadoColor(estado) {
+  const colores = {
+    'pendiente': { bg: '#ffffff', text: '#333333', border: '#ddd' },
+    'en_edicion': { bg: '#fffde7', text: '#f57f17', border: '#fbc02d' },
+    'preparandose': { bg: '#e8f5e9', text: '#2e7d32', border: '#4caf50' },
+    'listo_retirar': { bg: '#e3f2fd', text: '#1565c0', border: '#2196f3' },
+    'entregado': { bg: '#f3e5f5', text: '#7f1f6e', border: '#c2185b' },
+    'rechazado': { bg: '#ffebee', text: '#c62828', border: '#f44336' }
+  };
+  return colores[estado] || colores['pendiente'];
+}
+
 // ==================== CATEGORÍAS DINÁMICAS ====================
 let adminCategories = [];
 
@@ -361,7 +374,7 @@ async function loadRecentOrders() {
           <td style="text-align: right;">$${sena.toFixed(2)}</td>
           <td style="text-align: right;">$${resto.toFixed(2)}</td>
           <td style="text-align: right; font-weight: 700; color: #7f1f6e;">$${total.toFixed(2)}</td>
-          <td><span style="background: #f0e6f6; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${orden.estado}</span></td>
+          <td><span style="background: ${getEstadoColor(orden.estado).bg}; color: ${getEstadoColor(orden.estado).text}; border: 1px solid ${getEstadoColor(orden.estado).border}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">${orden.estado}</span></td>
           <td>${formatDateShort(getOrderCreatedDate(orden))}</td>
           <td><button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button></td>
         </tr>`;
@@ -1291,7 +1304,7 @@ function renderOrders() {
         <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${restoPagar.toFixed(2)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${total.toFixed(2)}</td>
         <td style="padding: 8px 12px;">
-          <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px; width: 100%; overflow: hidden; text-overflow: ellipsis;">
+          <select id="status-${orden.id}" onchange="updateOrderStatus(${orden.id}, this.value); applyStatusColor(this);" style="padding: 3px 6px; border-radius: 4px; border: 1px solid ${getEstadoColor(orden.estado).border}; background-color: ${getEstadoColor(orden.estado).bg}; color: ${getEstadoColor(orden.estado).text}; font-size: 12px; font-weight: 600; width: 100%; overflow: hidden; text-overflow: ellipsis; cursor: pointer;">
             ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
           </select>
         </td>
@@ -1326,6 +1339,14 @@ function updatePaginationControls(totalPages) {
     <span style="margin: 0 15px; align-self: center; color: #666;">Página ${currentPage} de ${totalPages}</span>
     <button class="btn btn-sm btn-secondary" ${currentPage === totalPages ? 'disabled' : ''} onclick="nextOrderPage()">Siguiente →</button>
   `;
+}
+
+function applyStatusColor(selectElement) {
+  const estado = selectElement.value;
+  const colores = getEstadoColor(estado);
+  selectElement.style.backgroundColor = colores.bg;
+  selectElement.style.borderColor = colores.border;
+  selectElement.style.color = colores.text;
 }
 
 function previousOrderPage() {
@@ -2033,8 +2054,9 @@ async function descargarTicket() {
             <div style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600;">Estado</div>
             <div style="
               display: inline-block;
-              background: #e8f5e9;
-              color: #2e7d32;
+              background: ${getEstadoColor(orden.estado || 'pendiente').bg};
+              color: ${getEstadoColor(orden.estado || 'pendiente').text};
+              border: 1px solid ${getEstadoColor(orden.estado || 'pendiente').border};
               padding: 5px 10px;
               border-radius: 20px;
               font-size: 11px;
@@ -2797,7 +2819,7 @@ async function viewOrder(id) {
               </div>
               <div>
                 <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Estado</div>
-                <div style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; font-weight: 600;">${orden.estado}</div>
+                <div style="display: inline-block; padding: 6px 12px; background: ${getEstadoColor(orden.estado).bg}; color: ${getEstadoColor(orden.estado).text}; border: 1px solid ${getEstadoColor(orden.estado).border}; border-radius: 20px; font-size: 12px; font-weight: 600;">${orden.estado}</div>
               </div>
             </div>
 
