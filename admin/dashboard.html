@@ -14,6 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.js"></script>
     <!-- XLSX Library CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         .codigo-badge { display: inline-block; background: #f0e6f6; color: #7f1f6e; font-weight: 700; padding: 4px 12px; border-radius: 8px; font-size: 15px; letter-spacing: 1px; }
         .codigo-badge-p { background: #ede0f7; color: #6b21a8; }
@@ -1206,6 +1208,110 @@
             });
         }
     </script>
+
+    <!-- MODAL NUEVA/EDITAR TRANSACCIÓN CAJA -->
+    <div id="modalTransaccionCaja" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; display: none;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button class="modal-close" onclick="cerrarModalTransaccionCaja()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
+            <h2 id="modalTransaccionTitulo" style="margin-bottom: 20px; color: #7f1f6e;">Nueva Transacción</h2>
+            <form id="formTransaccionCaja" onsubmit="submitTransaccionCaja(event)">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Categoría -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Categoría *</label>
+                        <select id="inputCategoriaTransaccion" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <option value="">Seleccionar categoría...</option>
+                        </select>
+                    </div>
+
+                    <!-- Monto -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Monto *</label>
+                        <input type="number" id="inputMontoTransaccion" placeholder="Positivo=Ingreso, Negativo=Egreso" step="0.01" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" />
+                        <small id="indicadorTipo" style="display: block; margin-top: 4px; font-weight: 600;"></small>
+                    </div>
+
+                    <!-- Método de Pago -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Método de Pago *</label>
+                        <select id="inputMetodoPagoTransaccion" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <option value="efectivo">💵 Efectivo</option>
+                            <option value="mercado_pago">💳 Mercado Pago</option>
+                        </select>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Descripción</label>
+                        <textarea id="inputDescripcionTransaccion" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
+                    </div>
+
+                    <!-- Fecha -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Fecha</label>
+                        <input type="date" id="inputFechaTransaccion" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" />
+                    </div>
+                </div>
+
+                <!-- BOTONES -->
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalTransaccionCaja()">Cancelar</button>
+                    <button type="submit" id="btnSubmitTransaccion" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVA/EDITAR CATEGORÍA CAJA -->
+    <div id="modalCategoriaCaja" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; display: none;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button class="modal-close" onclick="cerrarModalCategoriaCaja()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
+            <h2 id="modalCategoriaTitulo" style="margin-bottom: 20px; color: #7f1f6e;">Nueva Categoría</h2>
+            <form id="formCategoriaCaja" onsubmit="submitCategoriaCaja(event)">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Nombre -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Nombre *</label>
+                        <input type="text" id="inputNombreCategoria" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" />
+                    </div>
+
+                    <!-- Tipo -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Tipo *</label>
+                        <select id="inputTipoCategoria" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="ingreso">📈 Ingreso</option>
+                            <option value="egreso">📉 Egreso</option>
+                        </select>
+                    </div>
+
+                    <!-- Icono -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Icono</label>
+                        <input type="text" id="inputIconoCategoria" placeholder="💰" maxlength="2" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" />
+                    </div>
+
+                    <!-- Color -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Color</label>
+                        <input type="color" id="inputColorCategoria" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; height: 40px;" />
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Descripción</label>
+                        <textarea id="inputDescripcionCategoria" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 60px;"></textarea>
+                    </div>
+                </div>
+
+                <!-- BOTONES -->
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCategoriaCaja()">Cancelar</button>
+                    <button type="submit" id="btnSubmitCategoria" class="btn btn-primary">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>

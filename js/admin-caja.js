@@ -128,6 +128,14 @@ function renderCajaInterface() {
         <div class="stat-label">Saldo Neto</div>
         <div class="stat-value" id="cajaSaldoNeto">$0.00</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-label">💵 Efectivo</div>
+        <div class="stat-value" id="cajaEfectivo">$0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">💳 Mercado Pago</div>
+        <div class="stat-value" id="cajaMercadoPago">$0.00</div>
+      </div>
     </div>
 
     <!-- TABS -->
@@ -195,7 +203,7 @@ function renderCajaInterface() {
               <th>Fecha</th>
               <th>Tipo</th>
               <th>Categoría</th>
-              <th>Monto</th>
+              <th>Monto (Método)</th>
               <th>Descripción</th>
               <th style="width: 150px;">Acciones</th>
             </tr>
@@ -344,7 +352,12 @@ function renderCajaTransacciones() {
           <span>${t.categoria?.nombre || 'Sin categoría'}</span>
         </span>
       </td>
-      <td style="text-align: right; font-weight: 600;">$${parseFloat(t.monto).toFixed(2)}</td>
+      <td style="text-align: right; font-weight: 600;">
+        <div style="display: inline-flex; align-items: center; gap: 8px;">
+          <span>${t.metodo_pago === 'mercado_pago' ? '💳' : '💵'}</span>
+          <span>$${parseFloat(t.monto).toFixed(2)}</span>
+        </div>
+      </td>
       <td>${t.descripcion || '-'}</td>
       <td>
         <div style="display: flex; gap: 6px;">
@@ -385,6 +398,8 @@ function updateCajaResumen() {
 
   let totalIngresos = 0;
   let totalEgresos = 0;
+  let totalEfectivo = 0;
+  let totalMercadoPago = 0;
 
   cajaState.transacciones.forEach(t => {
     const fecha = new Date(t.fecha_transaccion).toISOString().split('T')[0];
@@ -393,6 +408,13 @@ function updateCajaResumen() {
         totalIngresos += parseFloat(t.monto);
       } else {
         totalEgresos += parseFloat(t.monto);
+      }
+
+      // Sumar por método de pago
+      if (t.metodo_pago === 'mercado_pago') {
+        totalMercadoPago += parseFloat(t.monto);
+      } else {
+        totalEfectivo += parseFloat(t.monto);
       }
     }
   });
@@ -409,6 +431,13 @@ function updateCajaResumen() {
     saldoEl.textContent = `$${saldoNeto.toFixed(2)}`;
     saldoEl.style.color = saldoNeto >= 0 ? '#4caf50' : '#f44336';
   }
+
+  // Actualizar detalles de métodos de pago
+  const efectivoEl = document.getElementById('cajaEfectivo');
+  const mercadoPagoEl = document.getElementById('cajaMercadoPago');
+
+  if (efectivoEl) efectivoEl.textContent = `$${totalEfectivo.toFixed(2)}`;
+  if (mercadoPagoEl) mercadoPagoEl.textContent = `$${totalMercadoPago.toFixed(2)}`;
 }
 
 // ==================== FUNCIONES DE TABS ====================
@@ -503,19 +532,73 @@ function abrirModalNuevaTransaccion() {
   btnSubmit.textContent = 'Registrar';
   form.reset();
 
+  // Llenar selector de categorías
+  const selectCategoria = document.getElementById('inputCategoriaTransaccion');
+  selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
+    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}">${cat.icono} ${cat.nombre}</option>`).join('');
+
+  // Setear método de pago por defecto
+  document.getElementById('inputMetodoPagoTransaccion').value = 'efectivo';
+
   // Setear fecha actual por defecto
   const hoy = new Date().toISOString().split('T')[0];
   document.getElementById('inputFechaTransaccion').value = hoy;
 
+  // Limpiar indicador de tipo
+  document.getElementById('indicadorTipo').textContent = '';
+
+  // Agregar listeners para actualizar tipo detectado
+  document.getElementById('inputMontoTransaccion').addEventListener('input', actualizarTipoDetectado);
+  document.getElementById('inputCategoriaTransaccion').addEventListener('change', actualizarTipoDetectado);
+
   modal.classList.add('show');
-  actualizarCategoriasDisponibles();
 }
 
 function cerrarModalTransaccionCaja() {
   const modal = document.getElementById('modalTransaccionCaja');
   modal.classList.remove('show');
   document.getElementById('formTransaccionCaja').reset();
+  document.getElementById('indicadorTipo').textContent = '';
   cajaState.modalTransaccionEditando = null;
+}
+
+function actualizarTipoDetectado() {
+  const monto = parseFloat(document.getElementById('inputMontoTransaccion').value) || 0;
+  const selectCategoria = document.getElementById('inputCategoriaTransaccion');
+  const categoriaId = selectCategoria.value;
+  const indicador = document.getElementById('indicadorTipo');
+
+  if (!categoriaId || monto === 0) {
+    indicador.textContent = '';
+    return;
+  }
+
+  const categoria = cajaState.categorias.find(c => c.id === parseInt(categoriaId));
+  if (!categoria) {
+    indicador.textContent = '';
+    return;
+  }
+
+  // Detectar tipo según el monto
+  const tipoDetectado = monto > 0 ? 'ingreso' : monto < 0 ? 'egreso' : '';
+
+  // Validar que el tipo detectado coincida con la categoría
+  let validacion = '';
+  let color = '';
+
+  if (!tipoDetectado) {
+    validacion = '';
+    color = '';
+  } else if (tipoDetectado === categoria.tipo) {
+    validacion = `✅ ${tipoDetectado.toUpperCase()}`;
+    color = tipoDetectado === 'ingreso' ? '#4caf50' : '#f44336';
+  } else {
+    validacion = `❌ Monto ${tipoDetectado} con categoría ${categoria.tipo}`;
+    color = '#ff9800';
+  }
+
+  indicador.textContent = validacion;
+  indicador.style.color = color;
 }
 
 async function editarTransaccion(id) {
@@ -533,17 +616,28 @@ async function editarTransaccion(id) {
   btnSubmit.textContent = 'Actualizar';
 
   // Rellenar formulario
-  document.getElementById('inputTipoTransaccion').value = transaccion.tipo;
-  document.getElementById('inputMontoTransaccion').value = transaccion.monto;
+  const montoEditado = transaccion.tipo === 'ingreso' ? transaccion.monto : -transaccion.monto;
+  document.getElementById('inputMontoTransaccion').value = montoEditado;
   document.getElementById('inputDescripcionTransaccion').value = transaccion.descripcion || '';
   document.getElementById('inputFechaTransaccion').value = new Date(transaccion.fecha_transaccion).toISOString().split('T')[0];
+  document.getElementById('inputMetodoPagoTransaccion').value = transaccion.metodo_pago || 'efectivo';
 
-  actualizarCategoriasDisponibles();
+  // Llenar selector de categorías
+  const selectCategoria = document.getElementById('inputCategoriaTransaccion');
+  selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
+    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}">${cat.icono} ${cat.nombre}</option>`).join('');
 
   // Esperar a que se carguen las categorías
   setTimeout(() => {
     document.getElementById('inputCategoriaTransaccion').value = transaccion.categoria_id;
+    actualizarTipoDetectado();
   }, 100);
+
+  // Agregar listeners para actualizar tipo detectado
+  document.getElementById('inputMontoTransaccion').removeEventListener('input', actualizarTipoDetectado);
+  document.getElementById('inputCategoriaTransaccion').removeEventListener('change', actualizarTipoDetectado);
+  document.getElementById('inputMontoTransaccion').addEventListener('input', actualizarTipoDetectado);
+  document.getElementById('inputCategoriaTransaccion').addEventListener('change', actualizarTipoDetectado);
 
   modal.classList.add('show');
 }
@@ -578,21 +672,31 @@ async function eliminarTransaccion(id) {
 async function submitTransaccionCaja(event) {
   event.preventDefault();
 
-  const tipo = document.getElementById('inputTipoTransaccion').value;
   const categoria_id = parseInt(document.getElementById('inputCategoriaTransaccion').value);
   const monto = parseFloat(document.getElementById('inputMontoTransaccion').value);
+  const metodo_pago = document.getElementById('inputMetodoPagoTransaccion').value;
   const descripcion = document.getElementById('inputDescripcionTransaccion').value || null;
   const fecha_transaccion = document.getElementById('inputFechaTransaccion').value;
 
   // Validar
-  if (!tipo || !categoria_id || !monto) {
+  if (!categoria_id || monto === 0 || !metodo_pago) {
     alert('Por favor completa los campos requeridos');
     return;
   }
 
-  if (monto <= 0) {
-    alert('El monto debe ser mayor a 0');
+  if (monto === 0) {
+    alert('El monto no puede ser 0');
     return;
+  }
+
+  // Validar que el tipo detectado coincida con la categoría
+  const categoria = cajaState.categorias.find(c => c.id === categoria_id);
+  if (categoria) {
+    const tipoDetectado = monto > 0 ? 'ingreso' : 'egreso';
+    if (tipoDetectado !== categoria.tipo) {
+      alert(`El monto debe ser ${categoria.tipo === 'ingreso' ? 'positivo' : 'negativo'} para esta categoría`);
+      return;
+    }
   }
 
   try {
@@ -608,9 +712,9 @@ async function submitTransaccionCaja(event) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        tipo,
         categoria_id,
         monto,
+        metodo_pago,
         descripcion,
         fecha_transaccion
       })
@@ -632,21 +736,6 @@ async function submitTransaccionCaja(event) {
     console.error('❌ Error guardando transacción:', error);
     alert('Error al guardar la transacción');
   }
-}
-
-function actualizarCategoriasDisponibles() {
-  const tipo = document.getElementById('inputTipoTransaccion').value;
-  const selectCategoria = document.getElementById('inputCategoriaTransaccion');
-
-  if (!tipo) {
-    selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>';
-    return;
-  }
-
-  const categoriasFiltridas = cajaState.categorias.filter(cat => cat.tipo === tipo && cat.activa);
-
-  selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
-    categoriasFiltridas.map(cat => `<option value="${cat.id}">${cat.icono} ${cat.nombre}</option>`).join('');
 }
 
 // ==================== MODALES - CATEGORÍAS ====================
