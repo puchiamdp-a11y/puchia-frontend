@@ -15,6 +15,8 @@
     <!-- Quill Rich Text Editor -->
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.js"></script>
+    <!-- Pages Management Script - Must load before body HTML that references its functions -->
+    <script src="../js/admin-pages.js?v=2026090101"></script>
     <style>
         /* Hide cart in admin panel */
         #cartSidebar, #cartOverlay { display: none !important; }
@@ -654,6 +656,5 @@
         // ======================== PÁGINAS MANAGEMENT ========================
         // All page management is handled by admin-pages.js
     </script>
-    <script src="../js/admin-pages.js?v=2026090101"></script>
 </body>
 </html>
