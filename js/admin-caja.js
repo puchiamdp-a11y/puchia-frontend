@@ -158,6 +158,28 @@ function renderCajaInterface() {
         </div>
       </div>
 
+      <!-- RESUMEN DE FILTRADO -->
+      <div id="resumenFiltrado" style="background: #f0f0f0; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: none;">
+        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+          <div>
+            <span style="font-weight: 600; color: #4caf50;">Ingresos: </span>
+            <span id="resumenIngresos">$0.00</span>
+          </div>
+          <div>
+            <span style="font-weight: 600; color: #f44336;">Egresos: </span>
+            <span id="resumenEgresos">$0.00</span>
+          </div>
+          <div>
+            <span style="font-weight: 600; color: #7f1f6e;">Neto: </span>
+            <span id="resumenNeto">$0.00</span>
+          </div>
+          <div>
+            <span style="font-weight: 600; color: #999;">Transacciones: </span>
+            <span id="resumenCantidad">0</span>
+          </div>
+        </div>
+      </div>
+
       <!-- TABLA -->
       <div class="table-container">
         <table style="width: 100%;">
@@ -265,6 +287,34 @@ function renderCajaInterface() {
 function renderCajaTransacciones() {
   const tbody = document.getElementById('cajaTransaccionesTable');
   if (!tbody) return;
+
+  // Calcular resumen de transacciones mostradas
+  let totalIngresos = 0;
+  let totalEgresos = 0;
+
+  cajaState.transacciones.forEach(t => {
+    if (t.tipo === 'ingreso') {
+      totalIngresos += parseFloat(t.monto);
+    } else {
+      totalEgresos += parseFloat(t.monto);
+    }
+  });
+
+  // Actualizar resumen dinámico
+  const resumenEl = document.getElementById('resumenFiltrado');
+  if (resumenEl) {
+    const hayFiltros = Object.values(cajaState.filters).some(v => v);
+    resumenEl.style.display = hayFiltros || cajaState.transacciones.length > 0 ? 'block' : 'none';
+
+    if (resumenEl.style.display === 'block') {
+      const neto = totalIngresos - totalEgresos;
+      document.getElementById('resumenIngresos').textContent = `$${totalIngresos.toFixed(2)}`;
+      document.getElementById('resumenEgresos').textContent = `$${totalEgresos.toFixed(2)}`;
+      document.getElementById('resumenNeto').textContent = `$${neto.toFixed(2)}`;
+      document.getElementById('resumenNeto').style.color = neto >= 0 ? '#4caf50' : '#f44336';
+      document.getElementById('resumenCantidad').textContent = cajaState.transacciones.length;
+    }
+  }
 
   if (cajaState.transacciones.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 20px;">No hay transacciones registradas</td></tr>';
