@@ -263,7 +263,7 @@ async function savePage(event) {
     }
 
     const title = document.getElementById('pageTitle').value.trim();
-    const slug = document.getElementById('pageSlug').value.trim();
+    let slug = document.getElementById('pageSlug').value.trim();
     const isPublished = document.getElementById('pagePublished').checked;
     const pageId = document.getElementById('pageId').value;
 
@@ -277,9 +277,22 @@ async function savePage(event) {
       return;
     }
 
-    // Validar slug
-    if (!/^[a-z0-9-]+$/.test(slug)) {
-      showStatus('El slug solo puede contener letras minúsculas, números y guiones', 'error');
+    // Convertir slug a formato seguro para URLs
+    slug = slug.toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')           // espacios → guiones
+      .replace(/[áàäâ]/g, 'a')        // acentos
+      .replace(/[éèëê]/g, 'e')
+      .replace(/[íìïî]/g, 'i')
+      .replace(/[óòöô]/g, 'o')
+      .replace(/[úùüû]/g, 'u')
+      .replace(/[ñ]/g, 'n')
+      .replace(/[^a-z0-9-]/g, '')     // eliminar caracteres especiales
+      .replace(/-+/g, '-')            // múltiples guiones → un guión
+      .replace(/^-|-$/g, '');         // eliminar guiones al inicio/final
+
+    if (!slug) {
+      showStatus('El slug no puede estar vacío después de procesarlo', 'error');
       return;
     }
 
