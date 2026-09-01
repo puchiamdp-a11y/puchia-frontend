@@ -151,7 +151,6 @@ function renderPages() {
           <th>Título</th>
           <th>Slug</th>
           <th>Estado</th>
-          <th>Creada</th>
           <th style="width: 100px;">Acciones</th>
         </tr>
       </thead>
@@ -166,7 +165,6 @@ function renderPages() {
                 ${page.is_published ? '✅ Publicado' : '📝 Borrador'}
               </span>
             </td>
-            <td style="color: #999; font-size: 13px;">${new Date(page.created_at).toLocaleDateString('es-ES')}</td>
             <td>
               <div class="page-actions">
                 <button class="icon-btn edit-btn" onclick="openEditPageModal(${page.id})" title="Editar">✏️</button>
