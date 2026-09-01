@@ -1304,9 +1304,7 @@ function renderOrders() {
         <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${restoPagar.toFixed(2)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${total.toFixed(2)}</td>
         <td style="padding: 8px 12px;">
-          <select id="status-${orden.id}" onchange="updateOrderStatus(${orden.id}, this.value); applyStatusColor(this);" style="padding: 3px 6px; border-radius: 4px; border: 1px solid ${getEstadoColor(orden.estado).border}; background-color: ${getEstadoColor(orden.estado).bg}; color: ${getEstadoColor(orden.estado).text}; font-size: 12px; font-weight: 600; width: 100%; overflow: hidden; text-overflow: ellipsis; cursor: pointer;">
-            ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
-          </select>
+          ${createColoredStatusDropdown(orden.id, orden.estado)}
         </td>
         <td style="padding: 8px 12px; font-size: 13px; color: #1a1a1a; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaEntrega}</td>
         <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -1347,6 +1345,103 @@ function applyStatusColor(selectElement) {
   selectElement.style.backgroundColor = colores.bg;
   selectElement.style.borderColor = colores.border;
   selectElement.style.color = colores.text;
+}
+
+function createColoredStatusDropdown(ordenId, estadoActual) {
+  const colores = getEstadoColor(estadoActual);
+
+  return `
+    <div class="status-dropdown-wrapper" style="position: relative; width: 100%; display: inline-block;">
+      <button
+        class="status-dropdown-btn"
+        onclick="toggleStatusDropdown(this)"
+        style="
+          width: 100%;
+          padding: 6px 8px;
+          background: ${colores.bg};
+          border: 1px solid ${colores.border};
+          color: ${colores.text};
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          text-align: left;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <span>${estadoActual}</span>
+        <span style="font-size: 10px;">▼</span>
+      </button>
+      <div
+        class="status-dropdown-menu"
+        style="
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #ddd;
+          border-top: none;
+          border-radius: 0 0 4px 4px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          z-index: 1000;
+          max-height: 200px;
+          overflow-y: auto;
+        "
+      >
+        ${orderStatuses.map(s => {
+          const coloresOpcion = getEstadoColor(s.valor);
+          return `
+            <div
+              class="status-option"
+              onclick="selectOrderStatus(${ordenId}, '${s.valor}', this)"
+              style="
+                padding: 8px 12px;
+                background: ${coloresOpcion.bg};
+                color: ${coloresOpcion.text};
+                border-bottom: 1px solid #eee;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 12px;
+                transition: all 0.2s;
+              "
+              onmouseover="this.style.opacity='0.8'; this.style.transform='translateX(4px)';"
+              onmouseout="this.style.opacity='1'; this.style.transform='translateX(0)';"
+            >
+              ${s.nombre}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function toggleStatusDropdown(btn) {
+  const menu = btn.parentElement.querySelector('.status-dropdown-menu');
+  const allMenus = document.querySelectorAll('.status-dropdown-menu');
+
+  allMenus.forEach(m => {
+    if (m !== menu) m.style.display = 'none';
+  });
+
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectOrderStatus(ordenId, estado, element) {
+  const btn = element.parentElement.parentElement.querySelector('.status-dropdown-btn');
+  updateOrderStatus(ordenId, estado);
+
+  const colores = getEstadoColor(estado);
+  btn.style.background = colores.bg;
+  btn.style.borderColor = colores.border;
+  btn.style.color = colores.text;
+  btn.querySelector('span').textContent = estado;
+
+  element.parentElement.style.display = 'none';
 }
 
 function previousOrderPage() {
