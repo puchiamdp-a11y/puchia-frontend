@@ -165,6 +165,10 @@ function checkAdminAuth() {
 }
 
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
+  // Reset caja module if it exists
+  if (typeof resetCaja === 'function') {
+    resetCaja();
+  }
   localStorage.removeItem('puchia_admin_token');
   localStorage.removeItem('puchia_admin_user');
   window.location.href = './login.html';

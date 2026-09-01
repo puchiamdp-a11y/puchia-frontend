@@ -19,15 +19,18 @@ let cajaState = {
 };
 
 // ==================== INICIALIZACIÓN ====================
+let cajaCargada = false;
+
 function initCaja() {
   console.log('🔄 Inicializando módulo de Caja...');
 
-  // Verificar que hay token antes de cargar
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.warn('⚠️ No hay token disponible, esperando autenticación...');
+  // Evitar inicialización múltiple
+  if (cajaCargada) {
+    console.log('✅ Caja ya fue inicializada');
     return;
   }
+
+  cajaCargada = true;
 
   // Cargar categorías y transacciones
   loadCajaData();
@@ -61,7 +64,7 @@ async function loadCajaCategorias() {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/caja/categorias`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -90,7 +93,7 @@ async function loadCajaTransacciones(page = 1) {
 
     const response = await fetch(`${API_BASE_URL}/admin/caja/transacciones?${params}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -649,7 +652,7 @@ async function eliminarTransaccion(id) {
     const response = await fetch(`${API_BASE_URL}/admin/caja/transacciones/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -708,7 +711,7 @@ async function submitTransaccionCaja(event) {
     const response = await fetch(url, {
       method,
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -802,7 +805,7 @@ async function eliminarCategoria(id) {
     const response = await fetch(`${API_BASE_URL}/admin/caja/categorias/${id}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ activa: false })
@@ -847,7 +850,7 @@ async function submitCategoriaCaja(event) {
     const response = await fetch(url, {
       method,
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -887,7 +890,7 @@ async function generarReporteCaja() {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/caja/reportes/mensual?mes=${mesInput}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -1091,7 +1094,7 @@ async function reconciliarOrdenesManual() {
     const response = await fetch(`${API_BASE_URL}/admin/caja/reconciliar-ordenes`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -1143,7 +1146,7 @@ async function exportarReporteExcel() {
 
     const response = await fetch(`${API_BASE_URL}/admin/caja/reportes/datos?fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -1208,6 +1211,28 @@ function monitorCajaPageChange() {
       });
     }
   }
+}
+
+// Reset caja cuando el usuario cierra sesión
+function resetCaja() {
+  cajaCargada = false;
+  cajaState = {
+    transacciones: [],
+    categorias: [],
+    currentPage: 1,
+    itemsPerPage: 20,
+    filters: {
+      tipo: null,
+      categoria_id: null,
+      fecha_desde: null,
+      fecha_hasta: null
+    },
+    sortBy: 'fecha_transaccion',
+    sortOrder: 'DESC',
+    modalTransaccionEditando: null,
+    modalCategoriaEditando: null
+  };
+  console.log('🔄 Caja reset para nueva sesión');
 }
 
 monitorCajaPageChange();
