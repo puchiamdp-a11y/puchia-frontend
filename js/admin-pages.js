@@ -147,16 +147,18 @@ function renderPages() {
     <table class="pages-table">
       <thead>
         <tr>
+          <th style="width: 40px;"></th>
           <th>Título</th>
           <th>Slug</th>
           <th>Estado</th>
           <th>Creada</th>
-          <th>Acciones</th>
+          <th style="width: 100px;">Acciones</th>
         </tr>
       </thead>
       <tbody>
-        ${pages.map(page => `
-          <tr>
+        ${pages.map((page, index) => `
+          <tr class="page-row" draggable="true" data-page-id="${page.id}" data-page-index="${index}">
+            <td style="cursor: move; text-align: center; color: #999;">≡</td>
             <td><div class="page-title">${escapeHTML(page.title)}</div></td>
             <td><div class="page-slug">/${escapeHTML(page.slug)}</div></td>
             <td style="font-size: 12px;">
@@ -166,9 +168,9 @@ function renderPages() {
             </td>
             <td style="color: #999; font-size: 13px;">${new Date(page.created_at).toLocaleDateString('es-ES')}</td>
             <td>
-              <div class="actions">
-                <button class="btn-edit" onclick="openEditPageModal(${page.id})">✏️ Editar</button>
-                <button class="btn-danger" onclick="deletePage(${page.id})">🗑️ Eliminar</button>
+              <div class="page-actions">
+                <button class="icon-btn edit-btn" onclick="openEditPageModal(${page.id})" title="Editar">✏️</button>
+                <button class="icon-btn delete-btn" onclick="deletePage(${page.id})" title="Eliminar">🗑️</button>
               </div>
             </td>
           </tr>
@@ -402,3 +404,104 @@ document.addEventListener('click', (e) => {
     closePageModal();
   }
 });
+
+// ======================== DRAG AND DROP PARA REORDENAR ========================
+let draggedRow = null;
+
+document.addEventListener('dragstart', (e) => {
+  if (e.target.closest('.page-row')) {
+    draggedRow = e.target.closest('.page-row');
+    draggedRow.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+  }
+});
+
+document.addEventListener('dragend', (e) => {
+  if (draggedRow) {
+    draggedRow.style.opacity = '1';
+    draggedRow = null;
+  }
+});
+
+document.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+});
+
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const dropTarget = e.target.closest('.page-row');
+  if (dropTarget && draggedRow && draggedRow !== dropTarget) {
+    const rect = dropTarget.getBoundingClientRect();
+    if (e.clientY < rect.top + rect.height / 2) {
+      dropTarget.parentNode.insertBefore(draggedRow, dropTarget);
+    } else {
+      dropTarget.parentNode.insertBefore(draggedRow, dropTarget.nextSibling);
+    }
+  }
+});
+
+// ======================== CSS PARA ESTILOS DE PÁGINAS ========================
+const style = document.createElement('style');
+style.textContent = `
+  .page-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .page-slug {
+    font-size: 13px;
+    color: #666;
+    font-family: monospace;
+  }
+
+  .page-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-btn:hover {
+    background: #f0f0f0;
+  }
+
+  .edit-btn:hover {
+    background: #e3f2fd;
+  }
+
+  .delete-btn:hover {
+    background: #ffebee;
+  }
+
+  .page-row {
+    transition: background-color 0.2s ease;
+  }
+
+  .page-row:hover {
+    background-color: #f9f9f9;
+  }
+
+  .page-row[draggable="true"] {
+    cursor: move;
+  }
+
+  .page-row.drag-over {
+    background-color: #e3f2fd;
+    border-top: 2px solid #2196F3;
+  }
+`;
+document.head.appendChild(style);
