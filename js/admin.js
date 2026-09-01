@@ -3892,10 +3892,10 @@ function renderCategorias(categorias) {
   tbody.innerHTML = categorias.map(cat => `
     <tr>
       <td>${cat.id}</td>
-      <td><strong>${cat.nombre}</strong></td>
+      <td><strong>${(cat.emoji || '📦')} ${cat.nombre}</strong></td>
       <td style="color: #666; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${cat.descripcion || '—'}</td>
       <td>
-        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}')" title="Editar">✏️ Editar</button>
+        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.emoji || '📦').replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}')" title="Editar">✏️ Editar</button>
         <button class="btn btn-sm btn-danger" onclick="eliminarCategoria(${cat.id})" title="Eliminar">🗑️ Eliminar</button>
       </td>
     </tr>
@@ -3904,6 +3904,7 @@ function renderCategorias(categorias) {
 
 async function guardarCategoria() {
   const nombre = document.getElementById('categoriaNombre').value.trim();
+  const emoji = document.getElementById('categoriaEmoji').value.trim() || '📦';
   const descripcion = document.getElementById('categoriaDescripcion').value.trim();
   const categoriaId = document.getElementById('categoriaId').value;
 
@@ -3928,6 +3929,7 @@ async function guardarCategoria() {
       },
       body: JSON.stringify({
         nombre: nombre,
+        emoji: emoji,
         descripcion: descripcion || null
       })
     });
@@ -3941,6 +3943,7 @@ async function guardarCategoria() {
       // Limpiar formulario
       document.getElementById('categoriaId').value = '';
       document.getElementById('categoriaNombre').value = '';
+      document.getElementById('categoriaEmoji').value = '';
       document.getElementById('categoriaDescripcion').value = '';
       document.getElementById('cancelarCategoriaBtn').style.display = 'none';
 
@@ -3955,9 +3958,10 @@ async function guardarCategoria() {
   }
 }
 
-function editarCategoria(id, nombre, descripcion) {
+function editarCategoria(id, nombre, emoji, descripcion) {
   document.getElementById('categoriaId').value = id;
   document.getElementById('categoriaNombre').value = nombre;
+  document.getElementById('categoriaEmoji').value = emoji || '📦';
   document.getElementById('categoriaDescripcion').value = descripcion;
   document.getElementById('cancelarCategoriaBtn').style.display = 'inline-block';
   document.getElementById('categoriaNombre').focus();
