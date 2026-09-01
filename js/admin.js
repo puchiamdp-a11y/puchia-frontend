@@ -1357,22 +1357,25 @@ function createColoredStatusDropdown(ordenId, estadoActual) {
         onclick="toggleStatusDropdown(this)"
         style="
           width: 100%;
-          padding: 6px 8px;
+          padding: 4px 6px;
           background: ${colores.bg};
           border: 1px solid ${colores.border};
           color: ${colores.text};
           border-radius: 4px;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 600;
           cursor: pointer;
           text-align: left;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         "
       >
-        <span>${estadoActual}</span>
-        <span style="font-size: 10px;">▼</span>
+        <span style="overflow: hidden; text-overflow: ellipsis;">${estadoActual}</span>
+        <span style="font-size: 9px; flex-shrink: 0; margin-left: 4px;">▼</span>
       </button>
       <div
         class="status-dropdown-menu"
@@ -1388,8 +1391,9 @@ function createColoredStatusDropdown(ordenId, estadoActual) {
           border-radius: 0 0 4px 4px;
           box-shadow: 0 4px 6px rgba(0,0,0,0.1);
           z-index: 1000;
-          max-height: 200px;
+          max-height: 220px;
           overflow-y: auto;
+          min-width: 140px;
         "
       >
         ${orderStatuses.map(s => {
@@ -1399,17 +1403,20 @@ function createColoredStatusDropdown(ordenId, estadoActual) {
               class="status-option"
               onclick="selectOrderStatus(${ordenId}, '${s.valor}', this)"
               style="
-                padding: 8px 12px;
+                padding: 6px 10px;
                 background: ${coloresOpcion.bg};
                 color: ${coloresOpcion.text};
-                border-bottom: 1px solid #eee;
+                border-bottom: 1px solid rgba(0,0,0,0.05);
                 cursor: pointer;
                 font-weight: 600;
-                font-size: 12px;
-                transition: all 0.2s;
+                font-size: 11px;
+                transition: all 0.15s;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
               "
-              onmouseover="this.style.opacity='0.8'; this.style.transform='translateX(4px)';"
-              onmouseout="this.style.opacity='1'; this.style.transform='translateX(0)';"
+              onmouseover="this.style.opacity='0.85'; this.style.backgroundColor='${coloresOpcion.border}';"
+              onmouseout="this.style.opacity='1'; this.style.backgroundColor='${coloresOpcion.bg}';"
             >
               ${s.nombre}
             </div>
