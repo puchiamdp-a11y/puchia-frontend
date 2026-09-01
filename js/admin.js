@@ -351,20 +351,27 @@ async function loadRecentOrders() {
     const tbody = document.getElementById('recent-orders');
 
     if (data.success && data.data.length > 0) {
-      tbody.innerHTML = data.data.map(orden => `
+      tbody.innerHTML = data.data.map(orden => {
+        const sena = parseFloat(orden.sena) || 0;
+        const resto = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - sena);
+        const total = parseFloat(orden.total) || 0;
+        return `
         <tr>
           <td>${orden.id_unico || orden.id}</td>
           <td>${orden.cliente_nombre}</td>
-          <td>$${orden.total}</td>
+          <td style="text-align: right;">$${sena.toFixed(2)}</td>
+          <td style="text-align: right;">$${resto.toFixed(2)}</td>
+          <td style="text-align: right; font-weight: 700; color: #7f1f6e;">$${total.toFixed(2)}</td>
           <td><span style="background: #f0e6f6; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${orden.estado}</span></td>
           <td>${formatDateShort(getOrderCreatedDate(orden))}</td>
           <td>
             <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     } else {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin órdenes recientes</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">Sin órdenes recientes</td></tr>';
     }
   } catch (error) {
     console.error('Error cargando órdenes recientes:', error);
