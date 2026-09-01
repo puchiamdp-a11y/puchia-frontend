@@ -192,7 +192,7 @@ function openCreatePageModal() {
     pageEditor.setContents([]);
   }
 
-  document.getElementById('pageModal').classList.add('active');
+  document.getElementById('pageModal').classList.add('show');
 }
 
 // Abrir modal para editar página
@@ -221,7 +221,7 @@ async function openEditPageModal(pageId) {
       }
     }
 
-    document.getElementById('pageModal').classList.add('active');
+    document.getElementById('pageModal').classList.add('show');
   } catch (error) {
     console.error('Error abriendo modal:', error);
     showStatus('Error al cargar página', 'error');
@@ -230,7 +230,7 @@ async function openEditPageModal(pageId) {
 
 // Cerrar modal
 function closePageModal() {
-  document.getElementById('pageModal').classList.remove('active');
+  document.getElementById('pageModal').classList.remove('show');
 }
 
 // Actualizar estado de publicación
