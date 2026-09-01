@@ -457,7 +457,7 @@
     </div>
 
     <!-- MODAL NUEVO/EDITAR CLIENTE -->
-    <div class="modal" id="modalCliente" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal" id="modalCliente" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative;">
             <button class="modal-close" onclick="cerrarModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
             <h2 id="modalTitulo" style="margin-bottom: 20px; color: #7f1f6e;">Nuevo Cliente</h2>
@@ -526,7 +526,7 @@
     </div>
 
     <!-- MODAL DETALLE CLIENTE -->
-    <div class="modal" id="modalDetalle" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal" id="modalDetalle" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative;">
             <button class="modal-close" onclick="cerrarDetalle()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
             <div id="detalleContenido"></div>
@@ -534,7 +534,7 @@
     </div>
 
     <!-- MODAL CONFIRMACIÓN ELIMINAR CLIENTE -->
-    <div class="modal" id="modalConfirmacionEliminar" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
+    <div class="modal" id="modalConfirmacionEliminar" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; position: relative;">
             <h2 id="confirmTitulo" style="color: #2c3e50; margin-bottom: 12px; font-size: 18px;"></h2>
             <p id="confirmMensaje" style="color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.5;"></p>
@@ -546,7 +546,7 @@
     </div>
 
     <!-- MODAL CREAR/EDITAR PRODUCTO - VERSIÓN SIMPLIFICADA SIN TABS -->
-    <div class="modal" id="modalProducto" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
+    <div class="modal" id="modalProducto" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
         <div style="background: white; border-radius: 16px; width: 100%; max-width: 600px; position: relative; margin: 20px;">
             <div style="padding: 32px 32px 0; position: relative;">
                 <button type="button" id="closeProductModal" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
@@ -671,7 +671,7 @@
     </div>
 
     <!-- MODAL CREAR ORDEN MANUAL -->
-    <div class="modal" id="modalCrearOrden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
+    <div class="modal" id="modalCrearOrden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
         <div style="background: white; border-radius: 16px; width: 100%; max-width: 800px; position: relative; margin: 20px;">
             <div style="padding: 32px 32px 0; position: relative;">
                 <button type="button" onclick="cerrarModalOrden()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
@@ -806,7 +806,7 @@
     </div>
 
     <!-- MODAL SUCESO CREAR ORDEN -->
-    <div class="modal" id="modalSucesoOrden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal" id="modalSucesoOrden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; position: relative; text-align: center;">
             <h2 style="color: #7f1f6e; margin-bottom: 8px; font-size: 22px;">✅ Pedido Creado Exitosamente</h2>
             <p style="color: #666; margin-bottom: 24px; font-size: 14px;">Tu pedido está listo. Elige una acción:</p>
@@ -825,7 +825,7 @@
     </div>
 
     <!-- MODAL EDITAR ORDEN -->
-    <div class="modal" id="modalEditarOrden" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto;">
+    <div class="modal" id="modalEditarOrden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto;">
         <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 100%; position: relative; margin: 20px auto;">
             <button type="button" onclick="cerrarEditarOrden()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
 
@@ -877,7 +877,7 @@
     </div>
 
     <!-- MODAL AGREGAR PRODUCTO A ORDEN EN EDICIÓN -->
-    <div class="modal" id="modalAgregarProductoEdicion" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
+    <div class="modal" id="modalAgregarProductoEdicion" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 95%; position: relative;">
             <button type="button" onclick="cerrarModalAgregarProductoEdicion()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
 
@@ -908,7 +908,7 @@
     </div>
 
     <!-- MODAL ALERTA ERROR ELIMINAR -->
-    <div class="modal" id="modalAlertaError" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
+    <div class="modal" id="modalAlertaError" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; position: relative;">
             <h2 style="color: #c5221f; margin-bottom: 12px; font-size: 18px;">⚠️ No se puede eliminar</h2>
             <p id="alertaMensaje" style="color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.5;"></p>
@@ -990,7 +990,7 @@
     </div>
 
     <!-- MODAL AGREGAR/EDITAR STOCK -->
-    <div id="modalStock" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div id="modalStock" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative;">
             <button class="modal-close" onclick="cerrarModalStock()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
             <h2 id="stockModalTitulo" style="margin-bottom: 20px; color: #7f1f6e;">Agregar Stock</h2>
@@ -1033,7 +1033,7 @@
     </div>
 
     <!-- MODAL AGREGAR/EDITAR INSUMO -->
-    <div class="modal" id="modalInsumo" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
+    <div class="modal" id="modalInsumo" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; margin: 20px auto; position: relative;">
             <button class="modal-close" onclick="document.getElementById('modalInsumo').style.display = 'none';" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
             <h2 id="insumoTitle" style="font-size: 20px; margin: 0 0 24px;">Nuevo Insumo</h2>
