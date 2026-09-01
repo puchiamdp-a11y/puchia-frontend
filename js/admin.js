@@ -3967,6 +3967,101 @@ function editarCategoria(id, nombre, emoji, descripcion) {
   document.getElementById('categoriaNombre').focus();
 }
 
+// ======================== EMOJI PICKER ========================
+const emojisDisponibles = [
+  // Comida y bebida
+  '🍕', '🍔', '🍟', '🌭', '🥪', '🍗', '🍖', '🌮', '🌯', '🥙', '🧆', '🍝', '🍜', '🍲', '🥘', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🍰', '🎂', '🧁', '🍪', '🍩', '🍫', '🍬', '🍭', '🍮', '🍯', '☕', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻',
+  // Ropa y accesorios
+  '👕', '👔', '👗', '👘', '👚', '👖', '🩳', '🧣', '🧤', '🧥', '🧦', '👔', '👗', '👙', '🩱', '👜', '👝', '🛍️', '👠', '👡', '👢', '👞', '👟', '🥾', '👢', '⌚', '💍', '💎',
+  // Tecnología
+  '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🗜️', '💽', '💾', '💿', '📀', '📱', '☎️', '📞', '📟', '📠', '📺', '📷', '📸', '📹', '🎥', '🎬', '📽️', '🎞️', '📞', '☎️', '📲', '💬', '📧', '📨',
+  // Hogar y muebles
+  '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏧', '🏨', '🏪', '🏫', '🛋️', '🛏️', '🛌', '🧸', '🖼️', '🎁', '🎈', '🎉', '🎊',
+  // Deporte
+  '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎳', '🏏', '🏑', '🏒', '🥍', '🏓', '🏸', '🥊', '🥋', '🥅', '⛳', '⛸️', '🎣', '🎽', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '⛹️', '🤺', '🤾',
+  // General y favoritos
+  '📦', '🎁', '⭐', '✨', '💫', '⚡', '❤️', '🧡', '💛', '💚', '💙', '💜', '🔔', '🔕', '📣', '📢', '👍', '👎', '👏', '🙌', '🤝', '💪', '🦾', '🦿', '🦴', '🧠', '👀', '👁️', '👅', '🦷', '🦴',
+  // Animales
+  '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🪱', '🐛', '🦋', '🐌', '🐞', '🐜', '🪰', '🪲', '🦟', '🪳', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦞', '🐐', '🦌', '🐕', '🐩', '🦮', '🐈', '🐓', '🦃', '🦚', '🦜', '🦢', '🦗',
+];
+
+// Inicializar emoji picker
+document.addEventListener('DOMContentLoaded', () => {
+  inicializarEmojiPicker();
+});
+
+function inicializarEmojiPicker() {
+  const gridEmojiBtn = document.getElementById('abrirEmojiPickerBtn');
+  const modal = document.getElementById('emojiPickerModal');
+  const cerrarBtn = document.getElementById('cerrarEmojiPickerBtn');
+  const grid = document.getElementById('emojiGrid');
+  const emojiInput = document.getElementById('categoriaEmoji');
+
+  // Cargar emojis en la grilla
+  if (grid) {
+    grid.innerHTML = emojisDisponibles.map(emoji => `
+      <button type="button" class="emoji-btn" data-emoji="${emoji}" style="
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 24px;
+        cursor: pointer;
+        background: white;
+        transition: all 0.2s;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">${emoji}</button>
+    `).join('');
+
+    // Event listeners para cada emoji
+    grid.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emoji = e.target.getAttribute('data-emoji');
+        emojiInput.value = emoji;
+        modal.style.display = 'none';
+      });
+
+      btn.addEventListener('mouseover', () => {
+        btn.style.background = '#f0e6f6';
+        btn.style.transform = 'scale(1.1)';
+      });
+
+      btn.addEventListener('mouseout', () => {
+        btn.style.background = 'white';
+        btn.style.transform = 'scale(1)';
+      });
+    });
+  }
+
+  // Abrir modal
+  if (gridEmojiBtn) {
+    gridEmojiBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (modal) modal.style.display = 'flex';
+    });
+  }
+
+  // Cerrar modal
+  if (cerrarBtn) {
+    cerrarBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (modal) modal.style.display = 'none';
+    });
+  }
+
+  // Cerrar modal al hacer clic afuera
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  }
+}
+
 async function eliminarCategoria(id) {
   const confirmar = await puchiaConfirm('¿Estás seguro de que quieres eliminar esta categoría?', '⚠️ Eliminar Categoría');
 
