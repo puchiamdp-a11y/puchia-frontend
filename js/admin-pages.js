@@ -147,11 +147,11 @@ function renderPages() {
     <table class="pages-table">
       <thead>
         <tr>
-          <th style="width: 40px;"></th>
+          <th style="width: 30px;"></th>
           <th>Título</th>
           <th>Slug</th>
           <th>Estado</th>
-          <th style="width: 100px;">Acciones</th>
+          <th style="width: auto;">Acciones</th>
         </tr>
       </thead>
       <tbody>
