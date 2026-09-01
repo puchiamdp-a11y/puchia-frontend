@@ -193,6 +193,12 @@ function renderCajaInterface() {
         <button class="btn btn-primary" onclick="generarReporteCaja()">📊 Generar Reporte</button>
       </div>
 
+      <!-- Botones de exportación (se mostrarán cuando se genere un reporte) -->
+      <div id="botonesExportacion" style="display: none; margin-bottom: 24px; display: flex; gap: 12px;">
+        <button class="btn btn-secondary" onclick="exportarReporteExcel()">📥 Descargar Excel</button>
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
+      </div>
+
       <div id="reporteContenido" style="display: none;">
         <!-- Resumen del período -->
         <div class="stats-grid" style="margin-bottom: 32px;">
@@ -710,6 +716,7 @@ async function generarReporteCaja() {
     // Mostrar contenido
     document.getElementById('reporteContenido').style.display = 'block';
     document.getElementById('reporteVacio').style.display = 'none';
+    document.getElementById('botonesExportacion').style.display = 'flex';
 
     console.log('✅ Reporte generado');
   } catch (error) {
@@ -872,6 +879,62 @@ function generarDesgloseReporte(reporte) {
 
   html += '</tbody></table>';
   desgloseDiv.innerHTML = html;
+}
+
+// ==================== EXPORTAR A EXCEL ====================
+
+async function exportarReporteExcel() {
+  const mesInput = document.getElementById('reporteMes').value;
+
+  if (!mesInput) {
+    alert('Por favor selecciona un mes');
+    return;
+  }
+
+  try {
+    // Obtener datos de exportación
+    const [mes, año] = mesInput.split('-');
+    const fecha_desde = `${año}-${mes}-01`;
+    const fecha_hasta = new Date(año, mes, 0).toISOString().split('T')[0];
+
+    const response = await fetch(`${API_BASE_URL}/admin/caja/reportes/datos?fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener datos de exportación');
+    }
+
+    const data = await response.json();
+    const transacciones = data.data || [];
+
+    // Crear workbook
+    const wb = XLSX.utils.book_new();
+
+    // Hoja 1: Transacciones
+    const wsTransacciones = XLSX.utils.json_to_sheet(transacciones);
+    XLSX.utils.book_append_sheet(wb, wsTransacciones, 'Transacciones');
+
+    // Hoja 2: Resumen (si es necesario, se puede agregar)
+    const resumen = [
+      { Label: 'Período', Valor: mesInput },
+      { Label: 'Total Transacciones', Valor: transacciones.length },
+      { Label: 'Ingresos', Valor: transacciones.filter(t => t.Tipo === 'Ingreso').reduce((sum, t) => sum + parseFloat(t.Monto || 0), 0).toFixed(2) },
+      { Label: 'Egresos', Valor: transacciones.filter(t => t.Tipo === 'Egreso').reduce((sum, t) => sum + parseFloat(t.Monto || 0), 0).toFixed(2) }
+    ];
+    const wsResumen = XLSX.utils.json_to_sheet(resumen);
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+
+    // Descargar archivo
+    XLSX.writeFile(wb, `Reporte_Caja_${mesInput}.xlsx`);
+
+    console.log('✅ Archivo exportado');
+  } catch (error) {
+    console.error('❌ Error exportando reporte:', error);
+    alert('Error al exportar el reporte');
+  }
 }
 
 // ==================== INICIALIZAR CUANDO EL DOCUMENTO ESTÉ LISTO ====================
