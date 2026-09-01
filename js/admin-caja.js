@@ -132,8 +132,9 @@ function renderCajaInterface() {
 
     <!-- TAB: TRANSACCIONES -->
     <div id="tab-transacciones" class="tab-content">
-      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
         <button class="btn btn-primary" onclick="abrirModalNuevaTransaccion()">➕ Nueva Transacción</button>
+        <button class="btn btn-secondary" onclick="reconciliarOrdenesManual()">🔄 Sincronizar Órdenes</button>
       </div>
 
       <!-- FILTROS -->
@@ -879,6 +880,49 @@ function generarDesgloseReporte(reporte) {
 
   html += '</tbody></table>';
   desgloseDiv.innerHTML = html;
+}
+
+// ==================== RECONCILIACIÓN DE ÓRDENES ====================
+
+async function reconciliarOrdenesManual() {
+  if (!confirm('¿Sincronizar órdenes entregadas sin registrar en caja?')) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/caja/reconciliar-ordenes`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error: ${error.error || 'No se pudo reconciliar'}`);
+      return;
+    }
+
+    const data = await response.json();
+    const resultado = data.data;
+
+    // Mostrar resultado
+    const mensaje = `✅ Reconciliación completada\n\n` +
+      `Órdenes procesadas: ${resultado.ordenes_procesadas}\n` +
+      `Órdenes registradas: ${resultado.ordenes_registradas}\n` +
+      `Monto total: $${resultado.total_monto.toFixed(2)}`;
+
+    alert(mensaje);
+
+    // Recargar transacciones
+    await loadCajaTransacciones();
+    renderCajaTransacciones();
+    updateCajaResumen();
+
+    console.log('✅ Reconciliación completada:', resultado);
+  } catch (error) {
+    console.error('❌ Error reconciliando órdenes:', error);
+    alert('Error al sincronizar órdenes');
+  }
 }
 
 // ==================== EXPORTAR A EXCEL ====================
