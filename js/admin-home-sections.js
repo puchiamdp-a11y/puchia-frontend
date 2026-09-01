@@ -611,7 +611,18 @@ async function loadCategoriesForSelector() {
     const response = await fetch(`${API_BASE_URL}/categorias`);
     if (!response.ok) throw new Error('Error cargando categorías');
     const result = await response.json();
-    allCategories = result.data || [];
+
+    // Deduplicar categorías por ID para evitar duplicados
+    const seenIds = new Set();
+    const uniqueCategorias = [];
+    (result.data || []).forEach(cat => {
+      if (!seenIds.has(cat.id)) {
+        seenIds.add(cat.id);
+        uniqueCategorias.push(cat);
+      }
+    });
+
+    allCategories = uniqueCategorias;
   } catch (error) {
     console.error('Error:', error);
   }
