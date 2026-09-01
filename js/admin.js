@@ -1250,7 +1250,7 @@ function renderOrders() {
   const tbody = document.getElementById('all-orders');
 
   if (filteredOrdersData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999; padding: 20px;">Sin órdenes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999; padding: 20px;">Sin órdenes</td></tr>';
     document.getElementById('ordersPagination').style.display = 'none';
     return;
   }
@@ -1275,7 +1275,9 @@ function renderOrders() {
       });
     }
 
-    const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
+    const sena = parseFloat(orden.sena) || 0;
+    const total = parseFloat(orden.total) || 0;
+    const restoPagar = parseFloat(orden.resto_a_pagar) || (total - sena);
     const fechaCompra = formatDateShort(getOrderCreatedDate(orden));
     const fechaEntrega = formatDateShort(orden.fecha_entrega);
     const shortId = formatShortOrderId(orden);
@@ -1285,8 +1287,9 @@ function renderOrders() {
         <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${orden.id_unico}">${shortId}</td>
         <td style="padding: 8px 12px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaCompra}</td>
         <td class="table-cell-cliente" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
+        <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${sena.toFixed(2)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${restoPagar.toFixed(2)}</td>
-        <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${parseFloat(orden.total).toFixed(2)}</td>
+        <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${total.toFixed(2)}</td>
         <td style="padding: 8px 12px;">
           <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px; width: 100%; overflow: hidden; text-overflow: ellipsis;">
             ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
