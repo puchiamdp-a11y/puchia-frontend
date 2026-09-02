@@ -479,22 +479,23 @@
 
             <form id="formTransaccionCaja" onsubmit="submitTransaccionCaja(event)">
                 <div class="form-group">
-                    <label for="inputTipoTransaccion">Tipo *</label>
-                    <select id="inputTipoTransaccion" required onchange="actualizarCategoriasDisponibles()">
-                        <option value="">Seleccionar tipo...</option>
-                        <option value="ingreso">Ingreso</option>
-                        <option value="egreso">Egreso</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label for="inputCategoriaTransaccion">Categoría *</label>
                     <select id="inputCategoriaTransaccion" required></select>
                 </div>
 
                 <div class="form-group">
                     <label for="inputMontoTransaccion">Monto ($) *</label>
-                    <input type="number" id="inputMontoTransaccion" step="0.01" min="0.01" required />
+                    <input type="number" id="inputMontoTransaccion" step="0.01" required oninput="actualizarTipoDetectado()" />
+                    <small id="tipoDetectadoIndicador" style="display: none; margin-top: 5px; font-weight: bold;"></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputMetodoPagoTransaccion">Método de Pago *</label>
+                    <select id="inputMetodoPagoTransaccion" required>
+                        <option value="">Seleccionar método...</option>
+                        <option value="efectivo">💵 Efectivo</option>
+                        <option value="mercado_pago">💳 Mercado Pago</option>
+                    </select>
                 </div>
 
                 <div class="form-group">

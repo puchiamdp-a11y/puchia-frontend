@@ -548,7 +548,8 @@ function abrirModalNuevaTransaccion() {
   document.getElementById('inputFechaTransaccion').value = hoy;
 
   // Limpiar indicador de tipo
-  document.getElementById('indicadorTipo').textContent = '';
+  document.getElementById('tipoDetectadoIndicador').textContent = '';
+  document.getElementById('tipoDetectadoIndicador').style.display = 'none';
 
   // Agregar listeners para actualizar tipo detectado
   document.getElementById('inputMontoTransaccion').addEventListener('input', actualizarTipoDetectado);
@@ -561,7 +562,8 @@ function cerrarModalTransaccionCaja() {
   const modal = document.getElementById('modalTransaccionCaja');
   modal.classList.remove('show');
   document.getElementById('formTransaccionCaja').reset();
-  document.getElementById('indicadorTipo').textContent = '';
+  document.getElementById('tipoDetectadoIndicador').textContent = '';
+  document.getElementById('tipoDetectadoIndicador').style.display = 'none';
   cajaState.modalTransaccionEditando = null;
 }
 
@@ -569,16 +571,18 @@ function actualizarTipoDetectado() {
   const monto = parseFloat(document.getElementById('inputMontoTransaccion').value) || 0;
   const selectCategoria = document.getElementById('inputCategoriaTransaccion');
   const categoriaId = selectCategoria.value;
-  const indicador = document.getElementById('indicadorTipo');
+  const indicador = document.getElementById('tipoDetectadoIndicador');
 
   if (!categoriaId || monto === 0) {
     indicador.textContent = '';
+    indicador.style.display = 'none';
     return;
   }
 
   const categoria = cajaState.categorias.find(c => c.id === parseInt(categoriaId));
   if (!categoria) {
     indicador.textContent = '';
+    indicador.style.display = 'none';
     return;
   }
 
@@ -592,12 +596,15 @@ function actualizarTipoDetectado() {
   if (!tipoDetectado) {
     validacion = '';
     color = '';
+    indicador.style.display = 'none';
   } else if (tipoDetectado === categoria.tipo) {
     validacion = `✅ ${tipoDetectado.toUpperCase()}`;
     color = tipoDetectado === 'ingreso' ? '#4caf50' : '#f44336';
+    indicador.style.display = 'block';
   } else {
     validacion = `❌ Monto ${tipoDetectado} con categoría ${categoria.tipo}`;
     color = '#ff9800';
+    indicador.style.display = 'block';
   }
 
   indicador.textContent = validacion;
