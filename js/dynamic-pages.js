@@ -1,6 +1,4 @@
-// ======================== CARGA DINÁMICADE PÁGINAS EN MENÚ ========================
-
-const API_BASE_URL = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
+// ======================== CARGA DINÁMICA DE PÁGINAS EN MENÚ ========================
 
 // Cargar páginas publicadas y agregarlas al menú
 document.addEventListener('DOMContentLoaded', async () => {
@@ -9,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadAndAddPagesToMenu() {
   try {
-    const response = await fetch(`${API_BASE_URL}/pages`);
+    const response = await fetch(`${window.API_BASE_URL}/pages`);
     if (!response.ok) throw new Error('Error cargando páginas');
 
     const data = await response.json();

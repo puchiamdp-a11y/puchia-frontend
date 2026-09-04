@@ -19,15 +19,18 @@ let cajaState = {
 };
 
 // ==================== INICIALIZACIÓN ====================
+let cajaCargada = false;
+
 function initCaja() {
   console.log('🔄 Inicializando módulo de Caja...');
 
-  // Verificar que hay token antes de cargar
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.warn('⚠️ No hay token disponible, esperando autenticación...');
+  // Evitar inicialización múltiple
+  if (cajaCargada) {
+    console.log('✅ Caja ya fue inicializada');
     return;
   }
+
+  cajaCargada = true;
 
   // Cargar categorías y transacciones
   loadCajaData();
@@ -82,7 +85,7 @@ async function loadCajaCategorias() {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/caja/categorias`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -111,7 +114,7 @@ async function loadCajaTransacciones(page = 1) {
 
     const response = await fetch(`${API_BASE_URL}/admin/caja/transacciones?${params}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -556,7 +559,7 @@ function abrirModalNuevaTransaccion() {
   // Llenar selector de categorías
   const selectCategoria = document.getElementById('inputCategoriaTransaccion');
   selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
-    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}">${cat.icono} ${cat.nombre}</option>`).join('');
+    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}" data-color="${cat.color}">${cat.icono} ■ ${cat.nombre}</option>`).join('');
 
   // Setear método de pago por defecto
   document.getElementById('inputMetodoPagoTransaccion').value = 'efectivo';
@@ -566,7 +569,8 @@ function abrirModalNuevaTransaccion() {
   document.getElementById('inputFechaTransaccion').value = hoy;
 
   // Limpiar indicador de tipo
-  document.getElementById('indicadorTipo').textContent = '';
+  document.getElementById('tipoDetectadoIndicador').textContent = '';
+  document.getElementById('tipoDetectadoIndicador').style.display = 'none';
 
   // Agregar listeners para actualizar tipo detectado
   document.getElementById('inputMontoTransaccion').addEventListener('input', actualizarTipoDetectado);
@@ -579,7 +583,8 @@ function cerrarModalTransaccionCaja() {
   const modal = document.getElementById('modalTransaccionCaja');
   modal.classList.remove('show');
   document.getElementById('formTransaccionCaja').reset();
-  document.getElementById('indicadorTipo').textContent = '';
+  document.getElementById('tipoDetectadoIndicador').textContent = '';
+  document.getElementById('tipoDetectadoIndicador').style.display = 'none';
   cajaState.modalTransaccionEditando = null;
 }
 
@@ -587,35 +592,35 @@ function actualizarTipoDetectado() {
   const monto = parseFloat(document.getElementById('inputMontoTransaccion').value) || 0;
   const selectCategoria = document.getElementById('inputCategoriaTransaccion');
   const categoriaId = selectCategoria.value;
-  const indicador = document.getElementById('indicadorTipo');
+  const indicador = document.getElementById('tipoDetectadoIndicador');
 
   if (!categoriaId || monto === 0) {
     indicador.textContent = '';
+    indicador.style.display = 'none';
     return;
   }
 
   const categoria = cajaState.categorias.find(c => c.id === parseInt(categoriaId));
   if (!categoria) {
     indicador.textContent = '';
+    indicador.style.display = 'none';
     return;
   }
 
-  // Detectar tipo según el monto
-  const tipoDetectado = monto > 0 ? 'ingreso' : monto < 0 ? 'egreso' : '';
-
-  // Validar que el tipo detectado coincida con la categoría
+  // El tipo viene de la categoría, no del monto
+  const tipo = categoria.tipo;
   let validacion = '';
   let color = '';
 
-  if (!tipoDetectado) {
-    validacion = '';
-    color = '';
-  } else if (tipoDetectado === categoria.tipo) {
-    validacion = `✅ ${tipoDetectado.toUpperCase()}`;
-    color = tipoDetectado === 'ingreso' ? '#4caf50' : '#f44336';
+  if (monto <= 0) {
+    validacion = `❌ El monto debe ser positivo`;
+    color = '#f44336';
+    indicador.style.display = 'block';
   } else {
-    validacion = `❌ Monto ${tipoDetectado} con categoría ${categoria.tipo}`;
-    color = '#ff9800';
+    // Mostrar el tipo que se registrará según la categoría
+    validacion = `✅ Se registrará como ${tipo.toUpperCase()}`;
+    color = tipo === 'ingreso' ? '#4caf50' : '#f44336';
+    indicador.style.display = 'block';
   }
 
   indicador.textContent = validacion;
@@ -646,7 +651,7 @@ async function editarTransaccion(id) {
   // Llenar selector de categorías
   const selectCategoria = document.getElementById('inputCategoriaTransaccion');
   selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
-    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}">${cat.icono} ${cat.nombre}</option>`).join('');
+    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}" data-color="${cat.color}">${cat.icono} ■ ${cat.nombre}</option>`).join('');
 
   // Esperar a que se carguen las categorías
   setTimeout(() => {
@@ -670,7 +675,7 @@ async function eliminarTransaccion(id) {
     const response = await fetch(`${API_BASE_URL}/admin/caja/transacciones/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -710,14 +715,17 @@ async function submitTransaccionCaja(event) {
     return;
   }
 
-  // Validar que el tipo detectado coincida con la categoría
+  // Validar que la categoría existe
   const categoria = cajaState.categorias.find(c => c.id === categoria_id);
-  if (categoria) {
-    const tipoDetectado = monto > 0 ? 'ingreso' : 'egreso';
-    if (tipoDetectado !== categoria.tipo) {
-      alert(`El monto debe ser ${categoria.tipo === 'ingreso' ? 'positivo' : 'negativo'} para esta categoría`);
-      return;
-    }
+  if (!categoria) {
+    alert('Por favor selecciona una categoría válida');
+    return;
+  }
+
+  // El backend se encargará de convertir el monto según el tipo de categoría
+  if (monto <= 0) {
+    alert('El monto debe ser un número positivo');
+    return;
   }
 
   // Convertir números negativos a positivos
@@ -733,7 +741,7 @@ async function submitTransaccionCaja(event) {
     const response = await fetch(url, {
       method,
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -792,7 +800,17 @@ function abrirModalNuevaCategoria() {
 function cerrarModalCategoriaCaja() {
   const modal = document.getElementById('modalCategoriaCaja');
   modal.classList.remove('show');
-  document.getElementById('formCategoriaCaja').reset();
+
+  // Reset seguro: evitar valores vacíos en inputs que lo requieren
+  setTimeout(() => {
+    document.getElementById('formCategoriaCaja').reset();
+    // Asegurar que el color siempre tenga un valor válido después del reset
+    const inputColor = document.getElementById('inputColorCategoria');
+    if (!inputColor.value || inputColor.value === '') {
+      inputColor.value = '#7f1f6e';
+    }
+  }, 50);
+
   cajaState.modalCategoriaEditando = null;
 }
 
@@ -816,7 +834,10 @@ async function editarCategoria(id) {
   document.getElementById('inputDescripcionCategoria').value = categoria.descripcion || '';
   document.getElementById('inputIconoCategoria').value = categoria.icono;
   document.getElementById('inputColorCategoria').value = categoria.color;
-  highlightSelectedEmoji(categoria.icono);
+
+  setTimeout(() => {
+    highlightSelectedEmoji(categoria.icono);
+  }, 10);
 
   modal.classList.add('show');
 }
@@ -829,7 +850,7 @@ async function eliminarCategoria(id) {
     const response = await fetch(`${API_BASE_URL}/admin/caja/categorias/${id}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ activa: false })
@@ -874,7 +895,7 @@ async function submitCategoriaCaja(event) {
     const response = await fetch(url, {
       method,
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -914,7 +935,7 @@ async function generarReporteCaja() {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/caja/reportes/mensual?mes=${mesInput}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -1118,7 +1139,7 @@ async function reconciliarOrdenesManual() {
     const response = await fetch(`${API_BASE_URL}/admin/caja/reconciliar-ordenes`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -1170,7 +1191,7 @@ async function exportarReporteExcel() {
 
     const response = await fetch(`${API_BASE_URL}/admin/caja/reportes/datos?fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
     });
 
@@ -1219,6 +1240,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ==================== SELECTOR DE EMOJIS Y COLOR ====================
+const EMOJIS_CATEGORIAS = ['💰', '🛍️', '💸', '📊', '🏪', '⚙️', '📦', '🚚', '💳', '📱', '🎁', '📈', '🔧', '🏷️', '💡', '📌'];
+
+function inicializarSelectorEmojis() {
+  const grid = document.getElementById('selectIconosGrid');
+  if (!grid) return;
+
+  grid.innerHTML = EMOJIS_CATEGORIAS.map(emoji => `
+    <button type="button" style="padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-size: 20px; cursor: pointer; background: white; transition: all 0.2s;"
+      onclick="seleccionarEmoji('${emoji}', event)">
+      ${emoji}
+    </button>
+  `).join('');
+}
+
+function seleccionarEmoji(emoji, event) {
+  event.preventDefault();
+  document.getElementById('inputIconoCategoria').value = emoji;
+
+  // Marcar como seleccionado
+  document.querySelectorAll('#selectIconosGrid button').forEach(btn => {
+    btn.style.borderColor = '#ddd';
+    btn.style.backgroundColor = 'white';
+  });
+  event.target.style.borderColor = '#7f1f6e';
+  event.target.style.backgroundColor = '#f0e6f0';
+}
+
+function actualizarPreviewColor() {
+  const color = document.getElementById('inputColorCategoria').value;
+  const preview = document.getElementById('previewColorCategoria');
+  const textColor = document.getElementById('textColorCategoria');
+
+  if (preview) preview.style.backgroundColor = color;
+  if (textColor) textColor.textContent = color.toUpperCase();
+}
+
 // Monitorear cambios de página
 function monitorCajaPageChange() {
   const sidebar = document.querySelector('.admin-sidebar');
@@ -1235,6 +1293,28 @@ function monitorCajaPageChange() {
       });
     }
   }
+}
+
+// Reset caja cuando el usuario cierra sesión
+function resetCaja() {
+  cajaCargada = false;
+  cajaState = {
+    transacciones: [],
+    categorias: [],
+    currentPage: 1,
+    itemsPerPage: 20,
+    filters: {
+      tipo: null,
+      categoria_id: null,
+      fecha_desde: null,
+      fecha_hasta: null
+    },
+    sortBy: 'fecha_transaccion',
+    sortOrder: 'DESC',
+    modalTransaccionEditando: null,
+    modalCategoriaEditando: null
+  };
+  console.log('🔄 Caja reset para nueva sesión');
 }
 
 monitorCajaPageChange();

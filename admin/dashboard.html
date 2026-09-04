@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puchia Admin - Dashboard</title>
+    <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/admin.css?v=2026082707">
@@ -69,7 +69,7 @@
         <!-- SIDEBAR -->
         <aside class="admin-sidebar">
             <ul class="sidebar-nav">
-                <li><a href="#" class="active" data-page="dashboard">📊 Dashboard</a></li>
+                <li><a href="#" class="active" data-page="dashboard">📊 Resumen</a></li>
                 <li><a href="#" data-page="ordenes">📋 Pedidos</a></li>
                 <li><a href="#" data-page="caja">💰 Caja</a></li>
                 <li><a href="#" data-page="clientes">👥 Clientes</a></li>
@@ -92,7 +92,7 @@
         <main class="admin-content">
             <!-- DASHBOARD PAGE -->
             <div id="dashboard-page" class="page">
-                <h1 class="page-title">Dashboard</h1>
+                <h1 class="page-title">Resumen</h1>
 
                 <!-- STATS -->
                 <div class="stats-grid">
@@ -122,6 +122,8 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Cliente</th>
+                                <th>Seña</th>
+                                <th>Resto</th>
                                 <th>Total</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>
@@ -130,7 +132,7 @@
                         </thead>
                         <tbody id="recent-orders">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: #999;">Cargando órdenes...</td>
+                                <td colspan="8" style="text-align: center; color: #999;">Cargando órdenes...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -248,6 +250,7 @@
                                 <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; width: 80px; cursor: pointer;" onclick="sortOrders('id')" title="Ordenar por Número">Número <span class="sort-indicator">⇅</span></th>
                                 <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; width: 90px; cursor: pointer;" onclick="sortOrders('created_at')" title="Ordenar por Fecha">Fecha Compra <span class="sort-indicator">⇅</span></th>
                                 <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; width: 150px; max-width: 150px; cursor: pointer;" onclick="sortOrders('cliente_nombre')" title="Ordenar por Cliente">Cliente <span class="sort-indicator">⇅</span></th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; width: 85px; cursor: pointer;" onclick="sortOrders('sena')" title="Ordenar por Seña">Seña <span class="sort-indicator">⇅</span></th>
                                 <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; width: 85px; cursor: pointer;" onclick="sortOrders('resto_a_pagar')" title="Ordenar por Resto">Resto <span class="sort-indicator">⇅</span></th>
                                 <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; width: 85px; cursor: pointer;" onclick="sortOrders('total')" title="Ordenar por Total">Total <span class="sort-indicator">⇅</span></th>
                                 <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; width: 90px; cursor: pointer;" onclick="sortOrders('estado')" title="Ordenar por Estado">Estado <span class="sort-indicator">⇅</span></th>
@@ -257,7 +260,7 @@
                         </thead>
                         <tbody id="all-orders">
                             <tr>
-                                <td colspan="8" style="text-align: center; color: #999; padding: 20px;">Cargando órdenes...</td>
+                                <td colspan="9" style="text-align: center; color: #999; padding: 20px;">Cargando órdenes...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -452,8 +455,10 @@
     </script>
     <!-- html2canvas para convertir HTML a PNG en navegador -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="../js/admin.js?v=2026082707"></script>
-    <script src="../js/admin-clientes.js?v=2026052602"></script>
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="../js/admin.js?v=2026090118"></script>
+    <script src="../js/admin-clientes.js?v=2026090118"></script>
     <script src="../js/admin-caja.js?v=2026090118"></script>
 
     <!-- MODAL DETALLE PRODUCTO -->
@@ -466,13 +471,111 @@
         </div>
     </div>
 
+    <!-- MODAL: NUEVA/EDITAR TRANSACCIÓN CAJA -->
+    <div id="modalTransaccionCaja" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="cerrarModalTransaccionCaja()">✕</button>
+            <h2 id="modalTransaccionTitulo" style="margin-bottom: 20px;">Nueva Transacción</h2>
+
+            <form id="formTransaccionCaja" onsubmit="submitTransaccionCaja(event)">
+                <div class="form-group">
+                    <label for="inputCategoriaTransaccion">Categoría *</label>
+                    <select id="inputCategoriaTransaccion" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputMontoTransaccion">Monto ($) *</label>
+                    <input type="number" id="inputMontoTransaccion" step="0.01" min="0.01" placeholder="Número positivo" required oninput="actualizarTipoDetectado()" />
+                    <small id="tipoDetectadoIndicador" style="display: none; margin-top: 5px; font-weight: bold;"></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputMetodoPagoTransaccion">Método de Pago *</label>
+                    <select id="inputMetodoPagoTransaccion" required>
+                        <option value="">Seleccionar método...</option>
+                        <option value="efectivo">💵 Efectivo</option>
+                        <option value="mercado_pago">💳 Mercado Pago</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputDescripcionTransaccion">Descripción</label>
+                    <textarea id="inputDescripcionTransaccion" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputFechaTransaccion">Fecha</label>
+                    <input type="date" id="inputFechaTransaccion" />
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" id="btnSubmitTransaccion">Registrar</button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalTransaccionCaja()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: NUEVA/EDITAR CATEGORÍA CAJA -->
+    <div id="modalCategoriaCaja" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="cerrarModalCategoriaCaja()">✕</button>
+            <h2 id="modalCategoriaTitulo" style="margin-bottom: 20px;">Nueva Categoría</h2>
+
+            <form id="formCategoriaCaja" onsubmit="submitCategoriaCaja(event)">
+                <div class="form-group">
+                    <label for="inputNombreCategoria">Nombre *</label>
+                    <input type="text" id="inputNombreCategoria" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="inputTipoCategoria">Tipo *</label>
+                    <select id="inputTipoCategoria" required>
+                        <option value="">Seleccionar tipo...</option>
+                        <option value="ingreso">Ingreso</option>
+                        <option value="egreso">Egreso</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputDescripcionCategoria">Descripción</label>
+                    <textarea id="inputDescripcionCategoria" rows="2"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Icono</label>
+                    <div id="selectIconosGrid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-bottom: 12px;">
+                        <!-- Se rellena con JS -->
+                    </div>
+                    <input type="text" id="inputIconoCategoria" maxlength="2" placeholder="💰" style="width: 100%;" />
+                </div>
+
+                <div class="form-group">
+                    <label for="inputColorCategoria">Color</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="color" id="inputColorCategoria" style="width: 60px; height: 40px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;" />
+                        <div id="previewColorCategoria" style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid #ddd;"></div>
+                        <span id="textColorCategoria" style="font-family: monospace; font-size: 12px; color: #666;"></span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" id="btnSubmitCategoria">Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCategoriaCaja()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL NUEVO/EDITAR CLIENTE -->
     <div class="modal" id="modalCliente" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative;">
             <button class="modal-close" onclick="cerrarModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
             <h2 id="modalTitulo" style="margin-bottom: 20px; color: #7f1f6e;">Nuevo Cliente</h2>
-            <div id="codigoDisplay" style="margin-bottom:16px;display:none;">
-                Código: <span class="codigo-badge" id="codigoClienteDisplay" style="display: inline-block; background: #f0e6f6; color: #7f1f6e; font-weight: 700; padding: 4px 12px; border-radius: 8px; font-size: 15px; letter-spacing: 1px;"></span>
+            <div id="codigoEditGroup" style="margin-bottom:16px;display:none;">
+                <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Código del Cliente</label>
+                <input type="text" id="fCodigoCliente" placeholder="P001" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 14px; text-transform: uppercase;" />
+                <div id="codigoAlerta" style="margin-top: 6px; font-size: 12px; color: #c5221f; display: none;"></div>
             </div>
             <form id="formCliente">
                 <input type="hidden" id="clienteId" />
@@ -1113,58 +1216,6 @@
         }
     </script>
 
-    <!-- MODAL NUEVA/EDITAR TRANSACCIÓN CAJA -->
-    <div id="modalTransaccionCaja" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; display: none;">
-        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
-            <button class="modal-close" onclick="cerrarModalTransaccionCaja()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
-            <h2 id="modalTransaccionTitulo" style="margin-bottom: 20px; color: #7f1f6e;">Nueva Transacción</h2>
-            <form id="formTransaccionCaja" onsubmit="submitTransaccionCaja(event)">
-                <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <!-- Categoría -->
-                    <div class="form-group">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Categoría *</label>
-                        <select id="inputCategoriaTransaccion" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            <option value="">Seleccionar categoría...</option>
-                        </select>
-                    </div>
-
-                    <!-- Monto -->
-                    <div class="form-group">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Monto *</label>
-                        <input type="number" id="inputMontoTransaccion" placeholder="Positivo=Ingreso, Negativo=Egreso" step="0.01" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" />
-                        <small id="indicadorTipo" style="display: block; margin-top: 4px; font-weight: 600;"></small>
-                    </div>
-
-                    <!-- Método de Pago -->
-                    <div class="form-group">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Método de Pago *</label>
-                        <select id="inputMetodoPagoTransaccion" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            <option value="efectivo">💵 Efectivo</option>
-                            <option value="mercado_pago">💳 Mercado Pago</option>
-                        </select>
-                    </div>
-
-                    <!-- Descripción -->
-                    <div class="form-group">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Descripción</label>
-                        <textarea id="inputDescripcionTransaccion" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
-                    </div>
-
-                    <!-- Fecha -->
-                    <div class="form-group">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Fecha</label>
-                        <input type="date" id="inputFechaTransaccion" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" />
-                    </div>
-                </div>
-
-                <!-- BOTONES -->
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
-                    <button type="button" class="btn btn-secondary" onclick="cerrarModalTransaccionCaja()">Cancelar</button>
-                    <button type="submit" id="btnSubmitTransaccion" class="btn btn-primary">Registrar</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- MODAL NUEVA/EDITAR CATEGORÍA CAJA -->
     <div id="modalCategoriaCaja" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; display: none;">

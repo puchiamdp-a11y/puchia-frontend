@@ -248,9 +248,10 @@ function cerrarDetalle() {
 
 function abrirNuevoCliente() {
   document.getElementById('modalTitulo').textContent = 'Nuevo Cliente';
-  document.getElementById('codigoDisplay').style.display = 'none';
+  document.getElementById('codigoEditGroup').style.display = 'none';
   document.getElementById('activoGroup').style.display = 'none';
   document.getElementById('clienteId').value = '';
+  document.getElementById('fCodigoCliente').value = '';
   limpiarForm();
   document.getElementById('modalCliente').classList.add('show');
 }
@@ -268,10 +269,9 @@ async function editarCliente(id) {
 
     document.getElementById('modalTitulo').textContent = 'Editar Cliente';
     document.getElementById('clienteId').value = c.id;
-    const badgeEl = document.getElementById('codigoClienteDisplay');
-    badgeEl.textContent = c.codigo_cliente;
-    badgeEl.className = getCodigoBadgeClass(c.codigo_cliente);
-    document.getElementById('codigoDisplay').style.display = 'block';
+    document.getElementById('codigoEditGroup').style.display = 'block';
+    document.getElementById('fCodigoCliente').value = c.codigo_cliente || '';
+    document.getElementById('codigoAlerta').style.display = 'none';
     document.getElementById('activoGroup').style.display = 'block';
 
     document.getElementById('fNombre').value = c.nombre || '';
@@ -312,6 +312,10 @@ async function guardarCliente(e) {
 
   if (isEdit) {
     payload.activo = document.getElementById('fActivo').value === 'true';
+    const codigoCliente = document.getElementById('fCodigoCliente').value.trim();
+    if (codigoCliente) {
+      payload.codigo_cliente = codigoCliente;
+    }
   }
 
   const btnGuardar = document.getElementById('btnGuardar');
@@ -338,7 +342,13 @@ async function guardarCliente(e) {
       cerrarModal();
       listarClientes();
     } else {
-      alert('Error: ' + (data.error || 'No se pudo guardar'));
+      // Si es error 409, mostrar alerta específica
+      if (res.status === 409) {
+        document.getElementById('codigoAlerta').textContent = data.error;
+        document.getElementById('codigoAlerta').style.display = 'block';
+      } else {
+        alert('Error: ' + (data.error || 'No se pudo guardar'));
+      }
     }
   } catch (err) {
     alert('Error de conexión: ' + err.message);

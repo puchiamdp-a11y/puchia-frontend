@@ -79,6 +79,19 @@ function formatDateLong(dateStr) {
   });
 }
 
+// ==================== ESTADO COLORS ====================
+function getEstadoColor(estado) {
+  const colores = {
+    'pendiente': { bg: '#ffffff', text: '#333333', border: '#ddd' },
+    'en_edicion': { bg: '#fffde7', text: '#f57f17', border: '#fbc02d' },
+    'preparandose': { bg: '#e8f5e9', text: '#2e7d32', border: '#4caf50' },
+    'listo_retirar': { bg: '#e3f2fd', text: '#1565c0', border: '#2196f3' },
+    'entregado': { bg: '#f3e5f5', text: '#7f1f6e', border: '#c2185b' },
+    'rechazado': { bg: '#ffebee', text: '#c62828', border: '#f44336' }
+  };
+  return colores[estado] || colores['pendiente'];
+}
+
 // ==================== CATEGORÍAS DINÁMICAS ====================
 let adminCategories = [];
 
@@ -152,6 +165,10 @@ function checkAdminAuth() {
 }
 
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
+  // Reset caja module if it exists
+  if (typeof resetCaja === 'function') {
+    resetCaja();
+  }
   localStorage.removeItem('puchia_admin_token');
   localStorage.removeItem('puchia_admin_user');
   window.location.href = './login.html';
@@ -351,20 +368,23 @@ async function loadRecentOrders() {
     const tbody = document.getElementById('recent-orders');
 
     if (data.success && data.data.length > 0) {
-      tbody.innerHTML = data.data.map(orden => `
-        <tr>
+      tbody.innerHTML = data.data.map(orden => {
+        const sena = parseFloat(orden.sena) || 0;
+        const total = parseFloat(orden.total) || 0;
+        const resto = parseFloat(orden.resto_a_pagar) || (total - sena);
+        return `<tr>
           <td>${orden.id_unico || orden.id}</td>
           <td>${orden.cliente_nombre}</td>
-          <td>$${orden.total}</td>
-          <td><span style="background: #f0e6f6; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${orden.estado}</span></td>
+          <td style="text-align: right;">$${sena.toFixed(2)}</td>
+          <td style="text-align: right;">$${resto.toFixed(2)}</td>
+          <td style="text-align: right; font-weight: 700; color: #7f1f6e;">$${total.toFixed(2)}</td>
+          <td><span style="background: ${getEstadoColor(orden.estado).bg}; color: ${getEstadoColor(orden.estado).text}; border: 1px solid ${getEstadoColor(orden.estado).border}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">${orden.estado}</span></td>
           <td>${formatDateShort(getOrderCreatedDate(orden))}</td>
-          <td>
-            <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
-          </td>
-        </tr>
-      `).join('');
+          <td><button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button></td>
+        </tr>`;
+      }).join('');
     } else {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Sin órdenes recientes</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">Sin órdenes recientes</td></tr>';
     }
   } catch (error) {
     console.error('Error cargando órdenes recientes:', error);
@@ -1247,7 +1267,7 @@ function renderOrders() {
   const tbody = document.getElementById('all-orders');
 
   if (filteredOrdersData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999; padding: 20px;">Sin órdenes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999; padding: 20px;">Sin órdenes</td></tr>';
     document.getElementById('ordersPagination').style.display = 'none';
     return;
   }
@@ -1272,7 +1292,9 @@ function renderOrders() {
       });
     }
 
-    const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
+    const sena = parseFloat(orden.sena) || 0;
+    const total = parseFloat(orden.total) || 0;
+    const restoPagar = parseFloat(orden.resto_a_pagar) || (total - sena);
     const fechaCompra = formatDateShort(getOrderCreatedDate(orden));
     const fechaEntrega = formatDateShort(orden.fecha_entrega);
     const shortId = formatShortOrderId(orden);
@@ -1282,12 +1304,11 @@ function renderOrders() {
         <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${orden.id_unico}">${shortId}</td>
         <td style="padding: 8px 12px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaCompra}</td>
         <td class="table-cell-cliente" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
+        <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${sena.toFixed(2)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${restoPagar.toFixed(2)}</td>
-        <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${parseFloat(orden.total).toFixed(2)}</td>
+        <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${total.toFixed(2)}</td>
         <td style="padding: 8px 12px;">
-          <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px; width: 100%; overflow: hidden; text-overflow: ellipsis;">
-            ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
-          </select>
+          ${createColoredStatusDropdown(orden.id, orden.estado)}
         </td>
         <td style="padding: 8px 12px; font-size: 13px; color: #1a1a1a; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaEntrega}</td>
         <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -1320,6 +1341,118 @@ function updatePaginationControls(totalPages) {
     <span style="margin: 0 15px; align-self: center; color: #666;">Página ${currentPage} de ${totalPages}</span>
     <button class="btn btn-sm btn-secondary" ${currentPage === totalPages ? 'disabled' : ''} onclick="nextOrderPage()">Siguiente →</button>
   `;
+}
+
+function applyStatusColor(selectElement) {
+  const estado = selectElement.value;
+  const colores = getEstadoColor(estado);
+  selectElement.style.backgroundColor = colores.bg;
+  selectElement.style.borderColor = colores.border;
+  selectElement.style.color = colores.text;
+}
+
+function createColoredStatusDropdown(ordenId, estadoActual) {
+  const colores = getEstadoColor(estadoActual);
+
+  return `
+    <div class="status-dropdown-wrapper" style="position: relative; width: 100%; display: inline-block;">
+      <button
+        class="status-dropdown-btn"
+        onclick="toggleStatusDropdown(this)"
+        style="
+          width: 100%;
+          padding: 4px 6px;
+          background: ${colores.bg};
+          border: 1px solid ${colores.border};
+          color: ${colores.text};
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          text-align: left;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        "
+      >
+        <span style="overflow: hidden; text-overflow: ellipsis;">${estadoActual}</span>
+        <span style="font-size: 9px; flex-shrink: 0; margin-left: 4px;">▼</span>
+      </button>
+      <div
+        class="status-dropdown-menu"
+        style="
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #ddd;
+          border-top: none;
+          border-radius: 0 0 4px 4px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          z-index: 1000;
+          max-height: 220px;
+          overflow-y: auto;
+          min-width: 140px;
+        "
+      >
+        ${orderStatuses.map(s => {
+          const coloresOpcion = getEstadoColor(s.valor);
+          return `
+            <div
+              class="status-option"
+              onclick="selectOrderStatus(${ordenId}, '${s.valor}', this)"
+              style="
+                padding: 6px 10px;
+                background: ${coloresOpcion.bg};
+                color: ${coloresOpcion.text};
+                border-bottom: 1px solid rgba(0,0,0,0.05);
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 11px;
+                transition: all 0.15s;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              "
+              onmouseover="this.style.opacity='0.85'; this.style.backgroundColor='${coloresOpcion.border}';"
+              onmouseout="this.style.opacity='1'; this.style.backgroundColor='${coloresOpcion.bg}';"
+            >
+              ${s.nombre}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function toggleStatusDropdown(btn) {
+  const menu = btn.parentElement.querySelector('.status-dropdown-menu');
+  const allMenus = document.querySelectorAll('.status-dropdown-menu');
+
+  allMenus.forEach(m => {
+    if (m !== menu) m.style.display = 'none';
+  });
+
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectOrderStatus(ordenId, estado, element) {
+  const btn = element.parentElement.parentElement.querySelector('.status-dropdown-btn');
+  updateOrderStatus(ordenId, estado);
+
+  const colores = getEstadoColor(estado);
+  btn.style.background = colores.bg;
+  btn.style.borderColor = colores.border;
+  btn.style.color = colores.text;
+  btn.querySelector('span').textContent = estado;
+
+  element.parentElement.style.display = 'none';
 }
 
 function previousOrderPage() {
@@ -2027,8 +2160,9 @@ async function descargarTicket() {
             <div style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600;">Estado</div>
             <div style="
               display: inline-block;
-              background: #e8f5e9;
-              color: #2e7d32;
+              background: ${getEstadoColor(orden.estado || 'pendiente').bg};
+              color: ${getEstadoColor(orden.estado || 'pendiente').text};
+              border: 1px solid ${getEstadoColor(orden.estado || 'pendiente').border};
               padding: 5px 10px;
               border-radius: 20px;
               font-size: 11px;
@@ -2791,7 +2925,7 @@ async function viewOrder(id) {
               </div>
               <div>
                 <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Estado</div>
-                <div style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; font-weight: 600;">${orden.estado}</div>
+                <div style="display: inline-block; padding: 6px 12px; background: ${getEstadoColor(orden.estado).bg}; color: ${getEstadoColor(orden.estado).text}; border: 1px solid ${getEstadoColor(orden.estado).border}; border-radius: 20px; font-size: 12px; font-weight: 600;">${orden.estado}</div>
               </div>
             </div>
 
