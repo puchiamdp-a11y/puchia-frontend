@@ -2837,6 +2837,10 @@ async function updateOrderStatus(orderId, newStatus) {
     if (response.ok) {
       puchiaAlert('Estado del pedido actualizado', 'success');
       loadAllOrders();
+      // Recargar transacciones de caja si el módulo está cargado
+      if (typeof loadCajaTransacciones === 'function') {
+        loadCajaTransacciones();
+      }
     }
   } catch (error) {
     console.error('Error actualizando estado:', error);
