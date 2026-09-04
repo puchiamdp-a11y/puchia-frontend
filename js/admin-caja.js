@@ -1175,9 +1175,9 @@ async function exportarReporteExcel() {
 
   try {
     // Obtener datos de exportación
-    const [mes, año] = mesInput.split('-');
+    const [año, mes] = mesInput.split('-');
     const fecha_desde = `${año}-${mes}-01`;
-    const fecha_hasta = new Date(año, mes, 0).toISOString().split('T')[0];
+    const fecha_hasta = new Date(parseInt(año), parseInt(mes), 0).toISOString().split('T')[0];
 
     const response = await fetch(`${API_BASE_URL}/admin/caja/reportes/datos?fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}`, {
       headers: {
