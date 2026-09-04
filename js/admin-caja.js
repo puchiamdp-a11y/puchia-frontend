@@ -37,8 +37,29 @@ function initCaja() {
 }
 
 function setupCajaEventListeners() {
-  // Se configurarán cuando se agreguen elementos al DOM
+  // Configurar emoji picker
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('emoji-btn')) {
+      e.preventDefault();
+      const emoji = e.target.dataset.emoji;
+      document.getElementById('inputIconoCategoria').value = emoji;
+      highlightSelectedEmoji(emoji);
+    }
+  });
+
   console.log('📋 Event listeners de Caja preparados');
+}
+
+function highlightSelectedEmoji(emoji) {
+  document.querySelectorAll('.emoji-btn').forEach(btn => {
+    if (btn.dataset.emoji === emoji) {
+      btn.style.background = '#f0e6f6';
+      btn.style.border = '2px solid #7f1f6e';
+    } else {
+      btn.style.background = 'white';
+      btn.style.border = '1px solid #ddd';
+    }
+  });
 }
 
 // ==================== CARGAR DATOS ====================
@@ -375,11 +396,11 @@ function renderCajaCategorias() {
   if (!grid) return;
 
   grid.innerHTML = cajaState.categorias.map(cat => `
-    <div style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 16px;">
+    <div style="background: white; border: 1px solid #eee; border-left: 4px solid ${cat.color || '#7f1f6e'}; border-radius: 8px; padding: 16px; transition: all 0.2s;">
       <div style="font-size: 24px; margin-bottom: 8px;">${cat.icono}</div>
       <div style="font-weight: 600; margin-bottom: 4px;">${cat.nombre}</div>
       <div style="font-size: 12px; color: #999; margin-bottom: 12px;">
-        <span style="padding: 2px 8px; background: #f0f0f0; border-radius: 4px;">
+        <span style="padding: 2px 8px; background: ${cat.color || '#7f1f6e'}20; border-radius: 4px; color: ${cat.color || '#7f1f6e'};">
           ${cat.tipo.toUpperCase()}
         </span>
       </div>
@@ -673,7 +694,7 @@ async function submitTransaccionCaja(event) {
   event.preventDefault();
 
   const categoria_id = parseInt(document.getElementById('inputCategoriaTransaccion').value);
-  const monto = parseFloat(document.getElementById('inputMontoTransaccion').value);
+  let monto = parseFloat(document.getElementById('inputMontoTransaccion').value);
   const metodo_pago = document.getElementById('inputMetodoPagoTransaccion').value;
   const descripcion = document.getElementById('inputDescripcionTransaccion').value || null;
   const fecha_transaccion = document.getElementById('inputFechaTransaccion').value;
@@ -699,6 +720,10 @@ async function submitTransaccionCaja(event) {
     }
   }
 
+  // Convertir números negativos a positivos
+  // El backend detectará automáticamente el tipo basado en la categoría
+  const montoAbsoluto = Math.abs(monto);
+
   try {
     const method = cajaState.modalTransaccionEditando ? 'PUT' : 'POST';
     const url = cajaState.modalTransaccionEditando
@@ -713,7 +738,7 @@ async function submitTransaccionCaja(event) {
       },
       body: JSON.stringify({
         categoria_id,
-        monto,
+        monto: montoAbsoluto,
         metodo_pago,
         descripcion,
         fecha_transaccion
@@ -758,6 +783,7 @@ function abrirModalNuevaCategoria() {
   setTimeout(() => {
     document.getElementById('inputIconoCategoria').value = '💰';
     document.getElementById('inputColorCategoria').value = '#7f1f6e';
+    highlightSelectedEmoji('💰');
   }, 10);
 
   modal.classList.add('show');
@@ -790,6 +816,7 @@ async function editarCategoria(id) {
   document.getElementById('inputDescripcionCategoria').value = categoria.descripcion || '';
   document.getElementById('inputIconoCategoria').value = categoria.icono;
   document.getElementById('inputColorCategoria').value = categoria.color;
+  highlightSelectedEmoji(categoria.icono);
 
   modal.classList.add('show');
 }
