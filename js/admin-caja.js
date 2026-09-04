@@ -588,24 +588,19 @@ function actualizarTipoDetectado() {
     return;
   }
 
-  // Detectar tipo según el monto
-  const tipoDetectado = monto > 0 ? 'ingreso' : monto < 0 ? 'egreso' : '';
-
-  // Validar que el tipo detectado coincida con la categoría
+  // El tipo viene de la categoría, no del monto
+  const tipo = categoria.tipo;
   let validacion = '';
   let color = '';
 
-  if (!tipoDetectado) {
-    validacion = '';
-    color = '';
-    indicador.style.display = 'none';
-  } else if (tipoDetectado === categoria.tipo) {
-    validacion = `✅ ${tipoDetectado.toUpperCase()}`;
-    color = tipoDetectado === 'ingreso' ? '#4caf50' : '#f44336';
+  if (monto <= 0) {
+    validacion = `❌ El monto debe ser positivo`;
+    color = '#f44336';
     indicador.style.display = 'block';
   } else {
-    validacion = `❌ Monto ${tipoDetectado} con categoría ${categoria.tipo}`;
-    color = '#ff9800';
+    // Mostrar el tipo que se registrará según la categoría
+    validacion = `✅ Se registrará como ${tipo.toUpperCase()}`;
+    color = tipo === 'ingreso' ? '#4caf50' : '#f44336';
     indicador.style.display = 'block';
   }
 
@@ -701,14 +696,17 @@ async function submitTransaccionCaja(event) {
     return;
   }
 
-  // Validar que el tipo detectado coincida con la categoría
+  // Validar que la categoría existe
   const categoria = cajaState.categorias.find(c => c.id === categoria_id);
-  if (categoria) {
-    const tipoDetectado = monto > 0 ? 'ingreso' : 'egreso';
-    if (tipoDetectado !== categoria.tipo) {
-      alert(`El monto debe ser ${categoria.tipo === 'ingreso' ? 'positivo' : 'negativo'} para esta categoría`);
-      return;
-    }
+  if (!categoria) {
+    alert('Por favor selecciona una categoría válida');
+    return;
+  }
+
+  // El backend se encargará de convertir el monto según el tipo de categoría
+  if (monto <= 0) {
+    alert('El monto debe ser un número positivo');
+    return;
   }
 
   try {
