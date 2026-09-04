@@ -378,11 +378,13 @@ function renderCajaCategorias() {
   if (!grid) return;
 
   grid.innerHTML = cajaState.categorias.map(cat => `
-    <div style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 16px;">
-      <div style="font-size: 24px; margin-bottom: 8px;">${cat.icono}</div>
-      <div style="font-weight: 600; margin-bottom: 4px;">${cat.nombre}</div>
+    <div style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 16px; overflow: hidden;">
+      <div style="background: ${cat.color}; color: white; font-size: 32px; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px;">
+        ${cat.icono}
+      </div>
+      <div style="font-weight: 600; margin-bottom: 4px; color: #333;">${cat.nombre}</div>
       <div style="font-size: 12px; color: #999; margin-bottom: 12px;">
-        <span style="padding: 2px 8px; background: #f0f0f0; border-radius: 4px;">
+        <span style="padding: 4px 8px; background: ${cat.color}20; color: ${cat.color}; border: 1px solid ${cat.color}40; border-radius: 4px; display: inline-block;">
           ${cat.tipo.toUpperCase()}
         </span>
       </div>
@@ -538,7 +540,7 @@ function abrirModalNuevaTransaccion() {
   // Llenar selector de categorías
   const selectCategoria = document.getElementById('inputCategoriaTransaccion');
   selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
-    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}">${cat.icono} ${cat.nombre}</option>`).join('');
+    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}" data-color="${cat.color}">${cat.icono} ■ ${cat.nombre}</option>`).join('');
 
   // Setear método de pago por defecto
   document.getElementById('inputMetodoPagoTransaccion').value = 'efectivo';
@@ -635,7 +637,7 @@ async function editarTransaccion(id) {
   // Llenar selector de categorías
   const selectCategoria = document.getElementById('inputCategoriaTransaccion');
   selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
-    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}">${cat.icono} ${cat.nombre}</option>`).join('');
+    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}" data-color="${cat.color}">${cat.icono} ■ ${cat.nombre}</option>`).join('');
 
   // Esperar a que se carguen las categorías
   setTimeout(() => {
@@ -768,6 +770,13 @@ function abrirModalNuevaCategoria() {
   setTimeout(() => {
     document.getElementById('inputIconoCategoria').value = '💰';
     document.getElementById('inputColorCategoria').value = '#7f1f6e';
+    inicializarSelectorEmojis();
+    actualizarPreviewColor();
+
+    // Event listener para actualizar preview al cambiar color
+    const inputColor = document.getElementById('inputColorCategoria');
+    inputColor.removeEventListener('change', actualizarPreviewColor);
+    inputColor.addEventListener('change', actualizarPreviewColor);
   }, 10);
 
   modal.classList.add('show');
@@ -800,6 +809,17 @@ async function editarCategoria(id) {
   document.getElementById('inputDescripcionCategoria').value = categoria.descripcion || '';
   document.getElementById('inputIconoCategoria').value = categoria.icono;
   document.getElementById('inputColorCategoria').value = categoria.color;
+
+  // Inicializar selector de emojis y actualizar preview
+  setTimeout(() => {
+    inicializarSelectorEmojis();
+    actualizarPreviewColor();
+
+    // Event listener para actualizar preview al cambiar color
+    const inputColor = document.getElementById('inputColorCategoria');
+    inputColor.removeEventListener('change', actualizarPreviewColor);
+    inputColor.addEventListener('change', actualizarPreviewColor);
+  }, 10);
 
   modal.classList.add('show');
 }
@@ -1201,6 +1221,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
+// ==================== SELECTOR DE EMOJIS Y COLOR ====================
+const EMOJIS_CATEGORIAS = ['💰', '🛍️', '💸', '📊', '🏪', '⚙️', '📦', '🚚', '💳', '📱', '🎁', '📈', '🔧', '🏷️', '💡', '📌'];
+
+function inicializarSelectorEmojis() {
+  const grid = document.getElementById('selectIconosGrid');
+  if (!grid) return;
+
+  grid.innerHTML = EMOJIS_CATEGORIAS.map(emoji => `
+    <button type="button" style="padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-size: 20px; cursor: pointer; background: white; transition: all 0.2s;"
+      onclick="seleccionarEmoji('${emoji}', event)">
+      ${emoji}
+    </button>
+  `).join('');
+}
+
+function seleccionarEmoji(emoji, event) {
+  event.preventDefault();
+  document.getElementById('inputIconoCategoria').value = emoji;
+
+  // Marcar como seleccionado
+  document.querySelectorAll('#selectIconosGrid button').forEach(btn => {
+    btn.style.borderColor = '#ddd';
+    btn.style.backgroundColor = 'white';
+  });
+  event.target.style.borderColor = '#7f1f6e';
+  event.target.style.backgroundColor = '#f0e6f0';
+}
+
+function actualizarPreviewColor() {
+  const color = document.getElementById('inputColorCategoria').value;
+  const preview = document.getElementById('previewColorCategoria');
+  const textColor = document.getElementById('textColorCategoria');
+
+  if (preview) preview.style.backgroundColor = color;
+  if (textColor) textColor.textContent = color.toUpperCase();
+}
 
 // Monitorear cambios de página
 function monitorCajaPageChange() {
