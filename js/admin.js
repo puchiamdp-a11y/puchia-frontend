@@ -2762,10 +2762,10 @@ async function guardarEditarOrden() {
   try {
     const token = localStorage.getItem('puchia_admin_token');
 
-    // Primero, actualizar items si hay cambios
+    // Primero, actualizar items si hay cambios reales (solo si variantes fueron seleccionadas)
     if (ordenEditandoData && ordenEditandoData.items) {
       const itemsParaGuardar = ordenEditandoData.items
-        .filter(item => item.producto_id)
+        .filter(item => item.producto_id && item.variantes_seleccionadas && Object.keys(item.variantes_seleccionadas).length > 0)
         .map(item => ({
           producto_id: item.producto_id,
           cantidad: item.cantidad,
