@@ -83,10 +83,11 @@ function formatDateLong(dateStr) {
 function getEstadoColor(estado) {
   const colores = {
     'pendiente': { bg: '#ffffff', text: '#333333', border: '#ddd' },
-    'en_edicion': { bg: '#fffde7', text: '#f57f17', border: '#fbc02d' },
+    'señado': { bg: '#fffde7', text: '#f57f17', border: '#fbc02d' },
     'preparandose': { bg: '#e8f5e9', text: '#2e7d32', border: '#4caf50' },
     'listo_retirar': { bg: '#e3f2fd', text: '#1565c0', border: '#2196f3' },
     'entregado': { bg: '#f3e5f5', text: '#7f1f6e', border: '#c2185b' },
+    'anulado': { bg: '#ffebee', text: '#c62828', border: '#f44336' },
     'rechazado': { bg: '#ffebee', text: '#c62828', border: '#f44336' }
   };
   return colores[estado] || colores['pendiente'];
