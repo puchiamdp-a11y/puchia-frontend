@@ -785,7 +785,17 @@ function abrirModalNuevaCategoria() {
 function cerrarModalCategoriaCaja() {
   const modal = document.getElementById('modalCategoriaCaja');
   modal.classList.remove('show');
-  document.getElementById('formCategoriaCaja').reset();
+
+  // Reset seguro: evitar valores vacíos en inputs que lo requieren
+  setTimeout(() => {
+    document.getElementById('formCategoriaCaja').reset();
+    // Asegurar que el color siempre tenga un valor válido después del reset
+    const inputColor = document.getElementById('inputColorCategoria');
+    if (!inputColor.value || inputColor.value === '') {
+      inputColor.value = '#7f1f6e';
+    }
+  }, 50);
+
   cajaState.modalCategoriaEditando = null;
 }
 
