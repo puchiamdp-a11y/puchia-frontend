@@ -349,9 +349,9 @@ function renderCajaTransacciones() {
 
     if (resumenEl.style.display === 'block') {
       const neto = totalIngresos - totalEgresos;
-      document.getElementById('resumenIngresos').textContent = `$${totalIngresos.toFixed(2)}`;
-      document.getElementById('resumenEgresos').textContent = `$${totalEgresos.toFixed(2)}`;
-      document.getElementById('resumenNeto').textContent = `$${neto.toFixed(2)}`;
+      document.getElementById('resumenIngresos').textContent = formatearMonto(totalIngresos);
+      document.getElementById('resumenEgresos').textContent = formatearMonto(totalEgresos);
+      document.getElementById('resumenNeto').textContent = formatearMonto(neto);
       document.getElementById('resumenNeto').style.color = neto >= 0 ? '#4caf50' : '#f44336';
       document.getElementById('resumenCantidad').textContent = cajaState.transacciones.length;
     }
@@ -381,7 +381,7 @@ function renderCajaTransacciones() {
       <td style="text-align: right; font-weight: 600;">
         <div style="display: inline-flex; align-items: center; gap: 8px;">
           <span>${t.metodo_pago === 'mercado_pago' ? '💳' : '💵'}</span>
-          <span>$${Math.abs(parseFloat(t.monto)).toFixed(2)}</span>
+          <span>${formatearMonto(Math.abs(parseFloat(t.monto)))}</span>
         </div>
       </td>
       <td>${t.descripcion || '-'}</td>
@@ -417,34 +417,42 @@ function renderCajaCategorias() {
   `).join('');
 }
 
+// ==================== FORMATO DE MONTOS ====================
+function formatearMonto(monto) {
+  const num = parseFloat(monto);
+  const partes = num.toFixed(2).split('.');
+  const enteros = partes[0];
+  const decimales = partes[1];
+
+  // Agregar separador de miles
+  const enterosFormato = enteros.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  return `$${enterosFormato},${decimales}`;
+}
+
 // ==================== ACTUALIZAR RESUMEN ====================
 function updateCajaResumen() {
-  // Calcular totales del día (si es necesario filtrar por hoy)
-  const hoy = new Date().toISOString().split('T')[0];
-
+  // Calcular totales de TODAS las transacciones (no solo del día)
   let totalIngresos = 0;
   let totalEgresos = 0;
   let totalEfectivo = 0;
   let totalMercadoPago = 0;
 
   cajaState.transacciones.forEach(t => {
-    const fecha = new Date(t.fecha_transaccion).toISOString().split('T')[0];
-    if (fecha === hoy) {
-      const monto = parseFloat(t.monto);
-      const montoAbsoluto = Math.abs(monto);
+    const monto = parseFloat(t.monto);
+    const montoAbsoluto = Math.abs(monto);
 
-      if (t.tipo === 'ingreso') {
-        totalIngresos += monto;
-      } else {
-        totalEgresos += montoAbsoluto;
-      }
+    if (t.tipo === 'ingreso') {
+      totalIngresos += monto;
+    } else {
+      totalEgresos += montoAbsoluto;
+    }
 
-      // Sumar por método de pago
-      if (t.metodo_pago === 'mercado_pago') {
-        totalMercadoPago += montoAbsoluto;
-      } else {
-        totalEfectivo += montoAbsoluto;
-      }
+    // Sumar por método de pago
+    if (t.metodo_pago === 'mercado_pago') {
+      totalMercadoPago += montoAbsoluto;
+    } else {
+      totalEfectivo += montoAbsoluto;
     }
   });
 
@@ -454,10 +462,10 @@ function updateCajaResumen() {
   const egresosEl = document.getElementById('cajaEgresos');
   const saldoEl = document.getElementById('cajaSaldoNeto');
 
-  if (ingresosEl) ingresosEl.textContent = `$${totalIngresos.toFixed(2)}`;
-  if (egresosEl) egresosEl.textContent = `$${totalEgresos.toFixed(2)}`;
+  if (ingresosEl) ingresosEl.textContent = formatearMonto(totalIngresos);
+  if (egresosEl) egresosEl.textContent = formatearMonto(totalEgresos);
   if (saldoEl) {
-    saldoEl.textContent = `$${saldoNeto.toFixed(2)}`;
+    saldoEl.textContent = formatearMonto(saldoNeto);
     saldoEl.style.color = saldoNeto >= 0 ? '#4caf50' : '#f44336';
   }
 
@@ -465,8 +473,8 @@ function updateCajaResumen() {
   const efectivoEl = document.getElementById('cajaEfectivo');
   const mercadoPagoEl = document.getElementById('cajaMercadoPago');
 
-  if (efectivoEl) efectivoEl.textContent = `$${totalEfectivo.toFixed(2)}`;
-  if (mercadoPagoEl) mercadoPagoEl.textContent = `$${totalMercadoPago.toFixed(2)}`;
+  if (efectivoEl) efectivoEl.textContent = formatearMonto(totalEfectivo);
+  if (mercadoPagoEl) mercadoPagoEl.textContent = formatearMonto(totalMercadoPago);
 }
 
 // ==================== FUNCIONES DE TABS ====================
@@ -952,11 +960,11 @@ async function generarReporteCaja() {
     const reporte = data.data;
 
     // Actualizar totales
-    document.getElementById('reporteIngresos').textContent = `$${reporte.ingresos.total.toFixed(2)}`;
-    document.getElementById('reporteEgresos').textContent = `$${reporte.egresos.total.toFixed(2)}`;
+    document.getElementById('reporteIngresos').textContent = formatearMonto(reporte.ingresos.total);
+    document.getElementById('reporteEgresos').textContent = formatearMonto(reporte.egresos.total);
 
     const saldoEl = document.getElementById('reporteSaldo');
-    saldoEl.textContent = `$${reporte.saldo_neto.toFixed(2)}`;
+    saldoEl.textContent = formatearMonto(reporte.saldo_neto);
     saldoEl.style.color = reporte.saldo_neto >= 0 ? '#4caf50' : '#f44336';
 
     document.getElementById('reporteTransacciones').textContent = reporte.cantidad_transacciones;
@@ -1125,9 +1133,9 @@ function generarDesgloseReporte(reporte) {
           <span>${nombre}</span>
         </span>
       </td>
-      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 500; color: #4caf50;">$${montoIngreso.toFixed(2)}</td>
-      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 500; color: #f44336;">$${montoEgreso.toFixed(2)}</td>
-      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 600; color: ${neto >= 0 ? '#4caf50' : '#f44336'};">$${neto.toFixed(2)}</td>
+      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 500; color: #4caf50;">${formatearMonto(montoIngreso)}</td>
+      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 500; color: #f44336;">${formatearMonto(montoEgreso)}</td>
+      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 600; color: ${neto >= 0 ? '#4caf50' : '#f44336'};">${formatearMonto(neto)}</td>
     </tr>`;
   });
 
@@ -1162,7 +1170,7 @@ async function reconciliarOrdenesManual() {
     const mensaje = `✅ Reconciliación completada\n\n` +
       `Órdenes procesadas: ${resultado.ordenes_procesadas}\n` +
       `Órdenes registradas: ${resultado.ordenes_registradas}\n` +
-      `Monto total: $${resultado.total_monto.toFixed(2)}`;
+      `Monto total: ${formatearMonto(resultado.total_monto)}`;
 
     alert(mensaje);
 
