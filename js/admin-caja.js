@@ -432,13 +432,20 @@ function formatearMonto(monto) {
 
 // ==================== ACTUALIZAR RESUMEN ====================
 function updateCajaResumen() {
-  // Calcular totales de TODAS las transacciones (no solo del día)
+  // Obtener la fecha de hoy en formato YYYY-MM-DD
+  const hoy = new Date().toISOString().split('T')[0];
+
   let totalIngresos = 0;
   let totalEgresos = 0;
   let totalEfectivo = 0;
   let totalMercadoPago = 0;
 
   cajaState.transacciones.forEach(t => {
+    const fecha = new Date(t.fecha_transaccion).toISOString().split('T')[0];
+
+    // Solo procesar transacciones del día actual
+    if (fecha !== hoy) return;
+
     const monto = parseFloat(t.monto);
     const montoAbsoluto = Math.abs(monto);
 
