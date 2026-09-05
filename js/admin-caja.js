@@ -5,7 +5,7 @@ let cajaState = {
   transacciones: [],
   categorias: [],
   currentPage: 1,
-  itemsPerPage: 20,
+  itemsPerPage: 15,
   filters: {
     tipo: null,
     categoria_id: null,
@@ -15,7 +15,9 @@ let cajaState = {
   sortBy: 'fecha_transaccion',
   sortOrder: 'DESC',
   modalTransaccionEditando: null,
-  modalCategoriaEditando: null
+  modalCategoriaEditando: null,
+  totalTransacciones: 0,
+  totalPages: 1
 };
 
 // ==================== INICIALIZACIÓN ====================
@@ -224,13 +226,13 @@ function renderCajaInterface() {
       <!-- TABLA -->
       <div class="table-container">
         <table style="width: 100%;">
-          <thead>
+          <thead id="cajaTransaccionesHead">
             <tr>
-              <th>Fecha</th>
-              <th>Tipo</th>
-              <th>Categoría</th>
-              <th>Monto (Método)</th>
-              <th>Descripción</th>
+              <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('fecha_transaccion')">Fecha <span id="sortFecha">↕️</span></th>
+              <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('tipo')">Tipo <span id="sortTipo">↕️</span></th>
+              <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('categoria')">Categoría <span id="sortCategoria">↕️</span></th>
+              <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('monto')">Monto (Método) <span id="sortMonto">↕️</span></th>
+              <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('descripcion')">Descripción <span id="sortDescripcion">↕️</span></th>
               <th style="width: 150px;">Acciones</th>
             </tr>
           </thead>
@@ -240,6 +242,16 @@ function renderCajaInterface() {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- PAGINACIÓN -->
+      <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+        <button class="btn btn-small btn-secondary" onclick="irPaginaCaja(cajaState.currentPage - 1)" id="btnPagAnterior">← Anterior</button>
+        <div id="paginacionNumeros" style="display: flex; gap: 6px; align-items: center;">
+          <!-- Se generan dinámicamente -->
+        </div>
+        <button class="btn btn-small btn-secondary" onclick="irPaginaCaja(cajaState.currentPage + 1)" id="btnPagSiguiente">Siguiente →</button>
+        <span id="textoPaginacion" style="color: #999; font-size: 12px; margin-left: 12px;">Página 1 de 1</span>
       </div>
     </div>
 
@@ -329,11 +341,42 @@ function renderCajaTransacciones() {
   const tbody = document.getElementById('cajaTransaccionesTable');
   if (!tbody) return;
 
+  // Ordenar transacciones
+  let transaccionesOrdenadas = [...cajaState.transacciones];
+  const campos = {
+    'fecha_transaccion': (t) => new Date(t.fecha_transaccion),
+    'tipo': (t) => t.tipo,
+    'categoria': (t) => t.categoria?.nombre || '',
+    'monto': (t) => parseFloat(t.monto),
+    'descripcion': (t) => t.descripcion || ''
+  };
+
+  if (campos[cajaState.sortBy]) {
+    transaccionesOrdenadas.sort((a, b) => {
+      const valA = campos[cajaState.sortBy](a);
+      const valB = campos[cajaState.sortBy](b);
+      const comparacion = valA < valB ? -1 : valA > valB ? 1 : 0;
+      return cajaState.sortOrder === 'ASC' ? comparacion : -comparacion;
+    });
+  }
+
+  // Calcular totales y paginación
+  cajaState.totalTransacciones = transaccionesOrdenadas.length;
+  cajaState.totalPages = Math.ceil(cajaState.totalTransacciones / cajaState.itemsPerPage);
+
+  if (cajaState.currentPage > cajaState.totalPages) {
+    cajaState.currentPage = Math.max(1, cajaState.totalPages);
+  }
+
+  const inicio = (cajaState.currentPage - 1) * cajaState.itemsPerPage;
+  const fin = inicio + cajaState.itemsPerPage;
+  const transaccionesPagina = transaccionesOrdenadas.slice(inicio, fin);
+
   // Calcular resumen de transacciones mostradas
   let totalIngresos = 0;
   let totalEgresos = 0;
 
-  cajaState.transacciones.forEach(t => {
+  transaccionesPagina.forEach(t => {
     if (t.tipo === 'ingreso') {
       totalIngresos += parseFloat(t.monto);
     } else {
@@ -345,7 +388,7 @@ function renderCajaTransacciones() {
   const resumenEl = document.getElementById('resumenFiltrado');
   if (resumenEl) {
     const hayFiltros = Object.values(cajaState.filters).some(v => v);
-    resumenEl.style.display = hayFiltros || cajaState.transacciones.length > 0 ? 'block' : 'none';
+    resumenEl.style.display = hayFiltros || cajaState.totalTransacciones > 0 ? 'block' : 'none';
 
     if (resumenEl.style.display === 'block') {
       const neto = totalIngresos - totalEgresos;
@@ -353,16 +396,17 @@ function renderCajaTransacciones() {
       document.getElementById('resumenEgresos').textContent = formatearMonto(totalEgresos);
       document.getElementById('resumenNeto').textContent = formatearMonto(neto);
       document.getElementById('resumenNeto').style.color = neto >= 0 ? '#4caf50' : '#f44336';
-      document.getElementById('resumenCantidad').textContent = cajaState.transacciones.length;
+      document.getElementById('resumenCantidad').textContent = cajaState.totalTransacciones;
     }
   }
 
-  if (cajaState.transacciones.length === 0) {
+  if (cajaState.totalTransacciones === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 20px;">No hay transacciones registradas</td></tr>';
+    actualizarPaginacion();
     return;
   }
 
-  tbody.innerHTML = cajaState.transacciones.map(t => `
+  tbody.innerHTML = transaccionesPagina.map(t => `
     <tr>
       <td>${new Date(t.fecha_transaccion).toLocaleDateString('es-AR')}</td>
       <td>
@@ -393,6 +437,83 @@ function renderCajaTransacciones() {
       </td>
     </tr>
   `).join('');
+
+  actualizarPaginacion();
+}
+
+// ==================== ORDENAMIENTO Y PAGINACIÓN ====================
+function ordenarCaja(campo) {
+  if (cajaState.sortBy === campo) {
+    cajaState.sortOrder = cajaState.sortOrder === 'ASC' ? 'DESC' : 'ASC';
+  } else {
+    cajaState.sortBy = campo;
+    cajaState.sortOrder = 'DESC';
+  }
+  cajaState.currentPage = 1;
+  renderCajaTransacciones();
+}
+
+function irPaginaCaja(pagina) {
+  if (pagina >= 1 && pagina <= cajaState.totalPages) {
+    cajaState.currentPage = pagina;
+    renderCajaTransacciones();
+    document.querySelector('.table-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function actualizarPaginacion() {
+  const contenedorNumeros = document.getElementById('paginacionNumeros');
+  const btnAnterior = document.getElementById('btnPagAnterior');
+  const btnSiguiente = document.getElementById('btnPagSiguiente');
+  const textoPaginacion = document.getElementById('textoPaginacion');
+
+  if (!contenedorNumeros) return;
+
+  // Actualizar estado de botones
+  if (btnAnterior) btnAnterior.disabled = cajaState.currentPage <= 1;
+  if (btnSiguiente) btnSiguiente.disabled = cajaState.currentPage >= cajaState.totalPages;
+
+  // Generar números de página (máximo 5 visibles)
+  let paginasVisibles = [];
+  const totalPages = cajaState.totalPages;
+  const currentPage = cajaState.currentPage;
+
+  if (totalPages <= 5) {
+    paginasVisibles = Array.from({ length: totalPages }, (_, i) => i + 1);
+  } else {
+    if (currentPage <= 3) {
+      paginasVisibles = [1, 2, 3, 4, 5];
+    } else if (currentPage >= totalPages - 2) {
+      paginasVisibles = [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    } else {
+      paginasVisibles = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+    }
+  }
+
+  contenedorNumeros.innerHTML = paginasVisibles.map(p => `
+    <button
+      class="btn btn-small ${p === currentPage ? 'btn-primary' : 'btn-secondary'}"
+      onclick="irPaginaCaja(${p})"
+      style="${p === currentPage ? 'font-weight: bold;' : ''}"
+    >${p}</button>
+  `).join('');
+
+  if (textoPaginacion) {
+    textoPaginacion.textContent = `Página ${currentPage} de ${totalPages}`;
+  }
+
+  // Actualizar indicadores de ordenamiento
+  const campos = ['fecha_transaccion', 'tipo', 'categoria', 'monto', 'descripcion'];
+  campos.forEach(campo => {
+    const span = document.getElementById(`sort${campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', '')}`);
+    if (span) {
+      if (cajaState.sortBy === campo) {
+        span.textContent = cajaState.sortOrder === 'ASC' ? '⬆️' : '⬇️';
+      } else {
+        span.textContent = '↕️';
+      }
+    }
+  });
 }
 
 // ==================== RENDERIZAR CATEGORÍAS ====================
