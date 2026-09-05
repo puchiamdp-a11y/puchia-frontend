@@ -4284,10 +4284,11 @@ function getStatusBadge(status) {
 
   const colors = {
     'Pendiente': '#FFA500',
-    'En Edición': '#1E90FF',
+    'Señado': '#fbc02d',
     'Preparándose': '#9370DB',
     'Listo para Retirar': '#32CD32',
-    'Entregado': '#228B22'
+    'Entregado': '#228B22',
+    'Anulado': '#f44336'
   };
 
   return `<span class="badge" style="background-color: ${colors[status] || '#666'}">${status}</span>`;
