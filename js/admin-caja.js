@@ -349,7 +349,7 @@ function renderCajaTransacciones() {
     'tipo': (t) => t.tipo,
     'categoria': (t) => t.categoria?.nombre || '',
     'metodo_pago': (t) => t.metodo_pago || '',
-    'monto': (t) => parseFloat(t.monto),
+    'monto': (t) => Math.abs(parseFloat(t.monto)),
     'descripcion': (t) => t.descripcion || ''
   };
 
