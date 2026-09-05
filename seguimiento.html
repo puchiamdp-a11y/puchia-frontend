@@ -393,26 +393,29 @@
         // Estado a número para barra de progreso
         const estadoANumero = {
             'pendiente': 1,
-            'en_edicion': 2,
+            'señado': 2,
             'preparandose': 3,
             'listo_retirar': 4,
-            'entregado': 5
+            'entregado': 5,
+            'anulado': 0
         };
 
         const estadoNombre = {
             'pendiente': 'Pendiente',
-            'en_edicion': 'En Edición',
+            'señado': 'Señado',
             'preparandose': 'Preparándose',
             'listo_retirar': 'Listo Retirar',
-            'entregado': 'Entregado'
+            'entregado': 'Entregado',
+            'anulado': 'Anulado'
         };
 
         const estadoEmoji = {
             'pendiente': '📋',
-            'en_edicion': '✏️',
+            'señado': '💰',
             'preparandose': '🔧',
             'listo_retirar': '📦',
-            'entregado': '✅'
+            'entregado': '✅',
+            'anulado': '❌'
         };
 
         async function cargarOrden() {
@@ -527,25 +530,37 @@
         function generarBarraProgreso(estadoActual) {
             const pasos = [
                 { numero: 1, nombre: 'Pendiente' },
-                { numero: 2, nombre: 'En Edición' },
+                { numero: 2, nombre: 'Señado' },
                 { numero: 3, nombre: 'Preparándose' },
                 { numero: 4, nombre: 'Listo Retirar' },
                 { numero: 5, nombre: 'Entregado' }
             ];
 
-            const stepsHTML = pasos.map((paso, idx) => {
-                const isActive = paso.numero === estadoActual;
-                const isCompleted = paso.numero < estadoActual;
-                const statusClass = isActive ? 'active' : (isCompleted ? 'completed' : '');
+            let stepsHTML = '';
 
-                return `
-                    <div class="step ${statusClass}">
-                        <div class="step-circle">${paso.numero}</div>
-                        <div class="step-line"></div>
-                        <div class="step-name">${paso.nombre}</div>
+            // Si la orden está anulada, mostrar estado especial
+            if (estadoActual === 0) {
+                stepsHTML = `
+                    <div class="step active" style="flex: 1;">
+                        <div class="step-circle" style="background: #f44336; border-color: #f44336; width: 60px; height: 60px; font-size: 24px;">❌</div>
+                        <div class="step-name" style="color: #f44336; font-weight: 600;">ORDEN ANULADA</div>
                     </div>
                 `;
-            }).join('');
+            } else {
+                stepsHTML = pasos.map((paso, idx) => {
+                    const isActive = paso.numero === estadoActual;
+                    const isCompleted = paso.numero < estadoActual;
+                    const statusClass = isActive ? 'active' : (isCompleted ? 'completed' : '');
+
+                    return `
+                        <div class="step ${statusClass}">
+                            <div class="step-circle">${paso.numero}</div>
+                            <div class="step-line"></div>
+                            <div class="step-name">${paso.nombre}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
 
             return `
                 <div class="progress-container">
