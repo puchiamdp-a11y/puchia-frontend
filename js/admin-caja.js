@@ -427,8 +427,8 @@ function renderCajaTransacciones() {
       <td style="text-align: center; font-size: 20px;">
         ${t.metodo_pago === 'mercado_pago' ? '💳' : '💵'}
       </td>
-      <td style="text-align: right; font-weight: 600;">
-        ${formatearMonto(Math.abs(parseFloat(t.monto)))}
+      <td style="text-align: right; font-weight: 600; color: ${t.tipo === 'egreso' ? '#f44336' : '#4caf50'};">
+        ${t.tipo === 'egreso' ? '-' : ''}${formatearMonto(Math.abs(parseFloat(t.monto)))}
       </td>
       <td>${t.descripcion || '-'}</td>
       <td>
