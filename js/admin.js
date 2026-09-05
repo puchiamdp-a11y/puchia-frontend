@@ -4264,15 +4264,17 @@ async function loadOrderStatuses() {
   try {
     const token = localStorage.getItem('puchia_admin_token');
     const response = await fetch('https://puchia-backend-production.up.railway.app/api/v1/admin/order-statuses', {
+      method: 'GET',
+      cache: 'no-cache',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
     const data = await response.json();
     orderStatuses = data.data || [];
-    console.log('Estados de orden cargados:', orderStatuses);
+    console.log('✅ Estados de orden cargados:', orderStatuses);
   } catch (error) {
-    console.error('Error cargando estados:', error);
+    console.error('❌ Error cargando estados:', error);
   }
 }
 
