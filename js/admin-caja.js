@@ -432,8 +432,10 @@ function formatearMonto(monto) {
 
 // ==================== ACTUALIZAR RESUMEN ====================
 function updateCajaResumen() {
-  // Obtener la fecha de hoy en formato YYYY-MM-DD
-  const hoy = new Date().toISOString().split('T')[0];
+  // Obtener mes y año actual
+  const ahora = new Date();
+  const mesActual = ahora.getMonth();
+  const anoActual = ahora.getFullYear();
 
   let totalIngresos = 0;
   let totalEgresos = 0;
@@ -441,25 +443,26 @@ function updateCajaResumen() {
   let totalMercadoPago = 0;
 
   cajaState.transacciones.forEach(t => {
-    const fecha = new Date(t.fecha_transaccion).toISOString().split('T')[0];
+    const fecha = new Date(t.fecha_transaccion);
 
-    // Solo procesar transacciones del día actual
-    if (fecha !== hoy) return;
+    // Solo procesar transacciones del mes y año actual
+    if (fecha.getMonth() !== mesActual || fecha.getFullYear() !== anoActual) return;
 
     const monto = parseFloat(t.monto);
-    const montoAbsoluto = Math.abs(monto);
+    const signo = t.tipo === 'ingreso' ? 1 : -1;
+    const montoConSigno = monto * signo;
 
     if (t.tipo === 'ingreso') {
       totalIngresos += monto;
     } else {
-      totalEgresos += montoAbsoluto;
+      totalEgresos += monto;
     }
 
-    // Sumar por método de pago
+    // Sumar por método de pago (con signo para calcular saldo correcto)
     if (t.metodo_pago === 'mercado_pago') {
-      totalMercadoPago += montoAbsoluto;
+      totalMercadoPago += montoConSigno;
     } else {
-      totalEfectivo += montoAbsoluto;
+      totalEfectivo += montoConSigno;
     }
   });
 
