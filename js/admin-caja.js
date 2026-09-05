@@ -337,7 +337,7 @@ function renderCajaTransacciones() {
     if (t.tipo === 'ingreso') {
       totalIngresos += parseFloat(t.monto);
     } else {
-      totalEgresos += parseFloat(t.monto);
+      totalEgresos += Math.abs(parseFloat(t.monto));
     }
   });
 
@@ -381,7 +381,7 @@ function renderCajaTransacciones() {
       <td style="text-align: right; font-weight: 600;">
         <div style="display: inline-flex; align-items: center; gap: 8px;">
           <span>${t.metodo_pago === 'mercado_pago' ? '💳' : '💵'}</span>
-          <span>$${parseFloat(t.monto).toFixed(2)}</span>
+          <span>$${Math.abs(parseFloat(t.monto)).toFixed(2)}</span>
         </div>
       </td>
       <td>${t.descripcion || '-'}</td>
@@ -430,17 +430,20 @@ function updateCajaResumen() {
   cajaState.transacciones.forEach(t => {
     const fecha = new Date(t.fecha_transaccion).toISOString().split('T')[0];
     if (fecha === hoy) {
+      const monto = parseFloat(t.monto);
+      const montoAbsoluto = Math.abs(monto);
+
       if (t.tipo === 'ingreso') {
-        totalIngresos += parseFloat(t.monto);
+        totalIngresos += monto;
       } else {
-        totalEgresos += parseFloat(t.monto);
+        totalEgresos += montoAbsoluto;
       }
 
       // Sumar por método de pago
       if (t.metodo_pago === 'mercado_pago') {
-        totalMercadoPago += parseFloat(t.monto);
+        totalMercadoPago += montoAbsoluto;
       } else {
-        totalEfectivo += parseFloat(t.monto);
+        totalEfectivo += montoAbsoluto;
       }
     }
   });
