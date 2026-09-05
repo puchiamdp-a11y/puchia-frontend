@@ -556,9 +556,12 @@ function adminLogout() {
 }
 
 window.addEventListener('load', () => {
-    injectCartSidebar();
-    updateCartCount();
-    renderCartSidebar();
+    // No inyectar carrito en páginas públicas como seguimiento
+    if (!window.location.pathname.includes('seguimiento.html')) {
+        injectCartSidebar();
+        updateCartCount();
+        renderCartSidebar();
+    }
 });
 
 window.addEventListener('storage', (e) => {
