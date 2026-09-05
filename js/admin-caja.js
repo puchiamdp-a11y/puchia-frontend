@@ -94,6 +94,7 @@ async function loadCajaCategorias() {
     const data = await response.json();
     cajaState.categorias = data.data || [];
     console.log(`✅ ${cajaState.categorias.length} categorías cargadas`);
+    renderCajaCategorias();
   } catch (error) {
     console.error('❌ Error cargando categorías:', error);
   }
@@ -125,6 +126,7 @@ async function loadCajaTransacciones(page = 1) {
     cajaState.currentPage = page;
 
     console.log(`✅ ${cajaState.transacciones.length} transacciones cargadas (página ${page})`);
+    renderCajaTransacciones();
   } catch (error) {
     console.error('❌ Error cargando transacciones:', error);
   }
