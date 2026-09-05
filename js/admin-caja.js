@@ -449,20 +449,18 @@ function updateCajaResumen() {
     if (fecha.getMonth() !== mesActual || fecha.getFullYear() !== anoActual) return;
 
     const monto = parseFloat(t.monto);
-    const signo = t.tipo === 'ingreso' ? 1 : -1;
-    const montoConSigno = monto * signo;
 
     if (t.tipo === 'ingreso') {
       totalIngresos += monto;
     } else {
-      totalEgresos += monto;
+      totalEgresos += Math.abs(monto);
     }
 
-    // Sumar por método de pago (con signo para calcular saldo correcto)
+    // Sumar por método de pago (el monto ya tiene el signo correcto del backend)
     if (t.metodo_pago === 'mercado_pago') {
-      totalMercadoPago += montoConSigno;
+      totalMercadoPago += monto;
     } else {
-      totalEfectivo += montoConSigno;
+      totalEfectivo += monto;
     }
   });
 
