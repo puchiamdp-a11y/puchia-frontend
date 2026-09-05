@@ -231,7 +231,8 @@ function renderCajaInterface() {
               <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('fecha_transaccion')">Fecha <span id="sortFecha">↕️</span></th>
               <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('tipo')">Tipo <span id="sortTipo">↕️</span></th>
               <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('categoria')">Categoría <span id="sortCategoria">↕️</span></th>
-              <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('monto')">Monto (Método) <span id="sortMonto">↕️</span></th>
+              <th style="cursor: pointer; user-select: none; text-align: center;" onclick="ordenarCaja('metodo_pago')">Método <span id="sortMetodo">↕️</span></th>
+              <th style="cursor: pointer; user-select: none; text-align: right;" onclick="ordenarCaja('monto')">Monto <span id="sortMonto">↕️</span></th>
               <th style="cursor: pointer; user-select: none;" onclick="ordenarCaja('descripcion')">Descripción <span id="sortDescripcion">↕️</span></th>
               <th style="width: 150px;">Acciones</th>
             </tr>
@@ -347,6 +348,7 @@ function renderCajaTransacciones() {
     'fecha_transaccion': (t) => new Date(t.fecha_transaccion),
     'tipo': (t) => t.tipo,
     'categoria': (t) => t.categoria?.nombre || '',
+    'metodo_pago': (t) => t.metodo_pago || '',
     'monto': (t) => parseFloat(t.monto),
     'descripcion': (t) => t.descripcion || ''
   };
@@ -422,11 +424,11 @@ function renderCajaTransacciones() {
           <span>${t.categoria?.nombre || 'Sin categoría'}</span>
         </span>
       </td>
+      <td style="text-align: center; font-size: 20px;">
+        ${t.metodo_pago === 'mercado_pago' ? '💳' : '💵'}
+      </td>
       <td style="text-align: right; font-weight: 600;">
-        <div style="display: inline-flex; align-items: center; gap: 8px;">
-          <span>${t.metodo_pago === 'mercado_pago' ? '💳' : '💵'}</span>
-          <span>${formatearMonto(Math.abs(parseFloat(t.monto)))}</span>
-        </div>
+        ${formatearMonto(Math.abs(parseFloat(t.monto)))}
       </td>
       <td>${t.descripcion || '-'}</td>
       <td>
@@ -503,9 +505,17 @@ function actualizarPaginacion() {
   }
 
   // Actualizar indicadores de ordenamiento
-  const campos = ['fecha_transaccion', 'tipo', 'categoria', 'monto', 'descripcion'];
+  const campos = ['fecha_transaccion', 'tipo', 'categoria', 'metodo_pago', 'monto', 'descripcion'];
   campos.forEach(campo => {
-    const span = document.getElementById(`sort${campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', '')}`);
+    const idMap = {
+      'fecha_transaccion': 'sortFecha',
+      'tipo': 'sortTipo',
+      'categoria': 'sortCategoria',
+      'metodo_pago': 'sortMetodo',
+      'monto': 'sortMonto',
+      'descripcion': 'sortDescripcion'
+    };
+    const span = document.getElementById(idMap[campo]);
     if (span) {
       if (cajaState.sortBy === campo) {
         span.textContent = cajaState.sortOrder === 'ASC' ? '⬆️' : '⬇️';
