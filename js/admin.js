@@ -237,7 +237,7 @@ function setupEventListeners() {
         if (page === 'productos') {
           loadProducts();
         } else if (page === 'ordenes') {
-          loadAllOrders();
+          loadOrderStatuses().then(() => loadAllOrders());
         } else if (page === 'caja') {
           loadCajaTransacciones();
         } else if (page === 'clientes') {
