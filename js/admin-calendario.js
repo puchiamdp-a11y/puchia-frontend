@@ -207,11 +207,14 @@ function renderPedidoEnCalendario(pedido) {
   const colorFondo = calendarioState.coloresFondo[pedido.estado] || '#f9f9f9';
   const anotacion = pedido.anotacion ? pedido.anotacion.substring(0, 30) : '';
 
+  // Obtener el nombre/código del cliente (puede venir como cliente_nombre o cliente.nombre)
+  const nombreCliente = pedido.cliente_nombre || (pedido.cliente?.nombre) || pedido.id_cliente || 'Cliente';
+
   return `
     <div onclick="abrirDetallesPedido(${pedido.id})"
          style="padding: 4px 6px; background: ${colorFondo}; color: ${colorTexto}; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid ${colorTexto}20;"
-         title="${pedido.id_cliente} - ${anotacion}">
-      <strong>${pedido.id_cliente}</strong> ${anotacion ? '- ' + anotacion + (pedido.anotacion.length > 30 ? '...' : '') : ''}
+         title="${nombreCliente} - ${anotacion}">
+      <strong>${nombreCliente}</strong> ${anotacion ? '- ' + anotacion + (pedido.anotacion.length > 30 ? '...' : '') : ''}
     </div>
   `;
 }
