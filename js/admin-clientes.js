@@ -210,6 +210,19 @@ async function verCliente(id) {
     const totalPedidos = pedidosHistoricos + pedidosNuevos;
 
     // Generar tabla de historial de pedidos
+    const construirProductosStr = (items) => {
+      if (!items || items.length === 0) return '-';
+      return items.map(item => `${item.cantidad}x ${item.producto?.nombre || 'Producto'}`).join(', ');
+    };
+
+    const filasPedidos = ordenesData.map(orden => {
+      const productosTxt = construirProductosStr(orden.items);
+      const fechaCompra = new Date(orden.created_at).toLocaleDateString('es-AR');
+      const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : '-';
+      const monto = parseFloat(orden.total || 0).toFixed(2);
+      return `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600; color: #7f1f6e;">${orden.id_unico || orden.id}</td><td style="padding: 8px;">${fechaCompra}</td><td style="padding: 8px;">${productosTxt}</td><td style="padding: 8px; text-align: right; font-weight: 600;">$${monto}</td><td style="padding: 8px;">${fechaEntrega}</td></tr>`;
+    }).join('');
+
     const historialHTML = ordenesData.length > 0 ? `
       <div style="margin-top: 24px; border-top: 2px solid #eee; padding-top: 16px;">
         <h3 style="color: #333; margin-bottom: 12px; font-size: 14px;">📋 Historial de Pedidos</h3>
@@ -225,20 +238,7 @@ async function verCliente(id) {
               </tr>
             </thead>
             <tbody>
-              ${ordenesData.map(orden => `
-                <tr style="border-bottom: 1px solid #eee; hover: {background: #f9f9f9;}">
-                  <td style="padding: 8px; font-weight: 600; color: #7f1f6e;">${orden.id_unico || orden.id}</td>
-                  <td style="padding: 8px;">${new Date(orden.created_at).toLocaleDateString('es-AR')}</td>
-                  <td style="padding: 8px;">
-                    ${orden.items && orden.items.length > 0
-                      ? orden.items.map(item => \`\${item.cantidad}x \${item.producto?.nombre || 'Producto'}\`).join(', ')
-                      : '-'
-                    }
-                  </td>
-                  <td style="padding: 8px; text-align: right; font-weight: 600;">$${parseFloat(orden.total || 0).toFixed(2)}</td>
-                  <td style="padding: 8px;">${orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : '-'}</td>
-                </tr>
-              \`).join('')}
+              ${filasPedidos}
             </tbody>
           </table>
         </div>
