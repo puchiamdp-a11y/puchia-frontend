@@ -351,126 +351,24 @@ function establecerHoy() {
 }
 
 function formatearMesAnio(fecha) {
-  const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   return `${meses[fecha.getMonth()]} ${fecha.getFullYear()}`;
 }
 
-async function abrirDetallesPedido(id) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/admin/ordenes/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
-      }
-    });
-
-    if (!response.ok) throw new Error('Error al cargar pedido');
-
-    const data = await response.json();
-    const pedido = data.data;
-    calendarioState.pedidoSeleccionado = pedido;
-
-    mostrarModalDetallesPedido(pedido);
-  } catch (error) {
-    console.error('❌ Error:', error);
-    alert('Error al cargar detalles del pedido');
+function abrirDetallesPedido(pedidoId) {
+  // Buscar el pedido en calendarioState.pedidos
+  const pedido = calendarioState.pedidos.find(p => p.id === pedidoId);
+  if (!pedido) {
+    console.error('Pedido no encontrado:', pedidoId);
+    return;
   }
-}
 
-function mostrarModalDetallesPedido(pedido) {
-  const modal = document.createElement('div');
-  modal.id = 'modalDetallesPedido';
-  modal.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-  `;
-
-  modal.innerHTML = `
-    <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative;">
-      <button onclick="cerrarModalDetallesPedido()"
-              style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">
-        ✕
-      </button>
-
-      <h2 style="margin-bottom: 20px; color: #7f1f6e; display: flex; align-items: center; gap: 12px;">
-        Pedido #${pedido.id_unico}
-        <span style="display: inline-block; padding: 4px 12px; background: ${calendarioState.coloresFondo[pedido.estado] || '#f9f9f9'}; color: ${calendarioState.coloresEstado[pedido.estado] || '#333'}; border: 1px solid ${calendarioState.coloresEstado[pedido.estado] || '#333'}; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: capitalize;">
-          ${pedido.estado.replace('_', ' ')}
-        </span>
-      </h2>
-
-      <!-- INFORMACIÓN GENERAL -->
-      <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="margin: 0 0 12px; font-size: 14px; color: #7f1f6e;">Información General</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
-          <div>
-            <span style="color: #999;">Cliente:</span>
-            <div style="font-weight: 600; color: #333;">${pedido.id_cliente}</div>
-          </div>
-          <div>
-            <span style="color: #999;">Total:</span>
-            <div style="font-weight: 600; color: #333;">$${parseFloat(pedido.total).toFixed(2)}</div>
-          </div>
-          <div>
-            <span style="color: #999;">Fecha Entrega:</span>
-            <div style="font-weight: 600; color: #333;">${new Date(pedido.fecha_entrega).toLocaleDateString('es-AR')}</div>
-          </div>
-          <div>
-            <span style="color: #999;">Creado:</span>
-            <div style="font-weight: 600; color: #333;">${new Date(pedido.createdAt).toLocaleDateString('es-AR')}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ANOTACIONES -->
-      ${pedido.anotacion ? `
-        <div style="background: #f0f8ff; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
-          <h3 style="margin: 0 0 8px; font-size: 14px; color: #1976d2;">📝 Anotaciones</h3>
-          <p style="margin: 0; font-size: 13px; color: #333; line-height: 1.6;">${pedido.anotacion}</p>
-        </div>
-      ` : ''}
-
-      <!-- PRODUCTOS -->
-      <div style="margin-bottom: 20px;">
-        <h3 style="margin: 0 0 12px; font-size: 14px; color: #7f1f6e;">Productos (${pedido.productos?.length || 0})</h3>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          ${(pedido.productos || []).map(p => `
-            <div style="background: #f9f9f9; padding: 12px; border-radius: 8px; border-left: 4px solid #7f1f6e;">
-              <div style="font-weight: 600; color: #333; margin-bottom: 4px;">
-                ${p.nombre} <span style="color: #999; font-weight: normal; font-size: 12px;">x${p.cantidad}</span>
-              </div>
-              ${p.variantes && p.variantes.length > 0 ? `
-                <div style="font-size: 12px; color: #666;">
-                  ${p.variantes.map(v => `<span style="display: inline-block; background: #e8e8e8; padding: 2px 8px; border-radius: 4px; margin-right: 4px;">${v.nombre}: ${v.valor}</span>`).join('')}
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- BOTONES -->
-      <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee;">
-        <button onclick="cerrarModalDetallesPedido()" class="btn btn-secondary">Cerrar</button>
-        <a href="../admin/dashboard.html?page=ordenes&id=${pedido.id}" class="btn btn-primary" style="text-decoration: none; display: inline-block;">
-          Ver Detalles Completos
-        </a>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-}
-
-function cerrarModalDetallesPedido() {
-  const modal = document.getElementById('modalDetallesPedido');
-  if (modal) modal.remove();
+  // Llamar a la función existente de admin.js que abre detalles de pedido
+  if (typeof abrirModalDetallesPedido === 'function') {
+    abrirModalDetallesPedido(pedido);
+  } else if (typeof loadOrderDetail === 'function') {
+    loadOrderDetail(pedidoId);
+  } else {
+    console.error('No hay función para abrir detalles del pedido');
+  }
 }

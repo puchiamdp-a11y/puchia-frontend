@@ -250,6 +250,8 @@ function setupEventListeners() {
           initStocks();
         } else if (page === 'insumos') {
           loadInsumos();
+        } else if (page === 'calendario') {
+          initCalendario();
         } else if (page === 'settings') {
           loadSettings();
         }

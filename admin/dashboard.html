@@ -6,9 +6,9 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026082707">
-    <link rel="stylesheet" href="../css/admin-responsive.css?v=2026082707">
-    <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026082707">
+    <link rel="stylesheet" href="../css/admin.css?v=2026090721">
+    <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
+    <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.js"></script>
@@ -230,11 +230,10 @@
                             onchange="filterOrdersByStatus(this.value)">
                         <option value="todos">Todos los estados</option>
                         <option value="pendiente">Pendiente</option>
-                        <option value="señado">Señado</option>
+                        <option value="en_edicion">En Edición</option>
                         <option value="preparandose">Preparándose</option>
                         <option value="listo_retirar">Listo para Retirar</option>
                         <option value="entregado">Entregado</option>
-                        <option value="anulado">Anulado</option>
                     </select>
                 </div>
 
@@ -445,13 +444,12 @@
                 </div>
             </div>
 
+            <!-- CAJA PAGE -->
             <!-- CALENDARIO PAGE -->
             <div id="calendario-page" class="page" style="display: none;">
-                <h1 class="page-title">📅 Calendario de Entregas</h1>
-                <p style="color: #999; text-align: center; padding: 40px;">Cargando calendario...</p>
+                <!-- Contenido dinámico del calendario -->
             </div>
 
-            <!-- CAJA PAGE -->
             <div id="caja-page" class="page" style="display: none;">
                 <h1 class="page-title">💰 Caja</h1>
                 <p style="color: #999; text-align: center; padding: 40px;">Cargando módulo de Caja...</p>
@@ -465,10 +463,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="../js/admin.js?v=2026090720"></script>
-    <script src="../js/admin-clientes.js?v=2026090720"></script>
-    <script src="../js/admin-calendario.js?v=2026090720"></script>
-    <script src="../js/admin-caja.js?v=2026090720"></script>
+    <script src="../js/admin.js?v=2026090721"></script>
+    <script src="../js/admin-clientes.js?v=2026090721"></script>
+    <script src="../js/admin-calendario.js?v=2026090721"></script>
+    <script src="../js/admin-caja.js?v=2026090721"></script>
 
     <!-- MODAL DETALLE PRODUCTO -->
     <div id="productDetailModal" class="modal">
@@ -818,12 +816,6 @@
                     <div id="nuevoClienteForm" style="display: none; padding: 16px; border: 1px solid #eee; border-radius: 8px; background: #fafafa;">
                         <h4 style="margin: 0 0 12px; color: #333;">Datos del nuevo cliente</h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                            <!-- CÓDIGO: se sugiere el correlativo, pero es editable -->
-                            <div style="grid-column: 1 / -1;">
-                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Código del Cliente</label>
-                                <input type="text" id="nuevoClienteCodigo" placeholder="Calculando..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: monospace; text-transform: uppercase;">
-                                <div id="nuevoClienteCodigoAlerta" style="margin-top: 6px; font-size: 12px; color: #c5221f; display: none;"></div>
-                            </div>
                             <!-- CAMPO OBLIGATORIO: Nombre -->
                             <div>
                                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Nombre *</label>
@@ -1231,6 +1223,71 @@
         }
     </script>
 
+
+    <!-- MODAL NUEVA/EDITAR CATEGORÍA CAJA -->
+    <div id="modalCategoriaCaja" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; display: none;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button class="modal-close" onclick="cerrarModalCategoriaCaja()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
+            <h2 id="modalCategoriaTitulo" style="margin-bottom: 20px; color: #7f1f6e;">Nueva Categoría</h2>
+            <form id="formCategoriaCaja" onsubmit="submitCategoriaCaja(event)">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Nombre -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Nombre *</label>
+                        <input type="text" id="inputNombreCategoria" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" />
+                    </div>
+
+                    <!-- Tipo -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Tipo *</label>
+                        <select id="inputTipoCategoria" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="ingreso">📈 Ingreso</option>
+                            <option value="egreso">📉 Egreso</option>
+                        </select>
+                    </div>
+
+                    <!-- Icono -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Icono</label>
+                        <input type="text" id="inputIconoCategoria" placeholder="💰" maxlength="2" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 8px;" />
+                        <div id="emojiPickerContainer" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;">
+                            <button type="button" class="emoji-btn" data-emoji="💰" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">💰</button>
+                            <button type="button" class="emoji-btn" data-emoji="💵" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">💵</button>
+                            <button type="button" class="emoji-btn" data-emoji="💳" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">💳</button>
+                            <button type="button" class="emoji-btn" data-emoji="💸" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">💸</button>
+                            <button type="button" class="emoji-btn" data-emoji="🛍️" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">🛍️</button>
+                            <button type="button" class="emoji-btn" data-emoji="🏪" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">🏪</button>
+                            <button type="button" class="emoji-btn" data-emoji="📊" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">📊</button>
+                            <button type="button" class="emoji-btn" data-emoji="📈" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">📈</button>
+                            <button type="button" class="emoji-btn" data-emoji="📉" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">📉</button>
+                            <button type="button" class="emoji-btn" data-emoji="🎁" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">🎁</button>
+                            <button type="button" class="emoji-btn" data-emoji="✅" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">✅</button>
+                            <button type="button" class="emoji-btn" data-emoji="❌" style="padding: 8px; font-size: 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; transition: all 0.2s;">❌</button>
+                        </div>
+                    </div>
+
+                    <!-- Color -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Color</label>
+                        <input type="color" id="inputColorCategoria" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; height: 40px;" />
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px;">Descripción</label>
+                        <textarea id="inputDescripcionCategoria" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 60px;"></textarea>
+                    </div>
+                </div>
+
+                <!-- BOTONES -->
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCategoriaCaja()">Cancelar</button>
+                    <button type="submit" id="btnSubmitCategoria" class="btn btn-primary">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>
