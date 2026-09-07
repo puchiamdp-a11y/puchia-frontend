@@ -6,11 +6,25 @@ let calendarioState = {
   mesActual: new Date(),
   pedidoSeleccionado: null,
   coloresEstado: {
-    'pendiente': '#f44336',
+    'pendiente': '#333333',
+    'señado': '#f57f17',
+    'preparandose': '#2e7d32',
+    'listo_retirar': '#1565c0',
+    'entregado': '#7f1f6e',
+    'anulado': '#c62828',
+    'rechazado': '#c62828',
     'en_proceso': '#ff9800',
     'listo_para_entregar': '#2196f3',
-    'entregado': '#4caf50',
     'cancelado': '#9e9e9e'
+  },
+  coloresFondo: {
+    'pendiente': '#ffffff',
+    'señado': '#fffde7',
+    'preparandose': '#e8f5e9',
+    'listo_retirar': '#e3f2fd',
+    'entregado': '#f3e5f5',
+    'anulado': '#ffebee',
+    'rechazado': '#ffebee'
   }
 };
 
@@ -66,12 +80,16 @@ function renderCalendario() {
 
     <!-- LEYENDA DE ESTADOS -->
     <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; background: #f9f9f9; padding: 12px; border-radius: 8px;">
-      ${Object.entries(calendarioState.coloresEstado).map(([estado, color]) => `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div style="width: 16px; height: 16px; background: ${color}; border-radius: 4px;"></div>
-          <span style="font-size: 13px; text-transform: capitalize;">${estado.replace('_', ' ')}</span>
-        </div>
-      `).join('')}
+      ${['pendiente', 'señado', 'preparandose', 'listo_retirar', 'entregado', 'anulado'].map(estado => {
+        const color = calendarioState.coloresEstado[estado];
+        const fondo = calendarioState.coloresFondo[estado];
+        return `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; background: ${fondo}; color: ${color}; border: 1px solid ${color}; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">●</div>
+            <span style="font-size: 13px; text-transform: capitalize;">${estado.replace('_', ' ')}</span>
+          </div>
+        `;
+      }).join('')}
     </div>
 
     <!-- CALENDARIO -->
@@ -185,12 +203,13 @@ function renderCalendarioSemanal() {
 }
 
 function renderPedidoEnCalendario(pedido) {
-  const color = calendarioState.coloresEstado[pedido.estado] || '#999';
+  const colorTexto = calendarioState.coloresEstado[pedido.estado] || '#333';
+  const colorFondo = calendarioState.coloresFondo[pedido.estado] || '#f9f9f9';
   const anotacion = pedido.anotacion ? pedido.anotacion.substring(0, 30) : '';
 
   return `
     <div onclick="abrirDetallesPedido(${pedido.id})"
-         style="padding: 4px 6px; background: ${color}; color: white; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; hover: opacity: 0.8;"
+         style="padding: 4px 6px; background: ${colorFondo}; color: ${colorTexto}; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid ${colorTexto}20;"
          title="${pedido.id_cliente} - ${anotacion}">
       <strong>${pedido.id_cliente}</strong> ${anotacion ? '- ' + anotacion + (pedido.anotacion.length > 30 ? '...' : '') : ''}
     </div>
@@ -259,8 +278,6 @@ function mostrarModalDetallesPedido(pedido) {
     z-index: 2000;
   `;
 
-  const estadoColor = calendarioState.coloresEstado[pedido.estado] || '#999';
-
   modal.innerHTML = `
     <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative;">
       <button onclick="cerrarModalDetallesPedido()"
@@ -270,8 +287,9 @@ function mostrarModalDetallesPedido(pedido) {
 
       <h2 style="margin-bottom: 20px; color: #7f1f6e; display: flex; align-items: center; gap: 12px;">
         Pedido #${pedido.id_unico}
-        <span style="display: inline-block; width: 16px; height: 16px; background: ${estadoColor}; border-radius: 4px;"></span>
-        <span style="font-size: 14px; text-transform: capitalize; color: ${estadoColor};">${pedido.estado.replace('_', ' ')}</span>
+        <span style="display: inline-block; padding: 4px 12px; background: ${calendarioState.coloresFondo[pedido.estado] || '#f9f9f9'}; color: ${calendarioState.coloresEstado[pedido.estado] || '#333'}; border: 1px solid ${calendarioState.coloresEstado[pedido.estado] || '#333'}; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: capitalize;">
+          ${pedido.estado.replace('_', ' ')}
+        </span>
       </h2>
 
       <!-- INFORMACIÓN GENERAL -->
