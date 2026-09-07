@@ -305,8 +305,8 @@ async function renderCajaInterface() {
       </div>
 
       <!-- Botones de exportación (se mostrarán cuando se genere un reporte) -->
-      <div id="botonesExportacion" style="display: none; margin-bottom: 24px; gap: 12px;">
-        <button class="btn btn-secondary" onclick="exportarReporteExcel()">📥 Descargar Excel</button>
+      <div id="botonesExportacion" style="display: none; margin-bottom: 24px; flex-wrap: wrap;">
+        <button class="btn btn-secondary" onclick="exportarReporteExcel()" style="margin-right: 12px;">📥 Descargar Excel</button>
         <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
       </div>
 
@@ -1150,14 +1150,19 @@ async function generarReporteCaja() {
     // Mostrar contenido
     document.getElementById('reporteContenido').style.display = 'block';
     document.getElementById('reporteVacio').style.display = 'none';
+
+    // Mostrar botones de exportación con estilos garantizados
     const botonesEl = document.getElementById('botonesExportacion');
     if (botonesEl) {
-      botonesEl.style.display = 'flex';
-      botonesEl.style.gap = '12px';
-      botonesEl.style.alignItems = 'center';
-      console.log('✅ Botones de exportación mostrados', botonesEl);
+      botonesEl.style.cssText = 'display: flex !important; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; width: 100%;';
+      console.log('✅ Botones de exportación mostrados:', {
+        display: botonesEl.style.display,
+        gap: botonesEl.style.gap,
+        alignItems: botonesEl.style.alignItems,
+        elemento: botonesEl
+      });
     } else {
-      console.warn('⚠️ No se encontró elemento botonesExportacion');
+      console.error('❌ No se encontró elemento botonesExportacion');
     }
 
     console.log('✅ Reporte generado');
