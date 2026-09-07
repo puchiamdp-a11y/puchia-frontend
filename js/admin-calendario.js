@@ -359,14 +359,3 @@ function cerrarModalDetallesPedido() {
   const modal = document.getElementById('modalDetallesPedido');
   if (modal) modal.remove();
 }
-
-// Integración con el sistema de páginas
-document.addEventListener('DOMContentLoaded', function() {
-  const pageLinks = document.querySelectorAll('.sidebar-nav a[data-page="calendario"]');
-  pageLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      initCalendario();
-    });
-  });
-});
