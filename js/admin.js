@@ -1636,7 +1636,22 @@ async function cargarProductosParaOrden() {
   }
 }
 
-function toggleNuevoCliente() {
+// Pide al backend el próximo código libre sin consumirlo, para sugerirlo
+async function obtenerCodigoClienteSugerido() {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/clientes/proximo-codigo`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    return data.success ? data.data.codigo_cliente : '';
+  } catch (error) {
+    console.error('Error obteniendo próximo código:', error);
+    return '';
+  }
+}
+
+async function toggleNuevoCliente() {
   const form = document.getElementById('nuevoClienteForm');
   const select = document.getElementById('selectCliente');
 
@@ -1644,6 +1659,14 @@ function toggleNuevoCliente() {
     form.style.display = 'block';
     select.value = '';
     select.disabled = true;
+
+    // Sugerir el correlativo que corresponde (el admin puede cambiarlo)
+    const campoCodigo = document.getElementById('nuevoClienteCodigo');
+    document.getElementById('nuevoClienteCodigoAlerta').style.display = 'none';
+    campoCodigo.value = '';
+    campoCodigo.placeholder = 'Calculando...';
+    campoCodigo.value = await obtenerCodigoClienteSugerido();
+    campoCodigo.placeholder = 'J0001';
   } else {
     form.style.display = 'none';
     select.disabled = false;
@@ -1659,11 +1682,15 @@ async function guardarNuevoCliente() {
   const ciudad = document.getElementById('nuevoClienteCiudad')?.value.trim() || null;
   const provincia = document.getElementById('nuevoClienteProvincia')?.value.trim() || null;
   const email = document.getElementById('nuevoClienteEmail')?.value.trim() || null;
+  const codigoCliente = document.getElementById('nuevoClienteCodigo')?.value.trim() || null;
 
   if (!nombre || !whatsapp) {
     puchiaAlert('Nombre y WhatsApp son obligatorios', 'error');
     return;
   }
+
+  const alertaCodigo = document.getElementById('nuevoClienteCodigoAlerta');
+  if (alertaCodigo) alertaCodigo.style.display = 'none';
 
   try {
     const token = localStorage.getItem('puchia_admin_token');
@@ -1681,19 +1708,27 @@ async function guardarNuevoCliente() {
         codigo_postal: codigoPostal,
         ciudad,
         provincia,
-        email
+        email,
+        codigo_cliente: codigoCliente
       })
     });
 
     const data = await response.json();
     if (!data.success) {
-      puchiaAlert('Error al guardar cliente: ' + (data.error || 'desconocido'), 'error');
+      // Los errores del código se muestran junto al campo
+      if (alertaCodigo && (response.status === 409 || /^El código/i.test(data.error || ''))) {
+        alertaCodigo.textContent = data.error;
+        alertaCodigo.style.display = 'block';
+      } else {
+        puchiaAlert('Error al guardar cliente: ' + (data.error || 'desconocido'), 'error');
+      }
       return;
     }
 
     puchiaAlert('Cliente guardado exitosamente', 'success');
 
     // Limpiar formulario
+    document.getElementById('nuevoClienteCodigo').value = '';
     document.getElementById('nuevoClienteNombre').value = '';
     document.getElementById('nuevoClienteWhatsapp').value = '';
     document.getElementById('nuevoClienteDni').value = '';

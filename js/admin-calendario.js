@@ -48,23 +48,6 @@ async function cargarPedidosCalendario() {
     calendarioState.pedidos = (data.data || []).filter(p => p.fecha_entrega);
 
     console.log(`✅ ${calendarioState.pedidos.length} pedidos con fecha de entrega cargados`);
-    if (calendarioState.pedidos.length > 0) {
-      const p = calendarioState.pedidos[0];
-      console.log('📋 PRIMER PEDIDO - TODOS LOS CAMPOS:');
-      console.log('  id:', p.id);
-      console.log('  id_unico:', p.id_unico);
-      console.log('  cliente_nombre:', p.cliente_nombre);
-      console.log('  cliente_email:', p.cliente_email);
-      console.log('  cliente_id:', p.cliente_id);
-      console.log('  codigo_cliente:', p.codigo_cliente);
-      console.log('  cliente_codigo:', p.cliente_codigo);
-      console.log('  cliente:', p.cliente);
-      console.log('  notas:', p.notas);
-      console.log('  anotacion:', p.anotacion);
-      console.log('  observaciones:', p.observaciones);
-      console.log('  estado:', p.estado);
-      console.log('  fecha_entrega:', p.fecha_entrega);
-    }
     renderCalendario();
   } catch (error) {
     console.error('❌ Error cargando pedidos:', error);
@@ -243,22 +226,6 @@ function extraerPalabrasEnMayuscula(texto) {
 function renderPedidoEnCalendario(pedido) {
   const colorTexto = calendarioState.coloresEstado[pedido.estado] || '#333';
   const colorFondo = calendarioState.coloresFondo[pedido.estado] || '#f9f9f9';
-
-  // Debug: mostrar estructura del pedido
-  if (pedido.id_unico === undefined) {
-    console.log('📍 Pedido ID:', pedido.id);
-    console.log('   - Clientes disponibles:', {
-      cliente_nombre: pedido.cliente_nombre,
-      cliente_codigo: pedido.cliente?.codigo_cliente,
-      codigo_cliente: pedido.codigo_cliente,
-      cliente_obj: pedido.cliente
-    });
-    console.log('   - Notas disponibles:', {
-      anotacion: pedido.anotacion,
-      notas: pedido.notas,
-      observaciones: pedido.observaciones
-    });
-  }
 
   // Obtener código del cliente
   const codigoCliente = pedido.cliente?.codigo_cliente || pedido.codigo_cliente || '';

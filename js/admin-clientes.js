@@ -246,14 +246,35 @@ function cerrarDetalle() {
 
 // ==================== NUEVO CLIENTE ====================
 
-function abrirNuevoCliente() {
+// Pide al backend el próximo código libre sin consumirlo, para sugerirlo
+async function obtenerCodigoSugerido() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/proximo-codigo`, {
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const data = await res.json();
+    return data.success ? data.data.codigo_cliente : '';
+  } catch (err) {
+    console.error('Error obteniendo próximo código:', err);
+    return '';
+  }
+}
+
+async function abrirNuevoCliente() {
   document.getElementById('modalTitulo').textContent = 'Nuevo Cliente';
-  document.getElementById('codigoEditGroup').style.display = 'none';
+  document.getElementById('codigoEditGroup').style.display = 'block';
   document.getElementById('activoGroup').style.display = 'none';
   document.getElementById('clienteId').value = '';
-  document.getElementById('fCodigoCliente').value = '';
+  document.getElementById('codigoAlerta').style.display = 'none';
   limpiarForm();
+
+  const campoCodigo = document.getElementById('fCodigoCliente');
+  campoCodigo.value = '';
+  campoCodigo.placeholder = 'Calculando...';
   document.getElementById('modalCliente').classList.add('show');
+
+  campoCodigo.value = await obtenerCodigoSugerido();
+  campoCodigo.placeholder = 'J0001';
 }
 
 // ==================== EDITAR CLIENTE ====================
@@ -310,12 +331,13 @@ async function guardarCliente(e) {
     notas: document.getElementById('fNotas').value.trim() || null
   };
 
+  const codigoCliente = document.getElementById('fCodigoCliente').value.trim();
+  if (codigoCliente) {
+    payload.codigo_cliente = codigoCliente;
+  }
+
   if (isEdit) {
     payload.activo = document.getElementById('fActivo').value === 'true';
-    const codigoCliente = document.getElementById('fCodigoCliente').value.trim();
-    if (codigoCliente) {
-      payload.codigo_cliente = codigoCliente;
-    }
   }
 
   const btnGuardar = document.getElementById('btnGuardar');
@@ -342,8 +364,8 @@ async function guardarCliente(e) {
       cerrarModal();
       listarClientes();
     } else {
-      // Si es error 409, mostrar alerta específica
-      if (res.status === 409) {
+      // Los errores del código se muestran junto al campo, no en un alert
+      if (res.status === 409 || /^El código/i.test(data.error || '')) {
         document.getElementById('codigoAlerta').textContent = data.error;
         document.getElementById('codigoAlerta').style.display = 'block';
       } else {
