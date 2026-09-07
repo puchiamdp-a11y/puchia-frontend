@@ -202,19 +202,54 @@ function renderCalendarioSemanal() {
   return html;
 }
 
+function extraerPalabrasEnMayuscula(texto) {
+  if (!texto) return '';
+
+  const palabras = texto.trim().split(/\s+/);
+  const palabrasMayuscula = [];
+
+  // Extraer palabras en mayúscula del inicio
+  for (let palabra of palabras) {
+    // Verificar si la palabra está completamente en mayúsculas (sin contar números y caracteres especiales)
+    const soloLetras = palabra.replace(/[^a-zA-Z]/g, '');
+    if (soloLetras && soloLetras === soloLetras.toUpperCase()) {
+      palabrasMayuscula.push(palabra);
+    } else if (palabrasMayuscula.length > 0) {
+      // Si ya encontramos palabras en mayúscula y ahora hay una que no lo es, parar
+      break;
+    }
+  }
+
+  return palabrasMayuscula.join(' ');
+}
+
 function renderPedidoEnCalendario(pedido) {
   const colorTexto = calendarioState.coloresEstado[pedido.estado] || '#333';
   const colorFondo = calendarioState.coloresFondo[pedido.estado] || '#f9f9f9';
-  const anotacion = pedido.anotacion ? pedido.anotacion.substring(0, 30) : '';
 
-  // Obtener el nombre/código del cliente (puede venir como cliente_nombre o cliente.nombre)
-  const nombreCliente = pedido.cliente_nombre || (pedido.cliente?.nombre) || pedido.id_cliente || 'Cliente';
+  // Obtener código del cliente
+  const codigoCliente = pedido.cliente?.codigo_cliente || pedido.codigo_cliente || '';
+
+  // Obtener nombre del cliente (primer nombre si es completo)
+  const nombreCompleto = pedido.cliente_nombre || (pedido.cliente?.nombre) || 'Cliente';
+  const nombrePrimero = nombreCompleto.split(' ')[0]; // Tomar solo el primer nombre
+
+  // Extraer palabras en mayúscula de las notas
+  const palabrasMayuscula = extraerPalabrasEnMayuscula(pedido.anotacion);
+
+  // Construir texto del evento
+  let textoEvento = '';
+  if (codigoCliente) textoEvento += codigoCliente + ' ';
+  textoEvento += nombrePrimero;
+  if (palabrasMayuscula) textoEvento += ' - ' + palabrasMayuscula;
+
+  const tooltip = `${codigoCliente} ${nombreCompleto}${pedido.anotacion ? ' - ' + pedido.anotacion.substring(0, 50) : ''}`;
 
   return `
     <div onclick="abrirDetallesPedido(${pedido.id})"
          style="padding: 4px 6px; background: ${colorFondo}; color: ${colorTexto}; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid ${colorTexto}20;"
-         title="${nombreCliente} - ${anotacion}">
-      <strong>${nombreCliente}</strong> ${anotacion ? '- ' + anotacion + (pedido.anotacion.length > 30 ? '...' : '') : ''}
+         title="${tooltip}">
+      ${textoEvento}
     </div>
   `;
 }
