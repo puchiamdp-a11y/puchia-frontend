@@ -1666,7 +1666,7 @@ async function guardarNuevoCliente() {
   }
 
   try {
-    const token = localStorage.getItem('admin_token');
+    const token = localStorage.getItem('puchia_admin_token');
     const response = await fetch(`${API_BASE_URL}/admin/clientes`, {
       method: 'POST',
       headers: {
