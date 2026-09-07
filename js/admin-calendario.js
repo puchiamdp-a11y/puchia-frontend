@@ -49,7 +49,21 @@ async function cargarPedidosCalendario() {
 
     console.log(`✅ ${calendarioState.pedidos.length} pedidos con fecha de entrega cargados`);
     if (calendarioState.pedidos.length > 0) {
-      console.log('📋 Primer pedido (estructura):', calendarioState.pedidos[0]);
+      const p = calendarioState.pedidos[0];
+      console.log('📋 PRIMER PEDIDO - TODOS LOS CAMPOS:');
+      console.log('  id:', p.id);
+      console.log('  id_unico:', p.id_unico);
+      console.log('  cliente_nombre:', p.cliente_nombre);
+      console.log('  cliente_email:', p.cliente_email);
+      console.log('  cliente_id:', p.cliente_id);
+      console.log('  codigo_cliente:', p.codigo_cliente);
+      console.log('  cliente_codigo:', p.cliente_codigo);
+      console.log('  cliente:', p.cliente);
+      console.log('  notas:', p.notas);
+      console.log('  anotacion:', p.anotacion);
+      console.log('  observaciones:', p.observaciones);
+      console.log('  estado:', p.estado);
+      console.log('  fecha_entrega:', p.fecha_entrega);
     }
     renderCalendario();
   } catch (error) {
