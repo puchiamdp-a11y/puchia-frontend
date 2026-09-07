@@ -356,19 +356,10 @@ function formatearMesAnio(fecha) {
 }
 
 function abrirDetallesPedido(pedidoId) {
-  // Buscar el pedido en calendarioState.pedidos
-  const pedido = calendarioState.pedidos.find(p => p.id === pedidoId);
-  if (!pedido) {
-    console.error('Pedido no encontrado:', pedidoId);
-    return;
-  }
-
-  // Llamar a la función existente de admin.js que abre detalles de pedido
-  if (typeof abrirModalDetallesPedido === 'function') {
-    abrirModalDetallesPedido(pedido);
-  } else if (typeof loadOrderDetail === 'function') {
-    loadOrderDetail(pedidoId);
+  // Llamar la función viewOrder que abre el modal de detalles
+  if (typeof viewOrder === 'function') {
+    viewOrder(pedidoId);
   } else {
-    console.error('No hay función para abrir detalles del pedido');
+    console.error('La función viewOrder no está disponible');
   }
 }
