@@ -2,6 +2,7 @@
 
 let calendarioState = {
   pedidos: [],
+  clientesIndex: {}, // Ver construirIndiceClientes()
   vista: 'monthly', // 'monthly' o 'weekly'
   mesActual: new Date(),
   pedidoSeleccionado: null,
@@ -33,19 +34,93 @@ function initCalendario() {
   cargarPedidosCalendario();
 }
 
+// ==================== CÓDIGO DE CLIENTE ====================
+// La orden no guarda vínculo con la tabla de clientes: copia nombre, email,
+// DNI y WhatsApp, pero nunca el código. Para mostrarlo en el calendario
+// armamos un índice de clientes y cruzamos cada pedido por esos datos.
+
+function normalizarTelefono(valor) {
+  if (!valor) return '';
+  const digitos = String(valor).replace(/\D/g, '');
+  // Los teléfonos se cargan con y sin prefijo de país (+54 9 ...), así que
+  // comparamos por los últimos 8 dígitos, que es la parte que no varía.
+  return digitos.length >= 8 ? digitos.slice(-8) : '';
+}
+
+function normalizarTexto(valor) {
+  if (!valor) return '';
+  return String(valor).trim().toLowerCase();
+}
+
+function construirIndiceClientes(clientes) {
+  const indice = {};
+
+  const agregar = (prefijo, valor, codigo) => {
+    if (!valor || !codigo) return;
+    const clave = `${prefijo}:${valor}`;
+    // Una clave que apunta a dos clientes distintos no sirve para identificar:
+    // la anulamos en vez de quedarnos con cualquiera de los dos.
+    if (clave in indice && indice[clave] !== codigo) {
+      indice[clave] = null;
+      return;
+    }
+    indice[clave] = codigo;
+  };
+
+  clientes.forEach(c => {
+    agregar('tel', normalizarTelefono(c.whatsapp), c.codigo_cliente);
+    agregar('tel', normalizarTelefono(c.telefono), c.codigo_cliente);
+    agregar('dni', normalizarTexto(c.dni), c.codigo_cliente);
+    agregar('email', normalizarTexto(c.email), c.codigo_cliente);
+    agregar('nombre', normalizarTexto(c.nombre), c.codigo_cliente);
+  });
+
+  return indice;
+}
+
+// Del dato más confiable al menos confiable
+function buscarCodigoCliente(pedido) {
+  const candidatos = [
+    ['tel', normalizarTelefono(pedido.cliente_whatsapp)],
+    ['dni', normalizarTexto(pedido.cliente_dni)],
+    ['email', normalizarTexto(pedido.cliente_email)],
+    ['nombre', normalizarTexto(pedido.cliente_nombre)]
+  ];
+
+  for (const [prefijo, valor] of candidatos) {
+    if (!valor) continue;
+    const codigo = calendarioState.clientesIndex[`${prefijo}:${valor}`];
+    if (codigo) return codigo;
+  }
+
+  return '';
+}
+
 async function cargarPedidosCalendario() {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/ordenes?limite=5000&pagina=1`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
-      }
-    });
+    const headers = {
+      'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
+    };
 
-    if (!response.ok) throw new Error('Error al cargar pedidos');
+    const [resOrdenes, resClientes] = await Promise.all([
+      fetch(`${API_BASE_URL}/admin/ordenes?limite=5000&pagina=1`, { headers }),
+      fetch(`${API_BASE_URL}/admin/clientes?limite=5000`, { headers })
+    ]);
 
-    const data = await response.json();
+    if (!resOrdenes.ok) throw new Error('Error al cargar pedidos');
+
+    const data = await resOrdenes.json();
     // Filtrar solo pedidos con fecha de entrega
     calendarioState.pedidos = (data.data || []).filter(p => p.fecha_entrega);
+
+    // Si falla, el calendario igual se muestra pero sin el código de cliente
+    if (resClientes.ok) {
+      const dataClientes = await resClientes.json();
+      calendarioState.clientesIndex = construirIndiceClientes(dataClientes.data || []);
+    } else {
+      console.warn('⚠️ No se pudieron cargar los clientes: los pedidos se muestran sin código');
+      calendarioState.clientesIndex = {};
+    }
 
     console.log(`✅ ${calendarioState.pedidos.length} pedidos con fecha de entrega cargados`);
     renderCalendario();
@@ -227,8 +302,8 @@ function renderPedidoEnCalendario(pedido) {
   const colorTexto = calendarioState.coloresEstado[pedido.estado] || '#333';
   const colorFondo = calendarioState.coloresFondo[pedido.estado] || '#f9f9f9';
 
-  // Obtener código del cliente
-  const codigoCliente = pedido.cliente?.codigo_cliente || pedido.codigo_cliente || '';
+  // El código no viene en la orden: se resuelve cruzando con los clientes
+  const codigoCliente = pedido.cliente?.codigo_cliente || pedido.codigo_cliente || buscarCodigoCliente(pedido);
 
   // Obtener nombre del cliente (primer nombre si es completo)
   const nombreCompleto = pedido.cliente_nombre || (pedido.cliente?.nombre) || 'Cliente';
@@ -238,13 +313,14 @@ function renderPedidoEnCalendario(pedido) {
   const notasField = pedido.anotacion || pedido.notas || pedido.observaciones || '';
   const palabrasMayuscula = extraerPalabrasEnMayuscula(notasField);
 
-  // Construir texto del evento
+  // Formato: CÓDIGO NOMBRE - PALABRAS EN MAYÚSCULA
   let textoEvento = '';
   if (codigoCliente) textoEvento += codigoCliente + ' ';
   textoEvento += nombrePrimero;
   if (palabrasMayuscula) textoEvento += ' - ' + palabrasMayuscula;
 
-  const tooltip = `${codigoCliente} ${nombreCompleto}${notasField ? ' - ' + notasField.substring(0, 50) : ''}`;
+  const tooltip = [codigoCliente, nombreCompleto].filter(Boolean).join(' ')
+    + (notasField ? ' - ' + notasField.substring(0, 50) : '');
 
   return `
     <div onclick="abrirDetallesPedido(${pedido.id})"
