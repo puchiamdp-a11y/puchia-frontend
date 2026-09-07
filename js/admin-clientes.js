@@ -202,11 +202,48 @@ async function verCliente(id) {
     const c = dataCliente.data;
 
     const dataOrdenes = await resOrdenes.json();
+    const ordenesData = (dataOrdenes.success && dataOrdenes.data?.ordenes) ? dataOrdenes.data.ordenes : [];
     const totalOrdenes = (dataOrdenes.success && dataOrdenes.data?.total) ? dataOrdenes.data.total : 0;
 
     const pedidosHistoricos = c.pedidos_historicos || 0;
     const pedidosNuevos = totalOrdenes;
     const totalPedidos = pedidosHistoricos + pedidosNuevos;
+
+    // Generar tabla de historial de pedidos
+    const historialHTML = ordenesData.length > 0 ? `
+      <div style="margin-top: 24px; border-top: 2px solid #eee; padding-top: 16px;">
+        <h3 style="color: #333; margin-bottom: 12px; font-size: 14px;">📋 Historial de Pedidos</h3>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <thead>
+              <tr style="background: #f5f5f5; border-bottom: 2px solid #ddd;">
+                <th style="padding: 8px; text-align: left; font-weight: 600; color: #333;">ID Orden</th>
+                <th style="padding: 8px; text-align: left; font-weight: 600; color: #333;">Fecha Compra</th>
+                <th style="padding: 8px; text-align: left; font-weight: 600; color: #333;">Productos</th>
+                <th style="padding: 8px; text-align: right; font-weight: 600; color: #333;">Monto</th>
+                <th style="padding: 8px; text-align: left; font-weight: 600; color: #333;">Entrega</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ordenesData.map(orden => `
+                <tr style="border-bottom: 1px solid #eee; hover: {background: #f9f9f9;}">
+                  <td style="padding: 8px; font-weight: 600; color: #7f1f6e;">${orden.id_unico || orden.id}</td>
+                  <td style="padding: 8px;">${new Date(orden.created_at).toLocaleDateString('es-AR')}</td>
+                  <td style="padding: 8px;">
+                    ${orden.items && orden.items.length > 0
+                      ? orden.items.map(item => \`\${item.cantidad}x \${item.producto?.nombre || 'Producto'}\`).join(', ')
+                      : '-'
+                    }
+                  </td>
+                  <td style="padding: 8px; text-align: right; font-weight: 600;">$${parseFloat(orden.total || 0).toFixed(2)}</td>
+                  <td style="padding: 8px;">${orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : '-'}</td>
+                </tr>
+              \`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ` : '<div style="margin-top: 16px; padding: 12px; background: #f9f9f9; border-radius: 8px; color: #666; font-size: 13px;">Sin pedidos registrados</div>';
 
     document.getElementById('detalleContenido').innerHTML = `
       <h2 style="color:#7f1f6e;">Detalle de Cliente</h2>
@@ -222,12 +259,14 @@ async function verCliente(id) {
         <div class="detail-row"><span class="detail-label">Cód. Postal:</span> ${c.codigo_postal || '-'}</div>
         <div class="detail-row"><span class="detail-label">Estado:</span> <span class="badge badge-${c.activo ? 'activo' : 'inactivo'}">${c.activo ? 'Activo' : 'Inactivo'}</span></div>
         <div class="detail-box-responsive">
-          <div class="detail-row"><span class="detail-label">Pedidos históricos:</span> <strong>${pedidosHistoricos}</strong></div>
-          <div class="detail-row"><span class="detail-label">Pedidos nuevos (web):</span> <strong>${pedidosNuevos}</strong></div>
-          <div class="detail-row detail-row-highlight-responsive"><span class="detail-label">Todos los pedidos:</span> <strong class="detail-value-highlight-responsive">${totalPedidos}</strong></div>
+          <div class="detail-row"><span class="detail-label">Total de Pedidos:</span> <strong>${totalPedidos}</strong></div>
+          <div class="detail-row"><span class="detail-label">Históricos:</span> <strong>${pedidosHistoricos}</strong></div>
+          <div class="detail-row"><span class="detail-label">Web:</span> <strong>${pedidosNuevos}</strong></div>
         </div>
-        <div class="detail-row"><span class="detail-label">Notas:</span> ${c.notas || '-'}</div>
+        <div class="detail-row"><span class="detail-label">📝 Notas:</span> <div style="margin-top: 6px; padding: 8px; background: #f9f9f9; border-radius: 4px; border-left: 3px solid #7f1f6e; white-space: pre-wrap; word-break: break-word;">${c.notas ? c.notas.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '<span style="color: #999;">Sin notas</span>'}</div></div>
         <div class="detail-row"><span class="detail-label">Creado:</span> ${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</div>
+
+        ${historialHTML}
       </div>
       <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
         <button class="btn btn-warning" onclick="cerrarDetalle();editarCliente(${c.id})">Editar</button>
