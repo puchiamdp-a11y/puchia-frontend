@@ -35,7 +35,7 @@ function initCalendario() {
 
 async function cargarPedidosCalendario() {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/ordenes`, {
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes?limite=5000&pagina=1`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
       }
@@ -48,6 +48,9 @@ async function cargarPedidosCalendario() {
     calendarioState.pedidos = (data.data || []).filter(p => p.fecha_entrega);
 
     console.log(`✅ ${calendarioState.pedidos.length} pedidos con fecha de entrega cargados`);
+    if (calendarioState.pedidos.length > 0) {
+      console.log('📋 Primer pedido (estructura):', calendarioState.pedidos[0]);
+    }
     renderCalendario();
   } catch (error) {
     console.error('❌ Error cargando pedidos:', error);
