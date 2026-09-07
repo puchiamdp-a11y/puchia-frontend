@@ -305,7 +305,7 @@ async function renderCajaInterface() {
       </div>
 
       <!-- Botones de exportación (se mostrarán cuando se genere un reporte) -->
-      <div id="botonesExportacion" style="display: none; margin-bottom: 24px;">
+      <div id="botonesExportacion" style="display: none; margin-bottom: 24px; gap: 12px;">
         <button class="btn btn-secondary" onclick="exportarReporteExcel()">📥 Descargar Excel</button>
         <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
       </div>
@@ -1151,8 +1151,14 @@ async function generarReporteCaja() {
     document.getElementById('reporteContenido').style.display = 'block';
     document.getElementById('reporteVacio').style.display = 'none';
     const botonesEl = document.getElementById('botonesExportacion');
-    botonesEl.style.display = 'flex';
-    botonesEl.style.gap = '12px';
+    if (botonesEl) {
+      botonesEl.style.display = 'flex';
+      botonesEl.style.gap = '12px';
+      botonesEl.style.alignItems = 'center';
+      console.log('✅ Botones de exportación mostrados', botonesEl);
+    } else {
+      console.warn('⚠️ No se encontró elemento botonesExportacion');
+    }
 
     console.log('✅ Reporte generado');
   } catch (error) {
@@ -1165,7 +1171,7 @@ function generarGraficos(reporte) {
   // Gráfico 1: Ingresos vs Egresos (Dona)
   const ctx1 = document.getElementById('chartIngresosEgresos')?.getContext('2d');
   if (ctx1) {
-    if (window.chartIngresosEgresos) {
+    if (window.chartIngresosEgresos && typeof window.chartIngresosEgresos.destroy === 'function') {
       window.chartIngresosEgresos.destroy();
     }
 
@@ -1207,7 +1213,7 @@ function generarGraficos(reporte) {
 
   const ctx2 = document.getElementById('chartDistribucion')?.getContext('2d');
   if (ctx2) {
-    if (window.chartDistribucion) {
+    if (window.chartDistribucion && typeof window.chartDistribucion.destroy === 'function') {
       window.chartDistribucion.destroy();
     }
 
