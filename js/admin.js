@@ -238,6 +238,8 @@ function setupEventListeners() {
           loadProducts();
         } else if (page === 'ordenes') {
           loadOrderStatuses().then(() => loadAllOrders());
+        } else if (page === 'calendario') {
+          initCalendario();
         } else if (page === 'caja') {
           loadCajaTransacciones();
         } else if (page === 'clientes') {
