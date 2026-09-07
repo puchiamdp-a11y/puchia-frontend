@@ -305,7 +305,7 @@ async function renderCajaInterface() {
       </div>
 
       <!-- Botones de exportación (se mostrarán cuando se genere un reporte) -->
-      <div id="botonesExportacion" style="display: none; margin-bottom: 24px; display: flex; gap: 12px;">
+      <div id="botonesExportacion" style="display: none; margin-bottom: 24px;">
         <button class="btn btn-secondary" onclick="exportarReporteExcel()">📥 Descargar Excel</button>
         <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
       </div>
@@ -1150,7 +1150,9 @@ async function generarReporteCaja() {
     // Mostrar contenido
     document.getElementById('reporteContenido').style.display = 'block';
     document.getElementById('reporteVacio').style.display = 'none';
-    document.getElementById('botonesExportacion').style.display = 'flex';
+    const botonesEl = document.getElementById('botonesExportacion');
+    botonesEl.style.display = 'flex';
+    botonesEl.style.gap = '12px';
 
     console.log('✅ Reporte generado');
   } catch (error) {
