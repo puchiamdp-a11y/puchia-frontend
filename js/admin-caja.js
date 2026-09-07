@@ -77,7 +77,7 @@ async function loadCajaData() {
     await loadCajaTransacciones();
 
     // Renderizar interfaz
-    renderCajaInterface();
+    await renderCajaInterface();
   } catch (error) {
     console.error('❌ Error cargando datos de Caja:', error);
   }
@@ -134,8 +134,38 @@ async function loadCajaTransacciones(page = 1) {
   }
 }
 
+// Cargar TODAS las transacciones del mes actual para el resumen
+async function loadAllTransaccionesForResumen() {
+  try {
+    const ahora = new Date();
+    const primerDia = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
+    const ultimoDia = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0).toISOString().split('T')[0];
+
+    const params = new URLSearchParams({
+      pagina: 1,
+      limite: 10000, // Cargar muchas a la vez
+      fecha_desde: primerDia,
+      fecha_hasta: ultimoDia
+    });
+
+    const response = await fetch(`${API_BASE_URL}/admin/caja/transacciones?${params}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Error al cargar transacciones para resumen');
+
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('❌ Error cargando transacciones para resumen:', error);
+    return [];
+  }
+}
+
 // ==================== RENDERIZAR INTERFAZ ====================
-function renderCajaInterface() {
+async function renderCajaInterface() {
   const cajaPage = document.getElementById('caja-page');
   if (!cajaPage) return;
 
@@ -326,7 +356,7 @@ function renderCajaInterface() {
 
   renderCajaTransacciones();
   renderCajaCategorias();
-  updateCajaResumen();
+  await updateCajaResumen();
 
   // Establecer mes actual por defecto
   const ahora = new Date();
@@ -562,23 +592,16 @@ function formatearMonto(monto) {
 }
 
 // ==================== ACTUALIZAR RESUMEN ====================
-function updateCajaResumen() {
-  // Obtener mes y año actual
-  const ahora = new Date();
-  const mesActual = ahora.getMonth();
-  const anoActual = ahora.getFullYear();
+async function updateCajaResumen() {
+  // Cargar todas las transacciones del mes para cálculo correcto
+  const transaccionesTodas = await loadAllTransaccionesForResumen();
 
   let totalIngresos = 0;
   let totalEgresos = 0;
   let totalEfectivo = 0;
   let totalMercadoPago = 0;
 
-  cajaState.transacciones.forEach(t => {
-    const fecha = new Date(t.fecha_transaccion);
-
-    // Solo procesar transacciones del mes y año actual
-    if (fecha.getMonth() !== mesActual || fecha.getFullYear() !== anoActual) return;
-
+  transaccionesTodas.forEach(t => {
     const monto = parseFloat(t.monto);
 
     if (t.tipo === 'ingreso') {
@@ -833,14 +856,20 @@ async function eliminarTransaccion(id) {
 
     if (!response.ok) {
       const error = await response.json();
-      alert(`Error: ${error.error || 'No se pudo eliminar la transacción'}`);
+      let mensaje = error.error || 'No se pudo eliminar la transacción';
+
+      if (response.status === 403) {
+        mensaje = 'No se pueden eliminar transacciones vinculadas a órdenes.\nEsta transacción está registrada como pago de una orden.';
+      }
+
+      alert(`Error: ${mensaje}`);
       return;
     }
 
     console.log('✅ Transacción eliminada');
     await loadCajaTransacciones();
     renderCajaTransacciones();
-    updateCajaResumen();
+    await updateCajaResumen();
   } catch (error) {
     console.error('❌ Error eliminando transacción:', error);
     alert('Error al eliminar la transacción');
@@ -941,8 +970,10 @@ function abrirModalNuevaCategoria() {
 
   // Valores por defecto DESPUÉS del reset
   setTimeout(() => {
+    inicializarSelectorEmojis();
     document.getElementById('inputIconoCategoria').value = '💰';
     document.getElementById('inputColorCategoria').value = '#7f1f6e';
+    actualizarPreviewColor();
     highlightSelectedEmoji('💰');
   }, 10);
 
@@ -988,6 +1019,8 @@ async function editarCategoria(id) {
   document.getElementById('inputColorCategoria').value = categoria.color;
 
   setTimeout(() => {
+    inicializarSelectorEmojis();
+    actualizarPreviewColor();
     highlightSelectedEmoji(categoria.icono);
   }, 10);
 
