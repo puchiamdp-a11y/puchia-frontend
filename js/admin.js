@@ -2415,6 +2415,7 @@ async function abrirEditarOrden(id) {
     const editFechaEntregaInput = document.getElementById('editFechaEntrega');
     const editTotalDiv = document.getElementById('editTotal');
     const editOrdenCodeP = document.getElementById('editOrdenCode');
+    const editNotasInput = document.getElementById('editNotas');
 
     if (!editSenaInput || !editFechaEntregaInput || !editTotalDiv || !editOrdenCodeP) {
       console.error('❌ Faltan elementos del modal:', {
@@ -2432,6 +2433,9 @@ async function abrirEditarOrden(id) {
     editFechaEntregaInput.value = orden.fecha_entrega ? orden.fecha_entrega.split('T')[0] : '';
     editTotalDiv.textContent = `$${parseFloat(orden.total).toFixed(2)}`;
     editOrdenCodeP.textContent = orden.id_unico;
+    if (editNotasInput) {
+      editNotasInput.value = orden.anotacion || '';
+    }
 
     console.log(`📍 [abrirEditarOrden] Datos del modal actualizados`);
 
@@ -2790,6 +2794,7 @@ async function guardarEditarOrden() {
 
   const sena = parseFloat(document.getElementById('editSena').value);
   const fechaEntrega = document.getElementById('editFechaEntrega').value;
+  const notas = document.getElementById('editNotas')?.value || '';
   const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
 
   if (!sena || sena < 0 || sena > total) {
@@ -2842,7 +2847,8 @@ async function guardarEditarOrden() {
       body: JSON.stringify({
         sena,
         resto_a_pagar: total - sena,
-        fecha_entrega: fechaEntrega || null
+        fecha_entrega: fechaEntrega || null,
+        anotacion: notas
       })
     });
 
