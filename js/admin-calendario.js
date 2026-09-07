@@ -230,6 +230,22 @@ function renderPedidoEnCalendario(pedido) {
   const colorTexto = calendarioState.coloresEstado[pedido.estado] || '#333';
   const colorFondo = calendarioState.coloresFondo[pedido.estado] || '#f9f9f9';
 
+  // Debug: mostrar estructura del pedido
+  if (pedido.id_unico === undefined) {
+    console.log('📍 Pedido ID:', pedido.id);
+    console.log('   - Clientes disponibles:', {
+      cliente_nombre: pedido.cliente_nombre,
+      cliente_codigo: pedido.cliente?.codigo_cliente,
+      codigo_cliente: pedido.codigo_cliente,
+      cliente_obj: pedido.cliente
+    });
+    console.log('   - Notas disponibles:', {
+      anotacion: pedido.anotacion,
+      notas: pedido.notas,
+      observaciones: pedido.observaciones
+    });
+  }
+
   // Obtener código del cliente
   const codigoCliente = pedido.cliente?.codigo_cliente || pedido.codigo_cliente || '';
 
@@ -237,8 +253,9 @@ function renderPedidoEnCalendario(pedido) {
   const nombreCompleto = pedido.cliente_nombre || (pedido.cliente?.nombre) || 'Cliente';
   const nombrePrimero = nombreCompleto.split(' ')[0]; // Tomar solo el primer nombre
 
-  // Extraer palabras en mayúscula de las notas
-  const palabrasMayuscula = extraerPalabrasEnMayuscula(pedido.anotacion);
+  // Extraer palabras en mayúscula de las notas (intentar varios campos)
+  const notasField = pedido.anotacion || pedido.notas || pedido.observaciones || '';
+  const palabrasMayuscula = extraerPalabrasEnMayuscula(notasField);
 
   // Construir texto del evento
   let textoEvento = '';
@@ -246,7 +263,7 @@ function renderPedidoEnCalendario(pedido) {
   textoEvento += nombrePrimero;
   if (palabrasMayuscula) textoEvento += ' - ' + palabrasMayuscula;
 
-  const tooltip = `${codigoCliente} ${nombreCompleto}${pedido.anotacion ? ' - ' + pedido.anotacion.substring(0, 50) : ''}`;
+  const tooltip = `${codigoCliente} ${nombreCompleto}${notasField ? ' - ' + notasField.substring(0, 50) : ''}`;
 
   return `
     <div onclick="abrirDetallesPedido(${pedido.id})"
