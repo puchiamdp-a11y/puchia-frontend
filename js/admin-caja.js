@@ -67,6 +67,11 @@ function highlightSelectedEmoji(emoji) {
   });
 }
 
+// Las categorías desactivadas (o "eliminadas" con movimientos) no se ofrecen para elegir
+function cajaCategoriasActivas(incluirId = null) {
+  return cajaState.categorias.filter(c => c.activa !== false || c.id === incluirId);
+}
+
 // ==================== CARGAR DATOS ====================
 async function loadCajaData() {
   try {
@@ -102,12 +107,16 @@ async function loadCajaCategorias() {
   }
 }
 
+// Tope de movimientos traídos por consulta. La tabla pagina/ordena/busca en pantalla sobre
+// todo lo traído; si el filtro supera el tope se avisa para que el usuario acote las fechas.
+const CAJA_MAX_CARGA = 5000;
+
 async function loadCajaTransacciones(page = 1) {
   try {
     // Construir query parameters
     const params = new URLSearchParams({
-      pagina: page,
-      limite: cajaState.itemsPerPage
+      pagina: 1,
+      limite: CAJA_MAX_CARGA
     });
 
     if (cajaState.filters.tipo) params.append('tipo', cajaState.filters.tipo);
@@ -125,6 +134,7 @@ async function loadCajaTransacciones(page = 1) {
 
     const data = await response.json();
     cajaState.transacciones = data.data || [];
+    cajaState.totalEnServidor = data.pagination?.total ?? cajaState.transacciones.length;
     cajaState.currentPage = page;
 
     console.log(`✅ ${cajaState.transacciones.length} transacciones cargadas (página ${page})`);
@@ -172,7 +182,8 @@ async function renderCajaInterface() {
   cajaPage.innerHTML = `
     <h1 class="page-title">💰 Caja</h1>
 
-    <!-- RESUMEN DEL DÍA -->
+    <!-- RESUMEN DEL MES ACTUAL -->
+    <div id="cajaResumenPeriodo" style="font-size: 13px; color: #666; margin-bottom: 8px;"></div>
     <div class="stats-grid" style="margin-bottom: 32px;">
       <div class="stat-card">
         <div class="stat-label">Ingresos</div>
@@ -221,9 +232,9 @@ async function renderCajaInterface() {
             <option value="ingreso">Ingresos</option>
             <option value="egreso">Egresos</option>
           </select>
-          <select id="filtroCategoria" onchange="aplicarFiltrosCaja()">
+          <select id="filtroCategoriaCaja" onchange="aplicarFiltrosCaja()">
             <option value="">Todas las categorías</option>
-            ${cajaState.categorias.map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('')}
+            ${cajaCategoriasActivas().map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('')}
           </select>
           <input type="date" id="filtroFechaDesde" onchange="aplicarFiltrosCaja()" />
           <input type="date" id="filtroFechaHasta" onchange="aplicarFiltrosCaja()" />
@@ -232,6 +243,8 @@ async function renderCajaInterface() {
           <button class="btn btn-small btn-secondary" onclick="limpiarFiltrosCaja()">🔄 Limpiar filtros</button>
         </div>
       </div>
+
+      <div id="cajaAvisoLimite" style="display: none; background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px;"></div>
 
       <!-- RESUMEN DE FILTRADO -->
       <div id="resumenFiltrado" style="background: #f0f0f0; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: none;">
@@ -406,11 +419,11 @@ function renderCajaTransacciones() {
   const fin = inicio + cajaState.itemsPerPage;
   const transaccionesPagina = transaccionesOrdenadas.slice(inicio, fin);
 
-  // Calcular resumen de transacciones mostradas
+  // Resumen de TODOS los movimientos del filtro (no solo los de la página visible)
   let totalIngresos = 0;
   let totalEgresos = 0;
 
-  transaccionesPagina.forEach(t => {
+  transaccionesOrdenadas.forEach(t => {
     if (t.tipo === 'ingreso') {
       totalIngresos += parseFloat(t.monto);
     } else {
@@ -431,6 +444,15 @@ function renderCajaTransacciones() {
       document.getElementById('resumenNeto').textContent = formatearMonto(neto);
       document.getElementById('resumenNeto').style.color = neto >= 0 ? '#4caf50' : '#f44336';
       document.getElementById('resumenCantidad').textContent = cajaState.totalTransacciones;
+    }
+  }
+
+  const avisoEl = document.getElementById('cajaAvisoLimite');
+  if (avisoEl) {
+    const excedido = (cajaState.totalEnServidor || 0) > cajaState.transacciones.length;
+    avisoEl.style.display = excedido ? 'block' : 'none';
+    if (excedido) {
+      avisoEl.textContent = `⚠️ Hay ${cajaState.totalEnServidor} movimientos y se muestran los ${cajaState.transacciones.length} más recientes. Acotá las fechas para ver el resto.`;
     }
   }
 
@@ -559,22 +581,35 @@ function actualizarPaginacion() {
 }
 
 // ==================== RENDERIZAR CATEGORÍAS ====================
+function actualizarSelectorFiltroCategoriaCaja() {
+  const select = document.getElementById('filtroCategoriaCaja');
+  if (!select) return;
+  const seleccionada = select.value;
+  select.innerHTML = '<option value="">Todas las categorías</option>' +
+    cajaCategoriasActivas(parseInt(seleccionada) || null).map(cat => `<option value="${cat.id}">${cajaEscape(cat.nombre)}</option>`).join('');
+  select.value = seleccionada;
+}
+
 function renderCajaCategorias() {
+  actualizarSelectorFiltroCategoriaCaja();
   const grid = document.getElementById('cajaCategoriasGrid');
   if (!grid) return;
 
   grid.innerHTML = cajaState.categorias.map(cat => `
-    <div style="background: white; border: 1px solid #eee; border-left: 4px solid ${cat.color || '#7f1f6e'}; border-radius: 8px; padding: 16px; transition: all 0.2s;">
+    <div style="background: ${cat.activa === false ? '#f7f7f7' : 'white'}; ${cat.activa === false ? 'opacity: 0.7;' : ''} border: 1px solid #eee; border-left: 4px solid ${cat.color || '#7f1f6e'}; border-radius: 8px; padding: 16px; transition: all 0.2s;">
       <div style="font-size: 24px; margin-bottom: 8px;">${cat.icono}</div>
       <div style="font-weight: 600; margin-bottom: 4px;">${cat.nombre}</div>
       <div style="font-size: 12px; color: #999; margin-bottom: 12px;">
         <span style="padding: 2px 8px; background: ${cat.color || '#7f1f6e'}20; border-radius: 4px; color: ${cat.color || '#7f1f6e'};">
           ${cat.tipo.toUpperCase()}
         </span>
+        ${cat.activa === false ? '<span style="margin-left: 6px; padding: 2px 8px; background: #e0e0e0; border-radius: 4px; color: #555;">INACTIVA</span>' : ''}
       </div>
       <div style="display: flex; gap: 8px;">
-        <button class="btn btn-small btn-secondary" onclick="editarCategoria(${cat.id})">✏️</button>
-        <button class="btn btn-small btn-danger" onclick="eliminarCategoria(${cat.id})">🗑️</button>
+        <button class="btn btn-small btn-secondary" onclick="editarCategoriaCaja(${cat.id})">✏️</button>
+        ${cat.activa === false
+          ? `<button class="btn btn-small btn-secondary" onclick="reactivarCategoriaCaja(${cat.id})" title="Volver a usar esta categoría">♻️ Reactivar</button>`
+          : `<button class="btn btn-small btn-danger" onclick="eliminarCategoriaCaja(${cat.id})">🗑️</button>`}
       </div>
     </div>
   `).join('');
@@ -597,6 +632,12 @@ function formatearMonto(monto) {
 async function updateCajaResumen() {
   // Cargar todas las transacciones del mes para cálculo correcto
   const transaccionesTodas = await loadAllTransaccionesForResumen();
+
+  const periodoEl = document.getElementById('cajaResumenPeriodo');
+  if (periodoEl) {
+    const mes = new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    periodoEl.textContent = `📅 Las tarjetas muestran solo el mes actual (${mes}). Para otro período usá los filtros: el resumen gris de abajo suma todo lo filtrado.`;
+  }
 
   let totalIngresos = 0;
   let totalEgresos = 0;
@@ -659,7 +700,7 @@ function switchCajaTab(tabName) {
 // ==================== FUNCIONES DE FILTRADO ====================
 function aplicarFiltrosCaja() {
   const tipo = document.getElementById('filtroTipo')?.value || null;
-  const categoria = document.getElementById('filtroCategoria')?.value || null;
+  const categoria = document.getElementById('filtroCategoriaCaja')?.value || null;
   const fechaDesde = document.getElementById('filtroFechaDesde')?.value || null;
   const fechaHasta = document.getElementById('filtroFechaHasta')?.value || null;
   const busqueda = document.getElementById('filtroBusqueda')?.value || null;
@@ -683,7 +724,7 @@ function aplicarFiltrosCaja() {
 function limpiarFiltrosCaja() {
   document.getElementById('filtroBusqueda').value = '';
   document.getElementById('filtroTipo').value = '';
-  document.getElementById('filtroCategoria').value = '';
+  document.getElementById('filtroCategoriaCaja').value = '';
   document.getElementById('filtroFechaDesde').value = '';
   document.getElementById('filtroFechaHasta').value = '';
 
@@ -736,7 +777,7 @@ function abrirModalNuevaTransaccion() {
   // Llenar selector de categorías
   const selectCategoria = document.getElementById('inputCategoriaTransaccion');
   selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
-    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}" data-color="${cat.color}">${cat.icono} ■ ${cat.nombre}</option>`).join('');
+    cajaCategoriasActivas().map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}" data-color="${cat.color}">${cat.icono} ■ ${cat.nombre}</option>`).join('');
 
   // Setear método de pago por defecto
   document.getElementById('inputMetodoPagoTransaccion').value = 'efectivo';
@@ -828,7 +869,7 @@ async function editarTransaccion(id) {
   // Llenar selector de categorías
   const selectCategoria = document.getElementById('inputCategoriaTransaccion');
   selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>' +
-    cajaState.categorias.map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}" data-color="${cat.color}">${cat.icono} ■ ${cat.nombre}</option>`).join('');
+    cajaCategoriasActivas(transaccion.categoria_id).map(cat => `<option value="${cat.id}" data-tipo="${cat.tipo}" data-color="${cat.color}">${cat.icono} ■ ${cat.nombre}</option>`).join('');
 
   // Esperar a que se carguen las categorías
   setTimeout(() => {
@@ -1018,7 +1059,7 @@ function cerrarModalCategoriaCaja() {
   cajaState.modalCategoriaEditando = null;
 }
 
-async function editarCategoria(id) {
+async function editarCategoriaCaja(id) {
   const categoria = cajaState.categorias.find(c => c.id === id);
   if (!categoria) return;
 
@@ -1048,32 +1089,53 @@ async function editarCategoria(id) {
   modal.classList.add('show');
 }
 
-async function eliminarCategoria(id) {
-  if (!confirm('¿Eliminar esta categoría? Las transacciones asociadas no se eliminarán.')) return;
+async function eliminarCategoriaCaja(id) {
+  const categoria = cajaState.categorias.find(c => c.id === id);
+  if (!confirm(`¿Eliminar la categoría "${categoria?.nombre ?? ''}"?\n\nSi ya tiene movimientos se desactiva (no se pierde el historial); si nunca se usó, se borra.`)) return;
 
   try {
-    // Por ahora usar actualizar para desactivar (soft delete)
+    const response = await fetch(`${API_BASE_URL}/admin/caja/categorias/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}` }
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      alert(`Error: ${data.error || 'No se pudo eliminar la categoría'}`);
+      return;
+    }
+
+    await loadCajaCategorias();
+    renderCajaCategorias();
+    if (data.data?.desactivada) alert(data.message);
+  } catch (error) {
+    console.error('❌ Error eliminando categoría:', error);
+    alert('Error al eliminar la categoría');
+  }
+}
+
+async function reactivarCategoriaCaja(id) {
+  try {
     const response = await fetch(`${API_BASE_URL}/admin/caja/categorias/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ activa: false })
+      body: JSON.stringify({ activa: true })
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      alert(`Error: ${error.error || 'No se pudo eliminar la categoría'}`);
+      const error = await response.json().catch(() => ({}));
+      alert(`Error: ${error.error || 'No se pudo reactivar la categoría'}`);
       return;
     }
 
-    console.log('✅ Categoría eliminada');
     await loadCajaCategorias();
     renderCajaCategorias();
   } catch (error) {
-    console.error('❌ Error eliminando categoría:', error);
-    alert('Error al eliminar la categoría');
+    console.error('❌ Error reactivando categoría:', error);
+    alert('Error al reactivar la categoría');
   }
 }
 
