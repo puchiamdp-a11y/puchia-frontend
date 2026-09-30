@@ -4078,10 +4078,10 @@ function renderCategorias(categorias) {
   tbody.innerHTML = categorias.map(cat => `
     <tr>
       <td>${cat.id}</td>
-      <td><strong>${(cat.emoji || '📦')} ${cat.nombre}</strong></td>
+      <td><strong>${(cat.emoji || '📦')} ${cat.nombre}</strong>${cat.en_menu ? ' <span style="font-size: 11px; background: #ede7f6; color: #5e35b1; padding: 2px 8px; border-radius: 10px;">En menú</span>' : ''}</td>
       <td style="color: #666; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${cat.descripcion || '—'}</td>
       <td>
-        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.emoji || '📦').replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}')" title="Editar">✏️ Editar</button>
+        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.emoji || '📦').replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}', ${cat.en_menu === true})" title="Editar">✏️ Editar</button>
         <button class="btn btn-sm btn-danger" onclick="eliminarCategoria(${cat.id})" title="Eliminar">🗑️ Eliminar</button>
       </td>
     </tr>
@@ -4093,6 +4093,7 @@ async function guardarCategoria() {
   const emoji = document.getElementById('categoriaEmoji').value.trim() || '📦';
   const descripcion = document.getElementById('categoriaDescripcion').value.trim();
   const categoriaId = document.getElementById('categoriaId').value;
+  const enMenu = document.getElementById('categoriaEnMenu').checked;
 
   // Validar nombre
   if (!nombre) {
@@ -4116,7 +4117,8 @@ async function guardarCategoria() {
       body: JSON.stringify({
         nombre: nombre,
         emoji: emoji,
-        descripcion: descripcion || null
+        descripcion: descripcion || null,
+        en_menu: enMenu
       })
     });
 
@@ -4131,6 +4133,7 @@ async function guardarCategoria() {
       document.getElementById('categoriaNombre').value = '';
       document.getElementById('categoriaEmoji').value = '';
       document.getElementById('categoriaDescripcion').value = '';
+      document.getElementById('categoriaEnMenu').checked = false;
       document.getElementById('cancelarCategoriaBtn').style.display = 'none';
 
       // Recargar tabla
@@ -4144,11 +4147,12 @@ async function guardarCategoria() {
   }
 }
 
-function editarCategoria(id, nombre, emoji, descripcion) {
+function editarCategoria(id, nombre, emoji, descripcion, enMenu) {
   document.getElementById('categoriaId').value = id;
   document.getElementById('categoriaNombre').value = nombre;
   document.getElementById('categoriaEmoji').value = emoji || '📦';
   document.getElementById('categoriaDescripcion').value = descripcion;
+  document.getElementById('categoriaEnMenu').checked = enMenu === true;
   document.getElementById('cancelarCategoriaBtn').style.display = 'inline-block';
   document.getElementById('categoriaNombre').focus();
 }
@@ -4296,6 +4300,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('categoriaId').value = '';
       document.getElementById('categoriaNombre').value = '';
       document.getElementById('categoriaDescripcion').value = '';
+      document.getElementById('categoriaEnMenu').checked = false;
       cancelarBtn.style.display = 'none';
     });
   }
