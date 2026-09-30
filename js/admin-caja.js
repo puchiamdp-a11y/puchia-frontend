@@ -152,27 +152,27 @@ async function renderCajaInterface() {
   cajaPage.innerHTML = `
     <h1 class="page-title">💰 Caja</h1>
 
-    <!-- TARJETAS: siguen a los filtros; sin filtros, todo el histórico -->
+    <!-- TARJETAS: ingresos/egresos del mes actual; efectivo y Mercado Pago históricos. No dependen de los filtros -->
     <div id="cajaResumenPeriodo" style="font-size: 13px; color: #666; margin-bottom: 8px;"></div>
     <div class="stats-grid" style="margin-bottom: 32px;">
       <div class="stat-card">
-        <div class="stat-label">Ingresos</div>
+        <div class="stat-label">Ingresos del mes</div>
         <div class="stat-value" style="color: #4caf50;" id="cajaIngresos">$0.00</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Egresos</div>
+        <div class="stat-label">Egresos del mes</div>
         <div class="stat-value" style="color: #f44336;" id="cajaEgresos">$0.00</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Saldo Neto</div>
+        <div class="stat-label">Saldo neto del mes</div>
         <div class="stat-value" id="cajaSaldoNeto">$0.00</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">💵 Efectivo</div>
+        <div class="stat-label">💵 Efectivo (histórico)</div>
         <div class="stat-value" id="cajaEfectivo">$0.00</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">💳 Mercado Pago</div>
+        <div class="stat-label">💳 Mercado Pago (histórico)</div>
         <div class="stat-value" id="cajaMercadoPago">$0.00</div>
       </div>
     </div>
@@ -389,8 +389,6 @@ function renderCajaTransacciones() {
   const fin = inicio + cajaState.itemsPerPage;
   const transaccionesPagina = transaccionesOrdenadas.slice(inicio, fin);
 
-  updateCajaResumen(transaccionesOrdenadas);
-
   // Resumen de TODOS los movimientos del filtro (no solo los de la página visible)
   let totalIngresos = 0;
   let totalEgresos = 0;
@@ -601,74 +599,51 @@ function formatearMonto(monto) {
 }
 
 // ==================== ACTUALIZAR RESUMEN ====================
-// Las tarjetas suman los mismos movimientos que muestra la tabla: sin filtros, todo el histórico;
-// con filtros (fechas, tipo, categoría, búsqueda), solo lo filtrado.
-function updateCajaResumen(lista = cajaState.transacciones) {
-  let totalIngresos = 0;
-  let totalEgresos = 0;
-  let totalEfectivo = 0;
-  let totalMercadoPago = 0;
+// Tarjetas: ingresos, egresos y saldo son del MES ACTUAL; efectivo y Mercado Pago son HISTÓRICOS.
+// Ninguna depende de los filtros de la tabla (el resumen gris de la tabla es el que sigue a los filtros).
+async function updateCajaResumen() {
+  const ahora = new Date();
+  const anio = ahora.getFullYear();
+  const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+  const ultimoDia = new Date(anio, ahora.getMonth() + 1, 0).getDate();
 
-  lista.forEach(t => {
-    const monto = parseFloat(t.monto);
+  try {
+    const params = new URLSearchParams({
+      fecha_desde: `${anio}-${mes}-01`,
+      fecha_hasta: `${anio}-${mes}-${String(ultimoDia).padStart(2, '0')}`
+    });
+    const response = await fetch(`${API_BASE_URL}/admin/caja/resumen?${params}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}` }
+    });
+    if (!response.ok) throw new Error('Error al cargar el resumen de caja');
 
-    if (t.tipo === 'ingreso') {
-      totalIngresos += monto;
-    } else {
-      totalEgresos += Math.abs(monto);
+    const { mes: delMes, historico } = (await response.json()).data;
+    const saldoNeto = delMes.ingresos - delMes.egresos;
+
+    const ingresosEl = document.getElementById('cajaIngresos');
+    const egresosEl = document.getElementById('cajaEgresos');
+    const saldoEl = document.getElementById('cajaSaldoNeto');
+
+    if (ingresosEl) ingresosEl.textContent = formatearMonto(delMes.ingresos);
+    if (egresosEl) egresosEl.textContent = formatearMonto(delMes.egresos);
+    if (saldoEl) {
+      saldoEl.textContent = formatearMonto(saldoNeto);
+      saldoEl.style.color = saldoNeto >= 0 ? '#4caf50' : '#f44336';
     }
 
-    // Sumar por método de pago (el monto ya tiene el signo correcto del backend)
-    if (t.metodo_pago === 'mercado_pago') {
-      totalMercadoPago += monto;
-    } else {
-      totalEfectivo += monto;
+    const efectivoEl = document.getElementById('cajaEfectivo');
+    const mercadoPagoEl = document.getElementById('cajaMercadoPago');
+    if (efectivoEl) efectivoEl.textContent = formatearMonto(historico.efectivo);
+    if (mercadoPagoEl) mercadoPagoEl.textContent = formatearMonto(historico.mercado_pago);
+
+    const periodoEl = document.getElementById('cajaResumenPeriodo');
+    if (periodoEl) {
+      const nombreMes = ahora.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+      periodoEl.textContent = `📅 Ingresos, egresos y saldo: ${nombreMes}  ·  💵💳 Efectivo y Mercado Pago: histórico acumulado. Los filtros de abajo no modifican estas tarjetas.`;
     }
-  });
-
-  const saldoNeto = totalIngresos - totalEgresos;
-
-  const ingresosEl = document.getElementById('cajaIngresos');
-  const egresosEl = document.getElementById('cajaEgresos');
-  const saldoEl = document.getElementById('cajaSaldoNeto');
-
-  if (ingresosEl) ingresosEl.textContent = formatearMonto(totalIngresos);
-  if (egresosEl) egresosEl.textContent = formatearMonto(totalEgresos);
-  if (saldoEl) {
-    saldoEl.textContent = formatearMonto(saldoNeto);
-    saldoEl.style.color = saldoNeto >= 0 ? '#4caf50' : '#f44336';
+  } catch (error) {
+    console.error('❌ Error cargando resumen de caja:', error);
   }
-
-  // Actualizar detalles de métodos de pago
-  const efectivoEl = document.getElementById('cajaEfectivo');
-  const mercadoPagoEl = document.getElementById('cajaMercadoPago');
-
-  if (efectivoEl) efectivoEl.textContent = formatearMonto(totalEfectivo);
-  if (mercadoPagoEl) mercadoPagoEl.textContent = formatearMonto(totalMercadoPago);
-
-  actualizarPeriodoResumenCaja(lista.length);
-}
-
-function actualizarPeriodoResumenCaja(cantidad) {
-  const periodoEl = document.getElementById('cajaResumenPeriodo');
-  if (!periodoEl) return;
-
-  const f = cajaState.filters;
-  const fmtFecha = (iso) => iso.split('-').reverse().join('/');
-  const partes = [];
-  if (f.fecha_desde || f.fecha_hasta) {
-    partes.push(`fechas: ${f.fecha_desde ? 'desde ' + fmtFecha(f.fecha_desde) : ''}${f.fecha_desde && f.fecha_hasta ? ' ' : ''}${f.fecha_hasta ? 'hasta ' + fmtFecha(f.fecha_hasta) : ''}`);
-  }
-  if (f.tipo) partes.push(`tipo: ${f.tipo}`);
-  if (f.categoria_id) {
-    const cat = cajaState.categorias.find(c => c.id === f.categoria_id);
-    partes.push(`categoría: ${cat ? cat.nombre : f.categoria_id}`);
-  }
-  if (f.busqueda) partes.push(`búsqueda: "${f.busqueda}"`);
-
-  periodoEl.textContent = partes.length
-    ? `🔎 Tarjetas según tus filtros (${partes.join(' · ')}) — ${cantidad} movimientos`
-    : `📊 Histórico completo — ${cantidad} movimientos`;
 }
 
 // ==================== FUNCIONES DE TABS ====================
