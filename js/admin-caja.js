@@ -878,8 +878,27 @@ async function eliminarTransaccion(id) {
   }
 }
 
+// Evita que un doble clic envíe dos veces el mismo formulario (duplicaría el registro)
+const cajaEnviando = new Set();
+async function cajaEvitarDobleEnvio(clave, event, accion) {
+  if (cajaEnviando.has(clave)) return;
+  cajaEnviando.add(clave);
+  const boton = event?.submitter;
+  if (boton) boton.disabled = true;
+  try {
+    await accion();
+  } finally {
+    cajaEnviando.delete(clave);
+    if (boton) boton.disabled = false;
+  }
+}
+
 async function submitTransaccionCaja(event) {
   event.preventDefault();
+  return cajaEvitarDobleEnvio('transaccion', event, guardarTransaccionCaja);
+}
+
+async function guardarTransaccionCaja() {
 
   const categoria_id = parseInt(document.getElementById('inputCategoriaTransaccion').value);
   let monto = parseFloat(document.getElementById('inputMontoTransaccion').value);
@@ -1060,6 +1079,10 @@ async function eliminarCategoria(id) {
 
 async function submitCategoriaCaja(event) {
   event.preventDefault();
+  return cajaEvitarDobleEnvio('categoria', event, guardarCategoriaCaja);
+}
+
+async function guardarCategoriaCaja() {
 
   const nombre = document.getElementById('inputNombreCategoria').value;
   const tipo = document.getElementById('inputTipoCategoria').value;
