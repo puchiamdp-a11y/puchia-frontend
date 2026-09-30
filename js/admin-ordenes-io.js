@@ -385,12 +385,31 @@ async function ejecutarDeshacerImportaciones() {
   }
 }
 
-// Deja el contador en el mayor código J cargado: el próximo cliente nuevo será el siguiente
+// Deja el contador en el mayor código J cargado: el próximo cliente nuevo será el siguiente.
+// Si todavía no hay clientes con código J, permite indicar a mano el último número usado
+// (ej: 587 → el próximo será J0588).
 async function recalcularProximoCodigoCliente() {
   try {
     const { response, data } = await llamarApiPedidosIO('/admin/clientes/recalcular-secuencial', {});
     if (!response.ok) { alert(data.error || data.message || 'No se pudo recalcular el contador'); return; }
-    alert(`🔢 ${data.message}`);
+
+    if (data.data.hay_clientes) {
+      alert(`🔢 ${data.message}`);
+      return;
+    }
+
+    const respuesta = prompt(
+      `Todavía no hay clientes con código J cargados. Hoy el próximo código sería ${data.data.proximo_codigo}.\n\n` +
+      'Si querés otro punto de partida, escribí el ÚLTIMO número que usaste (ej: 587 para que el próximo sea J0588).\n' +
+      'Dejalo vacío o cancelá para no cambiar nada.'
+    );
+    if (respuesta === null || respuesta.trim() === '') return;
+
+    const numero = parseInt(respuesta.replace(/\D/g, ''), 10);
+    if (Number.isNaN(numero)) { alert('Escribí solo el número (ej: 587).'); return; }
+
+    const fijado = await llamarApiPedidosIO('/admin/clientes/recalcular-secuencial', { ultimo_numero: numero });
+    alert(fijado.response.ok ? `🔢 ${fijado.data.message}` : (fijado.data.error || 'No se pudo fijar el número'));
   } catch (error) {
     console.error('❌ Error recalculando contador:', error);
     alert('Error al conectar con el servidor.');
