@@ -1,15 +1,24 @@
 /* ADMIN-ORDENES-IO.JS - Exportar plantilla e importar pedidos desde Excel
    Los pedidos se importan como REGISTRO: no descuentan stock, no crean productos ni movimientos de caja.
+   Los productos quedan como texto en las notas del pedido. Sin estado indicado se cargan ENTREGADOS.
    Reutiliza los ayudantes de Excel y de modales de admin-caja.js (se carga después de ese archivo). */
 
-const PEDIDOS_COLUMNAS_EXCEL = ['Fecha del pedido', 'Cliente', 'WhatsApp', 'Email', 'DNI', 'Detalle del pedido', 'Total', 'Seña', 'Estado', 'Fecha de entrega'];
-const PEDIDOS_COLUMNAS_OBLIGATORIAS = ['Fecha del pedido', 'Cliente', 'Total', 'Estado'];
+const PEDIDOS_CANT_COLUMNAS_PRODUCTO = 6;
+const PEDIDOS_COLUMNAS_PRODUCTO = Array.from({ length: PEDIDOS_CANT_COLUMNAS_PRODUCTO }, (_, i) => `Producto ${i + 1}`);
+const PEDIDOS_COLUMNAS_EXCEL = ['Fecha del pedido', 'Cliente', 'WhatsApp', 'Email', 'DNI', ...PEDIDOS_COLUMNAS_PRODUCTO, 'Total', 'Seña', 'Estado', 'Fecha de entrega'];
+const PEDIDOS_ESTADOS_TEXTO = 'Pendiente, Señado, Preparándose, Listo para retirar, Entregado o Anulado';
+const PEDIDOS_COLUMNAS_OBLIGATORIAS = ['Fecha del pedido', 'Cliente', 'Total'];
 const PEDIDOS_IMPORT_MAX_FILAS = 500;
 let pedidosImportPendiente = null;
 
 function exportarPlantillaPedidos() {
   const wsPedidos = XLSX.utils.aoa_to_sheet([PEDIDOS_COLUMNAS_EXCEL]);
-  wsPedidos['!cols'] = [{ wch: 16 }, { wch: 26 }, { wch: 16 }, { wch: 26 }, { wch: 12 }, { wch: 40 }, { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 16 }];
+  wsPedidos['!cols'] = PEDIDOS_COLUMNAS_EXCEL.map(col =>
+    ({ wch: col === 'Cliente' || col === 'Email' ? 26 : col.startsWith('Producto') ? 22 : 16 }));
+
+  // Nota en el encabezado "Estado" con las opciones (al pasar el mouse por la celda)
+  const celdaEstado = XLSX.utils.encode_cell({ r: 0, c: PEDIDOS_COLUMNAS_EXCEL.indexOf('Estado') });
+  wsPedidos[celdaEstado].c = [{ a: 'Puchia', t: `Escribí: ${PEDIDOS_ESTADOS_TEXTO}.\nSi lo dejás vacío, se carga como Entregado.` }];
 
   const ayuda = [
     ['CÓMO COMPLETAR LA HOJA "Pedidos" (una fila por pedido)'],
@@ -17,10 +26,10 @@ function exportarPlantillaPedidos() {
     ['Fecha del pedido', 'Obligatoria. Día en que se hizo el pedido, dd/mm/aaaa (ej: 15/09/2026).'],
     ['Cliente', 'Obligatorio. Nombre del cliente.'],
     ['WhatsApp / Email / DNI', 'Opcionales, pero sirven para reconocer al cliente: si ya existe con ese WhatsApp, email o DNI se usa el mismo; si no, se crea uno nuevo.'],
-    ['Detalle del pedido', 'Opcional. Qué se vendió, escrito como texto libre (ej: "2 tazas y 1 caja"). Se guarda en las notas del pedido.'],
+    [`Producto 1 … Producto ${PEDIDOS_CANT_COLUMNAS_PRODUCTO}`, `Opcionales. Un producto por columna, escrito como texto (ej: "2 tazas"). Si necesitás más, agregá columnas "Producto ${PEDIDOS_CANT_COLUMNAS_PRODUCTO + 1}", "Producto ${PEDIDOS_CANT_COLUMNAS_PRODUCTO + 2}"… a la derecha.`],
     ['Total', 'Obligatorio. Importe total del pedido, positivo (ej: 15000 o 15000,50).'],
-    ['Seña', 'Importe señado. Obligatoria si el estado es Señado, Preparándose o Listo para retirar. Si es Entregado y la dejás vacía, se toma como pagado completo. En Pendiente va vacía.'],
-    ['Estado', 'Obligatorio. Uno de los que figuran abajo.'],
+    ['Estado', `Escribilo a mano: ${PEDIDOS_ESTADOS_TEXTO}. Si lo dejás VACÍO, se carga como Entregado.`],
+    ['Seña', 'Importe señado. Obligatoria si el estado es Señado, Preparándose o Listo para retirar. Si el pedido es Entregado y la dejás vacía, se toma como pagado completo. En Pendiente va vacía.'],
     ['Fecha de entrega', 'Opcional. dd/mm/aaaa.'],
     [''],
     ['ESTADOS VÁLIDOS'],
@@ -28,15 +37,16 @@ function exportarPlantillaPedidos() {
     ['Señado', 'Señó; el pedido está confirmado.'],
     ['Preparándose', 'En elaboración.'],
     ['Listo para retirar', 'Terminado, esperando el retiro.'],
-    ['Entregado', 'Entregado al cliente.'],
+    ['Entregado', 'Entregado al cliente (es el que se usa si no escribís nada).'],
     ['Anulado', 'Cancelado.'],
     [''],
     ['IMPORTANTE'],
-    ['Se cargan como REGISTRO', 'No descuentan stock, no crean productos y no generan movimientos de caja. No hace falta que los productos existan.'],
-    ['Límite', `Máximo ${PEDIDOS_IMPORT_MAX_FILAS} filas por importación. No cambies el encabezado de la hoja "Pedidos".`]
+    ['Se cargan como REGISTRO', 'No descuentan stock, no crean productos y no generan movimientos de caja. No hace falta que los productos existan: quedan escritos en las notas del pedido.'],
+    ['Si después cambiás el estado', 'Al pasar un pedido importado a Señado, el sistema NO vuelve a registrar la seña en Caja (se asume que ya la cargaste).'],
+    ['Límite', `Máximo ${PEDIDOS_IMPORT_MAX_FILAS} filas por importación. No cambies los nombres de las columnas de la hoja "Pedidos".`]
   ];
   const wsAyuda = XLSX.utils.aoa_to_sheet(ayuda);
-  wsAyuda['!cols'] = [{ wch: 26 }, { wch: 110 }];
+  wsAyuda['!cols'] = [{ wch: 32 }, { wch: 120 }];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, wsPedidos, 'Pedidos');
@@ -103,6 +113,11 @@ function procesarImportacionPedidos(filas) {
     return;
   }
 
+  // Todas las columnas "Producto N" del archivo, aunque el usuario haya agregado más
+  const columnasProducto = encabezado
+    .map((h, pos) => (/^producto \d+$/.test(h) ? pos : -1))
+    .filter(pos => pos >= 0);
+
   // Se conserva la posición original para informar la fila correcta del Excel; se ignoran las filas vacías
   const datos = filas.slice(1).map((celdas, i) => ({ celdas, numFila: i + 2 }))
     .filter(({ celdas }) => celdas.some(c => String(c ?? '').trim() !== ''));
@@ -130,12 +145,16 @@ function procesarImportacionPedidos(filas) {
     const total = cajaParsearMonto(celda(celdas, 'Total'));
     if (!Number.isFinite(total) || total <= 0) fallas.push('el total debe ser un número positivo');
 
+    // Estado vacío = Entregado
+    let estado = 'entregado';
     const estadoTxt = texto(celdas, 'Estado');
-    const estado = pedidosParsearEstado(estadoTxt);
-    if (!estado) {
-      fallas.push(cajaNormalizar(estadoTxt) === 'en edicion'
-        ? 'el estado "En edición" ya no existe (usá Pendiente o Señado)'
-        : `estado "${cajaEscape(estadoTxt)}" no válido (Pendiente, Señado, Preparándose, Listo para retirar, Entregado o Anulado)`);
+    if (estadoTxt !== '') {
+      estado = pedidosParsearEstado(estadoTxt);
+      if (!estado) {
+        fallas.push(cajaNormalizar(estadoTxt) === 'en edicion'
+          ? 'el estado "En edición" ya no existe (usá Pendiente o Señado)'
+          : `estado "${cajaEscape(estadoTxt)}" no válido (${PEDIDOS_ESTADOS_TEXTO})`);
+      }
     }
 
     let sena = '';
@@ -162,7 +181,7 @@ function procesarImportacionPedidos(filas) {
       cliente_whatsapp: texto(celdas, 'WhatsApp'),
       cliente_email: texto(celdas, 'Email'),
       cliente_dni: texto(celdas, 'DNI'),
-      detalle: texto(celdas, 'Detalle del pedido'),
+      productos: columnasProducto.map(pos => String(celdas[pos] ?? '').trim()).filter(Boolean),
       total,
       sena,
       estado,
@@ -208,7 +227,12 @@ async function simularImportacionPedidos() {
   }
 }
 
+const PEDIDOS_NOMBRE_ESTADO = { pendiente: 'Pendiente', 'señado': 'Señado', preparandose: 'Preparándose', listo_retirar: 'Listo para retirar', entregado: 'Entregado', anulado: 'Anulado' };
+
 function mostrarConfirmacionImportacionPedidos(resumen) {
+  const desgloseEstados = Object.entries(resumen.por_estado || {})
+    .map(([estado, cantidad]) => `<strong>${cantidad}</strong> ${PEDIDOS_NOMBRE_ESTADO[estado] || estado}`)
+    .join(' · ');
   const aviso = resumen.duplicadas > 0
     ? `<div style="background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px;">
          ⚠️ <strong>${resumen.duplicadas}</strong> de estos pedidos parecen ya estar cargados (mismo cliente, fecha y total). Si confirmás, se van a <strong>duplicar</strong>.
@@ -230,6 +254,9 @@ function mostrarConfirmacionImportacionPedidos(resumen) {
     <div style="background: #f9f9f9; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
       👥 <strong>${resumen.clientes_nuevos}</strong> cliente(s) nuevo(s) se van a crear<br>
       👤 <strong>${resumen.clientes_existentes}</strong> cliente(s) ya existen y se reutilizan
+    </div>
+    <div style="background: #f9f9f9; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
+      📋 ${desgloseEstados}
     </div>
     ${aviso}
     <p style="font-size: 12px; color: #666; margin: 0 0 16px;">
