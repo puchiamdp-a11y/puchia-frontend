@@ -1,0 +1,273 @@
+/* ADMIN-ORDENES-IO.JS - Exportar plantilla e importar pedidos desde Excel
+   Los pedidos se importan como REGISTRO: no descuentan stock, no crean productos ni movimientos de caja.
+   Reutiliza los ayudantes de Excel y de modales de admin-caja.js (se carga después de ese archivo). */
+
+const PEDIDOS_COLUMNAS_EXCEL = ['Fecha del pedido', 'Cliente', 'WhatsApp', 'Email', 'DNI', 'Detalle del pedido', 'Total', 'Seña', 'Estado', 'Fecha de entrega'];
+const PEDIDOS_COLUMNAS_OBLIGATORIAS = ['Fecha del pedido', 'Cliente', 'Total', 'Estado'];
+const PEDIDOS_IMPORT_MAX_FILAS = 500;
+let pedidosImportPendiente = null;
+
+function exportarPlantillaPedidos() {
+  const wsPedidos = XLSX.utils.aoa_to_sheet([PEDIDOS_COLUMNAS_EXCEL]);
+  wsPedidos['!cols'] = [{ wch: 16 }, { wch: 26 }, { wch: 16 }, { wch: 26 }, { wch: 12 }, { wch: 40 }, { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 16 }];
+
+  const ayuda = [
+    ['CÓMO COMPLETAR LA HOJA "Pedidos" (una fila por pedido)'],
+    [''],
+    ['Fecha del pedido', 'Obligatoria. Día en que se hizo el pedido, dd/mm/aaaa (ej: 15/09/2026).'],
+    ['Cliente', 'Obligatorio. Nombre del cliente.'],
+    ['WhatsApp / Email / DNI', 'Opcionales, pero sirven para reconocer al cliente: si ya existe con ese WhatsApp, email o DNI se usa el mismo; si no, se crea uno nuevo.'],
+    ['Detalle del pedido', 'Opcional. Qué se vendió, escrito como texto libre (ej: "2 tazas y 1 caja"). Se guarda en las notas del pedido.'],
+    ['Total', 'Obligatorio. Importe total del pedido, positivo (ej: 15000 o 15000,50).'],
+    ['Seña', 'Importe señado. Obligatoria si el estado es Señado, Preparándose o Listo para retirar. Si es Entregado y la dejás vacía, se toma como pagado completo. En Pendiente va vacía.'],
+    ['Estado', 'Obligatorio. Uno de los que figuran abajo.'],
+    ['Fecha de entrega', 'Opcional. dd/mm/aaaa.'],
+    [''],
+    ['ESTADOS VÁLIDOS'],
+    ['Pendiente', 'Todavía no señó.'],
+    ['Señado', 'Señó; el pedido está confirmado.'],
+    ['Preparándose', 'En elaboración.'],
+    ['Listo para retirar', 'Terminado, esperando el retiro.'],
+    ['Entregado', 'Entregado al cliente.'],
+    ['Anulado', 'Cancelado.'],
+    [''],
+    ['IMPORTANTE'],
+    ['Se cargan como REGISTRO', 'No descuentan stock, no crean productos y no generan movimientos de caja. No hace falta que los productos existan.'],
+    ['Límite', `Máximo ${PEDIDOS_IMPORT_MAX_FILAS} filas por importación. No cambies el encabezado de la hoja "Pedidos".`]
+  ];
+  const wsAyuda = XLSX.utils.aoa_to_sheet(ayuda);
+  wsAyuda['!cols'] = [{ wch: 26 }, { wch: 110 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsPedidos, 'Pedidos');
+  XLSX.utils.book_append_sheet(wb, wsAyuda, 'Ayuda');
+  XLSX.writeFile(wb, 'plantilla_pedidos.xlsx');
+}
+
+function importarPedidos() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.xlsx,.xls';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const workbook = XLSX.read(event.target.result, { type: 'array' });
+        const hoja = workbook.Sheets['Pedidos'] || workbook.Sheets[workbook.SheetNames[0]];
+        const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, defval: '', blankrows: true, raw: true });
+        procesarImportacionPedidos(filas);
+      } catch (error) {
+        console.error('❌ Error leyendo Excel de pedidos:', error);
+        mostrarErroresImportacionCaja(['No se pudo leer el archivo. Verificá que sea un Excel (.xlsx) válido.']);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+  input.click();
+}
+
+function pedidosParsearEstado(valor) {
+  const txt = cajaNormalizar(valor).replace(/_/g, ' ');
+  const mapa = {
+    'pendiente': 'pendiente',
+    'senado': 'señado',
+    'preparandose': 'preparandose',
+    'listo para retirar': 'listo_retirar',
+    'listo retirar': 'listo_retirar',
+    'entregado': 'entregado',
+    'anulado': 'anulado'
+  };
+  return mapa[txt] || null;
+}
+
+function procesarImportacionPedidos(filas) {
+  if (filas.length === 0) {
+    mostrarErroresImportacionCaja(['El archivo está vacío.']);
+    return;
+  }
+
+  // Ubicar columnas por nombre de encabezado (sin importar mayúsculas ni tildes)
+  const encabezado = filas[0].map(cajaNormalizar);
+  const indice = {};
+  PEDIDOS_COLUMNAS_EXCEL.forEach(col => { indice[col] = encabezado.indexOf(cajaNormalizar(col)); });
+
+  const faltantes = PEDIDOS_COLUMNAS_OBLIGATORIAS.filter(col => indice[col] === -1);
+  if (faltantes.length > 0) {
+    mostrarErroresImportacionCaja([
+      `Faltan columnas en el encabezado: ${faltantes.join(', ')}.`,
+      'Usá el botón "Exportar plantilla" para obtener el formato correcto.'
+    ]);
+    return;
+  }
+
+  // Se conserva la posición original para informar la fila correcta del Excel; se ignoran las filas vacías
+  const datos = filas.slice(1).map((celdas, i) => ({ celdas, numFila: i + 2 }))
+    .filter(({ celdas }) => celdas.some(c => String(c ?? '').trim() !== ''));
+  if (datos.length === 0) {
+    mostrarErroresImportacionCaja(['El archivo no tiene filas para importar. Completá la plantilla debajo del encabezado.']);
+    return;
+  }
+  if (datos.length > PEDIDOS_IMPORT_MAX_FILAS) {
+    mostrarErroresImportacionCaja([`El archivo tiene ${datos.length} filas. El máximo es ${PEDIDOS_IMPORT_MAX_FILAS} por importación.`]);
+    return;
+  }
+
+  const celda = (celdas, col) => indice[col] >= 0 ? celdas[indice[col]] : '';
+  const texto = (celdas, col) => String(celda(celdas, col) ?? '').trim();
+
+  const errores = [];
+  const ordenes = [];
+
+  datos.forEach(({ celdas, numFila }) => {
+    const fallas = [];
+
+    const fecha = cajaParsearFecha(celda(celdas, 'Fecha del pedido'));
+    if (!fecha) fallas.push('fecha del pedido inválida (usá dd/mm/aaaa)');
+
+    const total = cajaParsearMonto(celda(celdas, 'Total'));
+    if (!Number.isFinite(total) || total <= 0) fallas.push('el total debe ser un número positivo');
+
+    const estadoTxt = texto(celdas, 'Estado');
+    const estado = pedidosParsearEstado(estadoTxt);
+    if (!estado) {
+      fallas.push(cajaNormalizar(estadoTxt) === 'en edicion'
+        ? 'el estado "En edición" ya no existe (usá Pendiente o Señado)'
+        : `estado "${cajaEscape(estadoTxt)}" no válido (Pendiente, Señado, Preparándose, Listo para retirar, Entregado o Anulado)`);
+    }
+
+    let sena = '';
+    if (texto(celdas, 'Seña') !== '') {
+      sena = cajaParsearMonto(celda(celdas, 'Seña'));
+      if (!Number.isFinite(sena)) { fallas.push('seña inválida'); sena = ''; }
+    }
+
+    let fechaEntrega = '';
+    if (texto(celdas, 'Fecha de entrega') !== '') {
+      fechaEntrega = cajaParsearFecha(celda(celdas, 'Fecha de entrega'));
+      if (!fechaEntrega) { fallas.push('fecha de entrega inválida (usá dd/mm/aaaa)'); fechaEntrega = ''; }
+    }
+
+    if (fallas.length > 0) {
+      errores.push(`Fila ${numFila}: ${fallas.join(', ')}`);
+      return;
+    }
+
+    ordenes.push({
+      fila: numFila,
+      fecha,
+      cliente_nombre: texto(celdas, 'Cliente'),
+      cliente_whatsapp: texto(celdas, 'WhatsApp'),
+      cliente_email: texto(celdas, 'Email'),
+      cliente_dni: texto(celdas, 'DNI'),
+      detalle: texto(celdas, 'Detalle del pedido'),
+      total,
+      sena,
+      estado,
+      fecha_entrega: fechaEntrega
+    });
+  });
+
+  if (errores.length > 0) {
+    mostrarErroresImportacionCaja(errores);
+    return;
+  }
+
+  pedidosImportPendiente = ordenes;
+  simularImportacionPedidos();
+}
+
+async function enviarImportacionPedidos(opciones) {
+  const response = await fetch(`${API_BASE_URL}/admin/ordenes/importar`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ ordenes: pedidosImportPendiente, ...opciones })
+  });
+  const data = await response.json().catch(() => ({}));
+  return { response, data };
+}
+
+// Primero se simula: el servidor valida todo y cuenta cuántos clientes nuevos se crearían, sin guardar nada
+async function simularImportacionPedidos() {
+  try {
+    const { response, data } = await enviarImportacionPedidos({ simular: true });
+
+    if (!response.ok) {
+      mostrarErroresImportacionCaja(Array.isArray(data.detalles) ? data.detalles : [data.error || 'No se pudo validar el archivo']);
+      return;
+    }
+    mostrarConfirmacionImportacionPedidos(data.data);
+  } catch (error) {
+    console.error('❌ Error validando pedidos:', error);
+    alert('Error al conectar con el servidor. No se importó nada.');
+  }
+}
+
+function mostrarConfirmacionImportacionPedidos(resumen) {
+  const aviso = resumen.duplicadas > 0
+    ? `<div style="background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px;">
+         ⚠️ <strong>${resumen.duplicadas}</strong> de estos pedidos parecen ya estar cargados (mismo cliente, fecha y total). Si confirmás, se van a <strong>duplicar</strong>.
+       </div>`
+    : '';
+
+  cajaAbrirModal(`
+    <h2 style="margin: 0 0 16px; color: #7f1f6e;">Confirmar importación de pedidos</h2>
+    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+      <div style="flex: 1; background: #f5f5f5; border-radius: 8px; padding: 14px; text-align: center;">
+        <div style="font-size: 30px; font-weight: 700; color: #7f1f6e;">${resumen.pedidos}</div>
+        <div style="color: #666; font-size: 13px;">pedidos</div>
+      </div>
+      <div style="flex: 1; background: #f5f5f5; border-radius: 8px; padding: 14px; text-align: center;">
+        <div style="font-size: 20px; font-weight: 700; color: #7f1f6e; padding-top: 6px;">${formatearMonto(resumen.total)}</div>
+        <div style="color: #666; font-size: 13px; padding-top: 4px;">suma de totales</div>
+      </div>
+    </div>
+    <div style="background: #f9f9f9; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
+      👥 <strong>${resumen.clientes_nuevos}</strong> cliente(s) nuevo(s) se van a crear<br>
+      👤 <strong>${resumen.clientes_existentes}</strong> cliente(s) ya existen y se reutilizan
+    </div>
+    ${aviso}
+    <p style="font-size: 12px; color: #666; margin: 0 0 16px;">
+      Se cargan como <strong>registro</strong>: no descuentan stock, no crean productos ni movimientos de caja.
+    </p>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalImportacionCaja()">Cancelar</button>
+      <button id="btnConfirmarImportacionPedidos" class="btn btn-primary" style="flex: 1;"
+        onclick="ejecutarImportacionPedidos(${resumen.duplicadas > 0})">${resumen.duplicadas > 0 ? 'Importar igual' : 'Confirmar importación'}</button>
+    </div>
+  `);
+}
+
+async function ejecutarImportacionPedidos(confirmarDuplicados) {
+  if (!pedidosImportPendiente) return;
+
+  const boton = document.getElementById('btnConfirmarImportacionPedidos');
+  if (boton) { boton.disabled = true; boton.textContent = 'Importando...'; }
+
+  try {
+    const { response, data } = await enviarImportacionPedidos({ confirmar_duplicados: confirmarDuplicados });
+
+    if (!response.ok) {
+      mostrarErroresImportacionCaja(Array.isArray(data.detalles) ? data.detalles : [data.error || 'Error al importar']);
+      return;
+    }
+
+    pedidosImportPendiente = null;
+    cerrarModalImportacionCaja();
+    alert(`✅ ${data.data.insertadas} pedidos importados.\n${data.data.clientes_creados} cliente(s) nuevo(s) creado(s), ${data.data.clientes_existentes} ya existían.`);
+
+    // Refrescar lo que depende de los pedidos
+    if (typeof loadAllOrders === 'function') loadAllOrders();
+    if (typeof loadDashboardStats === 'function') loadDashboardStats();
+    if (typeof listarClientes === 'function') listarClientes();
+  } catch (error) {
+    console.error('❌ Error importando pedidos:', error);
+    if (boton) { boton.disabled = false; boton.textContent = confirmarDuplicados ? 'Importar igual' : 'Confirmar importación'; }
+    alert('Error al conectar con el servidor. No se importó nada.');
+  }
+}

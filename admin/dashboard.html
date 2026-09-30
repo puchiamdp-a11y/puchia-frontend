@@ -247,6 +247,12 @@
                     <button class="btn btn-secondary" id="btnExportarOrdenes" onclick="exportarOrdenesToExcel()" style="display: flex; align-items: center; gap: 8px;">
                         📊 Exportar Excel
                     </button>
+                    <button class="btn btn-secondary" onclick="exportarPlantillaPedidos()" title="Descarga un Excel con el encabezado para completar" style="display: flex; align-items: center; gap: 8px;">
+                        📥 Exportar plantilla
+                    </button>
+                    <button class="btn btn-secondary" onclick="importarPedidos()" title="Carga pedidos desde el Excel completado, como registro (sin stock ni caja)" style="display: flex; align-items: center; gap: 8px;">
+                        📤 Importar pedidos
+                    </button>
                 </div>
 
                 <div class="table-container" style="overflow-x: auto;">
@@ -491,6 +497,7 @@
     <script src="../js/admin-clientes.js?v=2026090721"></script>
     <script src="../js/admin-calendario.js?v=2026090721"></script>
     <script src="../js/admin-caja.js?v=2026093008"></script>
+    <script src="../js/admin-ordenes-io.js?v=2026093009"></script>
 
     <!-- MODAL DETALLE PRODUCTO -->
     <div id="productDetailModal" class="modal">
