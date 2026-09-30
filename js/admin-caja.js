@@ -208,6 +208,8 @@ async function renderCajaInterface() {
       <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
         <button class="btn btn-primary" onclick="abrirModalNuevaTransaccion()">➕ Nueva Transacción</button>
         <button class="btn btn-secondary" onclick="reconciliarOrdenesManual()">🔄 Sincronizar Órdenes</button>
+        <button class="btn btn-secondary" onclick="exportarPlantillaCaja()" title="Descarga un Excel con el encabezado para completar">📥 Exportar plantilla</button>
+        <button class="btn btn-secondary" onclick="importarTransaccionesCaja()" title="Carga transacciones desde el Excel completado">📤 Importar</button>
       </div>
 
       <!-- FILTROS -->
@@ -1424,6 +1426,302 @@ async function exportarReporteExcel() {
   } catch (error) {
     console.error('❌ Error exportando reporte:', error);
     alert('Error al exportar el reporte');
+  }
+}
+
+// ==================== EXPORTAR / IMPORTAR (EXCEL) ====================
+
+const CAJA_COLUMNAS_EXCEL = ['Fecha', 'Categoría', 'Monto', 'Método de pago', 'Descripción'];
+const CAJA_IMPORT_MAX_FILAS = 500;
+let cajaImportPendiente = null;
+
+function cajaEscape(texto) {
+  return String(texto ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+// Minúsculas, sin tildes ni espacios sobrantes: "  Método de Pago " -> "metodo de pago"
+function cajaNormalizar(texto) {
+  return String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+function exportarPlantillaCaja() {
+  const categorias = cajaState.categorias.filter(c => c.activa !== false);
+
+  const wsMovimientos = XLSX.utils.aoa_to_sheet([CAJA_COLUMNAS_EXCEL]);
+  wsMovimientos['!cols'] = [{ wch: 14 }, { wch: 28 }, { wch: 14 }, { wch: 18 }, { wch: 45 }];
+
+  const ayuda = [
+    ['CÓMO COMPLETAR LA HOJA "Movimientos"'],
+    [''],
+    ['Fecha', 'Día del movimiento. Formato dd/mm/aaaa (ej: 30/09/2026).'],
+    ['Categoría', 'Escribila igual que en la lista de abajo. El tipo (ingreso/egreso) lo define la categoría.'],
+    ['Monto', 'Siempre positivo, sin signo (ej: 1500 o 1500,50). Si es egreso, el sistema lo registra como egreso.'],
+    ['Método de pago', 'Efectivo o Mercado Pago.'],
+    ['Descripción', 'Opcional.'],
+    [''],
+    [`Máximo ${CAJA_IMPORT_MAX_FILAS} filas por importación. No borres ni cambies el encabezado.`],
+    [''],
+    ['CATEGORÍAS DISPONIBLES', 'Tipo']
+  ];
+  categorias.forEach(c => ayuda.push([c.nombre, c.tipo === 'egreso' ? 'Egreso' : 'Ingreso']));
+  const wsAyuda = XLSX.utils.aoa_to_sheet(ayuda);
+  wsAyuda['!cols'] = [{ wch: 30 }, { wch: 90 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsMovimientos, 'Movimientos');
+  XLSX.utils.book_append_sheet(wb, wsAyuda, 'Ayuda');
+  XLSX.writeFile(wb, 'plantilla_caja.xlsx');
+}
+
+function importarTransaccionesCaja() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.xlsx,.xls';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const workbook = XLSX.read(event.target.result, { type: 'array' });
+        const hoja = workbook.Sheets['Movimientos'] || workbook.Sheets[workbook.SheetNames[0]];
+        const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, defval: '', blankrows: true, raw: true });
+        procesarImportacionCaja(filas);
+      } catch (error) {
+        console.error('❌ Error leyendo Excel de caja:', error);
+        mostrarErroresImportacionCaja(['No se pudo leer el archivo. Verificá que sea un Excel (.xlsx) válido.']);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+  input.click();
+}
+
+// Devuelve 'YYYY-MM-DD' o null. Acepta número de serie de Excel, dd/mm/aaaa y aaaa-mm-dd.
+function cajaParsearFecha(valor) {
+  let y, m, d;
+
+  if (typeof valor === 'number') {
+    const f = XLSX.SSF.parse_date_code(valor);
+    if (!f) return null;
+    ({ y, m, d } = f);
+  } else {
+    const txt = String(valor ?? '').trim();
+    let match = txt.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+    if (match) {
+      d = +match[1]; m = +match[2]; y = +match[3];
+    } else if ((match = txt.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) {
+      y = +match[1]; m = +match[2]; d = +match[3];
+    } else {
+      return null;
+    }
+  }
+
+  const fecha = new Date(Date.UTC(y, m - 1, d));
+  if (fecha.getUTCFullYear() !== y || fecha.getUTCMonth() !== m - 1 || fecha.getUTCDate() !== d) return null;
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+// Acepta 1500, "1500", "1.500,50", "$ 1500,5"
+function cajaParsearMonto(valor) {
+  if (typeof valor === 'number') return valor;
+  let txt = String(valor ?? '').replace(/[$\s]/g, '');
+  if (!txt) return NaN;
+  if (txt.includes(',')) txt = txt.replace(/\./g, '').replace(',', '.');
+  return /^-?\d+(\.\d+)?$/.test(txt) ? parseFloat(txt) : NaN;
+}
+
+function cajaParsearMetodo(valor) {
+  const txt = cajaNormalizar(valor).replace(/_/g, ' ');
+  if (txt === 'efectivo') return 'efectivo';
+  if (['mercado pago', 'mercadopago', 'mp'].includes(txt)) return 'mercado_pago';
+  return null;
+}
+
+function procesarImportacionCaja(filas) {
+  if (filas.length === 0) {
+    mostrarErroresImportacionCaja(['El archivo está vacío.']);
+    return;
+  }
+
+  // Ubicar columnas por nombre de encabezado (sin importar mayúsculas ni tildes)
+  const encabezado = filas[0].map(cajaNormalizar);
+  const indice = {};
+  const faltantes = [];
+  CAJA_COLUMNAS_EXCEL.forEach(col => {
+    const pos = encabezado.indexOf(cajaNormalizar(col));
+    if (pos === -1 && col !== 'Descripción') faltantes.push(col);
+    indice[col] = pos;
+  });
+
+  if (faltantes.length > 0) {
+    mostrarErroresImportacionCaja([
+      `Faltan columnas en el encabezado: ${faltantes.join(', ')}.`,
+      'Usá el botón "Exportar plantilla" para obtener el formato correcto.'
+    ]);
+    return;
+  }
+
+  // Se conserva la posición original para informar la fila correcta del Excel; se ignoran las filas vacías
+  const datos = filas.slice(1).map((celdas, i) => ({ celdas, numFila: i + 2 }))
+    .filter(({ celdas }) => celdas.some(c => String(c ?? '').trim() !== ''));
+  if (datos.length === 0) {
+    mostrarErroresImportacionCaja(['El archivo no tiene filas para importar. Completá la plantilla debajo del encabezado.']);
+    return;
+  }
+  if (datos.length > CAJA_IMPORT_MAX_FILAS) {
+    mostrarErroresImportacionCaja([`El archivo tiene ${datos.length} filas. El máximo es ${CAJA_IMPORT_MAX_FILAS} por importación.`]);
+    return;
+  }
+
+  const categoriasPorNombre = new Map(
+    cajaState.categorias.filter(c => c.activa !== false).map(c => [cajaNormalizar(c.nombre), c])
+  );
+
+  const errores = [];
+  const validas = [];
+
+  datos.forEach(({ celdas, numFila }) => {
+    const erroresFila = [];
+
+    const fecha = cajaParsearFecha(celdas[indice['Fecha']]);
+    if (!fecha) erroresFila.push('fecha inválida (usá dd/mm/aaaa)');
+
+    const categoria = categoriasPorNombre.get(cajaNormalizar(celdas[indice['Categoría']]));
+    if (!categoria) erroresFila.push(`categoría "${cajaEscape(celdas[indice['Categoría']])}" no existe`);
+
+    const monto = cajaParsearMonto(celdas[indice['Monto']]);
+    if (!Number.isFinite(monto)) erroresFila.push('monto inválido');
+    else if (monto <= 0) erroresFila.push('el monto debe ser positivo (el tipo lo define la categoría)');
+
+    const metodo_pago = cajaParsearMetodo(celdas[indice['Método de pago']]);
+    if (!metodo_pago) erroresFila.push('método de pago debe ser Efectivo o Mercado Pago');
+
+    if (erroresFila.length > 0) {
+      errores.push(`Fila ${numFila}: ${erroresFila.join(', ')}`);
+      return;
+    }
+
+    const descripcion = indice['Descripción'] >= 0 ? String(celdas[indice['Descripción']] ?? '').trim() : '';
+    validas.push({ fecha, categoria_id: categoria.id, tipo: categoria.tipo, monto, metodo_pago, descripcion: descripcion || null });
+  });
+
+  if (errores.length > 0) {
+    mostrarErroresImportacionCaja(errores);
+    return;
+  }
+
+  cajaImportPendiente = validas;
+  mostrarConfirmacionImportacionCaja(validas);
+}
+
+function cajaAbrirModal(contenidoHTML) {
+  cerrarModalImportacionCaja();
+  const modal = document.createElement('div');
+  modal.id = 'modalImportacionCaja';
+  modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px;';
+  modal.innerHTML = `<div style="background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;">${contenidoHTML}</div>`;
+  modal.addEventListener('click', (e) => { if (e.target === modal) cerrarModalImportacionCaja(); });
+  document.body.appendChild(modal);
+}
+
+function cerrarModalImportacionCaja() {
+  document.getElementById('modalImportacionCaja')?.remove();
+}
+
+function mostrarErroresImportacionCaja(errores) {
+  const MAX_VISIBLES = 50;
+  const visibles = errores.slice(0, MAX_VISIBLES);
+  const resto = errores.length - visibles.length;
+
+  cajaAbrirModal(`
+    <h2 style="margin: 0 0 16px; color: #c5221f;">No se pudo importar</h2>
+    <div style="background: #fce8e6; border: 1px solid #f1d5d3; border-radius: 8px; padding: 14px; margin-bottom: 16px; max-height: 300px; overflow-y: auto; font-size: 13px;">
+      ${visibles.map(e => `<div style="margin-bottom: 6px;">❌ ${e.startsWith('Fila') ? e : cajaEscape(e)}</div>`).join('')}
+      ${resto > 0 ? `<div style="color: #666;">… y ${resto} errores más.</div>` : ''}
+    </div>
+    <p style="font-size: 13px; color: #666; margin: 0 0 16px;">No se guardó ninguna fila. Corregí el Excel y volvé a intentar.</p>
+    <button class="btn btn-primary" style="width: 100%;" onclick="cerrarModalImportacionCaja()">Cerrar</button>
+  `);
+}
+
+function mostrarConfirmacionImportacionCaja(filas) {
+  const total = (tipo) => filas.filter(f => f.tipo === tipo).reduce((suma, f) => suma + f.monto, 0);
+  const ingresos = filas.filter(f => f.tipo === 'ingreso');
+  const egresos = filas.filter(f => f.tipo === 'egreso');
+
+  cajaAbrirModal(`
+    <h2 style="margin: 0 0 16px; color: #7f1f6e;">Confirmar importación</h2>
+    <div style="background: #f5f5f5; border-radius: 8px; padding: 16px; margin-bottom: 16px; text-align: center;">
+      <div style="font-size: 32px; font-weight: 700; color: #7f1f6e;">${filas.length}</div>
+      <div style="color: #666;">transacciones para importar</div>
+    </div>
+    <div style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 13px;">
+      <div style="flex: 1; background: #e8f5e9; border-radius: 8px; padding: 12px;">
+        <div style="color: #2e7d32; font-weight: 600;">Ingresos (${ingresos.length})</div>
+        <div style="font-size: 16px; font-weight: 700;">${formatearMonto(total('ingreso'))}</div>
+      </div>
+      <div style="flex: 1; background: #ffebee; border-radius: 8px; padding: 12px;">
+        <div style="color: #c62828; font-weight: 600;">Egresos (${egresos.length})</div>
+        <div style="font-size: 16px; font-weight: 700;">${formatearMonto(total('egreso'))}</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalImportacionCaja()">Cancelar</button>
+      <button id="btnConfirmarImportacionCaja" class="btn btn-primary" style="flex: 1;" onclick="ejecutarImportacionCaja()">Confirmar importación</button>
+    </div>
+  `);
+}
+
+async function ejecutarImportacionCaja(confirmarDuplicados = false) {
+  if (!cajaImportPendiente) return;
+
+  const boton = document.getElementById('btnConfirmarImportacionCaja');
+  if (boton) { boton.disabled = true; boton.textContent = 'Importando...'; }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/caja/transacciones/importar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        transacciones: cajaImportPendiente.map(({ fecha, categoria_id, monto, metodo_pago, descripcion }) =>
+          ({ fecha, categoria_id, monto, metodo_pago, descripcion })),
+        confirmar_duplicados: confirmarDuplicados
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (response.status === 409 && data.duplicadas) {
+      if (boton) { boton.disabled = false; boton.textContent = 'Confirmar importación'; }
+      if (confirm(`${data.error}.\n\nSi importás de nuevo se van a DUPLICAR en la caja.\n\n¿Importar igual?`)) {
+        return ejecutarImportacionCaja(true);
+      }
+      return;
+    }
+
+    if (!response.ok) {
+      const detalles = Array.isArray(data.detalles) ? data.detalles : [data.error || 'Error al importar'];
+      mostrarErroresImportacionCaja(detalles);
+      return;
+    }
+
+    cajaImportPendiente = null;
+    cerrarModalImportacionCaja();
+    alert(`✅ ${data.data.insertadas} transacciones importadas correctamente`);
+
+    await loadCajaTransacciones();
+    renderCajaTransacciones();
+    updateCajaResumen();
+  } catch (error) {
+    console.error('❌ Error importando transacciones:', error);
+    if (boton) { boton.disabled = false; boton.textContent = 'Confirmar importación'; }
+    alert('Error al conectar con el servidor. No se importó nada.');
   }
 }
 
