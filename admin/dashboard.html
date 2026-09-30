@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026090721">
+    <link rel="stylesheet" href="../css/admin.css?v=2026093001">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -95,23 +95,28 @@
             <div id="dashboard-page" class="page">
                 <h1 class="page-title">Resumen</h1>
 
-                <!-- STATS -->
+                <!-- STATS: pedidos pendientes, pedidos del mes (cantidad y $) y efectivo / Mercado Pago históricos -->
+                <div id="stat-periodo" style="font-size: 13px; color: #666; margin-bottom: 8px;"></div>
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Pedidos Pendientes</div>
+                        <div class="stat-label">Pedidos pendientes</div>
                         <div class="stat-value" id="stat-pending">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Pedidos Completados</div>
-                        <div class="stat-value" id="stat-completed">0</div>
+                        <div class="stat-label">Pedidos del mes</div>
+                        <div class="stat-value" id="stat-month-count">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Total Ventas</div>
-                        <div class="stat-value" id="stat-sales">$0</div>
+                        <div class="stat-label">Total pedidos del mes ($)</div>
+                        <div class="stat-value" id="stat-month-total">$0,00</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Productos Activos</div>
-                        <div class="stat-value" id="stat-products">0</div>
+                        <div class="stat-label">💵 Efectivo (histórico)</div>
+                        <div class="stat-value" id="stat-cash">$0,00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">💳 Mercado Pago (histórico)</div>
+                        <div class="stat-value" id="stat-mp">$0,00</div>
                     </div>
                 </div>
 
@@ -482,10 +487,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="../js/admin.js?v=2026090721"></script>
+    <script src="../js/admin.js?v=2026093001"></script>
     <script src="../js/admin-clientes.js?v=2026090721"></script>
     <script src="../js/admin-calendario.js?v=2026090721"></script>
-    <script src="../js/admin-caja.js?v=2026093007"></script>
+    <script src="../js/admin-caja.js?v=2026093008"></script>
 
     <!-- MODAL DETALLE PRODUCTO -->
     <div id="productDetailModal" class="modal">

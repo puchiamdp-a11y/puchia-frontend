@@ -603,21 +603,9 @@ function formatearMonto(monto) {
 // Ninguna depende de los filtros de la tabla (el resumen gris de la tabla es el que sigue a los filtros).
 async function updateCajaResumen() {
   const ahora = new Date();
-  const anio = ahora.getFullYear();
-  const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-  const ultimoDia = new Date(anio, ahora.getMonth() + 1, 0).getDate();
 
   try {
-    const params = new URLSearchParams({
-      fecha_desde: `${anio}-${mes}-01`,
-      fecha_hasta: `${anio}-${mes}-${String(ultimoDia).padStart(2, '0')}`
-    });
-    const response = await fetch(`${API_BASE_URL}/admin/caja/resumen?${params}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}` }
-    });
-    if (!response.ok) throw new Error('Error al cargar el resumen de caja');
-
-    const { mes: delMes, historico } = (await response.json()).data;
+    const { mes: delMes, historico } = await cargarResumenCaja();
     const saldoNeto = delMes.ingresos - delMes.egresos;
 
     const ingresosEl = document.getElementById('cajaIngresos');

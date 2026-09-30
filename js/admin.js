@@ -321,45 +321,79 @@ function setupEventListeners() {
 
 // ==================== DASHBOARD ====================
 
+// Mes actual en hora local: días (para Caja, que guarda fechas "solo día") e instantes exactos
+// (para pedidos, que tienen hora). Así un pedido de las 22:00 del día 30 no cae en el mes siguiente.
+function rangoMesActual() {
+  const ahora = new Date();
+  const anio = ahora.getFullYear();
+  const mes = ahora.getMonth();
+  const dos = (n) => String(n).padStart(2, '0');
+  return {
+    etiqueta: ahora.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }),
+    diaDesde: `${anio}-${dos(mes + 1)}-01`,
+    diaHasta: `${anio}-${dos(mes + 1)}-${dos(new Date(anio, mes + 1, 0).getDate())}`,
+    instanteDesde: new Date(anio, mes, 1).toISOString(),
+    instanteHasta: new Date(anio, mes + 1, 1).toISOString()
+  };
+}
+
+// Resumen de Caja: ingresos/egresos del mes actual y efectivo / Mercado Pago históricos.
+// Lo usan las tarjetas de Resumen y las de Caja.
+async function cargarResumenCaja() {
+  const { diaDesde, diaHasta } = rangoMesActual();
+  const params = new URLSearchParams({ fecha_desde: diaDesde, fecha_hasta: diaHasta });
+  const response = await fetch(`${API_BASE_URL}/admin/caja/resumen?${params}`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}` }
+  });
+  if (!response.ok) throw new Error('Error al cargar el resumen de caja');
+  const data = (await response.json()).data;
+  if (!data?.mes || !data?.historico) throw new Error('Respuesta de resumen de caja inválida');
+  return data;
+}
+
+function formatoPesosResumen(monto) {
+  const [enteros, decimales] = Number(monto || 0).toFixed(2).split('.');
+  return `$${enteros.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimales}`;
+}
+
+// Tarjetas de Resumen: pedidos pendientes (todos los meses), pedidos del mes (cantidad y $)
+// y efectivo / Mercado Pago históricos.
 async function loadDashboardStats() {
-  try {
-    const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/auth/dashboard`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+  const token = localStorage.getItem('puchia_admin_token');
+  const rango = rangoMesActual();
+  const params = new URLSearchParams({ desde: rango.instanteDesde, hasta: rango.instanteHasta });
 
-    const data = await response.json();
+  const pedidos = fetch(`${API_BASE_URL}/admin/auth/dashboard?${params}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }).then(r => r.json());
 
-    if (data.success) {
-      // Usar allOrdersData si está disponible, sino usar datos del backend
-      if (allOrdersData && allOrdersData.length > 0) {
-        updateDashboardStatsFromOrders();
-      } else {
-        // Fallback al backend si allOrdersData no está cargado
-        document.getElementById('stat-pending').textContent = data.data.ordenes_pendientes || 0;
-        document.getElementById('stat-completed').textContent = data.data.ordenes_completadas || 0;
-      }
-      document.getElementById('stat-sales').textContent = `$${(data.data.total_ventas || 0).toLocaleString()}`;
-      document.getElementById('stat-products').textContent = data.data.productos_habilitados || 0;
-    }
-  } catch (error) {
-    console.error('Error cargando stats:', error);
+  const [pedidosRes, cajaRes] = await Promise.allSettled([pedidos, cargarResumenCaja()]);
+
+  if (pedidosRes.status === 'fulfilled' && pedidosRes.value.success) {
+    const d = pedidosRes.value.data;
+    document.getElementById('stat-pending').textContent = d.pedidos_pendientes ?? 0;
+    document.getElementById('stat-month-count').textContent = d.pedidos_mes?.cantidad ?? 0;
+    document.getElementById('stat-month-total').textContent = formatoPesosResumen(d.pedidos_mes?.total);
+  } else {
+    console.error('Error cargando stats de pedidos:', pedidosRes.reason || pedidosRes.value);
+  }
+
+  if (cajaRes.status === 'fulfilled') {
+    document.getElementById('stat-cash').textContent = formatoPesosResumen(cajaRes.value.historico.efectivo);
+    document.getElementById('stat-mp').textContent = formatoPesosResumen(cajaRes.value.historico.mercado_pago);
+  } else {
+    console.error('Error cargando stats de caja:', cajaRes.reason);
+  }
+
+  const periodoEl = document.getElementById('stat-periodo');
+  if (periodoEl) {
+    periodoEl.textContent = `📅 Pedidos del mes: ${rango.etiqueta}  ·  Pendientes: todos los meses  ·  💵💳 Efectivo y Mercado Pago: histórico acumulado`;
   }
 }
 
+// Se llama cada vez que cambian los pedidos (cambio de estado, edición, borrado): refresca las tarjetas
 function updateDashboardStatsFromOrders() {
-  // Contar órdenes: pendientes = TODAS excepto "Entregado"
-  const pendientes = allOrdersData.filter(o => o.estado !== 'entregado').length;
-  const completadas = allOrdersData.filter(o => o.estado === 'entregado').length;
-
-  const statPendingEl = document.getElementById('stat-pending');
-  const statCompletedEl = document.getElementById('stat-completed');
-
-  if (statPendingEl) statPendingEl.textContent = pendientes;
-  if (statCompletedEl) statCompletedEl.textContent = completadas;
-
+  loadDashboardStats();
 }
 
 async function loadRecentOrders() {

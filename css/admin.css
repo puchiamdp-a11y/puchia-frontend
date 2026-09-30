@@ -758,3 +758,49 @@ select:focus {
     gap: 10px;
     flex-wrap: wrap;
 }
+
+/* ==================== TARJETAS DE RESUMEN (5) ==================== */
+/* Pantallas muy anchas: las 5 en una fila (pendientes, pedidos del mes, total $, efectivo, Mercado Pago).
+   Medianas: 3 arriba y 2 más anchas abajo (efectivo y Mercado Pago juntos). Celulares: una por fila.
+   El importe nunca se parte en dos renglones. */
+#dashboard-page .stats-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+#dashboard-page .stat-card {
+    padding: 20px;
+}
+
+#dashboard-page .stat-value {
+    font-size: 22px;
+    white-space: nowrap;
+}
+
+@media (max-width: 1599px) {
+    #dashboard-page .stats-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    #dashboard-page .stat-card {
+        grid-column: span 2;
+    }
+
+    #dashboard-page .stat-card:nth-child(n + 4) {
+        grid-column: span 3;
+    }
+
+    #dashboard-page .stat-value {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 768px) {
+    #dashboard-page .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #dashboard-page .stat-card,
+    #dashboard-page .stat-card:nth-child(n + 4) {
+        grid-column: auto;
+    }
+}
