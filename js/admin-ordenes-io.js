@@ -5,7 +5,7 @@
 
 const PEDIDOS_CANT_COLUMNAS_PRODUCTO = 6;
 const PEDIDOS_COLUMNAS_PRODUCTO = Array.from({ length: PEDIDOS_CANT_COLUMNAS_PRODUCTO }, (_, i) => `Producto ${i + 1}`);
-const PEDIDOS_COLUMNAS_EXCEL = ['Fecha del pedido', 'Cliente', 'WhatsApp', 'Email', 'DNI', ...PEDIDOS_COLUMNAS_PRODUCTO, 'Total', 'Seña', 'Estado', 'Fecha de entrega'];
+const PEDIDOS_COLUMNAS_EXCEL = ['Fecha del pedido', 'Cliente', 'Código de cliente', 'WhatsApp', 'Email', 'DNI', ...PEDIDOS_COLUMNAS_PRODUCTO, 'Total', 'Seña', 'Estado', 'Fecha de entrega'];
 const PEDIDOS_ESTADOS_TEXTO = 'Pendiente, Señado, Preparándose, Listo para retirar, Entregado o Anulado';
 const PEDIDOS_COLUMNAS_OBLIGATORIAS = ['Fecha del pedido', 'Cliente', 'Total'];
 const PEDIDOS_IMPORT_MAX_FILAS = 500;
@@ -14,7 +14,7 @@ let pedidosImportPendiente = null;
 function exportarPlantillaPedidos() {
   const wsPedidos = XLSX.utils.aoa_to_sheet([PEDIDOS_COLUMNAS_EXCEL]);
   wsPedidos['!cols'] = PEDIDOS_COLUMNAS_EXCEL.map(col =>
-    ({ wch: col === 'Cliente' || col === 'Email' ? 26 : col.startsWith('Producto') ? 22 : 16 }));
+    ({ wch: col === 'Cliente' || col === 'Email' ? 26 : col.startsWith('Producto') ? 22 : col === 'Código de cliente' ? 18 : 16 }));
 
   // Nota en el encabezado "Estado" con las opciones (al pasar el mouse por la celda)
   const celdaEstado = XLSX.utils.encode_cell({ r: 0, c: PEDIDOS_COLUMNAS_EXCEL.indexOf('Estado') });
@@ -25,6 +25,7 @@ function exportarPlantillaPedidos() {
     [''],
     ['Fecha del pedido', 'Obligatoria. Día en que se hizo el pedido, dd/mm/aaaa (ej: 15/09/2026).'],
     ['Cliente', 'Obligatorio. Nombre del cliente.'],
+    ['Código de cliente', 'Opcional (ej: J0345). Si ya existe, el pedido se asocia a ese cliente; si no existe, se crea el cliente con ese código. Si el código es de otra persona que la del nombre, te avisa. Vacío: se busca por WhatsApp, email o DNI y, si no está, se crea con el próximo código.'],
     ['WhatsApp / Email / DNI', 'Opcionales, pero sirven para reconocer al cliente: si ya existe con ese WhatsApp, email o DNI se usa el mismo; si no, se crea uno nuevo.'],
     [`Producto 1 … Producto ${PEDIDOS_CANT_COLUMNAS_PRODUCTO}`, `Opcionales. Un producto por columna, escrito como texto (ej: "2 tazas"). Si necesitás más, agregá columnas "Producto ${PEDIDOS_CANT_COLUMNAS_PRODUCTO + 1}", "Producto ${PEDIDOS_CANT_COLUMNAS_PRODUCTO + 2}"… a la derecha.`],
     ['Total', 'Obligatorio. Importe total del pedido, positivo (ej: 15000 o 15000,50).'],
@@ -178,6 +179,7 @@ function procesarImportacionPedidos(filas) {
       fila: numFila,
       fecha,
       cliente_nombre: texto(celdas, 'Cliente'),
+      cliente_codigo: texto(celdas, 'Código de cliente'),
       cliente_whatsapp: texto(celdas, 'WhatsApp'),
       cliente_email: texto(celdas, 'Email'),
       cliente_dni: texto(celdas, 'DNI'),
