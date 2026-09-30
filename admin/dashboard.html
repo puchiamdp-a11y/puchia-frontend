@@ -366,18 +366,24 @@
                 <h1 class="page-title">Gestión de Categorías</h1>
 
                 <!-- Formulario para crear/editar categoría -->
-                <div id="categoria-form" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9;">
-                    <h3 style="margin-top: 0;">Nueva Categoría</h3>
+                <div id="categoria-form" class="categoria-form">
+                    <h3 class="categoria-form-title">Nueva Categoría</h3>
                     <input type="hidden" id="categoriaId">
-                    <div class="form-group">
-                        <input type="text" id="categoriaNombre" placeholder="Nombre de la categoría" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
-                    </div>
-                    <div class="form-group">
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="text" id="categoriaEmoji" placeholder="Emoji o icono" maxlength="10" readonly style="width: 60px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; text-align: center; font-size: 24px; cursor: pointer;">
-                            <button type="button" id="abrirEmojiPickerBtn" class="btn btn-secondary" style="padding: 8px 16px;">Elegir emoji</button>
+
+                    <div class="categoria-form-row">
+                        <div class="form-group categoria-field-nombre">
+                            <label for="categoriaNombre">Nombre</label>
+                            <input type="text" id="categoriaNombre" placeholder="Ej: Combos" required>
+                        </div>
+                        <div class="form-group categoria-field-emoji">
+                            <label for="categoriaEmoji">Emoji</label>
+                            <div class="categoria-emoji-picker">
+                                <input type="text" id="categoriaEmoji" placeholder="📦" maxlength="10" readonly>
+                                <button type="button" id="abrirEmojiPickerBtn" class="btn btn-secondary">Elegir</button>
+                            </div>
                         </div>
                     </div>
+
 
                     <!-- Emoji Picker Modal -->
                     <div id="emojiPickerModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
@@ -389,17 +395,24 @@
                             <button type="button" id="cerrarEmojiPickerBtn" class="btn btn-secondary" style="width: 100%;">Cerrar</button>
                         </div>
                     </div>
+
                     <div class="form-group">
-                        <textarea id="categoriaDescripcion" placeholder="Descripción (opcional)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; min-height: 80px;"></textarea>
+                        <label for="categoriaDescripcion">Descripción <span class="categoria-optional">(opcional)</span></label>
+                        <textarea id="categoriaDescripcion" placeholder="Breve descripción de la categoría" rows="3"></textarea>
                     </div>
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+
+                    <div class="categoria-menu-option">
+                        <label class="checkbox-label">
                             <input type="checkbox" id="categoriaEnMenu">
-                            <span>Mostrar como botón en el menú principal <small style="color: #999;">(solo una categoría a la vez)</small></span>
+                            <span>Mostrar como botón en el menú principal</span>
                         </label>
+                        <p class="categoria-hint">Solo una categoría puede estar en el menú a la vez: al marcar esta, se desmarca la anterior.</p>
                     </div>
-                    <button id="guardarCategoriaBtn" class="btn btn-primary">Guardar Categoría</button>
-                    <button id="cancelarCategoriaBtn" class="btn btn-secondary" style="display: none; margin-left: 10px;">Cancelar</button>
+
+                    <div class="categoria-form-actions">
+                        <button id="guardarCategoriaBtn" class="btn btn-primary">Guardar Categoría</button>
+                        <button id="cancelarCategoriaBtn" class="btn btn-secondary" style="display: none;">Cancelar</button>
+                    </div>
                 </div>
 
                 <!-- Tabla de categorías -->

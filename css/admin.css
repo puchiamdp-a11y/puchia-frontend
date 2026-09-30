@@ -680,3 +680,81 @@ select:focus {
     font-weight: 700;
     color: #7f1f6e;
 }
+/* ==================== FORMULARIO DE CATEGORÍAS ==================== */
+
+.categoria-form {
+    margin-bottom: 24px;
+    padding: 24px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.categoria-form-title {
+    margin: 0 0 20px;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
+.categoria-form-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.categoria-field-nombre {
+    flex: 1 1 260px;
+}
+
+.categoria-field-emoji {
+    flex: 0 0 auto;
+}
+
+.categoria-emoji-picker {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.categoria-emoji-picker input {
+    width: 64px;
+    text-align: center;
+    font-size: 22px;
+    padding: 6px;
+    cursor: pointer;
+}
+
+.categoria-optional {
+    font-weight: 400;
+    color: #999;
+}
+
+.categoria-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.categoria-menu-option {
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    border: 1px solid #ece4ea;
+    border-radius: 8px;
+    background: #faf6f9;
+}
+
+.categoria-menu-option .checkbox-label {
+    margin-bottom: 4px;
+}
+
+.categoria-hint {
+    margin: 0 0 0 26px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #777;
+}
+
+.categoria-form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
