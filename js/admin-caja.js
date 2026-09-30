@@ -825,7 +825,12 @@ function actualizarTipoDetectado() {
     indicador.style.display = 'block';
   } else {
     // Mostrar el tipo que se registrará según la categoría
-    validacion = `✅ Se registrará como ${tipo.toUpperCase()}`;
+    const original = cajaState.modalTransaccionEditando
+      ? cajaState.transacciones.find(t => t.id === cajaState.modalTransaccionEditando)
+      : null;
+    validacion = original && original.tipo !== tipo
+      ? `🔄 Este movimiento pasará de ${original.tipo.toUpperCase()} a ${tipo.toUpperCase()}`
+      : `✅ Se registrará como ${tipo.toUpperCase()}`;
     color = tipo === 'ingreso' ? '#4caf50' : '#f44336';
     indicador.style.display = 'block';
   }
