@@ -144,36 +144,6 @@ async function loadCajaTransacciones(page = 1) {
   }
 }
 
-// Cargar TODAS las transacciones del mes actual para el resumen
-async function loadAllTransaccionesForResumen() {
-  try {
-    const ahora = new Date();
-    const primerDia = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
-    const ultimoDia = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0).toISOString().split('T')[0];
-
-    const params = new URLSearchParams({
-      pagina: 1,
-      limite: 10000, // Cargar muchas a la vez
-      fecha_desde: primerDia,
-      fecha_hasta: ultimoDia
-    });
-
-    const response = await fetch(`${API_BASE_URL}/admin/caja/transacciones?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
-      }
-    });
-
-    if (!response.ok) throw new Error('Error al cargar transacciones para resumen');
-
-    const data = await response.json();
-    return data.data || [];
-  } catch (error) {
-    console.error('❌ Error cargando transacciones para resumen:', error);
-    return [];
-  }
-}
-
 // ==================== RENDERIZAR INTERFAZ ====================
 async function renderCajaInterface() {
   const cajaPage = document.getElementById('caja-page');
@@ -182,7 +152,7 @@ async function renderCajaInterface() {
   cajaPage.innerHTML = `
     <h1 class="page-title">💰 Caja</h1>
 
-    <!-- RESUMEN DEL MES ACTUAL -->
+    <!-- TARJETAS: siguen a los filtros; sin filtros, todo el histórico -->
     <div id="cajaResumenPeriodo" style="font-size: 13px; color: #666; margin-bottom: 8px;"></div>
     <div class="stats-grid" style="margin-bottom: 32px;">
       <div class="stat-card">
@@ -419,6 +389,8 @@ function renderCajaTransacciones() {
   const fin = inicio + cajaState.itemsPerPage;
   const transaccionesPagina = transaccionesOrdenadas.slice(inicio, fin);
 
+  updateCajaResumen(transaccionesOrdenadas);
+
   // Resumen de TODOS los movimientos del filtro (no solo los de la página visible)
   let totalIngresos = 0;
   let totalEgresos = 0;
@@ -629,22 +601,15 @@ function formatearMonto(monto) {
 }
 
 // ==================== ACTUALIZAR RESUMEN ====================
-async function updateCajaResumen() {
-  // Cargar todas las transacciones del mes para cálculo correcto
-  const transaccionesTodas = await loadAllTransaccionesForResumen();
-
-  const periodoEl = document.getElementById('cajaResumenPeriodo');
-  if (periodoEl) {
-    const mes = new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
-    periodoEl.textContent = `📅 Las tarjetas muestran solo el mes actual (${mes}). Para otro período usá los filtros: el resumen gris de abajo suma todo lo filtrado.`;
-  }
-
+// Las tarjetas suman los mismos movimientos que muestra la tabla: sin filtros, todo el histórico;
+// con filtros (fechas, tipo, categoría, búsqueda), solo lo filtrado.
+function updateCajaResumen(lista = cajaState.transacciones) {
   let totalIngresos = 0;
   let totalEgresos = 0;
   let totalEfectivo = 0;
   let totalMercadoPago = 0;
 
-  transaccionesTodas.forEach(t => {
+  lista.forEach(t => {
     const monto = parseFloat(t.monto);
 
     if (t.tipo === 'ingreso') {
@@ -680,6 +645,30 @@ async function updateCajaResumen() {
 
   if (efectivoEl) efectivoEl.textContent = formatearMonto(totalEfectivo);
   if (mercadoPagoEl) mercadoPagoEl.textContent = formatearMonto(totalMercadoPago);
+
+  actualizarPeriodoResumenCaja(lista.length);
+}
+
+function actualizarPeriodoResumenCaja(cantidad) {
+  const periodoEl = document.getElementById('cajaResumenPeriodo');
+  if (!periodoEl) return;
+
+  const f = cajaState.filters;
+  const fmtFecha = (iso) => iso.split('-').reverse().join('/');
+  const partes = [];
+  if (f.fecha_desde || f.fecha_hasta) {
+    partes.push(`fechas: ${f.fecha_desde ? 'desde ' + fmtFecha(f.fecha_desde) : ''}${f.fecha_desde && f.fecha_hasta ? ' ' : ''}${f.fecha_hasta ? 'hasta ' + fmtFecha(f.fecha_hasta) : ''}`);
+  }
+  if (f.tipo) partes.push(`tipo: ${f.tipo}`);
+  if (f.categoria_id) {
+    const cat = cajaState.categorias.find(c => c.id === f.categoria_id);
+    partes.push(`categoría: ${cat ? cat.nombre : f.categoria_id}`);
+  }
+  if (f.busqueda) partes.push(`búsqueda: "${f.busqueda}"`);
+
+  periodoEl.textContent = partes.length
+    ? `🔎 Tarjetas según tus filtros (${partes.join(' · ')}) — ${cantidad} movimientos`
+    : `📊 Histórico completo — ${cantidad} movimientos`;
 }
 
 // ==================== FUNCIONES DE TABS ====================
