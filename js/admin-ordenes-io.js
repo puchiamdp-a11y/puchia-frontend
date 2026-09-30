@@ -300,3 +300,99 @@ async function ejecutarImportacionPedidos(confirmarDuplicados) {
     alert('Error al conectar con el servidor. No se importó nada.');
   }
 }
+
+// ==================== DESHACER IMPORTACIONES / RECALCULAR CÓDIGOS ====================
+
+async function llamarApiPedidosIO(ruta, cuerpo) {
+  const response = await fetch(`${API_BASE_URL}${ruta}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(cuerpo || {})
+  });
+  const data = await response.json().catch(() => ({}));
+  return { response, data };
+}
+
+// Primero muestra QUÉ se borraría; recién después de escribir BORRAR se ejecuta
+async function deshacerImportacionesPedidos() {
+  try {
+    const { response, data } = await llamarApiPedidosIO('/admin/ordenes/importadas/deshacer', { simular: true });
+    if (!response.ok) { alert(data.error || 'No se pudo consultar las importaciones'); return; }
+
+    const r = data.data;
+    if (r.pedidos === 0) {
+      alert('No hay pedidos importados (con código IMP-) para deshacer.');
+      return;
+    }
+
+    const clientes = r.lista_clientes.map(c => `<li>${cajaEscape(c.codigo)} — ${cajaEscape(c.nombre)}</li>`).join('');
+    cajaAbrirModal(`
+      <h2 style="margin: 0 0 12px; color: #c5221f;">Deshacer importaciones</h2>
+      <p style="font-size: 13px; color: #555; margin: 0 0 14px;">Se van a borrar <strong>definitivamente</strong>:</p>
+      <div style="background: #fce8e6; border: 1px solid #f1d5d3; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.7;">
+        🧾 <strong>${r.pedidos}</strong> pedido(s) importado(s) (código IMP-)<br>
+        👥 <strong>${r.clientes}</strong> cliente(s) que esas importaciones crearon
+        ${clientes ? `<ul style="margin: 8px 0 0; padding-left: 20px; max-height: 140px; overflow-y: auto;">${clientes}</ul>` : ''}
+        ${r.clientes > r.lista_clientes.length ? `<div style="color: #666;">… y ${r.clientes - r.lista_clientes.length} más.</div>` : ''}
+      </div>
+      <div style="background: #f9f9f9; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #555; line-height: 1.6;">
+        ✅ No se toca la Caja, los productos ni los clientes que ya existían antes.<br>
+        ${r.clientes_conservados > 0 ? `✅ ${r.clientes_conservados} cliente(s) se conservan porque tienen otros pedidos.<br>` : ''}
+        ${r.pedidos_con_caja_omitidos > 0 ? `✅ ${r.pedidos_con_caja_omitidos} pedido(s) se conservan porque tienen movimientos de caja.<br>` : ''}
+        ➡️ Después se recalcula el contador de códigos de cliente.
+      </div>
+      <div style="background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px;">
+        ⚠️ Esto borra <strong>todos</strong> los pedidos IMP-, también los que hayas importado bien. Usalo solo para empezar de cero.
+      </div>
+      <label style="font-size: 12px; color: #555;">Para confirmar, escribí <strong>BORRAR</strong>:</label>
+      <input id="inputConfirmarDeshacer" type="text" autocomplete="off" style="width: 100%; margin: 6px 0 16px;">
+      <div style="display: flex; gap: 12px;">
+        <button class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalImportacionCaja()">Cancelar</button>
+        <button id="btnConfirmarDeshacer" class="btn btn-danger" style="flex: 1;" disabled onclick="ejecutarDeshacerImportaciones()">Borrar definitivamente</button>
+      </div>
+    `);
+    document.getElementById('inputConfirmarDeshacer').addEventListener('input', (e) => {
+      document.getElementById('btnConfirmarDeshacer').disabled = e.target.value.trim().toUpperCase() !== 'BORRAR';
+    });
+  } catch (error) {
+    console.error('❌ Error consultando importaciones:', error);
+    alert('Error al conectar con el servidor.');
+  }
+}
+
+async function ejecutarDeshacerImportaciones() {
+  const boton = document.getElementById('btnConfirmarDeshacer');
+  if (boton) { boton.disabled = true; boton.textContent = 'Borrando...'; }
+
+  try {
+    const { response, data } = await llamarApiPedidosIO('/admin/ordenes/importadas/deshacer', { confirmar: true });
+    if (!response.ok) {
+      cerrarModalImportacionCaja();
+      alert(data.error || 'No se pudo deshacer la importación');
+      return;
+    }
+    cerrarModalImportacionCaja();
+    alert(`✅ ${data.message}`);
+    if (typeof loadAllOrders === 'function') loadAllOrders();
+    if (typeof loadDashboardStats === 'function') loadDashboardStats();
+    if (typeof listarClientes === 'function') listarClientes();
+  } catch (error) {
+    console.error('❌ Error deshaciendo importaciones:', error);
+    alert('Error al conectar con el servidor. Revisá la lista de pedidos antes de reintentar.');
+  }
+}
+
+// Deja el contador en el mayor código J cargado: el próximo cliente nuevo será el siguiente
+async function recalcularProximoCodigoCliente() {
+  try {
+    const { response, data } = await llamarApiPedidosIO('/admin/clientes/recalcular-secuencial', {});
+    if (!response.ok) { alert(data.error || data.message || 'No se pudo recalcular el contador'); return; }
+    alert(`🔢 ${data.message}`);
+  } catch (error) {
+    console.error('❌ Error recalculando contador:', error);
+    alert('Error al conectar con el servidor.');
+  }
+}

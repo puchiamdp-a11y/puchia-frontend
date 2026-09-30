@@ -253,6 +253,9 @@
                     <button class="btn btn-secondary" onclick="importarPedidos()" title="Carga pedidos desde el Excel completado, como registro (sin stock ni caja)" style="display: flex; align-items: center; gap: 8px;">
                         📤 Importar pedidos
                     </button>
+                    <button class="btn btn-secondary" onclick="deshacerImportacionesPedidos()" title="Borra los pedidos importados (IMP-) y los clientes que crearon esas importaciones" style="display: flex; align-items: center; gap: 8px;">
+                        ↩️ Deshacer importaciones
+                    </button>
                 </div>
 
                 <div class="table-container" style="overflow-x: auto;">
@@ -293,6 +296,7 @@
                     <button class="btn btn-primary" id="btnNuevoCliente">+ Nuevo Cliente</button>
                     <button class="btn btn-secondary" id="btnImportarExcel">📥 Importar Excel</button>
                     <button class="btn btn-secondary" id="btnExportarExcel">📤 Exportar Excel</button>
+                    <button class="btn btn-secondary" onclick="recalcularProximoCodigoCliente()" title="Deja el contador en el mayor código J que tengas cargado">🔢 Recalcular próximo código</button>
                     <a href="./admin-alertas-config.html" class="btn btn-secondary">🔔 Configurar Alertas</a>
                 </div>
 
@@ -497,7 +501,7 @@
     <script src="../js/admin-clientes.js?v=2026090721"></script>
     <script src="../js/admin-calendario.js?v=2026090721"></script>
     <script src="../js/admin-caja.js?v=2026093008"></script>
-    <script src="../js/admin-ordenes-io.js?v=2026093012"></script>
+    <script src="../js/admin-ordenes-io.js?v=2026093013"></script>
 
     <!-- MODAL DETALLE PRODUCTO -->
     <div id="productDetailModal" class="modal">
