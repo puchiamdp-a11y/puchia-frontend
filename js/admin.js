@@ -1472,16 +1472,53 @@ function createColoredStatusDropdown(ordenId, estadoActual) {
   `;
 }
 
+// El menú de estados flota por encima de la tabla (position: fixed): la tabla tiene overflow: hidden y,
+// dentro de ella, el menú quedaba cortado (sobre todo con pocas filas, p. ej. al buscar por nombre).
+// Se abre hacia abajo si hay lugar y hacia arriba si no.
+function cerrarMenusEstado() {
+  document.querySelectorAll('.status-dropdown-menu').forEach(m => { m.style.display = 'none'; });
+}
+
 function toggleStatusDropdown(btn) {
   const menu = btn.parentElement.querySelector('.status-dropdown-menu');
-  const allMenus = document.querySelectorAll('.status-dropdown-menu');
+  const estabaAbierto = menu.style.display === 'block';
 
-  allMenus.forEach(m => {
-    if (m !== menu) m.style.display = 'none';
-  });
+  cerrarMenusEstado();
+  if (estabaAbierto) return;
 
-  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  menu.style.display = 'block';
+
+  const r = btn.getBoundingClientRect();
+  const alto = Math.min(menu.scrollHeight, 220);
+  const lugarAbajo = window.innerHeight - r.bottom;
+  const abrirArriba = lugarAbajo < alto + 8 && r.top > lugarAbajo;
+
+  menu.style.position = 'fixed';
+  menu.style.left = `${r.left}px`;
+  menu.style.right = 'auto';
+  menu.style.minWidth = `${Math.max(140, r.width)}px`;
+  menu.style.zIndex = '3000';
+  if (abrirArriba) {
+    menu.style.top = 'auto';
+    menu.style.bottom = `${window.innerHeight - r.top}px`;
+    menu.style.borderTop = '1px solid #ddd';
+    menu.style.borderBottom = 'none';
+    menu.style.borderRadius = '4px 4px 0 0';
+  } else {
+    menu.style.top = `${r.bottom}px`;
+    menu.style.bottom = 'auto';
+    menu.style.borderTop = 'none';
+    menu.style.borderBottom = '1px solid #ddd';
+    menu.style.borderRadius = '0 0 4px 4px';
+  }
 }
+
+// Como el menú ya no se mueve con la tabla, se cierra al hacer clic afuera, desplazar o cambiar el tamaño
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.status-dropdown-wrapper')) cerrarMenusEstado();
+});
+window.addEventListener('scroll', cerrarMenusEstado, true);
+window.addEventListener('resize', cerrarMenusEstado);
 
 function selectOrderStatus(ordenId, estado, element) {
   const btn = element.parentElement.parentElement.querySelector('.status-dropdown-btn');
