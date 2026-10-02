@@ -1552,13 +1552,13 @@ function nextOrderPage() {
 // ==================== FICHERO DE PEDIDOS (solapas por estado) ====================
 // "Todos" muestra todos los pedidos; cada otra solapa filtra por su estado.
 const ORDER_TABS = [
-  { key: 'todos',         label: 'Todos',              color: '#90a4ae', tint: '#eceff1', text: '#263238' },
+  { key: 'todos',         label: 'Todos',              color: '#607d8b', tint: '#eceff1', text: '#263238' },
   { key: 'pendiente',     label: 'Pendiente',          color: '#757575', tint: '#f3f3f3', text: '#212121' },
   { key: 'señado',        label: 'Señado',             color: '#fbc02d', tint: '#fff8dc', text: '#5d4300' },
-  { key: 'preparandose',  label: 'Preparándose',       color: '#66bb6a', tint: '#e8f5e9', text: '#1b5e20' },
-  { key: 'listo_retirar', label: 'Listo para retirar', color: '#42a5f5', tint: '#e3f2fd', text: '#0d3c78' },
-  { key: 'entregado',     label: 'Entregado',          color: '#ba68c8', tint: '#f6e8f9', text: '#4a148c' },
-  { key: 'anulado',       label: 'Anulado',            color: '#ef5350', tint: '#fdeaea', text: '#7f0000' }
+  { key: 'preparandose',  label: 'Preparándose',       color: '#388e3c', tint: '#e8f5e9', text: '#1b5e20' },
+  { key: 'listo_retirar', label: 'Listo para retirar', color: '#1e88e5', tint: '#e3f2fd', text: '#0d3c78' },
+  { key: 'entregado',     label: 'Entregado',          color: '#9c27b0', tint: '#f6e8f9', text: '#4a148c' },
+  { key: 'anulado',       label: 'Anulado',            color: '#e53935', tint: '#fdeaea', text: '#7f0000' }
 ];
 let ordersActiveTab = 'todos';
 let ordersSearchText = '';
@@ -1585,7 +1585,7 @@ function renderOrdersTabs() {
       (q ? (t.key === 'todos' || ordenEnSolapa(o, t.key)) && ordenCoincideBusqueda(o, q) : ordenEnSolapa(o, t.key))
     ).length;
     const activa = t.key === ordersActiveTab;
-    return `<button type="button" role="tab" aria-selected="${activa}" class="orders-tab${activa ? ' active' : ''}"
+    return `<button type="button" role="tab" aria-selected="${activa}" data-key="${t.key}" class="orders-tab${activa ? ' active' : ''}"
       style="--tab-color:${t.color};--tab-tint:${t.tint};--tab-text:${t.text}" onclick="selectOrdersTab('${t.key}')">
       ${t.label} <span class="orders-tab-count">${n}</span></button>`;
   }).join('');

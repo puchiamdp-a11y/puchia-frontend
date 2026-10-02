@@ -814,9 +814,11 @@ select:focus {
   transition: opacity .15s, padding .15s;
 }
 .orders-tab:hover { filter: brightness(.95); }
-.orders-tab.active { padding-top: 11px; background: var(--tab-tint); border-color: var(--tab-color); position: relative; z-index: 2; margin-bottom: -2px; border-bottom: 2px solid var(--tab-tint); }
+.orders-tab.active { padding: 11px 18px 8px; font-size: 14px; font-weight: 800; background: var(--tab-color); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); border: 2px solid var(--tab-color); border-bottom: 3px solid var(--tab-color); position: relative; z-index: 2; margin-bottom: -3px; box-shadow: 0 -3px 8px rgba(0,0,0,.15); }
+.orders-tab.active[data-key="señado"] { color: #3e2c00; text-shadow: none; }
+.orders-tab.active .orders-tab-count { background: #fff; color: #222; text-shadow: none; }
 .orders-tab-count { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 6px; font-size: 11px; line-height: 18px; text-align: center; background: var(--tab-color); color: #fff; border-radius: 9px; text-shadow: 0 0 2px rgba(0,0,0,.45); }
-.orders-fichero { background: var(--tab-tint, #eceff1); border: 2px solid var(--tab-color, #90a4ae); border-radius: 0 10px 10px 10px; padding: 12px; position: relative; z-index: 1; }
+.orders-fichero { background: var(--tab-tint, #eceff1); border: 3px solid var(--tab-color, #90a4ae); border-radius: 0 10px 10px 10px; padding: 12px; position: relative; z-index: 1; }
 .orders-fichero .table-container { background: #fff; border-radius: 8px; }
 
 .menu-compartir-item { display: block; width: 100%; text-align: left; background: none; border: none; padding: 9px 12px; font-size: 13px; font-weight: 600; color: #333; border-radius: 6px; cursor: pointer; }
