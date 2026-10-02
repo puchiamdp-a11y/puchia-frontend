@@ -202,6 +202,7 @@ async function renderCajaInterface() {
         <div style="position: relative;">
           <button class="btn btn-secondary" onclick="toggleMenuCompartirCaja(event)" aria-haspopup="true">🔗 Compartir ▾</button>
           <div id="menuCompartirCaja" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 230px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
+            <button class="menu-compartir-item" onclick="exportarMovimientosCaja()" title="Descarga los movimientos que ves en la tabla (respeta la solapa y los filtros), con el mismo formato que se importa">📤 Exportar Excel</button>
             <button class="menu-compartir-item" onclick="exportarPlantillaCaja()" title="Descarga un Excel con el encabezado para completar">📄 Descargar plantilla</button>
             <button class="menu-compartir-item" onclick="importarTransaccionesCaja()" title="Carga transacciones desde el Excel completado">📤 Importar</button>
             <hr style="border: none; border-top: 1px solid #eee; margin: 4px 0;">
@@ -1168,6 +1169,33 @@ function cajaEscape(texto) {
 // Minúsculas, sin tildes ni espacios sobrantes: "  Método de Pago " -> "metodo de pago"
 function cajaNormalizar(texto) {
   return String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+// Exporta lo que se ve en la tabla (solapa + filtros + búsqueda) con las MISMAS columnas que usa la importación
+function exportarMovimientosCaja() {
+  let lista = [...cajaState.transacciones];
+  const q = (cajaState.filters.busqueda || '').toLowerCase();
+  if (q) lista = lista.filter(t => (t.descripcion || '').toLowerCase().includes(q) || (t.orden?.id_unico || '').toLowerCase().includes(q));
+  if (!lista.length) { puchiaAlert('No hay movimientos para exportar con los filtros actuales', 'warning'); return; }
+
+  lista.sort((a, b) => new Date(a.fecha_transaccion) - new Date(b.fecha_transaccion));
+  const fecha = (iso) => { const [y, m, d] = new Date(iso).toISOString().slice(0, 10).split('-'); return `${d}/${m}/${y}`; };   // día UTC, igual que los filtros
+  const filas = [CAJA_COLUMNAS_EXCEL, ...lista.map(t => [
+    fecha(t.fecha_transaccion),
+    t.categoria?.nombre || '',
+    Math.abs(parseFloat(t.monto)),
+    t.metodo_pago === 'mercado_pago' ? 'Mercado Pago' : 'Efectivo',
+    t.descripcion || ''
+  ])];
+
+  const ws = XLSX.utils.aoa_to_sheet(filas);
+  ws['!cols'] = [{ wch: 14 }, { wch: 28 }, { wch: 14 }, { wch: 18 }, { wch: 45 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Movimientos');
+  XLSX.writeFile(wb, `caja_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+  const faltan = (cajaState.totalEnServidor || 0) - cajaState.transacciones.length;
+  if (faltan > 0) puchiaAlert(`Se exportaron ${lista.length} movimientos. Hay ${faltan} más antiguos que no se cargan en pantalla: acotá las fechas para exportarlos.`, 'warning');
 }
 
 function exportarPlantillaCaja() {

@@ -384,7 +384,7 @@
                 <div id="importSection" style="display:none; background: #f8f8f8; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                     <h3 style="margin-bottom: 12px; font-size: 16px;">Importar Clientes desde Excel</h3>
                     <p style="font-size:13px;color:#666;margin-bottom:12px;">
-                        El archivo Excel debe tener las columnas en este orden: <strong>Código, Nombre, Teléfono (se guarda como WhatsApp), Cantidad Compras, Total Ventas, Inconsistencia</strong>. Descargá la plantilla desde "Compartir". Los códigos que ya existen se omiten.
+                        Usá el mismo formato que el Excel que exportás: descargá la plantilla desde "Compartir". Las columnas se leen por nombre (el código es opcional: si falta, se asigna el próximo). Los clientes cuyo código ya existe se omiten.
                     </p>
                     <input type="file" id="archivoExcel" accept=".xlsx,.xls" />
                     <button class="btn btn-primary" id="btnConfirmarImport" style="margin-top:10px;">Importar</button>
@@ -568,13 +568,13 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100217"></script>
+    <script src="../js/admin.js?v=2026100219"></script>
     <script src="../js/admin-clientes.js?v=2026100208"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
-    <script src="../js/admin-caja.js?v=2026100206"></script>
+    <script src="../js/admin-caja.js?v=2026100207"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>
     <script src="../js/admin-ordenes-io.js?v=2026100202"></script>
-    <script src="../js/admin-excel-extra.js?v=2026100201"></script>
+    <script src="../js/admin-excel-extra.js?v=2026100202"></script>
 
     <!-- MODAL DETALLE PRODUCTO -->
     <div id="productDetailModal" class="modal">

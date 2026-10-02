@@ -41,35 +41,23 @@ function descargarPlantillaProductos() {
 }
 
 // =====================================================================
-// PLANTILLA DE CLIENTES (el importador lee las columnas por POSICIÓN, en este orden)
+// PLANTILLA DE CLIENTES: la genera el servidor con las mismas columnas que el Excel exportado y el importador
 // =====================================================================
-const CLIENTES_COLUMNAS_EXCEL = ['Código', 'Nombre', 'Teléfono', 'Cantidad Compras', 'Total Ventas ($)', 'Inconsistencia'];
-
-function descargarPlantillaClientes() {
-  const ws = XLSX.utils.aoa_to_sheet([CLIENTES_COLUMNAS_EXCEL]);
-  ws['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 30 }];
-
-  const ayuda = [
-    ['CÓMO COMPLETAR LA HOJA "Clientes" (una fila por cliente)'],
-    [''],
-    ['Código', 'Obligatorio. Una letra y números (ej: J0345, P012). Se guarda tal cual. Si ese código ya existe en el sistema, la fila se omite (no se pisa el cliente existente).'],
-    ['Nombre', 'Obligatorio.'],
-    ['Teléfono', 'Opcional. Se guarda como WhatsApp (solo los dígitos).'],
-    ['Cantidad Compras', 'Opcional. Cantidad de compras anteriores: se guarda como "pedidos históricos".'],
-    ['Total Ventas ($)', 'Opcional. Informativo, no se guarda.'],
-    ['Inconsistencia', 'Opcional. Cualquier aclaración: se guarda en las notas del cliente (si escribís OK se ignora).'],
-    [''],
-    ['IMPORTANTE'],
-    ['Orden de las columnas', 'El importador lee las columnas por POSICIÓN: no cambies el orden ni borres columnas.'],
-    ['Email / DNI / dirección', 'Este formato no los incluye: se completan después desde la ficha del cliente.']
-  ];
-  const wsAyuda = XLSX.utils.aoa_to_sheet(ayuda);
-  wsAyuda['!cols'] = [{ wch: 24 }, { wch: 110 }];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
-  XLSX.utils.book_append_sheet(wb, wsAyuda, 'Ayuda');
-  descargarArchivoExcel(wb, 'plantilla_clientes.xlsx');
+async function descargarPlantillaClientes() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/plantilla`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}` } });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'error');
+    const link = document.createElement('a');
+    link.href = `${typeof BACKEND_URL !== 'undefined' ? BACKEND_URL : 'https://puchia-backend-production.up.railway.app'}${data.data.url}`;
+    link.download = 'plantilla_clientes.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error('Error descargando plantilla de clientes:', error);
+    puchiaAlert('No se pudo descargar la plantilla de clientes', 'error');
+  }
 }
 
 // =====================================================================

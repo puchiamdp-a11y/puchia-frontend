@@ -1206,15 +1206,15 @@ async function saveInsumo(e) {
       return;
     }
 
-    const variantesValidas = insumoVariantesEdit.filter(v =>
-      v.nombre && v.nombre.trim() && v.cantidad_en_stock > 0
-    );
+    // El stock 0 es válido: la variante queda "sin stock" pero no se borra
+    const stockOk = (v) => Number.isInteger(v.cantidad_en_stock) && v.cantidad_en_stock >= 0;
+    const variantesValidas = insumoVariantesEdit.filter(v => v.nombre && v.nombre.trim() && stockOk(v));
 
     console.log('📍 [saveInsumo] Variantes válidas:', variantesValidas.length, 'de', insumoVariantesEdit.length);
 
     if (insumoVariantesEdit.length > 0 && variantesValidas.length < insumoVariantesEdit.length) {
       const invalidas = insumoVariantesEdit.length - variantesValidas.length;
-      puchiaAlert(`No se pueden guardar ${invalidas} variante(s) sin nombre o cantidad. Cada variante debe tener nombre y cantidad > 0`, 'error');
+      puchiaAlert(`No se pueden guardar ${invalidas} variante(s) sin nombre o sin stock. Cada variante necesita un nombre y una cantidad (0 si está agotada)`, 'error');
       return;
     }
 
@@ -1225,7 +1225,12 @@ async function saveInsumo(e) {
     const payload = {
       nombre,
       tipo_variante,
-      variantes: variantesValidas
+      variantes: variantesValidas.map(v => ({
+        id: v.id,
+        nombre: v.nombre.trim(),
+        cantidad_en_stock: v.cantidad_en_stock,
+        cantidad_minima: Number.isInteger(v.cantidad_minima) && v.cantidad_minima >= 0 ? v.cantidad_minima : 0
+      }))
     };
 
     console.log('📍 [saveInsumo] Payload completo:', JSON.stringify(payload, null, 2));
@@ -1307,32 +1312,45 @@ function removeInsumoVariant(idx) {
 function renderInsumoVariants() {
   const container = document.getElementById('insumoVariantesContainer');
 
-  const validVariants = insumoVariantesEdit.filter(v => v.nombre && v.nombre.trim() && v.cantidad_en_stock > 0);
-  const invalidVariants = insumoVariantesEdit.filter(v => !v.nombre || !v.nombre.trim() || v.cantidad_en_stock <= 0);
+  const varianteOk = (v) => v.nombre && v.nombre.trim() && Number.isInteger(v.cantidad_en_stock) && v.cantidad_en_stock >= 0;
+  const validVariants = insumoVariantesEdit.filter(varianteOk);
+  const invalidVariants = insumoVariantesEdit.filter(v => !varianteOk(v));
 
   container.innerHTML = insumoVariantesEdit.map((v, idx) => {
-    const isValid = v.nombre && v.nombre.trim() && v.cantidad_en_stock > 0;
+    const isValid = varianteOk(v);
     const borderColor = isValid ? '#ddd' : '#ffcccc';
     const bgColor = isValid ? '#fafafa' : '#fff5f5';
+    const nombreEsc = String(v.nombre || '').replace(/"/g, '&quot;');
+    const sinStock = isValid && v.cantidad_en_stock === 0;
 
     return `
     <div class="flex-layout-responsive" style="background: ${bgColor}; border: 1px solid ${borderColor};">
-      <input type="text" placeholder="Nombre variante *" value="${v.nombre || ''}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
-      <input type="number" placeholder="Stock *" min="1" value="${v.cantidad_en_stock || ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" class="input-stock-responsive" style="border-color: ${borderColor};">
+      <input type="text" placeholder="Nombre variante *" value="${nombreEsc}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
+      <input type="number" placeholder="Stock *" min="0" step="1" value="${Number.isInteger(v.cantidad_en_stock) ? v.cantidad_en_stock : ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" class="input-stock-responsive" style="border-color: ${borderColor};" title="Cantidad en stock (0 si está agotada)">
+      <input type="number" placeholder="Mínimo" min="0" step="1" value="${Number.isInteger(v.cantidad_minima) ? v.cantidad_minima : 0}" onchange="updateInsumoVariant(${idx}, 'cantidad_minima', this.value)" class="input-stock-responsive" style="border-color: ${borderColor};" title="Cantidad mínima: por debajo de este número conviene reponer">
       <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
       ${!isValid ? `<span style="font-size: 12px; color: #d32f2f; white-space: nowrap;">⚠️ Incompleta</span>` : ''}
+      ${sinStock ? `<span style="font-size: 12px; color: #b26a00; white-space: nowrap;">sin stock</span>` : ''}
     </div>
   `;
   }).join('') + `
     <div style="font-size: 12px; color: #666; margin-top: 8px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
-      📋 ${validVariants.length} variante(s) válida(s)${invalidVariants.length > 0 ? ` | ⚠️ ${invalidVariants.length} incompleta(s)` : ''}
+      📋 ${validVariants.length} variante(s) válida(s)${invalidVariants.length > 0 ? ` | ⚠️ ${invalidVariants.length} incompleta(s)` : ''} · "Mínimo" = cantidad a partir de la cual conviene reponer
     </div>
   `;
 }
 
 function updateInsumoVariant(idx, field, value) {
   if (insumoVariantesEdit[idx]) {
-    insumoVariantesEdit[idx][field] = field === 'cantidad_en_stock' ? parseInt(value) : value;
+    insumoVariantesEdit[idx][field] = (field === 'cantidad_en_stock' || field === 'cantidad_minima') ? parseInt(value) : value;
+    // Refresca el estado de la fila (Incompleta / sin stock) sin perder el foco del campo al que pasó el usuario
+    setTimeout(() => {
+      const cont = document.getElementById('insumoVariantesContainer');
+      const inputs = cont ? [...cont.querySelectorAll('input')] : [];
+      const pos = inputs.indexOf(document.activeElement);
+      renderInsumoVariants();
+      if (pos >= 0) { const nuevos = cont.querySelectorAll('input'); nuevos[pos]?.focus(); }
+    }, 0);
   }
 }
 
