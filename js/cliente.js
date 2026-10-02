@@ -113,7 +113,7 @@ function loadAndRenderProducts() {
                     ${formatCurrency(product.price)}
                 </div>
                 <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
-                    Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
+                    ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                 </div>
                 <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
                     ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
@@ -178,7 +178,7 @@ function loadAndRenderPromos() {
                     ${formatCurrency(product.price)}
                 </div>
                 <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
-                    Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
+                    ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                 </div>
                 <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
                     ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
@@ -253,7 +253,7 @@ function renderProductsChunked(products, gridId = 'productsGrid') {
                         ${formatCurrency(product.price)}
                     </div>
                     <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
-                        Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
+                        ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                     </div>
                     <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
                         ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
@@ -317,7 +317,7 @@ function renderPromosChunked(promos) {
                         ${formatCurrency(product.price)}
                     </div>
                     <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
-                        Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
+                        ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                     </div>
                     <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
                         ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}

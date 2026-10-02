@@ -487,7 +487,7 @@ function renderProductos(lista) {
     const categoria = p.categorias?.[0]?.nombre || 'Sin categoría';
     const catKey = categoria.toLowerCase().replace(/ñ/g, 'n').replace(/\s+/g,'');
     const emoji = ICONOS_CAT[catKey] || '📦';
-    const stockVal = p.stock_type === 'simple' ? p.stock_cantidad : 'Insumo';
+    const stockVal = esStockIlimitado(p) ? '∞' : (p.stock_type === 'simple' ? p.stock_cantidad : 'Insumo');
     const precio = Number(p.precio).toLocaleString('es-AR', {minimumFractionDigits: 2});
 
     const portada = p.media?.find(m => m.es_portada) || p.media?.[0] || null;
@@ -744,12 +744,18 @@ function duplicarProducto(id) {
   document.getElementById('productStock').value = original.stock_cantidad || 0;
   populateProductCategoryDropdown();
   document.getElementById('productCategoria').value = original.categorias?.[0]?.id || '';
-  const st = document.querySelector(`input[name="stockType"][value="${original.stock_type || 'simple'}"]`);
+  const st = document.querySelector(`input[name="stockType"][value="${esStockIlimitado(original) ? 'infinito' : (original.stock_type || 'simple')}"]`);
   if (st) st.checked = true;
   document.getElementById('productHabilitado').checked = original.habilitado !== false;
   document.getElementById('modalProducto').style.display = 'flex';
   initMediaSection(null);
 }
+
+// "Infinito" (producto sin control de stock, ej. hecho a pedido): la base solo conoce 'simple' e 'insumo',
+// así que se guarda como producto simple con un stock tan alto que nunca se agota. Desde este número se muestra como ∞.
+const STOCK_ILIMITADO = 99999;
+const UMBRAL_STOCK_ILIMITADO = 10000;
+const esStockIlimitado = (p) => p && p.stock_type === 'simple' && Number(p.stock_cantidad) >= UMBRAL_STOCK_ILIMITADO;
 
 function openNewProductModal() {
   productoActualEnEdicion = null;
@@ -773,7 +779,7 @@ function editProduct(id) {
   document.getElementById('productStock').value = productoActualEnEdicion.stock_cantidad || 0;
   populateProductCategoryDropdown();
   document.getElementById('productCategoria').value = productoActualEnEdicion.categorias?.[0]?.id || '';
-  document.querySelector(`input[name="stockType"][value="${productoActualEnEdicion.stock_type}"]`).checked = true;
+  document.querySelector(`input[name="stockType"][value="${esStockIlimitado(productoActualEnEdicion) ? 'infinito' : productoActualEnEdicion.stock_type}"]`).checked = true;
   document.getElementById('productHabilitado').checked = productoActualEnEdicion.habilitado !== false;
 
   // Cargar insumos y esperar a que se complete
@@ -957,7 +963,7 @@ async function saveProduct(e) {
       nombre,
       descripcion: descripcion_completa && descripcion_completa !== '<p><br></p>' ? descripcion_completa : null,
       precio: Number(precio),
-      stock_type: stockType,
+      stock_type: stockType === 'infinito' ? 'simple' : stockType,
       categorias: [Number(categoriaId)],
       habilitado
     };
@@ -980,7 +986,7 @@ async function saveProduct(e) {
       requestPayload.tiene_variantes_stock = false;
       console.log('📍 [saveProduct] INSUMO - requestPayload COMPLETO:', JSON.stringify(requestPayload, null, 2));
     } else if (stockType === 'infinito') {
-      requestPayload.stock_cantidad = null;
+      requestPayload.stock_cantidad = STOCK_ILIMITADO;
       requestPayload.tiene_variantes_stock = false;
     }
 
