@@ -506,7 +506,6 @@ function renderProductos(lista) {
       <td><button class="toggle-estado-btn ${habilitado ? 'activo' : 'inactivo'}" onclick="toggleHabilitadoProducto(${p.id}, ${habilitado})">${habilitado ? '✅ Activo' : '❌ Inactivo'}</button></td>
       <td class="acciones-cell">
         <button class="btn btn-sm btn-secondary" onclick="editProduct(${p.id})">Editar</button>
-        <button class="btn btn-sm" style="background:linear-gradient(135deg,#7b2d8e,#9d4cb8);color:white;border:none;cursor:pointer;" onclick="duplicarProducto(${p.id})" title="Duplicar producto">📋</button>
         <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">Eliminar</button>
       </td>
     </tr>`;
