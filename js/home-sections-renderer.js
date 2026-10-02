@@ -436,7 +436,7 @@ function renderHomeProducts(config) {
             <div class="product-name" style="cursor: pointer;">${escapeHomeHTML(product.name)}</div>
             <div class="product-price">${formatHomePrice(product.price)}</div>
             <button class="product-btn" onclick="openProductDetail(${product.id})">
-              Agregar al Carrito
+              ${window.ICONO_CARRITO || ''}Agregar al Carrito
             </button>
           </div>
         </div>

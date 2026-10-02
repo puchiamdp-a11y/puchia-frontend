@@ -1103,8 +1103,3 @@
     font-size: 12px;
   }
 }
-
-
-/* Ícono del botón de carrito (SVG simple, toma el color del texto) */
-.cart-btn { color: var(--purple, #9b2d7d); line-height: 0; display: inline-flex; align-items: center; }
-.cart-btn .cart-icon { display: block; }

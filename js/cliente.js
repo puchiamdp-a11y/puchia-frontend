@@ -116,7 +116,7 @@ function loadAndRenderProducts() {
                     ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                 </div>
                 <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
-                    ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
+                    ${product.stock_cantidad > 0 ? `${window.ICONO_CARRITO || ''}Agregar al Carrito` : 'Agotado'}
                 </button>
             </div>
         </div>`;
@@ -181,7 +181,7 @@ function loadAndRenderPromos() {
                     ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                 </div>
                 <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
-                    ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
+                    ${product.stock_cantidad > 0 ? `${window.ICONO_CARRITO || ''}Agregar al Carrito` : 'Agotado'}
                 </button>
             </div>
         </div>`;
@@ -256,7 +256,7 @@ function renderProductsChunked(products, gridId = 'productsGrid') {
                         ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                     </div>
                     <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
-                        ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
+                        ${product.stock_cantidad > 0 ? `${window.ICONO_CARRITO || ''}Agregar al Carrito` : 'Agotado'}
                     </button>
                 </div>
             </div>`;
@@ -320,7 +320,7 @@ function renderPromosChunked(promos) {
                         ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                     </div>
                     <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
-                        ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
+                        ${product.stock_cantidad > 0 ? `${window.ICONO_CARRITO || ''}Agregar al Carrito` : 'Agotado'}
                     </button>
                 </div>
             </div>`;
@@ -734,7 +734,7 @@ async function openProductDetail(productId) {
 
               <!-- BOTÓN AGREGAR AL CARRITO -->
               <button class="btn-add-cart modal-add-cart">
-                Agregar al Carrito
+                ${window.ICONO_CARRITO || ''}Agregar al Carrito
               </button>
 
               <!-- ESPECIFICACIONES -->
