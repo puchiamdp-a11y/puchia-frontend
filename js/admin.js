@@ -1570,8 +1570,9 @@ function searchOrders(query) {
     filteredOrdersData = [...allOrdersData];
   } else {
     filteredOrdersData = allOrdersData.filter(orden =>
-      orden.id_unico.toLowerCase().includes(searchLower) ||
-      orden.cliente_nombre.toLowerCase().includes(searchLower)
+      (orden.id_unico || '').toLowerCase().includes(searchLower) ||
+      (orden.cliente_nombre || '').toLowerCase().includes(searchLower) ||
+      (orden.cliente_codigo || '').toLowerCase().includes(searchLower)
     );
   }
 
