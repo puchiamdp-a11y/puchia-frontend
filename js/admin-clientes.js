@@ -226,13 +226,15 @@ async function verCliente(id) {
     const topProductos = Object.entries(conteoProductos).sort((x, y) => y[1] - x[1]).slice(0, 5);
 
     const resumenHTML = `
+      <section class="perfil-card perfil-card-compras"><h3 class="perfil-card-titulo"><span class="perfil-card-ico">📊</span>Resumen de compras</h3>
       <div class="perfil-kpis">
         <div class="perfil-kpi"><span>Pedidos</span><strong>${totalPedidos}</strong><em>${pedidosHistoricos} históricos · ${ordenes.length} registrados</em></div>
         <div class="perfil-kpi"><span>Total gastado</span><strong>${pesos(gastado)}</strong><em>${validas.length} pedidos con monto</em></div>
         <div class="perfil-kpi"><span>Ticket promedio</span><strong>${validas.length ? pesos(ticket) : '—'}</strong><em>por pedido</em></div>
         <div class="perfil-kpi"><span>Último pedido</span><strong>${porFecha.length ? fmtFecha(porFecha[porFecha.length - 1].created_at) : '—'}</strong><em>${porFecha.length ? `primero: ${fmtFecha(porFecha[0].created_at)}` : 'sin pedidos'}</em></div>
       </div>
-      ${topProductos.length ? `<div class="perfil-top"><span class="perfil-sub">Lo que más pidió</span>${topProductos.map(([n, q]) => `<span class="perfil-chip">${cEsc(n)} <b>×${q}</b></span>`).join('')}</div>` : ''}`;
+      ${topProductos.length ? `<div class="perfil-top"><span class="perfil-sub">Lo que más pidió</span>${topProductos.map(([n, q]) => `<span class="perfil-chip">${cEsc(n)} <b>×${q}</b></span>`).join('')}</div>` : ''}
+      </section>`;
 
     // ----- Historial -----
     const productosDe = (o) => {
@@ -250,18 +252,19 @@ async function verCliente(id) {
         <td style="padding:8px;">${estadoChip(o.estado)}</td>
         <td style="padding:8px;">${productosDe(o)}</td>
         <td style="padding:8px;text-align:right;font-weight:600;white-space:nowrap;">${pesos(parseFloat(o.total || 0))}</td></tr>`).join('');
+    const tituloPedidos = `<h3 class="perfil-card-titulo"><span class="perfil-card-ico">📋</span>Pedidos anteriores<span class="perfil-card-count">${ordenes.length}</span></h3>`;
     const historialHTML = ordenes.length ? `
-      <div class="perfil-seccion"><h3>📋 Historial de pedidos</h3>
+      <section class="perfil-card">${tituloPedidos}
         <div style="overflow-x:auto;"><table class="perfil-tabla"><thead><tr><th>Pedido</th><th>Fecha</th><th>Estado</th><th>Productos</th><th style="text-align:right;">Total</th></tr></thead><tbody>${filasPedidos}</tbody></table></div>
-      </div>` : '<div class="perfil-seccion"><h3>📋 Historial de pedidos</h3><div class="perfil-vacio">Sin pedidos registrados en el sistema.</div></div>';
+      </section>` : `<section class="perfil-card">${tituloPedidos}<div class="perfil-vacio">Sin pedidos registrados en el sistema.</div></section>`;
 
     // ----- Fechas importantes + notas -----
     const meses = MESES_ES.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
     const dias = Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
     const fechasHTML = `
-      <div class="perfil-seccion"><h3>🎂 Fechas importantes</h3>
+      <section class="perfil-card"><h3 class="perfil-card-titulo"><span class="perfil-card-ico">🎂</span>Fechas importantes</h3>
         <div id="perfilFechasLista">${renderListaFechas(fechas, c.id)}</div>
-        <div class="perfil-form-fecha">
+        <div class="perfil-form-wrap"><div class="perfil-form-titulo">➕ Agregar una fecha</div><div class="perfil-form-fecha">
           <select id="ffTipo"><option value="cumpleaños">🎂 Cumpleaños</option><option value="aniversario">💍 Aniversario</option><option value="otro">📌 Otra fecha</option></select>
           <input type="text" id="ffPersona" placeholder="¿De quién? (ej: Mateo, su hijo)" maxlength="120">
           <select id="ffDia" aria-label="Día">${dias}</select>
@@ -269,31 +272,48 @@ async function verCliente(id) {
           <input type="text" id="ffNota" placeholder="Nota (opcional)" maxlength="300">
           <label class="perfil-aviso">Avisarme <input type="number" id="ffAviso" value="60" min="0" max="365"> días antes</label>
           <button type="button" class="btn btn-primary btn-sm" onclick="guardarFechaCliente(${c.id})">Agregar fecha</button>
-        </div>
-        <div class="perfil-ayuda">Se repite todos los años (no lleva año). Las fechas cercanas aparecen en "Próximas fechas importantes" en Clientes.</div>
-      </div>
-      <div class="perfil-seccion"><h3>📝 Notas internas</h3>
+        </div></div>
+        <div class="perfil-ayuda">Se repite todos los años (no lleva año). Las fechas cercanas aparecen en "Próximas fechas" en Clientes.</div>
+      </section>
+      <section class="perfil-card"><h3 class="perfil-card-titulo"><span class="perfil-card-ico">📝</span>Notas internas</h3>
         <textarea id="perfilNotas" rows="4" placeholder="Gustos, cosas a recordar, cómo prefiere que le escriban...">${cEsc(c.notas || '')}</textarea>
         <div style="display:flex;align-items:center;gap:10px;margin-top:8px;"><button type="button" class="btn btn-secondary btn-sm" onclick="guardarNotasPerfil(${c.id})">Guardar notas</button><span id="perfilNotasMsg" class="perfil-ayuda"></span></div>
-      </div>`;
+      </section>`;
+
+    const iniciales = (c.nombre || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    const waCliente = linkWhatsApp(c.whatsapp, `Hola ${(c.nombre || '').split(' ')[0]}! `);
+    const dato = (ico, label, valor) => `<div class="perfil-dato"><span class="perfil-dato-ico">${ico}</span><div><span class="perfil-dato-label">${label}</span><div class="perfil-dato-valor">${valor || '<span class="perfil-nd">—</span>'}</div></div></div>`;
+    const frecuente = totalPedidos >= 3 ? '<span class="perfil-etiqueta perfil-etiqueta-vip">⭐ Cliente frecuente</span>' : '';
 
     document.getElementById('detalleContenido').innerHTML = `
       <div class="perfil-head">
-        <div><h2 style="color:#7f1f6e;margin:0 0 4px;">${cEsc(c.nombre)}</h2>
-          <span class="${getCodigoBadgeClass(c.codigo_cliente)}">${cEsc(c.codigo_cliente)}</span>
-          <span class="badge badge-${c.activo ? 'activo' : 'inactivo'}" style="margin-left:6px;">${c.activo ? 'Activo' : 'Inactivo'}</span></div>
-        <div class="perfil-acciones"><button class="btn btn-warning btn-sm" onclick="cerrarDetalle();editarCliente(${c.id})">Editar</button><button class="btn btn-secondary btn-sm" onclick="cerrarDetalle()">Cerrar</button></div>
+        <div class="perfil-avatar">${cEsc(iniciales)}</div>
+        <div class="perfil-head-info">
+          <h2>${cEsc(c.nombre)}</h2>
+          <div class="perfil-head-meta">
+            <span class="${getCodigoBadgeClass(c.codigo_cliente)}">${cEsc(c.codigo_cliente)}</span>
+            <span class="badge badge-${c.activo ? 'activo' : 'inactivo'}">${c.activo ? 'Activo' : 'Inactivo'}</span>
+            ${frecuente}
+            <span class="perfil-desde">Cliente desde ${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '—'}</span>
+          </div>
+        </div>
+        <div class="perfil-acciones">
+          ${waCliente ? `<a class="btn btn-sm btn-secondary" href="${waCliente}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ''}
+          <button class="btn btn-warning btn-sm" onclick="cerrarDetalle();editarCliente(${c.id})">✏️ Editar</button>
+          <button class="btn btn-secondary btn-sm" onclick="cerrarDetalle()">Cerrar</button>
+        </div>
       </div>
 
-      <div class="perfil-datos">
-        <div><span>Email</span>${cEsc(c.email) || '-'}</div>
-        <div><span>WhatsApp</span>${cEsc(c.whatsapp) || '-'}</div>
-        <div><span>Teléfono</span>${cEsc(c.telefono) || '-'}</div>
-        <div><span>DNI</span>${cEsc(c.dni) || '-'}</div>
-        <div><span>Dirección</span>${cEsc(c.direccion) || '-'}</div>
-        <div><span>Ciudad</span>${cEsc(c.ciudad) || '-'}${c.codigo_postal ? ` (CP ${cEsc(c.codigo_postal)})` : ''}</div>
-        <div><span>Cliente desde</span>${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</div>
-      </div>
+      <section class="perfil-card"><h3 class="perfil-card-titulo"><span class="perfil-card-ico">👤</span>Datos del cliente</h3>
+        <div class="perfil-datos">
+          ${dato('✉️', 'Email', c.email ? `<a href="mailto:${cEsc(c.email)}">${cEsc(c.email)}</a>` : '')}
+          ${dato('📱', 'WhatsApp', cEsc(c.whatsapp))}
+          ${dato('☎️', 'Teléfono', cEsc(c.telefono))}
+          ${dato('🪪', 'DNI', cEsc(c.dni))}
+          ${dato('📍', 'Dirección', cEsc(c.direccion))}
+          ${dato('🏙️', 'Ciudad', cEsc(c.ciudad) + (c.codigo_postal ? ` (CP ${cEsc(c.codigo_postal)})` : ''))}
+        </div>
+      </section>
 
       ${resumenHTML}
       ${historialHTML}
@@ -751,14 +771,13 @@ async function cargarFechasProximas() {
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error('error');
     const lista = data.data;
-    const enAviso = lista.filter(f => f.en_aviso).length;
+    const comerciales = fechasComercialesProximas(90);
+    const enAviso = lista.filter(f => f.en_aviso).length + comerciales.filter(f => f.en_aviso).length;
     const badge = document.getElementById('fechasProximasCount');
-    if (badge) { badge.textContent = enAviso ? `${enAviso} para contactar` : (lista.length ? `${lista.length}` : ''); badge.className = 'fechas-count' + (enAviso ? ' fechas-count-aviso' : ''); }
-    if (!lista.length) {
-      card.innerHTML = '<div class="perfil-vacio">No hay fechas en los próximos 90 días. Cargalas desde el perfil de cada cliente (clic en su nombre).</div>';
-      return;
-    }
-    card.innerHTML = lista.map(f => {
+    if (badge) { badge.textContent = enAviso ? `${enAviso} para contactar` : (lista.length + comerciales.length ? `${lista.length + comerciales.length}` : ''); badge.className = 'fechas-count' + (enAviso ? ' fechas-count-aviso' : ''); }
+    const bloqueClientes = !lista.length
+      ? '<div class="fechas-bloque-titulo">De tus clientes</div><div class="perfil-vacio">No hay fechas en los próximos 90 días. Cargalas desde el perfil de cada cliente (clic en su nombre).</div>'
+      : '<div class="fechas-bloque-titulo">De tus clientes</div>' + lista.map(f => {
       const wa = linkWhatsApp(f.cliente.whatsapp, mensajeFecha(f));
       return `<div class="perfil-fecha ${f.en_aviso ? 'perfil-fecha-aviso' : ''}">
         <div class="perfil-fecha-icono">${ICONO_FECHA[f.tipo] || '📌'}</div>
@@ -769,8 +788,9 @@ async function cargarFechasProximas() {
         ${wa ? `<a class="btn btn-sm btn-secondary" href="${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '<span class="perfil-ayuda">sin WhatsApp</span>'}
       </div>`;
     }).join('');
+    card.innerHTML = renderFechasComerciales() + bloqueClientes;
   } catch (err) {
-    card.innerHTML = '<div class="perfil-vacio">No se pudieron cargar las fechas.</div>';
+    card.innerHTML = renderFechasComerciales() + '<div class="perfil-vacio">No se pudieron cargar las fechas de tus clientes.</div>';
   }
 }
 
@@ -789,3 +809,65 @@ function cerrarFechasProximas() {
   if (m) m.style.display = 'none';
 }
 document.addEventListener('click', cerrarFechasProximas);
+
+
+// ==================== FECHAS COMERCIALES (valen para todos los clientes) ====================
+// Argentina: Día de la Madre = 3.er domingo de octubre · Día del Padre = 3.er domingo de junio · Día del Enamorado = 14 de febrero
+const FECHAS_COMERCIALES = [
+  { clave: 'madre', nombre: 'Día de la Madre', icono: '💐', mes: 10, tercerDomingo: true, aviso: 45 },
+  { clave: 'padre', nombre: 'Día del Padre', icono: '👔', mes: 6, tercerDomingo: true, aviso: 45 },
+  { clave: 'enamorado', nombre: 'Día del Enamorado', icono: '❤️', mes: 2, dia: 14, aviso: 30 }
+];
+
+function hoyArgentinaUTC() {
+  const d = new Date(Date.now() - 3 * 60 * 60 * 1000);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+
+function tercerDomingo(anio, mes) {
+  const primero = new Date(Date.UTC(anio, mes - 1, 1)).getUTCDay();   // 0 = domingo
+  return Date.UTC(anio, mes - 1, 1 + ((7 - primero) % 7) + 14);
+}
+
+function proximaOcurrencia(def, hoy) {
+  const anio = new Date(hoy).getUTCFullYear();
+  const en = (a) => (def.tercerDomingo ? tercerDomingo(a, def.mes) : Date.UTC(a, def.mes - 1, def.dia));
+  const t = en(anio) >= hoy ? en(anio) : en(anio + 1);
+  return { timestamp: t, dias: Math.round((t - hoy) / 86400000) };
+}
+
+function fechasComercialesProximas(ventana = 90) {
+  const hoy = hoyArgentinaUTC();
+  return FECHAS_COMERCIALES.map(def => {
+    const o = proximaOcurrencia(def, hoy);
+    const f = new Date(o.timestamp);
+    return { ...def, dias_restantes: o.dias, dia_num: f.getUTCDate(), mes_num: f.getUTCMonth() + 1, en_aviso: o.dias <= def.aviso };
+  }).filter(f => f.dias_restantes <= Math.max(ventana, f.aviso)).sort((a, b) => a.dias_restantes - b.dias_restantes);
+}
+
+function mensajeComercial(f) {
+  return `¡Hola! 😊 Se acerca el ${f.nombre} y en Puchia armamos algo especial para esa fecha. Tenemos un cupón para vos si hacés tu pedido con tiempo 🎁`;
+}
+
+function copiarMensajeComercial(clave, btn) {
+  const f = fechasComercialesProximas(365).find(x => x.clave === clave);
+  if (!f) return;
+  const ok = () => { if (btn) { const t = btn.textContent; btn.textContent = '✓ Copiado'; setTimeout(() => { btn.textContent = t; }, 1500); } };
+  const texto = mensajeComercial(f);
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(texto).then(ok, () => window.prompt('Copiá el mensaje:', texto));
+  else window.prompt('Copiá el mensaje:', texto);
+}
+
+function renderFechasComerciales() {
+  const lista = fechasComercialesProximas(90);
+  if (!lista.length) return '';
+  return `<div class="fechas-bloque-titulo">Fechas comerciales <span>· para todos tus clientes</span></div>` + lista.map(f => `
+    <div class="perfil-fecha ${f.en_aviso ? 'perfil-fecha-aviso' : ''}">
+      <div class="perfil-fecha-icono">${f.icono}</div>
+      <div class="perfil-fecha-info">
+        <strong>${f.nombre}</strong> <span class="fechas-faltan">${f.dia_num} de ${MESES_ES[f.mes_num - 1]} · ${textoFaltan(f.dias_restantes)}</span>
+        <div class="perfil-fecha-sub">${f.en_aviso ? '<b>momento de comunicar la campaña</b>' : `comunicar en ${f.dias_restantes - f.aviso} días`} (desde ${f.aviso} días antes)</div>
+      </div>
+      <button type="button" class="btn btn-sm btn-secondary" onclick="copiarMensajeComercial('${f.clave}', this)">📋 Copiar mensaje</button>
+    </div>`).join('');
+}

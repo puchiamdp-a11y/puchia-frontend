@@ -964,3 +964,38 @@ a.menu-compartir-item:hover { background: #f3e5f5; }
 .fechas-panel-titulo span { font-weight: 500; font-size: 12px; color: #9a909e; }
 .fechas-panel .fechas-lista { padding: 0; max-height: 380px; }
 #btnFechasProximas .fechas-count { margin-left: 6px; }
+
+/* ===== Ficha del cliente: secciones en tarjetas ===== */
+#detalleContenido .perfil-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; padding-right: 30px; }
+.perfil-avatar { width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #7b2d8e, #9d4cb8); color: #fff; font-weight: 700; font-size: 20px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.perfil-head-info { flex: 1; min-width: 200px; }
+.perfil-head-info h2 { margin: 0 0 6px; color: #3b2f40; font-size: 20px; }
+.perfil-head-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.perfil-desde { font-size: 12px; color: #9a909e; }
+.perfil-etiqueta { font-size: 11px; font-weight: 700; border-radius: 10px; padding: 2px 9px; }
+.perfil-etiqueta-vip { background: #fff3c4; color: #7a5a00; }
+.perfil-card { background: #fff; border: 1px solid #ebe5ee; border-radius: 12px; padding: 14px 16px 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(60, 20, 70, .05); }
+.perfil-card-titulo { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid #f1ecf3; font-size: 13px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: #5a1650; }
+.perfil-card-ico { font-size: 16px; }
+.perfil-card-count { margin-left: auto; background: #f3e5f5; color: #4a148c; border-radius: 10px; padding: 1px 9px; font-size: 11px; }
+.perfil-card #detalleContenido { }
+#detalleContenido .perfil-datos { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px 18px; background: none; padding: 0; margin: 0; }
+.perfil-dato { display: flex; gap: 10px; align-items: flex-start; }
+.perfil-dato-ico { font-size: 16px; width: 30px; height: 30px; border-radius: 8px; background: #f6f0f8; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+#detalleContenido .perfil-dato-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #9a909e; }
+.perfil-dato-valor { font-size: 13px; color: #2b2330; word-break: break-word; }
+.perfil-dato-valor a { color: #7f1f6e; text-decoration: none; }
+.perfil-dato-valor a:hover { text-decoration: underline; }
+.perfil-nd { color: #c3bcc7; }
+.perfil-card .perfil-kpis { margin-bottom: 10px; }
+.perfil-card .perfil-kpi { background: #faf7fb; border-color: #efe6f2; }
+.perfil-card .perfil-top { margin: 0; }
+.perfil-tabla tbody tr:nth-child(even) { background: #fcfafc; }
+.perfil-tabla tbody tr:hover { background: #f6eef8; }
+.perfil-form-wrap { margin-top: 12px; padding: 12px; background: #faf7fb; border: 1px dashed #dccfe1; border-radius: 10px; }
+.perfil-form-titulo { font-size: 12px; font-weight: 700; color: #5a1650; margin-bottom: 8px; }
+.perfil-form-wrap .perfil-form-fecha { margin-top: 0; }
+.fechas-bloque-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: #7b6b80; margin: 10px 0 6px; }
+.fechas-bloque-titulo span { font-weight: 500; text-transform: none; letter-spacing: 0; color: #9a909e; }
+.fechas-bloque-titulo:first-child { margin-top: 0; }
+.perfil-acciones a.btn { text-decoration: none; }
