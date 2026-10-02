@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100219">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100220">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -284,7 +284,16 @@
 
                 <!-- BARRA DE ACCIONES -->
                 <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;">
-                    <button class="btn btn-primary" id="btnNuevoCliente">+ Nuevo Cliente</button>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+                        <button class="btn btn-primary" id="btnNuevoCliente">+ Nuevo Cliente</button>
+                        <div style="position: relative;">
+                            <button class="btn btn-secondary" id="btnFechasProximas" onclick="toggleFechasProximas(event)" aria-haspopup="true">🎂 Próximas fechas <span id="fechasProximasCount" class="fechas-count"></span></button>
+                            <div id="fechasProximasPanel" class="fechas-panel" onclick="event.stopPropagation()">
+                                <div class="fechas-panel-titulo">Próximas fechas importantes <span>(90 días)</span></div>
+                                <div id="fechasProximasLista" class="fechas-lista"><div class="perfil-vacio">Cargando...</div></div>
+                            </div>
+                        </div>
+                    </div>
                     <div style="position: relative;">
                         <button class="btn btn-secondary" onclick="toggleMenuCompartirClientes(event)" aria-haspopup="true">🔗 Compartir ▾</button>
                         <div id="menuCompartirClientes" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 250px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
@@ -296,12 +305,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- PRÓXIMAS FECHAS IMPORTANTES -->
-                <details id="fechasProximasCard" class="fechas-card" ontoggle="this.dataset.tocado = '1'">
-                    <summary>🎂 Próximas fechas importantes <span id="fechasProximasCount" class="fechas-count"></span></summary>
-                    <div id="fechasProximasLista" class="fechas-lista"><div class="perfil-vacio">Cargando...</div></div>
-                </details>
 
                 <!-- BUSCADOR: búsqueda, estado y botón en la misma línea -->
                 <div class="clientes-buscador">
@@ -505,7 +508,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
     <script src="../js/admin.js?v=2026100210"></script>
-    <script src="../js/admin-clientes.js?v=2026100202"></script>
+    <script src="../js/admin-clientes.js?v=2026100203"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100205"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>

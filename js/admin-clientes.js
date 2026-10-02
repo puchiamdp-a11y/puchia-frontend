@@ -764,14 +764,28 @@ async function cargarFechasProximas() {
         <div class="perfil-fecha-icono">${ICONO_FECHA[f.tipo] || '📌'}</div>
         <div class="perfil-fecha-info">
           <strong>${f.dia} de ${MESES_ES[f.mes - 1]}</strong>${f.persona ? ` · ${cEsc(f.persona)}` : ''} <span class="fechas-faltan">${textoFaltan(f.dias_restantes)}</span>
-          <div class="perfil-fecha-sub"><a href="#" class="cliente-link" onclick="verCliente(${f.cliente.id}); return false;">${cEsc(f.cliente.nombre)}</a> (${cEsc(f.cliente.codigo_cliente)})${f.en_aviso ? ' · <b>momento de contactar</b>' : ` · contactar en ${f.dias_restantes - f.aviso_dias} días`}${f.nota ? ` · ${cEsc(f.nota)}` : ''}</div>
+          <div class="perfil-fecha-sub"><a href="#" class="cliente-link" onclick="cerrarFechasProximas(); verCliente(${f.cliente.id}); return false;">${cEsc(f.cliente.nombre)}</a> (${cEsc(f.cliente.codigo_cliente)})${f.en_aviso ? ' · <b>momento de contactar</b>' : ` · contactar en ${f.dias_restantes - f.aviso_dias} días`}${f.nota ? ` · ${cEsc(f.nota)}` : ''}</div>
         </div>
         ${wa ? `<a class="btn btn-sm btn-secondary" href="${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '<span class="perfil-ayuda">sin WhatsApp</span>'}
       </div>`;
     }).join('');
-    const det = document.getElementById('fechasProximasCard');
-    if (det && enAviso && !det.dataset.tocado) det.open = true;
   } catch (err) {
     card.innerHTML = '<div class="perfil-vacio">No se pudieron cargar las fechas.</div>';
   }
 }
+
+
+function toggleFechasProximas(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('fechasProximasPanel');
+  const abrir = m && m.style.display !== 'block';
+  cerrarFechasProximas();
+  const compartir = document.getElementById('menuCompartirClientes');
+  if (compartir) compartir.style.display = 'none';
+  if (abrir) m.style.display = 'block';
+}
+function cerrarFechasProximas() {
+  const m = document.getElementById('fechasProximasPanel');
+  if (m) m.style.display = 'none';
+}
+document.addEventListener('click', cerrarFechasProximas);
