@@ -999,3 +999,18 @@ a.menu-compartir-item:hover { background: #f3e5f5; }
 .fechas-bloque-titulo span { font-weight: 500; text-transform: none; letter-spacing: 0; color: #9a909e; }
 .fechas-bloque-titulo:first-child { margin-top: 0; }
 .perfil-acciones a.btn { text-decoration: none; }
+
+/* Tipo de cliente, preferencias, duplicados */
+.chip-tipo { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 10px; padding: 1px 9px; white-space: nowrap; }
+.chip-tipo-eventos { background: #fde7f1; color: #a0246a; }
+.chip-tipo-negocio { background: #e3effd; color: #14509e; }
+.chip-tipo-sin { background: #f1eef2; color: #9a909e; font-weight: 600; }
+.perfil-etiqueta-no { background: #fdeaea; color: #a32020; }
+.perfil-prefs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 18px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed #e6dcea; }
+.perfil-prefs label { display: flex; flex-direction: column; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #9a909e; }
+.perfil-prefs select { padding: 7px 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 13px; text-transform: none; letter-spacing: 0; font-weight: 500; color: #2b2330; }
+.perfil-form-fecha.es-comercial #ffPersona, .perfil-form-fecha.es-comercial #ffDia, .perfil-form-fecha.es-comercial #ffMes { display: none; }
+.perfil-form-fecha.es-comercial #ffNota { grid-column: 2 / 5; }
+.dup-motivos { margin-left: auto; display: flex; gap: 6px; text-transform: none; letter-spacing: 0; }
+.dup-acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.clientes-buscador select { max-width: 190px; }

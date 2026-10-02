@@ -61,6 +61,7 @@ function setupClientesEventListeners() {
     if (e.key === 'Enter') { paginaActual = 1; listarClientes(); }
   });
   document.getElementById('filtroActivo')?.addEventListener('change', () => { paginaActual = 1; listarClientes(); });
+  document.getElementById('filtroTipoCliente')?.addEventListener('change', () => { paginaActual = 1; listarClientes(); });
 
   document.querySelectorAll('#theadClientes th.sortable').forEach(th => {
     th.addEventListener('click', () => sortBy(th.dataset.sort));
@@ -114,10 +115,12 @@ async function listarClientes() {
 
   const busqueda = document.getElementById('inputBusqueda')?.value.trim();
   const activo = document.getElementById('filtroActivo')?.value;
+  const tipoCliente = document.getElementById('filtroTipoCliente')?.value;
 
   let url = `${API_BASE_URL}/admin/clientes?pagina=${paginaActual}&limite=${LIMITE}`;
   if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`;
   if (activo !== '') url += `&activo=${activo}`;
+  if (tipoCliente) url += `&tipo_cliente=${tipoCliente}`;
 
   try {
     const res = await fetch(url, { headers: { 'Authorization': `Bearer ${getToken()}` } });
@@ -144,7 +147,7 @@ function renderClientes() {
   actualizarIndicadoresSort();
 
   if (!clientesActuales.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;">Sin clientes encontrados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#999;">Sin clientes encontrados</td></tr>';
     return;
   }
 
@@ -153,7 +156,8 @@ function renderClientes() {
     <tr>
       <td><span class="${getCodigoBadgeClass(c.codigo_cliente)}">${c.codigo_cliente}</span></td>
       <td><a href="#" class="cliente-link" onclick="verCliente(${c.id}); return false;" title="Ver perfil"><strong>${cEsc(c.nombre)}</strong></a></td>
-      <td>${c.whatsapp || '-'}</td>
+      <td>${chipTipoCliente(c.tipo_cliente)}</td>
+      <td>${cEsc(c.whatsapp) || '-'}</td>
       <td>${c.ciudad || '-'}</td>
       <td><button class="badge badge-${c.activo ? 'activo' : 'inactivo'} badge-button-responsive" onclick="toggleClienteEstado(${c.id}, ${c.activo}, '${c.nombre.replace(/'/g, "\\'")}');">${c.activo ? 'Activo' : 'Inactivo'}</button></td>
       <td class="table-cell-fecha-responsive">${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</td>
@@ -265,7 +269,10 @@ async function verCliente(id) {
       <section class="perfil-card"><h3 class="perfil-card-titulo"><span class="perfil-card-ico">🎂</span>Fechas importantes</h3>
         <div id="perfilFechasLista">${renderListaFechas(fechas, c.id)}</div>
         <div class="perfil-form-wrap"><div class="perfil-form-titulo">➕ Agregar una fecha</div><div class="perfil-form-fecha">
-          <select id="ffTipo"><option value="cumpleaños">🎂 Cumpleaños</option><option value="aniversario">💍 Aniversario</option><option value="otro">📌 Otra fecha</option></select>
+          <select id="ffTipo" onchange="cambioTipoFecha()">
+            <optgroup label="Fecha propia"><option value="cumpleaños">🎂 Cumpleaños</option><option value="aniversario">💍 Aniversario</option><option value="otro">📌 Otra fecha</option></optgroup>
+            <optgroup label="Fecha comercial (todos los años)"><option value="dia_madre">💐 Día de la Madre</option><option value="dia_padre">👔 Día del Padre</option><option value="dia_enamorado">❤️ Día del Enamorado</option></optgroup>
+          </select>
           <input type="text" id="ffPersona" placeholder="¿De quién? (ej: Mateo, su hijo)" maxlength="120">
           <select id="ffDia" aria-label="Día">${dias}</select>
           <select id="ffMes" aria-label="Mes">${meses}</select>
@@ -293,12 +300,14 @@ async function verCliente(id) {
           <div class="perfil-head-meta">
             <span class="${getCodigoBadgeClass(c.codigo_cliente)}">${cEsc(c.codigo_cliente)}</span>
             <span class="badge badge-${c.activo ? 'activo' : 'inactivo'}">${c.activo ? 'Activo' : 'Inactivo'}</span>
+            ${chipTipoCliente(c.tipo_cliente)}
             ${frecuente}
             <span class="perfil-desde">Cliente desde ${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '—'}</span>
           </div>
         </div>
         <div class="perfil-acciones">
           ${waCliente ? `<a class="btn btn-sm btn-secondary" href="${waCliente}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ''}
+          <button class="btn btn-primary btn-sm" onclick="nuevoPedidoDesdeFicha(${c.id})" title="Crear un pedido ya asignado a este cliente">➕ Nuevo pedido</button>
           <button class="btn btn-warning btn-sm" onclick="cerrarDetalle();editarCliente(${c.id})">✏️ Editar</button>
           <button class="btn btn-secondary btn-sm" onclick="cerrarDetalle()">Cerrar</button>
         </div>
@@ -312,6 +321,21 @@ async function verCliente(id) {
           ${dato('🪪', 'DNI', cEsc(c.dni))}
           ${dato('📍', 'Dirección', cEsc(c.direccion))}
           ${dato('🏙️', 'Ciudad', cEsc(c.ciudad) + (c.codigo_postal ? ` (CP ${cEsc(c.codigo_postal)})` : ''))}
+        </div>
+        <div class="perfil-prefs">
+          <label>Tipo de cliente
+            <select id="perfilTipoCliente" onchange="guardarPreferenciaCliente(${c.id}, 'tipo_cliente', this.value || null)">
+              <option value="" ${!c.tipo_cliente ? 'selected' : ''}>Sin clasificar</option>
+              <option value="eventos" ${c.tipo_cliente === 'eventos' ? 'selected' : ''}>🎉 Cumpleaños / eventos</option>
+              <option value="negocio" ${c.tipo_cliente === 'negocio' ? 'selected' : ''}>🏪 Negocio / emprendimiento</option>
+            </select></label>
+          <label>¿Acepta promociones?
+            <select id="perfilAcepta" onchange="guardarPreferenciaCliente(${c.id}, 'acepta_promociones', this.value === '' ? null : this.value === 'true')">
+              <option value="" ${c.acepta_promociones == null ? 'selected' : ''}>Sin registrar</option>
+              <option value="true" ${c.acepta_promociones === true ? 'selected' : ''}>✅ Sí, acepta</option>
+              <option value="false" ${c.acepta_promociones === false ? 'selected' : ''}>🚫 No quiere recibir</option>
+            </select></label>
+          <span id="perfilPrefMsg" class="perfil-ayuda"></span>
         </div>
       </section>
 
@@ -389,6 +413,8 @@ async function editarCliente(id) {
     document.getElementById('fCiudad').value = c.ciudad || '';
     document.getElementById('fCodigoPostal').value = c.codigo_postal || '';
     document.getElementById('fNotas').value = c.notas || '';
+    document.getElementById('fTipoCliente').value = c.tipo_cliente || '';
+    document.getElementById('fAcepta').value = c.acepta_promociones == null ? '' : String(c.acepta_promociones);
     document.getElementById('fActivo').value = String(c.activo);
 
     document.getElementById('modalCliente').classList.add('show');
@@ -413,7 +439,9 @@ async function guardarCliente(e) {
     direccion: document.getElementById('fDireccion').value.trim() || null,
     ciudad: document.getElementById('fCiudad').value.trim() || null,
     codigo_postal: document.getElementById('fCodigoPostal').value.trim() || null,
-    notas: document.getElementById('fNotas').value.trim() || null
+    notas: document.getElementById('fNotas').value.trim() || null,
+    tipo_cliente: document.getElementById('fTipoCliente').value || null,
+    acepta_promociones: document.getElementById('fAcepta').value === '' ? null : document.getElementById('fAcepta').value === 'true'
   };
 
   const codigoCliente = document.getElementById('fCodigoCliente').value.trim();
@@ -576,7 +604,7 @@ function cerrarModal() {
 }
 
 function limpiarForm() {
-  ['fNombre','fEmail','fDni','fWhatsapp','fTelefono','fDireccion','fCiudad','fCodigoPostal','fNotas'].forEach(id => {
+  ['fNombre','fEmail','fDni','fWhatsapp','fTelefono','fDireccion','fCiudad','fCodigoPostal','fNotas','fTipoCliente','fAcepta'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -663,7 +691,8 @@ document.addEventListener('click', () => {
 
 // ==================== PERFIL: FECHAS IMPORTANTES, NOTAS ====================
 const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-const ICONO_FECHA = { 'cumpleaños': '🎂', 'aniversario': '💍', 'otro': '📌' };
+const ICONO_FECHA = { 'cumpleaños': '🎂', 'aniversario': '💍', 'otro': '📌', 'dia_madre': '💐', 'dia_padre': '👔', 'dia_enamorado': '❤️' };
+const ES_COMERCIAL = (tipo) => String(tipo || '').startsWith('dia_');
 
 function cEsc(t) {
   return String(t ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -679,15 +708,48 @@ function textoFaltan(dias) {
 
 function renderListaFechas(fechas, clienteId) {
   if (!fechas.length) return '<div class="perfil-vacio">Todavía no hay fechas cargadas para este cliente.</div>';
-  return fechas.map(f => `
+  return fechas.map(f => {
+    const dia = f.proxima_dia ?? f.dia, mes = f.proxima_mes ?? f.mes;
+    const titulo = ES_COMERCIAL(f.tipo) ? `${cEsc(f.nombre_fecha || f.tipo)}` : `${dia} de ${MESES_ES[mes - 1]}`;
+    const cuando = ES_COMERCIAL(f.tipo) ? `próximo: ${dia} de ${MESES_ES[mes - 1]}` : cEsc(f.tipo);
+    return `
     <div class="perfil-fecha ${f.dias_restantes <= f.aviso_dias ? 'perfil-fecha-aviso' : ''}">
       <div class="perfil-fecha-icono">${ICONO_FECHA[f.tipo] || '📌'}</div>
       <div class="perfil-fecha-info">
-        <strong>${f.dia} de ${MESES_ES[f.mes - 1]}</strong>${f.persona ? ` · ${cEsc(f.persona)}` : ''}
-        <div class="perfil-fecha-sub">${cEsc(f.tipo)} · ${textoFaltan(f.dias_restantes)} · aviso ${f.aviso_dias} días antes${f.nota ? ` · ${cEsc(f.nota)}` : ''}</div>
+        <strong>${titulo}</strong>${f.persona ? ` · ${cEsc(f.persona)}` : ''}
+        <div class="perfil-fecha-sub">${cuando} · ${textoFaltan(f.dias_restantes)} · aviso ${f.aviso_dias} días antes${f.nota ? ` · ${cEsc(f.nota)}` : ''}</div>
       </div>
       <button type="button" class="btn btn-sm btn-danger" onclick="eliminarFechaDeCliente(${f.id}, ${clienteId})" title="Quitar esta fecha">🗑️</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+function cambioTipoFecha() {
+  const tipo = document.getElementById('ffTipo')?.value;
+  const comercial = ES_COMERCIAL(tipo);
+  const form = document.querySelector('.perfil-form-fecha');
+  if (form) form.classList.toggle('es-comercial', comercial);
+  const aviso = document.getElementById('ffAviso');
+  if (aviso) aviso.value = comercial ? (tipo === 'dia_enamorado' ? 30 : 45) : 60;
+}
+
+async function guardarPreferenciaCliente(id, campo, valor) {
+  const msg = document.getElementById('perfilPrefMsg');
+  if (msg) msg.textContent = 'Guardando...';
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/${id}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [campo]: valor })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'error');
+    if (msg) { msg.textContent = '✓ Guardado'; setTimeout(() => { msg.textContent = ''; }, 1800); }
+    listarClientes();
+    cargarFechasProximas();
+  } catch (err) {
+    if (msg) msg.textContent = 'No se pudo guardar';
+  }
 }
 
 async function recargarFechasPerfil(clienteId) {
@@ -704,6 +766,7 @@ async function guardarFechaCliente(clienteId) {
     tipo: val('ffTipo'), persona: val('ffPersona'), dia: val('ffDia'), mes: val('ffMes'),
     nota: val('ffNota'), aviso_dias: val('ffAviso')
   };
+  if (ES_COMERCIAL(body.tipo)) { delete body.dia; delete body.mes; delete body.persona; }
   try {
     const res = await fetch(`${API_BASE_URL}/admin/clientes/${clienteId}/fechas`, {
       method: 'POST',
@@ -759,6 +822,9 @@ function linkWhatsApp(whatsapp, texto) {
 
 function mensajeFecha(f) {
   const nombre = (f.cliente.nombre || '').split(' ')[0];
+  if (ES_COMERCIAL(f.tipo)) {
+    return `¡Hola ${nombre}! 😊 Se acerca el ${f.nombre_fecha} y en Puchia armamos algo especial. Como ya nos elegiste para esta fecha, te dejamos un cupón para que hagas tu pedido con tiempo 🎁`;
+  }
   const quien = f.persona ? ` de ${f.persona}` : '';
   return `¡Hola ${nombre}! 😊 Se acerca el ${f.tipo === 'cumpleaños' ? 'cumpleaños' : 'día especial'}${quien}. Queremos tener un detalle con vos: te dejamos un cupón especial para que armes algo lindo en Puchia 🎁`;
 }
@@ -772,25 +838,31 @@ async function cargarFechasProximas() {
     if (!res.ok || !data.success) throw new Error('error');
     const lista = data.data;
     const comerciales = fechasComercialesProximas(90);
-    const enAviso = lista.filter(f => f.en_aviso).length + comerciales.filter(f => f.en_aviso).length;
+    const enAviso = lista.filter(f => f.en_aviso && f.cliente.acepta_promociones !== false).length + comerciales.filter(f => f.en_aviso).length;
     const badge = document.getElementById('fechasProximasCount');
     if (badge) { badge.textContent = enAviso ? `${enAviso} para contactar` : (lista.length + comerciales.length ? `${lista.length + comerciales.length}` : ''); badge.className = 'fechas-count' + (enAviso ? ' fechas-count-aviso' : ''); }
     const bloqueClientes = !lista.length
       ? '<div class="fechas-bloque-titulo">De tus clientes</div><div class="perfil-vacio">No hay fechas en los próximos 90 días. Cargalas desde el perfil de cada cliente (clic en su nombre).</div>'
       : '<div class="fechas-bloque-titulo">De tus clientes</div>' + lista.map(f => {
-      const wa = linkWhatsApp(f.cliente.whatsapp, mensajeFecha(f));
-      return `<div class="perfil-fecha ${f.en_aviso ? 'perfil-fecha-aviso' : ''}">
+      const noAcepta = f.cliente.acepta_promociones === false;
+      const sinConfirmar = f.cliente.acepta_promociones == null;
+      const wa = noAcepta ? null : linkWhatsApp(f.cliente.whatsapp, mensajeFecha(f));
+      const titulo = ES_COMERCIAL(f.tipo) ? `${cEsc(f.nombre_fecha)} <span class="fechas-faltan">· ${f.dia} de ${MESES_ES[f.mes - 1]}</span>` : `${f.dia} de ${MESES_ES[f.mes - 1]}`;
+      const accion = noAcepta
+        ? '<span class="perfil-etiqueta perfil-etiqueta-no" title="Pidió no recibir promociones">🚫 No quiere promociones</span>'
+        : (wa ? `<a class="btn btn-sm btn-secondary" href="${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '<span class="perfil-ayuda">sin WhatsApp</span>');
+      return `<div class="perfil-fecha ${f.en_aviso && !noAcepta ? 'perfil-fecha-aviso' : ''}">
         <div class="perfil-fecha-icono">${ICONO_FECHA[f.tipo] || '📌'}</div>
         <div class="perfil-fecha-info">
-          <strong>${f.dia} de ${MESES_ES[f.mes - 1]}</strong>${f.persona ? ` · ${cEsc(f.persona)}` : ''} <span class="fechas-faltan">${textoFaltan(f.dias_restantes)}</span>
-          <div class="perfil-fecha-sub"><a href="#" class="cliente-link" onclick="cerrarFechasProximas(); verCliente(${f.cliente.id}); return false;">${cEsc(f.cliente.nombre)}</a> (${cEsc(f.cliente.codigo_cliente)})${f.en_aviso ? ' · <b>momento de contactar</b>' : ` · contactar en ${f.dias_restantes - f.aviso_dias} días`}${f.nota ? ` · ${cEsc(f.nota)}` : ''}</div>
+          <strong>${titulo}</strong>${f.persona ? ` · ${cEsc(f.persona)}` : ''} <span class="fechas-faltan">${textoFaltan(f.dias_restantes)}</span>
+          <div class="perfil-fecha-sub"><a href="#" class="cliente-link" onclick="cerrarFechasProximas(); verCliente(${f.cliente.id}); return false;">${cEsc(f.cliente.nombre)}</a> (${cEsc(f.cliente.codigo_cliente)}) ${chipTipoCliente(f.cliente.tipo_cliente)}${f.en_aviso ? ' · <b>momento de contactar</b>' : ` · contactar en ${f.dias_restantes - f.aviso_dias} días`}${sinConfirmar && !noAcepta ? ' · <span title="Todavía no registraste si acepta promociones">⚠ sin confirmar si acepta promociones</span>' : ''}${f.nota ? ` · ${cEsc(f.nota)}` : ''}</div>
         </div>
-        ${wa ? `<a class="btn btn-sm btn-secondary" href="${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '<span class="perfil-ayuda">sin WhatsApp</span>'}
+        ${accion}
       </div>`;
     }).join('');
-    card.innerHTML = renderFechasComerciales() + bloqueClientes;
+    card.innerHTML = renderFechasComerciales(lista) + bloqueClientes;
   } catch (err) {
-    card.innerHTML = renderFechasComerciales() + '<div class="perfil-vacio">No se pudieron cargar las fechas de tus clientes.</div>';
+    card.innerHTML = renderFechasComerciales([]) + '<div class="perfil-vacio">No se pudieron cargar las fechas de tus clientes.</div>';
   }
 }
 
@@ -858,7 +930,7 @@ function copiarMensajeComercial(clave, btn) {
   else window.prompt('Copiá el mensaje:', texto);
 }
 
-function renderFechasComerciales() {
+function renderFechasComerciales(listaClientes = []) {
   const lista = fechasComercialesProximas(90);
   if (!lista.length) return '';
   return `<div class="fechas-bloque-titulo">Fechas comerciales <span>· para todos tus clientes</span></div>` + lista.map(f => `
@@ -866,8 +938,152 @@ function renderFechasComerciales() {
       <div class="perfil-fecha-icono">${f.icono}</div>
       <div class="perfil-fecha-info">
         <strong>${f.nombre}</strong> <span class="fechas-faltan">${f.dia_num} de ${MESES_ES[f.mes_num - 1]} · ${textoFaltan(f.dias_restantes)}</span>
+        ${(() => { const n = listaClientes.filter(x => x.tipo === 'dia_' + f.clave && x.cliente.acepta_promociones !== false).length; return n ? `<span class="perfil-etiqueta perfil-etiqueta-vip">${n} cliente${n > 1 ? 's' : ''} anotado${n > 1 ? 's' : ''}</span>` : ''; })()}
         <div class="perfil-fecha-sub">${f.en_aviso ? '<b>momento de comunicar la campaña</b>' : `comunicar en ${f.dias_restantes - f.aviso} días`} (desde ${f.aviso} días antes)</div>
       </div>
       <button type="button" class="btn btn-sm btn-secondary" onclick="copiarMensajeComercial('${f.clave}', this)">📋 Copiar mensaje</button>
     </div>`).join('');
+}
+
+
+// ==================== TIPO DE CLIENTE ====================
+function chipTipoCliente(tipo) {
+  if (tipo === 'eventos') return '<span class="chip-tipo chip-tipo-eventos">🎉 Eventos</span>';
+  if (tipo === 'negocio') return '<span class="chip-tipo chip-tipo-negocio">🏪 Negocio</span>';
+  return '<span class="chip-tipo chip-tipo-sin">—</span>';
+}
+
+// ==================== NUEVO PEDIDO DESDE LA FICHA ====================
+async function nuevoPedidoDesdeFicha(clienteId) {
+  cerrarDetalle();
+  document.querySelector('.sidebar-nav [data-page="ordenes"], [data-page="ordenes"]')?.click();
+  if (typeof abrirModalCrearOrden !== 'function') { alert('No se pudo abrir el formulario de pedido'); return; }
+  await abrirModalCrearOrden();
+  const select = document.getElementById('selectCliente');
+  if (!select) return;
+  if (![...select.options].some(o => o.value === String(clienteId))) {
+    // el desplegable trae un máximo de clientes: si no está, se agrega a mano
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/clientes/${clienteId}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+      const data = await res.json();
+      if (data.success) {
+        const op = document.createElement('option');
+        op.value = data.data.id;
+        op.textContent = `${data.data.codigo_cliente} - ${data.data.nombre}`;
+        select.appendChild(op);
+      }
+    } catch (_) { /* queda sin seleccionar */ }
+  }
+  select.value = String(clienteId);
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// ==================== DUPLICADOS ====================
+const DUP_IGNORADOS_KEY = 'puchia_clientes_dup_ignorados';
+let duplicadosGrupos = [];
+
+function dupClaveGrupo(grupo) {
+  return grupo.clientes.map(c => c.id).sort((a, b) => a - b).join('-');
+}
+function dupIgnorados() {
+  try { return new Set(JSON.parse(localStorage.getItem(DUP_IGNORADOS_KEY) || '[]')); } catch (_) { return new Set(); }
+}
+
+async function abrirDuplicados() {
+  const modal = document.getElementById('modalDuplicados');
+  const cont = document.getElementById('duplicadosContenido');
+  if (!modal || !cont) return;
+  cont.innerHTML = '<div class="perfil-vacio">Buscando duplicados...</div>';
+  modal.classList.add('show');
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/duplicados`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'error');
+    duplicadosGrupos = data.data;
+    renderDuplicados();
+  } catch (err) {
+    cont.innerHTML = '<div class="perfil-vacio">No se pudo buscar duplicados. Probá de nuevo.</div>';
+  }
+}
+function cerrarDuplicados() { document.getElementById('modalDuplicados')?.classList.remove('show'); }
+
+function renderDuplicados() {
+  const cont = document.getElementById('duplicadosContenido');
+  const ignorados = dupIgnorados();
+  const visibles = duplicadosGrupos.map((g, i) => ({ g, i })).filter(({ g }) => !ignorados.has(dupClaveGrupo(g)));
+  if (!visibles.length) {
+    cont.innerHTML = `<div class="perfil-vacio">✅ No se encontraron clientes duplicados${ignorados.size ? ` (ocultaste ${ignorados.size} grupo${ignorados.size > 1 ? 's' : ''} marcado${ignorados.size > 1 ? 's' : ''} como "no es duplicado")` : ''}.</div>${ignorados.size ? '<div style="margin-top:8px;"><button class="btn btn-sm btn-secondary" onclick="restablecerDuplicadosIgnorados()">Volver a mostrar los ocultos</button></div>' : ''}`;
+    return;
+  }
+  cont.innerHTML = visibles.map(({ g, i }) => `
+    <section class="perfil-card dup-grupo" data-grupo="${i}">
+      <h3 class="perfil-card-titulo"><span class="perfil-card-ico">🧩</span>Grupo ${i + 1}<span class="dup-motivos">${g.motivos.map(m => `<span class="chip-tipo chip-tipo-sin">${cEsc(m)}</span>`).join('')}</span></h3>
+      <div style="overflow-x:auto;"><table class="perfil-tabla"><thead><tr><th>Conservar</th><th>Fusionar</th><th>Cliente</th><th>Contacto</th><th style="text-align:right;">Pedidos</th><th>Alta</th></tr></thead><tbody>
+        ${g.clientes.map((c, k) => `<tr>
+          <td><input type="radio" name="dup-principal-${i}" value="${c.id}" ${k === 0 ? 'checked' : ''} onchange="dupActualizarFila(${i})"></td>
+          <td><input type="checkbox" class="dup-check" value="${c.id}" ${k === 0 ? 'disabled' : 'checked'}></td>
+          <td><strong>${cEsc(c.nombre)}</strong><br><span class="perfil-ayuda">${cEsc(c.codigo_cliente)}${c.activo ? '' : ' · inactivo'}</span></td>
+          <td style="font-size:12px;">${cEsc(c.email) || '—'}<br>${cEsc(c.whatsapp) || '—'}${c.dni ? `<br>DNI ${cEsc(c.dni)}` : ''}</td>
+          <td style="text-align:right;">${c.pedidos}${c.pedidos_historicos ? `<br><span class="perfil-ayuda">+${c.pedidos_historicos} hist.</span>` : ''}</td>
+          <td style="font-size:12px;white-space:nowrap;">${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '—'}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="dup-acciones">
+        <button class="btn btn-sm btn-secondary" onclick="ignorarGrupoDuplicado(${i})">No es duplicado</button>
+        <button class="btn btn-sm btn-primary" onclick="fusionarGrupo(${i})">Fusionar los marcados en el que se conserva</button>
+      </div>
+    </section>`).join('');
+}
+
+function dupActualizarFila(i) {
+  const grupo = document.querySelector(`.dup-grupo[data-grupo="${i}"]`);
+  if (!grupo) return;
+  const principal = grupo.querySelector(`input[name="dup-principal-${i}"]:checked`)?.value;
+  grupo.querySelectorAll('.dup-check').forEach(ch => {
+    if (ch.value === principal) { ch.checked = false; ch.disabled = true; }
+    else { if (ch.disabled) ch.checked = true; ch.disabled = false; }
+  });
+}
+
+function ignorarGrupoDuplicado(i) {
+  const set = dupIgnorados();
+  set.add(dupClaveGrupo(duplicadosGrupos[i]));
+  try { localStorage.setItem(DUP_IGNORADOS_KEY, JSON.stringify([...set])); } catch (_) { /* sin storage */ }
+  renderDuplicados();
+}
+function restablecerDuplicadosIgnorados() {
+  try { localStorage.removeItem(DUP_IGNORADOS_KEY); } catch (_) { /* sin storage */ }
+  renderDuplicados();
+}
+
+async function fusionarGrupo(i) {
+  const grupo = document.querySelector(`.dup-grupo[data-grupo="${i}"]`);
+  const g = duplicadosGrupos[i];
+  if (!grupo || !g) return;
+  const principalId = parseInt(grupo.querySelector(`input[name="dup-principal-${i}"]:checked`)?.value, 10);
+  const ids = [...grupo.querySelectorAll('.dup-check:checked')].map(ch => parseInt(ch.value, 10));
+  if (!principalId || !ids.length) { alert('Marcá al menos un cliente para fusionar.'); return; }
+  const principal = g.clientes.find(c => c.id === principalId);
+  const elim = g.clientes.filter(c => ids.includes(c.id));
+  const pedidos = elim.reduce((a, c) => a + c.pedidos, 0);
+  const ok = confirm(
+    `Se conserva: ${principal.nombre} (${principal.codigo_cliente})\n` +
+    `Se eliminan: ${elim.map(c => `${c.nombre} (${c.codigo_cliente})`).join(', ')}\n\n` +
+    `• Sus ${pedidos} pedido(s) pasan a la ficha que se conserva.\n• Se juntan las notas y las fechas importantes.\n• Los datos que falten se completan.\n\n` +
+    'Esto NO se puede deshacer. ¿Continuar?');
+  if (!ok) return;
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/fusionar`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ principal_id: principalId, duplicados_ids: ids })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) { alert(data.error || data.message || 'No se pudo fusionar'); return; }
+    alert(`Listo: ${data.data.eliminados} ficha(s) fusionada(s), ${data.data.pedidos_reasignados} pedido(s) reasignado(s).`);
+    listarClientes();
+    cargarFechasProximas();
+    abrirDuplicados();
+  } catch (err) {
+    alert('Error de conexión al fusionar');
+  }
 }

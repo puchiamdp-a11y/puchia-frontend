@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100222">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100224">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -300,6 +300,7 @@
                             <button class="menu-compartir-item" id="btnImportarExcel">📥 Importar Excel</button>
                             <button class="menu-compartir-item" id="btnExportarExcel">📤 Exportar Excel</button>
                             <hr style="border: none; border-top: 1px solid #eee; margin: 4px 0;">
+                            <button class="menu-compartir-item" onclick="abrirDuplicados()" title="Busca clientes cargados dos veces y permite fusionarlos">🧩 Revisar duplicados</button>
                             <button class="menu-compartir-item" onclick="recalcularProximoCodigoCliente()" title="Deja el contador en el mayor código J que tengas cargado">🔢 Recalcular próximo código</button>
                             <a href="./admin-alertas-config.html" class="menu-compartir-item">🔔 Configurar Alertas</a>
                         </div>
@@ -316,6 +317,12 @@
                         <option value="">Todos</option>
                         <option value="true">Activos</option>
                         <option value="false">Inactivos</option>
+                    </select>
+                    <select id="filtroTipoCliente" title="Tipo de cliente">
+                        <option value="">Todos los tipos</option>
+                        <option value="eventos">🎉 Eventos</option>
+                        <option value="negocio">🏪 Negocios</option>
+                        <option value="sin">Sin clasificar</option>
                     </select>
                     <button class="btn btn-secondary" id="btnBuscar">Buscar</button>
                 </div>
@@ -339,6 +346,7 @@
                             <tr id="theadClientes">
                                 <th class="sortable" data-sort="codigo_cliente">Código <span class="sort-ind">↕</span></th>
                                 <th class="sortable" data-sort="nombre">Nombre <span class="sort-ind">↕</span></th>
+                                <th class="sortable" data-sort="tipo_cliente">Tipo <span class="sort-ind">↕</span></th>
                                 <th class="sortable" data-sort="whatsapp">WhatsApp <span class="sort-ind">↕</span></th>
                                 <th class="sortable" data-sort="ciudad">Ciudad <span class="sort-ind">↕</span></th>
                                 <th class="sortable" data-sort="activo">Estado <span class="sort-ind">↕</span></th>
@@ -347,7 +355,7 @@
                             </tr>
                         </thead>
                         <tbody id="tablaClientes">
-                            <tr><td colspan="7" style="text-align:center;color:#999;">Cargando clientes...</td></tr>
+                            <tr><td colspan="8" style="text-align:center;color:#999;">Cargando clientes...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -508,7 +516,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
     <script src="../js/admin.js?v=2026100210"></script>
-    <script src="../js/admin-clientes.js?v=2026100205"></script>
+    <script src="../js/admin-clientes.js?v=2026100207"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100205"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>
@@ -672,6 +680,24 @@
                         <input type="text" id="fCodigoPostal" placeholder="7600" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
                     </div>
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Tipo de cliente</label>
+                        <select id="fTipoCliente" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;">
+                            <option value="">Sin clasificar</option>
+                            <option value="eventos">🎉 Cumpleaños / eventos</option>
+                            <option value="negocio">🏪 Negocio / emprendimiento</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">¿Acepta promociones?</label>
+                        <select id="fAcepta" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;">
+                            <option value="">Sin registrar</option>
+                            <option value="true">✅ Sí, acepta</option>
+                            <option value="false">🚫 No quiere recibir</option>
+                        </select>
+                    </div>
+                </div>
                 <div style="margin-bottom: 14px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px;">Notas</label>
                     <textarea id="fNotas" placeholder="Observaciones internas..." style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical; min-height: 60px;"></textarea>
@@ -696,6 +722,16 @@
         <div style="background: white; border-radius: 16px; padding: 24px; width: 100%; max-width: 800px; background: #f6f3f8; max-height: 90vh; overflow-y: auto; position: relative;">
             <button class="modal-close" onclick="cerrarDetalle()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
             <div id="detalleContenido"></div>
+        </div>
+    </div>
+
+    <!-- MODAL DUPLICADOS -->
+    <div class="modal" id="modalDuplicados" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="border-radius: 16px; padding: 24px; width: 100%; max-width: 860px; background: #f6f3f8; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button class="modal-close" onclick="cerrarDuplicados()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
+            <h2 style="margin: 0 0 4px; color: #7f1f6e;">🧩 Posibles clientes duplicados</h2>
+            <p style="margin: 0 0 14px; font-size: 13px; color: #7b6b80;">Misma persona cargada más de una vez. Elegí cuál conservar: sus datos se completan con los del duplicado, y los pedidos y las fechas pasan a la ficha que queda.</p>
+            <div id="duplicadosContenido"></div>
         </div>
     </div>
 
