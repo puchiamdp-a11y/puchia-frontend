@@ -475,9 +475,10 @@ async function submitOrder(e) {
         }))
     };
 
-    let orders = getOrders();
-    orders.push(order);
-    saveOrders(orders);
+    // La orden se guarda localmente SOLO si el servidor la acepta (más abajo): antes se guardaba siempre
+    // y se mostraba "Orden confirmada" aunque el pedido hubiera sido rechazado.
+    let ordenCreada = false;
+    let mensajeError = '';
 
     // 📤 ENVIAR AL BACKEND - STOCK PUCHIA V2.0 - Endpoint Transaccional
     console.log('📤 Enviando orden al backend (Stock Puchia v2.0)...');
@@ -539,16 +540,33 @@ async function submitOrder(e) {
                 localStorage.setItem('lastBackendOrderTotal', data.data.total);
                 localStorage.setItem('lastBackendOrderState', data.data.estado);
             }
-            showToast('✅ Orden enviada a backend correctamente', 'success');
+            ordenCreada = true;
         } else {
             console.warn('⚠️ Respuesta no exitosa:', data);
-            showToast(`⚠️ ${data?.error || 'Error al procesar la orden'}`, 'error');
+            mensajeError = data?.error || data?.message || 'El servidor no pudo procesar el pedido.';
         }
     } catch (err) {
         console.error('❌ ERROR al enviar al backend:', err.message);
         console.error('❌ Stack:', err.stack);
-        showToast(`❌ Error: ${err.message}`, 'error');
+        mensajeError = 'No pudimos comunicarnos con el servidor. Revisá tu conexión e intentá de nuevo.';
     }
+
+    if (!ordenCreada) {
+        // Pedido NO confirmado: el carrito y los datos del formulario quedan como estaban para poder reintentar
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirmar Orden";
+            confirmBtn.style.opacity = "1";
+        }
+        showPuchiaModal('No pudimos confirmar tu pedido', `${mensajeError}<br><br>Tu carrito sigue igual. Podés intentar de nuevo o escribirnos por WhatsApp.`, [
+            { texto: 'Entendido', clase: 'primary' }
+        ]);
+        return;
+    }
+
+    let orders = getOrders();
+    orders.push(order);
+    saveOrders(orders);
 
     closeCheckout();
     clearCart();
