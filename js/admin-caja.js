@@ -293,58 +293,21 @@ async function renderCajaInterface() {
 
     <!-- TAB: REPORTES -->
     <div id="tab-reportes" class="tab-content" style="display: none;">
-      <div style="display: flex; gap: 12px; margin-bottom: 24px; align-items: center;">
-        <input type="month" id="reporteMes" />
-        <button class="btn btn-primary" onclick="generarReporteCaja()">📊 Generar Reporte</button>
-      </div>
-
-      <!-- Botones de exportación (se mostrarán cuando se genere un reporte) -->
-      <div id="botonesExportacion" style="display: none; margin-bottom: 24px; flex-wrap: wrap;">
-        <button class="btn btn-secondary" onclick="exportarReporteExcel()" style="margin-right: 12px;">📥 Descargar Excel</button>
-        <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
-      </div>
-
-      <div id="reporteContenido" style="display: none;">
-        <!-- Resumen del período -->
-        <div class="stats-grid" style="margin-bottom: 32px;">
-          <div class="stat-card">
-            <div class="stat-label">Total Ingresos</div>
-            <div class="stat-value" style="color: #4caf50;" id="reporteIngresos">$0.00</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Total Egresos</div>
-            <div class="stat-value" style="color: #f44336;" id="reporteEgresos">$0.00</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Saldo del Período</div>
-            <div class="stat-value" id="reporteSaldo">$0.00</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Transacciones</div>
-            <div class="stat-value" id="reporteTransacciones">0</div>
-          </div>
+      <div class="rep-controles">
+        <div class="rep-periodo">
+          <button type="button" class="btn btn-secondary btn-small" onclick="cambiarMesReporte(-1)" title="Mes anterior">◀</button>
+          <input type="month" id="reporteMes" onchange="generarReporteCaja()" />
+          <button type="button" class="btn btn-secondary btn-small" onclick="cambiarMesReporte(1)" title="Mes siguiente">▶</button>
         </div>
-
-        <!-- Gráficos -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
-          <div class="table-container">
-            <canvas id="chartIngresosEgresos"></canvas>
-          </div>
-          <div class="table-container">
-            <canvas id="chartDistribucion"></canvas>
-          </div>
-        </div>
-
-        <!-- Tabla de desglose -->
-        <div class="table-container">
-          <h3 style="padding: 16px; border-bottom: 1px solid #eee; margin: 0; font-size: 14px; font-weight: 600;">Desglose por Categoría</h3>
-          <div id="reporteDesglose"></div>
+        <div id="botonesExportacion" class="rep-exportar" style="display: none;">
+          <button class="btn btn-secondary" onclick="exportarReporteExcel()">📥 Descargar Excel</button>
+          <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
         </div>
       </div>
 
-      <div id="reporteVacio" style="text-align: center; color: #999; padding: 40px;">
-        Selecciona un mes y haz clic en "Generar Reporte" para ver el análisis
-      </div>
+      <div id="reporteContenido" style="display: none;"></div>
+
+      <div id="reporteVacio" class="rep-vacio">Cargando análisis...</div>
     </div>
     </div>
   `;
@@ -622,6 +585,7 @@ function switchCajaTab(tabName) {
   document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
   const selectedTab = document.getElementById(`tab-${tabName}`);
   if (selectedTab) selectedTab.style.display = 'block';
+  if (tabName === 'reportes' && typeof generarReporteCaja === 'function') generarReporteCaja();
 
   document.querySelectorAll('#cajaMainTabs .orders-tab').forEach(btn => {
     const activa = btn.dataset.tab === tabName;
@@ -1130,268 +1094,6 @@ async function guardarCategoriaCaja() {
   } catch (error) {
     console.error('❌ Error guardando categoría:', error);
     alert('Error al guardar la categoría');
-  }
-}
-
-async function generarReporteCaja() {
-  const mesInput = document.getElementById('reporteMes').value;
-
-  if (!mesInput) {
-    alert('Por favor selecciona un mes');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/admin/caja/reportes/mensual?mes=${mesInput}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('Error al cargar el reporte');
-    }
-
-    const data = await response.json();
-    const reporte = data.data;
-
-    // Actualizar totales
-    document.getElementById('reporteIngresos').textContent = formatearMonto(reporte.ingresos.total);
-    document.getElementById('reporteEgresos').textContent = formatearMonto(reporte.egresos.total);
-
-    const saldoEl = document.getElementById('reporteSaldo');
-    saldoEl.textContent = formatearMonto(reporte.saldo_neto);
-    saldoEl.style.color = reporte.saldo_neto >= 0 ? '#4caf50' : '#f44336';
-
-    document.getElementById('reporteTransacciones').textContent = reporte.cantidad_transacciones;
-
-    // Generar gráficos
-    generarGraficos(reporte);
-
-    // Generar tabla de desglose
-    generarDesgloseReporte(reporte);
-
-    // Mostrar contenido
-    document.getElementById('reporteContenido').style.display = 'block';
-    document.getElementById('reporteVacio').style.display = 'none';
-
-    // Mostrar botones de exportación con estilos garantizados
-    const botonesEl = document.getElementById('botonesExportacion');
-    if (botonesEl) {
-      botonesEl.style.cssText = 'display: flex !important; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; width: 100%;';
-      console.log('✅ Botones de exportación mostrados:', {
-        display: botonesEl.style.display,
-        gap: botonesEl.style.gap,
-        alignItems: botonesEl.style.alignItems,
-        elemento: botonesEl
-      });
-    } else {
-      console.error('❌ No se encontró elemento botonesExportacion');
-    }
-
-    console.log('✅ Reporte generado');
-  } catch (error) {
-    console.error('❌ Error generando reporte:', error);
-    alert('Error al generar el reporte');
-  }
-}
-
-function generarGraficos(reporte) {
-  // Gráfico 1: Ingresos vs Egresos (Dona)
-  const ctx1 = document.getElementById('chartIngresosEgresos')?.getContext('2d');
-  if (ctx1) {
-    if (window.chartIngresosEgresos && typeof window.chartIngresosEgresos.destroy === 'function') {
-      window.chartIngresosEgresos.destroy();
-    }
-
-    window.chartIngresosEgresos = new Chart(ctx1, {
-      type: 'doughnut',
-      data: {
-        labels: ['Ingresos', 'Egresos'],
-        datasets: [{
-          data: [reporte.ingresos.total, reporte.egresos.total],
-          backgroundColor: ['#4caf50', '#f44336'],
-          borderColor: ['#2e7d32', '#c62828'],
-          borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return `$${context.parsed.toFixed(2)}`;
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  // Gráfico 2: Distribución (Barras horizontales)
-  const allCategorias = [
-    ...reporte.ingresos.por_categoria,
-    ...reporte.egresos.por_categoria
-  ];
-
-  const ctx2 = document.getElementById('chartDistribucion')?.getContext('2d');
-  if (ctx2) {
-    if (window.chartDistribucion && typeof window.chartDistribucion.destroy === 'function') {
-      window.chartDistribucion.destroy();
-    }
-
-    // Obtener categorías desde el estado global
-    const categoriasMap = {};
-    cajaState.categorias.forEach(cat => {
-      categoriasMap[cat.nombre] = cat;
-    });
-
-    const labels = allCategorias.map(c => c.categoria);
-    const montos = allCategorias.map(c => c.monto);
-    const colores = allCategorias.map(c => {
-      const cat = categoriasMap[c.categoria];
-      return cat?.color || '#7f1f6e';
-    });
-
-    window.chartDistribucion = new Chart(ctx2, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Monto ($)',
-          data: montos,
-          backgroundColor: colores,
-          borderColor: colores,
-          borderWidth: 1
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return `$${context.parsed.x.toFixed(2)}`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            beginAtZero: true,
-            ticks: {
-              callback: function(value) {
-                return '$' + value.toFixed(0);
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-}
-
-function generarDesgloseReporte(reporte) {
-  const desgloseDiv = document.getElementById('reporteDesglose');
-
-  // Obtener categorías desde el estado global
-  const categoriasMap = {};
-  cajaState.categorias.forEach(cat => {
-    categoriasMap[cat.nombre] = cat;
-  });
-
-  let html = '<table style="width: 100;">';
-  html += '<thead><tr style="background: #f5f6fa;"><th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; color: #2c3e50; text-transform: uppercase;">Categoría</th>';
-  html += '<th style="padding: 12px 16px; text-align: right; font-weight: 600; font-size: 12px; color: #2c3e50; text-transform: uppercase;">Ingresos</th>';
-  html += '<th style="padding: 12px 16px; text-align: right; font-weight: 600; font-size: 12px; color: #2c3e50; text-transform: uppercase;">Egresos</th>';
-  html += '<th style="padding: 12px 16px; text-align: right; font-weight: 600; font-size: 12px; color: #2c3e50; text-transform: uppercase;">Neto</th></tr></thead>';
-  html += '<tbody>';
-
-  // Obtener todas las categorías únicas
-  const allCategoryNames = new Set([
-    ...reporte.ingresos.por_categoria.map(c => c.categoria),
-    ...reporte.egresos.por_categoria.map(c => c.categoria)
-  ]);
-
-  allCategoryNames.forEach(nombre => {
-    const ingreso = reporte.ingresos.por_categoria.find(c => c.categoria === nombre);
-    const egreso = reporte.egresos.por_categoria.find(c => c.categoria === nombre);
-
-    const montoIngreso = ingreso?.monto || 0;
-    const montoEgreso = egreso?.monto || 0;
-    const neto = montoIngreso - montoEgreso;
-
-    const cat = categoriasMap[nombre];
-    const icono = cat?.icono || '💰';
-
-    html += `<tr style="border-bottom: 1px solid #e0e0e0;">
-      <td style="padding: 12px 16px; font-size: 14px;">
-        <span style="display: inline-flex; align-items: center; gap: 8px;">
-          <span style="font-size: 16px;">${icono}</span>
-          <span>${nombre}</span>
-        </span>
-      </td>
-      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 500; color: #4caf50;">${formatearMonto(montoIngreso)}</td>
-      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 500; color: #f44336;">${formatearMonto(montoEgreso)}</td>
-      <td style="padding: 12px 16px; text-align: right; font-size: 14px; font-weight: 600; color: ${neto >= 0 ? '#4caf50' : '#f44336'};">${formatearMonto(neto)}</td>
-    </tr>`;
-  });
-
-  html += '</tbody></table>';
-  desgloseDiv.innerHTML = html;
-}
-
-// ==================== RECONCILIACIÓN DE ÓRDENES ====================
-
-async function reconciliarOrdenesManual() {
-  if (!confirm('¿Sincronizar órdenes entregadas sin registrar en caja?')) return;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/admin/caja/reconciliar-ordenes`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      alert(`Error: ${error.error || 'No se pudo reconciliar'}`);
-      return;
-    }
-
-    const data = await response.json();
-    const resultado = data.data;
-
-    // Mostrar resultado
-    const mensaje = `✅ Reconciliación completada\n\n` +
-      `Órdenes procesadas: ${resultado.ordenes_procesadas}\n` +
-      `Órdenes registradas: ${resultado.ordenes_registradas}\n` +
-      `Monto total: ${formatearMonto(resultado.total_monto)}`;
-
-    alert(mensaje);
-
-    // Recargar transacciones
-    await loadCajaTransacciones();
-    renderCajaTransacciones();
-    updateCajaResumen();
-
-    console.log('✅ Reconciliación completada:', resultado);
-  } catch (error) {
-    console.error('❌ Error reconciliando órdenes:', error);
-    alert('Error al sincronizar órdenes');
   }
 }
 
