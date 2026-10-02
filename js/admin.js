@@ -416,7 +416,7 @@ async function loadRecentOrders() {
         const total = parseFloat(orden.total) || 0;
         const resto = parseFloat(orden.resto_a_pagar) || (total - sena);
         return `<tr>
-          <td>${orden.id_unico || orden.id}</td>
+          <td><strong>${orden.cliente_codigo || '—'}</strong></td>
           <td>${orden.cliente_nombre}</td>
           <td style="text-align: right;">$${sena.toFixed(2)}</td>
           <td style="text-align: right;">$${resto.toFixed(2)}</td>
