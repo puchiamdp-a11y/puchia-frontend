@@ -833,3 +833,19 @@ select:focus {
 .caja-resumen-grid { display: grid; gap: 16px; }
 @media (max-width: 1100px) { .caja-resumen-wrap { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .caja-resumen-grid { grid-template-columns: 1fr !important; } }
+
+/* Línea sutil entre "mes" e "histórico" */
+.caja-resumen-historico { border-left: 1px solid #d9cfdc; padding-left: 24px; }
+@media (max-width: 1100px) { .caja-resumen-historico { border-left: none; padding-left: 0; border-top: 1px solid #d9cfdc; padding-top: 16px; } }
+
+/* Módulo de filtros de Caja */
+.caja-filtros-card { background: #fff; border: 1px solid #e6e1e8; border-radius: 12px; padding: 16px 18px 14px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(60, 20, 70, .07), 0 6px 16px rgba(60, 20, 70, .04); }
+.caja-filtros-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; }
+.caja-filtro label { display: block; font-size: 11px; font-weight: 700; color: #7b6b80; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.caja-filtro input, .caja-filtro select { width: 100%; box-sizing: border-box; }
+.caja-buscar { position: relative; }
+.caja-buscar-icono { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; opacity: .7; }
+.caja-buscar input { padding-left: 32px; }
+.caja-filtros-pie { margin-top: 12px; padding-top: 10px; border-top: 1px solid #f0ecf1; display: flex; gap: 8px; }
+@media (max-width: 800px) { .caja-filtros-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 500px) { .caja-filtros-grid { grid-template-columns: 1fr; } }

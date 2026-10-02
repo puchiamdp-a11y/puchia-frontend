@@ -172,7 +172,7 @@ async function renderCajaInterface() {
           </div>
         </div>
       </div>
-      <div>
+      <div class="caja-resumen-historico">
         <div class="caja-resumen-sub">Histórico</div>
         <div class="caja-resumen-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
           <div class="stat-card">
@@ -210,44 +210,37 @@ async function renderCajaInterface() {
       </div>
 
       <!-- FILTROS -->
-      <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px;">
-          <input type="text" id="filtroBusqueda" placeholder="Buscar por descripción o ID orden..." onkeyup="aplicarFiltrosCaja()" />
-          <select id="filtroCategoriaCaja" onchange="aplicarFiltrosCaja()">
-            <option value="">Todas las categorías</option>
-            ${cajaCategoriasActivas().map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('')}
-          </select>
-          <input type="date" id="filtroFechaDesde" onchange="aplicarFiltrosCaja()" />
-          <input type="date" id="filtroFechaHasta" onchange="aplicarFiltrosCaja()" />
+      <div class="caja-filtros-card">
+        <div class="caja-filtros-grid">
+          <div class="caja-filtro">
+            <label for="filtroBusqueda">Buscar</label>
+            <div class="caja-buscar">
+              <span class="caja-buscar-icono" aria-hidden="true">🔍</span>
+              <input type="text" id="filtroBusqueda" placeholder="Descripción o ID de orden..." onkeyup="aplicarFiltrosCaja()" />
+            </div>
+          </div>
+          <div class="caja-filtro">
+            <label for="filtroCategoriaCaja">Categoría</label>
+            <select id="filtroCategoriaCaja" onchange="aplicarFiltrosCaja()">
+              <option value="">Todas las categorías</option>
+              ${cajaCategoriasActivas().map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('')}
+            </select>
+          </div>
+          <div class="caja-filtro">
+            <label for="filtroFechaDesde">Desde</label>
+            <input type="date" id="filtroFechaDesde" onchange="aplicarFiltrosCaja()" />
+          </div>
+          <div class="caja-filtro">
+            <label for="filtroFechaHasta">Hasta</label>
+            <input type="date" id="filtroFechaHasta" onchange="aplicarFiltrosCaja()" />
+          </div>
         </div>
-        <div style="margin-top: 12px; display: flex; gap: 8px;">
+        <div class="caja-filtros-pie">
           <button class="btn btn-small btn-secondary" onclick="limpiarFiltrosCaja()">🔄 Limpiar filtros</button>
         </div>
       </div>
 
       <div id="cajaAvisoLimite" style="display: none; background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px;"></div>
-
-      <!-- RESUMEN DE FILTRADO -->
-      <div id="resumenFiltrado" style="background: #f0f0f0; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: none;">
-        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-          <div>
-            <span style="font-weight: 600; color: #4caf50;">Ingresos: </span>
-            <span id="resumenIngresos">$0.00</span>
-          </div>
-          <div>
-            <span style="font-weight: 600; color: #f44336;">Egresos: </span>
-            <span id="resumenEgresos">$0.00</span>
-          </div>
-          <div>
-            <span style="font-weight: 600; color: #7f1f6e;">Neto: </span>
-            <span id="resumenNeto">$0.00</span>
-          </div>
-          <div>
-            <span style="font-weight: 600; color: #999;">Transacciones: </span>
-            <span id="resumenCantidad">0</span>
-          </div>
-        </div>
-      </div>
 
       <!-- FICHERO: solapas Todo / Ingresos / Egresos -->
       <div id="cajaTipoTabs" class="orders-tabs" role="tablist"></div>
@@ -403,34 +396,6 @@ function renderCajaTransacciones() {
   const inicio = (cajaState.currentPage - 1) * cajaState.itemsPerPage;
   const fin = inicio + cajaState.itemsPerPage;
   const transaccionesPagina = transaccionesOrdenadas.slice(inicio, fin);
-
-  // Resumen de TODOS los movimientos del filtro (no solo los de la página visible)
-  let totalIngresos = 0;
-  let totalEgresos = 0;
-
-  transaccionesOrdenadas.forEach(t => {
-    if (t.tipo === 'ingreso') {
-      totalIngresos += parseFloat(t.monto);
-    } else {
-      totalEgresos += Math.abs(parseFloat(t.monto));
-    }
-  });
-
-  // Actualizar resumen dinámico
-  const resumenEl = document.getElementById('resumenFiltrado');
-  if (resumenEl) {
-    const hayFiltros = Object.values(cajaState.filters).some(v => v);
-    resumenEl.style.display = hayFiltros || cajaState.totalTransacciones > 0 ? 'block' : 'none';
-
-    if (resumenEl.style.display === 'block') {
-      const neto = totalIngresos - totalEgresos;
-      document.getElementById('resumenIngresos').textContent = formatearMonto(totalIngresos);
-      document.getElementById('resumenEgresos').textContent = formatearMonto(totalEgresos);
-      document.getElementById('resumenNeto').textContent = formatearMonto(neto);
-      document.getElementById('resumenNeto').style.color = neto >= 0 ? '#4caf50' : '#f44336';
-      document.getElementById('resumenCantidad').textContent = cajaState.totalTransacciones;
-    }
-  }
 
   const avisoEl = document.getElementById('cajaAvisoLimite');
   if (avisoEl) {
