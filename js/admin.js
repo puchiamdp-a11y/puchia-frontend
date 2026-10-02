@@ -244,6 +244,7 @@ function setupEventListeners() {
           loadCajaTransacciones();
         } else if (page === 'clientes') {
           listarClientes();
+          if (typeof cargarFechasProximas === 'function') cargarFechasProximas();
         } else if (page === 'categorias') {
           loadCategorias();
         } else if (page === 'stocks') {

@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100217">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100219">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -297,6 +297,12 @@
                     </div>
                 </div>
 
+                <!-- PRÓXIMAS FECHAS IMPORTANTES -->
+                <details id="fechasProximasCard" class="fechas-card" ontoggle="this.dataset.tocado = '1'">
+                    <summary>🎂 Próximas fechas importantes <span id="fechasProximasCount" class="fechas-count"></span></summary>
+                    <div id="fechasProximasLista" class="fechas-lista"><div class="perfil-vacio">Cargando...</div></div>
+                </details>
+
                 <!-- BUSCADOR: búsqueda, estado y botón en la misma línea -->
                 <div class="clientes-buscador">
                     <div class="clientes-buscar">
@@ -498,8 +504,8 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100209"></script>
-    <script src="../js/admin-clientes.js?v=2026100201"></script>
+    <script src="../js/admin.js?v=2026100210"></script>
+    <script src="../js/admin-clientes.js?v=2026100202"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100205"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>
@@ -684,7 +690,7 @@
 
     <!-- MODAL DETALLE CLIENTE -->
     <div class="modal" id="modalDetalle" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative;">
+        <div style="background: white; border-radius: 16px; padding: 28px; width: 100%; max-width: 760px; max-height: 90vh; overflow-y: auto; position: relative;">
             <button class="modal-close" onclick="cerrarDetalle()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
             <div id="detalleContenido"></div>
         </div>

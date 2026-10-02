@@ -152,13 +152,12 @@ function renderClientes() {
   tbody.innerHTML = data.map(c => `
     <tr>
       <td><span class="${getCodigoBadgeClass(c.codigo_cliente)}">${c.codigo_cliente}</span></td>
-      <td><strong>${c.nombre}</strong></td>
+      <td><a href="#" class="cliente-link" onclick="verCliente(${c.id}); return false;" title="Ver perfil"><strong>${cEsc(c.nombre)}</strong></a></td>
       <td>${c.whatsapp || '-'}</td>
       <td>${c.ciudad || '-'}</td>
       <td><button class="badge badge-${c.activo ? 'activo' : 'inactivo'} badge-button-responsive" onclick="toggleClienteEstado(${c.id}, ${c.activo}, '${c.nombre.replace(/'/g, "\\'")}');">${c.activo ? 'Activo' : 'Inactivo'}</button></td>
       <td class="table-cell-fecha-responsive">${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</td>
       <td><div class="acciones-cell">
-        <button class="btn btn-sm btn-secondary" onclick="verCliente(${c.id})">Ver</button>
         <button class="btn btn-sm btn-warning" onclick="editarCliente(${c.id})">Editar</button>
         <button class="btn btn-sm btn-danger" onclick="iniciarEliminacion(${c.id}, '${c.nombre.replace(/'/g, "\\'")}')">Eliminar</button>
       </div></td>
@@ -192,9 +191,11 @@ function cambiarPagina(p) {
 
 async function verCliente(id) {
   try {
-    const [resCliente, resOrdenes] = await Promise.all([
-      fetch(`${API_BASE_URL}/admin/clientes/${id}`, { headers: { 'Authorization': `Bearer ${getToken()}` } }),
-      fetch(`${API_BASE_URL}/admin/clientes/${id}/ordenes`, { headers: { 'Authorization': `Bearer ${getToken()}` } })
+    const headers = { 'Authorization': `Bearer ${getToken()}` };
+    const [resCliente, resOrdenes, resFechas] = await Promise.all([
+      fetch(`${API_BASE_URL}/admin/clientes/${id}`, { headers }),
+      fetch(`${API_BASE_URL}/admin/clientes/${id}/ordenes`, { headers }),
+      fetch(`${API_BASE_URL}/admin/clientes/${id}/fechas`, { headers })
     ]);
 
     const dataCliente = await resCliente.json();
@@ -202,76 +203,101 @@ async function verCliente(id) {
     const c = dataCliente.data;
 
     const dataOrdenes = await resOrdenes.json();
-    const ordenesData = (dataOrdenes.success && dataOrdenes.data?.ordenes) ? dataOrdenes.data.ordenes : [];
-    const totalOrdenes = (dataOrdenes.success && dataOrdenes.data?.total) ? dataOrdenes.data.total : 0;
+    const ordenes = (dataOrdenes.success && dataOrdenes.data?.ordenes) ? dataOrdenes.data.ordenes : [];
+    let fechas = [];
+    try { const df = await resFechas.json(); fechas = df.success ? df.data : []; } catch (_) { /* sin fechas */ }
 
     const pedidosHistoricos = c.pedidos_historicos || 0;
-    const pedidosNuevos = totalOrdenes;
-    const totalPedidos = pedidosHistoricos + pedidosNuevos;
+    const totalPedidos = pedidosHistoricos + ordenes.length;
 
-    // Generar tabla de historial de pedidos
-    const construirProductosStr = (items) => {
-      if (!items || items.length === 0) return '-';
-      return items.map(item => `${item.cantidad}x ${item.producto?.nombre || 'Producto'}`).join(', ');
-    };
+    // ----- Resumen de compras (no cuenta anulados) -----
+    const validas = ordenes.filter(o => o.estado !== 'anulado' && o.estado !== 'rechazado');
+    const gastado = validas.reduce((a, o) => a + parseFloat(o.total || 0), 0);
+    const ticket = validas.length ? gastado / validas.length : 0;
+    const porFecha = [...validas].sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
+    const fmtFecha = (d) => d ? new Date(d).toLocaleDateString('es-AR', { timeZone: 'UTC' }) : '—';
+    const pesos = (n) => (typeof formatearMonto === 'function' ? formatearMonto(n) : `$${Number(n).toFixed(2)}`);
 
-    const filasPedidos = ordenesData.map(orden => {
-      const productosTxt = construirProductosStr(orden.items);
-      const fechaCompra = new Date(orden.created_at).toLocaleDateString('es-AR');
-      const fechaEntrega = orden.fecha_entrega ? new Date(orden.fecha_entrega).toLocaleDateString('es-AR') : '-';
-      const monto = parseFloat(orden.total || 0).toFixed(2);
-      return `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600; color: #7f1f6e;">${orden.id_unico || orden.id}</td><td style="padding: 8px;">${fechaCompra}</td><td style="padding: 8px;">${productosTxt}</td><td style="padding: 8px; text-align: right; font-weight: 600;">$${monto}</td><td style="padding: 8px;">${fechaEntrega}</td></tr>`;
-    }).join('');
+    const conteoProductos = {};
+    validas.forEach(o => (o.items || []).forEach(i => {
+      const nombre = i.producto?.nombre || 'Producto';
+      conteoProductos[nombre] = (conteoProductos[nombre] || 0) + (parseInt(i.cantidad, 10) || 1);
+    }));
+    const topProductos = Object.entries(conteoProductos).sort((x, y) => y[1] - x[1]).slice(0, 5);
 
-    const historialHTML = ordenesData.length > 0 ? `
-      <div style="margin-top: 24px; border-top: 2px solid #eee; padding-top: 16px;">
-        <h3 style="color: #333; margin-bottom: 12px; font-size: 14px;">📋 Historial de Pedidos</h3>
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-            <thead>
-              <tr style="background: #f5f5f5; border-bottom: 2px solid #ddd;">
-                <th style="padding: 8px; text-align: left; font-weight: 600; color: #333;">ID Orden</th>
-                <th style="padding: 8px; text-align: left; font-weight: 600; color: #333;">Fecha Compra</th>
-                <th style="padding: 8px; text-align: left; font-weight: 600; color: #333;">Productos</th>
-                <th style="padding: 8px; text-align: right; font-weight: 600; color: #333;">Monto</th>
-                <th style="padding: 8px; text-align: left; font-weight: 600; color: #333;">Entrega</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${filasPedidos}
-            </tbody>
-          </table>
-        </div>
+    const resumenHTML = `
+      <div class="perfil-kpis">
+        <div class="perfil-kpi"><span>Pedidos</span><strong>${totalPedidos}</strong><em>${pedidosHistoricos} históricos · ${ordenes.length} registrados</em></div>
+        <div class="perfil-kpi"><span>Total gastado</span><strong>${pesos(gastado)}</strong><em>${validas.length} pedidos con monto</em></div>
+        <div class="perfil-kpi"><span>Ticket promedio</span><strong>${validas.length ? pesos(ticket) : '—'}</strong><em>por pedido</em></div>
+        <div class="perfil-kpi"><span>Último pedido</span><strong>${porFecha.length ? fmtFecha(porFecha[porFecha.length - 1].created_at) : '—'}</strong><em>${porFecha.length ? `primero: ${fmtFecha(porFecha[0].created_at)}` : 'sin pedidos'}</em></div>
       </div>
-    ` : '<div style="margin-top: 16px; padding: 12px; background: #f9f9f9; border-radius: 8px; color: #666; font-size: 13px;">Sin pedidos registrados</div>';
+      ${topProductos.length ? `<div class="perfil-top"><span class="perfil-sub">Lo que más pidió</span>${topProductos.map(([n, q]) => `<span class="perfil-chip">${cEsc(n)} <b>×${q}</b></span>`).join('')}</div>` : ''}`;
+
+    // ----- Historial -----
+    const productosDe = (o) => {
+      if (o.items && o.items.length) return o.items.map(i => `${i.cantidad}x ${cEsc(i.producto?.nombre || 'Producto')}`).join(', ');
+      const nota = (o.notas || '').trim();
+      return nota ? `<span title="${cEsc(nota)}">${cEsc(nota.length > 140 ? nota.slice(0, 140) + '…' : nota)}</span>` : '-';
+    };
+    const estadoChip = (e) => {
+      const col = (typeof getEstadoColor === 'function') ? getEstadoColor(e) : { bg: '#eee', text: '#333', border: '#ccc' };
+      return `<span style="background:${col.bg};color:${col.text};border:1px solid ${col.border};border-radius:10px;padding:1px 8px;font-size:11px;font-weight:600;white-space:nowrap;">${cEsc(e)}</span>`;
+    };
+    const filasPedidos = ordenes.map(o => `<tr>
+        <td style="padding:8px;font-weight:600;color:#7f1f6e;white-space:nowrap;">${cEsc(o.id_unico || o.id)}</td>
+        <td style="padding:8px;white-space:nowrap;">${fmtFecha(o.created_at)}</td>
+        <td style="padding:8px;">${estadoChip(o.estado)}</td>
+        <td style="padding:8px;">${productosDe(o)}</td>
+        <td style="padding:8px;text-align:right;font-weight:600;white-space:nowrap;">${pesos(parseFloat(o.total || 0))}</td></tr>`).join('');
+    const historialHTML = ordenes.length ? `
+      <div class="perfil-seccion"><h3>📋 Historial de pedidos</h3>
+        <div style="overflow-x:auto;"><table class="perfil-tabla"><thead><tr><th>Pedido</th><th>Fecha</th><th>Estado</th><th>Productos</th><th style="text-align:right;">Total</th></tr></thead><tbody>${filasPedidos}</tbody></table></div>
+      </div>` : '<div class="perfil-seccion"><h3>📋 Historial de pedidos</h3><div class="perfil-vacio">Sin pedidos registrados en el sistema.</div></div>';
+
+    // ----- Fechas importantes + notas -----
+    const meses = MESES_ES.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
+    const dias = Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
+    const fechasHTML = `
+      <div class="perfil-seccion"><h3>🎂 Fechas importantes</h3>
+        <div id="perfilFechasLista">${renderListaFechas(fechas, c.id)}</div>
+        <div class="perfil-form-fecha">
+          <select id="ffTipo"><option value="cumpleaños">🎂 Cumpleaños</option><option value="aniversario">💍 Aniversario</option><option value="otro">📌 Otra fecha</option></select>
+          <input type="text" id="ffPersona" placeholder="¿De quién? (ej: Mateo, su hijo)" maxlength="120">
+          <select id="ffDia" aria-label="Día">${dias}</select>
+          <select id="ffMes" aria-label="Mes">${meses}</select>
+          <input type="text" id="ffNota" placeholder="Nota (opcional)" maxlength="300">
+          <label class="perfil-aviso">Avisarme <input type="number" id="ffAviso" value="60" min="0" max="365"> días antes</label>
+          <button type="button" class="btn btn-primary btn-sm" onclick="guardarFechaCliente(${c.id})">Agregar fecha</button>
+        </div>
+        <div class="perfil-ayuda">Se repite todos los años (no lleva año). Las fechas cercanas aparecen en "Próximas fechas importantes" en Clientes.</div>
+      </div>
+      <div class="perfil-seccion"><h3>📝 Notas internas</h3>
+        <textarea id="perfilNotas" rows="4" placeholder="Gustos, cosas a recordar, cómo prefiere que le escriban...">${cEsc(c.notas || '')}</textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px;"><button type="button" class="btn btn-secondary btn-sm" onclick="guardarNotasPerfil(${c.id})">Guardar notas</button><span id="perfilNotasMsg" class="perfil-ayuda"></span></div>
+      </div>`;
 
     document.getElementById('detalleContenido').innerHTML = `
-      <h2 style="color:#7f1f6e;">Detalle de Cliente</h2>
-      <div style="margin-top:16px;">
-        <div class="detail-row"><span class="detail-label">Código:</span> <span class="${getCodigoBadgeClass(c.codigo_cliente)}">${c.codigo_cliente}</span></div>
-        <div class="detail-row"><span class="detail-label">Nombre:</span> ${c.nombre}</div>
-        <div class="detail-row"><span class="detail-label">Email:</span> ${c.email}</div>
-        <div class="detail-row"><span class="detail-label">DNI:</span> ${c.dni || '-'}</div>
-        <div class="detail-row"><span class="detail-label">WhatsApp:</span> ${c.whatsapp || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Teléfono:</span> ${c.telefono || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Dirección:</span> ${c.direccion || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Ciudad:</span> ${c.ciudad || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Cód. Postal:</span> ${c.codigo_postal || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Estado:</span> <span class="badge badge-${c.activo ? 'activo' : 'inactivo'}">${c.activo ? 'Activo' : 'Inactivo'}</span></div>
-        <div class="detail-box-responsive">
-          <div class="detail-row"><span class="detail-label">Total de Pedidos:</span> <strong>${totalPedidos}</strong></div>
-          <div class="detail-row"><span class="detail-label">Históricos:</span> <strong>${pedidosHistoricos}</strong></div>
-          <div class="detail-row"><span class="detail-label">Web:</span> <strong>${pedidosNuevos}</strong></div>
-        </div>
-        <div class="detail-row"><span class="detail-label">📝 Notas:</span> <div style="margin-top: 6px; padding: 8px; background: #f9f9f9; border-radius: 4px; border-left: 3px solid #7f1f6e; white-space: pre-wrap; word-break: break-word;">${c.notas ? c.notas.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '<span style="color: #999;">Sin notas</span>'}</div></div>
-        <div class="detail-row"><span class="detail-label">Creado:</span> ${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</div>
+      <div class="perfil-head">
+        <div><h2 style="color:#7f1f6e;margin:0 0 4px;">${cEsc(c.nombre)}</h2>
+          <span class="${getCodigoBadgeClass(c.codigo_cliente)}">${cEsc(c.codigo_cliente)}</span>
+          <span class="badge badge-${c.activo ? 'activo' : 'inactivo'}" style="margin-left:6px;">${c.activo ? 'Activo' : 'Inactivo'}</span></div>
+        <div class="perfil-acciones"><button class="btn btn-warning btn-sm" onclick="cerrarDetalle();editarCliente(${c.id})">Editar</button><button class="btn btn-secondary btn-sm" onclick="cerrarDetalle()">Cerrar</button></div>
+      </div>
 
-        ${historialHTML}
+      <div class="perfil-datos">
+        <div><span>Email</span>${cEsc(c.email) || '-'}</div>
+        <div><span>WhatsApp</span>${cEsc(c.whatsapp) || '-'}</div>
+        <div><span>Teléfono</span>${cEsc(c.telefono) || '-'}</div>
+        <div><span>DNI</span>${cEsc(c.dni) || '-'}</div>
+        <div><span>Dirección</span>${cEsc(c.direccion) || '-'}</div>
+        <div><span>Ciudad</span>${cEsc(c.ciudad) || '-'}${c.codigo_postal ? ` (CP ${cEsc(c.codigo_postal)})` : ''}</div>
+        <div><span>Cliente desde</span>${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</div>
       </div>
-      <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
-        <button class="btn btn-warning" onclick="cerrarDetalle();editarCliente(${c.id})">Editar</button>
-        <button class="btn btn-secondary" onclick="cerrarDetalle()">Cerrar</button>
-      </div>
+
+      ${resumenHTML}
+      ${historialHTML}
+      ${fechasHTML}
     `;
     document.getElementById('modalDetalle').classList.add('show');
   } catch (err) {
@@ -613,3 +639,139 @@ document.addEventListener('click', () => {
   const m = document.getElementById('menuCompartirClientes');
   if (m) m.style.display = 'none';
 });
+
+
+// ==================== PERFIL: FECHAS IMPORTANTES, NOTAS ====================
+const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const ICONO_FECHA = { 'cumpleaños': '🎂', 'aniversario': '💍', 'otro': '📌' };
+
+function cEsc(t) {
+  return String(t ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+function textoFaltan(dias) {
+  if (dias === 0) return 'es hoy';
+  if (dias === 1) return 'es mañana';
+  if (dias < 60) return `faltan ${dias} días`;
+  const meses = Math.round(dias / 30);
+  return `faltan ~${meses} meses`;
+}
+
+function renderListaFechas(fechas, clienteId) {
+  if (!fechas.length) return '<div class="perfil-vacio">Todavía no hay fechas cargadas para este cliente.</div>';
+  return fechas.map(f => `
+    <div class="perfil-fecha ${f.dias_restantes <= f.aviso_dias ? 'perfil-fecha-aviso' : ''}">
+      <div class="perfil-fecha-icono">${ICONO_FECHA[f.tipo] || '📌'}</div>
+      <div class="perfil-fecha-info">
+        <strong>${f.dia} de ${MESES_ES[f.mes - 1]}</strong>${f.persona ? ` · ${cEsc(f.persona)}` : ''}
+        <div class="perfil-fecha-sub">${cEsc(f.tipo)} · ${textoFaltan(f.dias_restantes)} · aviso ${f.aviso_dias} días antes${f.nota ? ` · ${cEsc(f.nota)}` : ''}</div>
+      </div>
+      <button type="button" class="btn btn-sm btn-danger" onclick="eliminarFechaDeCliente(${f.id}, ${clienteId})" title="Quitar esta fecha">🗑️</button>
+    </div>`).join('');
+}
+
+async function recargarFechasPerfil(clienteId) {
+  const res = await fetch(`${API_BASE_URL}/admin/clientes/${clienteId}/fechas`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+  const data = await res.json();
+  const cont = document.getElementById('perfilFechasLista');
+  if (cont && data.success) cont.innerHTML = renderListaFechas(data.data, clienteId);
+  cargarFechasProximas();
+}
+
+async function guardarFechaCliente(clienteId) {
+  const val = (id) => document.getElementById(id)?.value;
+  const body = {
+    tipo: val('ffTipo'), persona: val('ffPersona'), dia: val('ffDia'), mes: val('ffMes'),
+    nota: val('ffNota'), aviso_dias: val('ffAviso')
+  };
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/${clienteId}/fechas`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) { alert(data.error || data.message || 'No se pudo guardar la fecha'); return; }
+    ['ffPersona', 'ffNota'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    await recargarFechasPerfil(clienteId);
+  } catch (err) {
+    alert('Error de conexión al guardar la fecha');
+  }
+}
+
+async function eliminarFechaDeCliente(fechaId, clienteId) {
+  if (!confirm('¿Quitar esta fecha?')) return;
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/fechas/${fechaId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const data = await res.json();
+    if (!res.ok || !data.success) { alert(data.error || 'No se pudo quitar la fecha'); return; }
+    await recargarFechasPerfil(clienteId);
+  } catch (err) {
+    alert('Error de conexión');
+  }
+}
+
+async function guardarNotasPerfil(clienteId) {
+  const msg = document.getElementById('perfilNotasMsg');
+  const notas = document.getElementById('perfilNotas')?.value ?? '';
+  if (msg) msg.textContent = 'Guardando...';
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/${clienteId}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notas })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || data.message || 'error');
+    if (msg) { msg.textContent = '✓ Guardado'; setTimeout(() => { msg.textContent = ''; }, 2000); }
+  } catch (err) {
+    if (msg) msg.textContent = 'No se pudo guardar';
+  }
+}
+
+// ==================== PRÓXIMAS FECHAS IMPORTANTES (panel en Clientes) ====================
+function linkWhatsApp(whatsapp, texto) {
+  let n = String(whatsapp || '').replace(/\D/g, '').replace(/^0+/, '');
+  if (!n) return null;
+  if (!n.startsWith('54')) n = '54' + (n.startsWith('9') ? '' : '9') + n.replace(/^15/, '');
+  return `https://wa.me/${n}?text=${encodeURIComponent(texto)}`;
+}
+
+function mensajeFecha(f) {
+  const nombre = (f.cliente.nombre || '').split(' ')[0];
+  const quien = f.persona ? ` de ${f.persona}` : '';
+  return `¡Hola ${nombre}! 😊 Se acerca el ${f.tipo === 'cumpleaños' ? 'cumpleaños' : 'día especial'}${quien}. Queremos tener un detalle con vos: te dejamos un cupón especial para que armes algo lindo en Puchia 🎁`;
+}
+
+async function cargarFechasProximas() {
+  const card = document.getElementById('fechasProximasLista');
+  if (!card) return;
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/fechas/proximas?dias=90`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error('error');
+    const lista = data.data;
+    const enAviso = lista.filter(f => f.en_aviso).length;
+    const badge = document.getElementById('fechasProximasCount');
+    if (badge) { badge.textContent = enAviso ? `${enAviso} para contactar` : (lista.length ? `${lista.length}` : ''); badge.className = 'fechas-count' + (enAviso ? ' fechas-count-aviso' : ''); }
+    if (!lista.length) {
+      card.innerHTML = '<div class="perfil-vacio">No hay fechas en los próximos 90 días. Cargalas desde el perfil de cada cliente (clic en su nombre).</div>';
+      return;
+    }
+    card.innerHTML = lista.map(f => {
+      const wa = linkWhatsApp(f.cliente.whatsapp, mensajeFecha(f));
+      return `<div class="perfil-fecha ${f.en_aviso ? 'perfil-fecha-aviso' : ''}">
+        <div class="perfil-fecha-icono">${ICONO_FECHA[f.tipo] || '📌'}</div>
+        <div class="perfil-fecha-info">
+          <strong>${f.dia} de ${MESES_ES[f.mes - 1]}</strong>${f.persona ? ` · ${cEsc(f.persona)}` : ''} <span class="fechas-faltan">${textoFaltan(f.dias_restantes)}</span>
+          <div class="perfil-fecha-sub"><a href="#" class="cliente-link" onclick="verCliente(${f.cliente.id}); return false;">${cEsc(f.cliente.nombre)}</a> (${cEsc(f.cliente.codigo_cliente)})${f.en_aviso ? ' · <b>momento de contactar</b>' : ` · contactar en ${f.dias_restantes - f.aviso_dias} días`}${f.nota ? ` · ${cEsc(f.nota)}` : ''}</div>
+        </div>
+        ${wa ? `<a class="btn btn-sm btn-secondary" href="${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '<span class="perfil-ayuda">sin WhatsApp</span>'}
+      </div>`;
+    }).join('');
+    const det = document.getElementById('fechasProximasCard');
+    if (det && enAviso && !det.dataset.tocado) det.open = true;
+  } catch (err) {
+    card.innerHTML = '<div class="perfil-vacio">No se pudieron cargar las fechas.</div>';
+  }
+}
