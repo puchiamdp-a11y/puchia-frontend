@@ -57,8 +57,16 @@ function setupClientesEventListeners() {
     document.getElementById('importSection').style.display = 'none';
   });
   document.getElementById('formCliente')?.addEventListener('submit', guardarCliente);
-  document.getElementById('inputBusqueda')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { paginaActual = 1; listarClientes(); }
+  // Búsqueda en vivo: se actualiza mientras se escribe y también al borrar (amplía la búsqueda)
+  const inputBusqueda = document.getElementById('inputBusqueda');
+  let timerBusqueda = null;
+  inputBusqueda?.addEventListener('input', () => {
+    clearTimeout(timerBusqueda);
+    timerBusqueda = setTimeout(() => { paginaActual = 1; listarClientes(); }, 250);
+  });
+  inputBusqueda?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { clearTimeout(timerBusqueda); paginaActual = 1; listarClientes(); }
+    if (e.key === 'Escape' && inputBusqueda.value) { inputBusqueda.value = ''; clearTimeout(timerBusqueda); paginaActual = 1; listarClientes(); }
   });
   document.getElementById('filtroActivo')?.addEventListener('change', () => { paginaActual = 1; listarClientes(); });
   document.getElementById('filtroTipoCliente')?.addEventListener('change', () => { paginaActual = 1; listarClientes(); });
@@ -109,9 +117,12 @@ function actualizarIndicadoresSort() {
 
 // ==================== LISTAR CLIENTES ====================
 
+let listarClientesSeq = 0;
 async function listarClientes() {
   const tbody = document.getElementById('tablaClientes');
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;"><span class="spinner"></span></td></tr>';
+  const miSeq = ++listarClientesSeq;                       // si llega una búsqueda más nueva, esta respuesta se descarta
+  if (clientesActuales.length) tbody.style.opacity = '0.55';   // al buscar en vivo se mantienen las filas (atenuadas) para que no parpadee
+  else tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;"><span class="spinner"></span></td></tr>';
 
   const busqueda = document.getElementById('inputBusqueda')?.value.trim();
   const activo = document.getElementById('filtroActivo')?.value;
@@ -125,7 +136,9 @@ async function listarClientes() {
   try {
     const res = await fetch(url, { headers: { 'Authorization': `Bearer ${getToken()}` } });
     const data = await res.json();
+    if (miSeq !== listarClientesSeq) return;               // llegó tarde: ya hay una búsqueda más nueva
 
+    tbody.style.opacity = '';
     if (!data.success) {
       tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;">${data.error || 'Error al cargar'}</td></tr>`;
       return;
@@ -137,6 +150,8 @@ async function listarClientes() {
     clientesActuales = data.data || [];
     renderClientes();
   } catch (err) {
+    if (miSeq !== listarClientesSeq) return;
+    tbody.style.opacity = '';
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;">Error de conexión: ${err.message}</td></tr>`;
   }
 }
