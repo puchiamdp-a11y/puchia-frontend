@@ -826,3 +826,10 @@ select:focus {
 
 .fecha-entrega-input { width: 100%; box-sizing: border-box; padding: 4px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; font-weight: 500; color: #1a1a1a; background: transparent; cursor: pointer; transition: background .3s; }
 .fecha-entrega-input:hover, .fecha-entrega-input:focus { border-color: #7f1f6e; background: #fff; }
+
+/* ===== Caja: tarjetas con subtítulo (mes / histórico) ===== */
+.caja-resumen-wrap { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; margin-bottom: 32px; }
+.caja-resumen-sub { font-size: 15px; font-weight: 800; color: #7f1f6e; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.caja-resumen-grid { display: grid; gap: 16px; }
+@media (max-width: 1100px) { .caja-resumen-wrap { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .caja-resumen-grid { grid-template-columns: 1fr !important; } }

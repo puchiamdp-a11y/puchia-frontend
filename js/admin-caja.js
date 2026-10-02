@@ -12,6 +12,7 @@ let cajaState = {
     fecha_desde: null,
     fecha_hasta: null
   },
+  tabTipo: 'todo',
   sortBy: 'fecha_transaccion',
   sortOrder: 'DESC',
   modalTransaccionEditando: null,
@@ -152,28 +153,37 @@ async function renderCajaInterface() {
   cajaPage.innerHTML = `
     <h1 class="page-title">💰 Caja</h1>
 
-    <!-- TARJETAS: ingresos/egresos del mes actual; efectivo y Mercado Pago históricos. No dependen de los filtros -->
-    <div id="cajaResumenPeriodo" style="font-size: 13px; color: #666; margin-bottom: 8px;"></div>
-    <div class="stats-grid" style="margin-bottom: 32px;">
-      <div class="stat-card">
-        <div class="stat-label">Ingresos del mes</div>
-        <div class="stat-value" style="color: #4caf50;" id="cajaIngresos">$0.00</div>
+    <!-- TARJETAS: ingresos/egresos/saldo del mes actual; efectivo y Mercado Pago históricos. No dependen de los filtros -->
+    <div class="caja-resumen-wrap">
+      <div>
+        <div class="caja-resumen-sub" id="cajaSubtituloMes">Mes actual</div>
+        <div class="caja-resumen-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <div class="stat-card">
+            <div class="stat-label">Ingresos</div>
+            <div class="stat-value" style="color: #4caf50;" id="cajaIngresos">$0.00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Egresos</div>
+            <div class="stat-value" style="color: #f44336;" id="cajaEgresos">$0.00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Saldo neto</div>
+            <div class="stat-value" id="cajaSaldoNeto">$0.00</div>
+          </div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Egresos del mes</div>
-        <div class="stat-value" style="color: #f44336;" id="cajaEgresos">$0.00</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Saldo neto del mes</div>
-        <div class="stat-value" id="cajaSaldoNeto">$0.00</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">💵 Efectivo (histórico)</div>
-        <div class="stat-value" id="cajaEfectivo">$0.00</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">💳 Mercado Pago (histórico)</div>
-        <div class="stat-value" id="cajaMercadoPago">$0.00</div>
+      <div>
+        <div class="caja-resumen-sub">Histórico</div>
+        <div class="caja-resumen-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+          <div class="stat-card">
+            <div class="stat-label">💵 Efectivo</div>
+            <div class="stat-value" id="cajaEfectivo">$0.00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">💳 Mercado Pago</div>
+            <div class="stat-value" id="cajaMercadoPago">$0.00</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -186,22 +196,23 @@ async function renderCajaInterface() {
 
     <!-- TAB: TRANSACCIONES -->
     <div id="tab-transacciones" class="tab-content">
-      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;">
         <button class="btn btn-primary" onclick="abrirModalNuevaTransaccion()">➕ Nueva Transacción</button>
-        <button class="btn btn-secondary" onclick="reconciliarOrdenesManual()">🔄 Sincronizar Órdenes</button>
-        <button class="btn btn-secondary" onclick="exportarPlantillaCaja()" title="Descarga un Excel con el encabezado para completar">📥 Exportar plantilla</button>
-        <button class="btn btn-secondary" onclick="importarTransaccionesCaja()" title="Carga transacciones desde el Excel completado">📤 Importar</button>
+        <div style="position: relative;">
+          <button class="btn btn-secondary" onclick="toggleMenuCompartirCaja(event)" aria-haspopup="true">🔗 Compartir ▾</button>
+          <div id="menuCompartirCaja" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 230px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
+            <button class="menu-compartir-item" onclick="exportarPlantillaCaja()" title="Descarga un Excel con el encabezado para completar">📥 Exportar plantilla</button>
+            <button class="menu-compartir-item" onclick="importarTransaccionesCaja()" title="Carga transacciones desde el Excel completado">📤 Importar</button>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 4px 0;">
+            <button class="menu-compartir-item" onclick="reconciliarOrdenesManual()">🔄 Sincronizar Órdenes</button>
+          </div>
+        </div>
       </div>
 
       <!-- FILTROS -->
       <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 12px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px;">
           <input type="text" id="filtroBusqueda" placeholder="Buscar por descripción o ID orden..." onkeyup="aplicarFiltrosCaja()" />
-          <select id="filtroTipo" onchange="aplicarFiltrosCaja()">
-            <option value="">Todos los tipos</option>
-            <option value="ingreso">Ingresos</option>
-            <option value="egreso">Egresos</option>
-          </select>
           <select id="filtroCategoriaCaja" onchange="aplicarFiltrosCaja()">
             <option value="">Todas las categorías</option>
             ${cajaCategoriasActivas().map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('')}
@@ -238,7 +249,9 @@ async function renderCajaInterface() {
         </div>
       </div>
 
-      <!-- TABLA -->
+      <!-- FICHERO: solapas Todo / Ingresos / Egresos -->
+      <div id="cajaTipoTabs" class="orders-tabs" role="tablist"></div>
+      <div id="cajaFichero" class="orders-fichero">
       <div class="table-container">
         <table style="width: 100%;">
           <thead id="cajaTransaccionesHead">
@@ -258,6 +271,7 @@ async function renderCajaInterface() {
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
 
       <!-- PAGINACIÓN -->
@@ -339,6 +353,7 @@ async function renderCajaInterface() {
     </div>
   `;
 
+  renderCajaTipoTabs();
   renderCajaTransacciones();
   renderCajaCategorias();
   await updateCajaResumen();
@@ -624,10 +639,10 @@ async function updateCajaResumen() {
     if (efectivoEl) efectivoEl.textContent = formatearMonto(historico.efectivo);
     if (mercadoPagoEl) mercadoPagoEl.textContent = formatearMonto(historico.mercado_pago);
 
-    const periodoEl = document.getElementById('cajaResumenPeriodo');
-    if (periodoEl) {
-      const nombreMes = ahora.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
-      periodoEl.textContent = `📅 Ingresos, egresos y saldo: ${nombreMes}  ·  💵💳 Efectivo y Mercado Pago: histórico acumulado. Los filtros de abajo no modifican estas tarjetas.`;
+    const subMesEl = document.getElementById('cajaSubtituloMes');
+    if (subMesEl) {
+      const mes = ahora.toLocaleDateString('es-AR', { month: 'long' });
+      subMesEl.textContent = mes.charAt(0).toUpperCase() + mes.slice(1);
     }
   } catch (error) {
     console.error('❌ Error cargando resumen de caja:', error);
@@ -651,7 +666,7 @@ function switchCajaTab(tabName) {
 
 // ==================== FUNCIONES DE FILTRADO ====================
 function aplicarFiltrosCaja() {
-  const tipo = document.getElementById('filtroTipo')?.value || null;
+  const tipo = cajaState.tabTipo === 'ingreso' || cajaState.tabTipo === 'egreso' ? cajaState.tabTipo : null;
   const categoria = document.getElementById('filtroCategoriaCaja')?.value || null;
   const fechaDesde = document.getElementById('filtroFechaDesde')?.value || null;
   const fechaHasta = document.getElementById('filtroFechaHasta')?.value || null;
@@ -675,13 +690,12 @@ function aplicarFiltrosCaja() {
 
 function limpiarFiltrosCaja() {
   document.getElementById('filtroBusqueda').value = '';
-  document.getElementById('filtroTipo').value = '';
   document.getElementById('filtroCategoriaCaja').value = '';
   document.getElementById('filtroFechaDesde').value = '';
   document.getElementById('filtroFechaHasta').value = '';
 
   cajaState.filters = {
-    tipo: null,
+    tipo: cajaState.tabTipo === 'ingreso' || cajaState.tabTipo === 'egreso' ? cajaState.tabTipo : null,
     categoria_id: null,
     fecha_desde: null,
     fecha_hasta: null,
@@ -1847,6 +1861,7 @@ function resetCaja() {
       fecha_desde: null,
       fecha_hasta: null
     },
+    tabTipo: 'todo',
     sortBy: 'fecha_transaccion',
     sortOrder: 'DESC',
     modalTransaccionEditando: null,
@@ -1856,3 +1871,40 @@ function resetCaja() {
 }
 
 monitorCajaPageChange();
+
+// ==================== SOLAPAS Todo / Ingresos / Egresos ====================
+const CAJA_TIPO_TABS = [
+  { key: 'todo',    label: 'Todo',     color: '#607d8b', tint: '#eceff1', text: '#263238' },
+  { key: 'ingreso', label: 'Ingresos', color: '#388e3c', tint: '#e8f5e9', text: '#1b5e20' },
+  { key: 'egreso',  label: 'Egresos',  color: '#e53935', tint: '#fdeaea', text: '#7f0000' }
+];
+
+function renderCajaTipoTabs() {
+  const cont = document.getElementById('cajaTipoTabs');
+  if (!cont) return;
+  cont.innerHTML = CAJA_TIPO_TABS.map(t => {
+    const activa = t.key === cajaState.tabTipo;
+    return `<button type="button" role="tab" aria-selected="${activa}" data-key="${t.key}" class="orders-tab${activa ? ' active' : ''}"
+      style="--tab-color:${t.color};--tab-tint:${t.tint};--tab-text:${t.text}" onclick="seleccionarCajaTipoTab('${t.key}')">${t.label}</button>`;
+  }).join('');
+  const t = CAJA_TIPO_TABS.find(x => x.key === cajaState.tabTipo) || CAJA_TIPO_TABS[0];
+  const fich = document.getElementById('cajaFichero');
+  if (fich) { fich.style.setProperty('--tab-color', t.color); fich.style.setProperty('--tab-tint', t.tint); }
+}
+
+function seleccionarCajaTipoTab(key) {
+  cajaState.tabTipo = key;
+  renderCajaTipoTabs();
+  aplicarFiltrosCaja();
+}
+
+// ==================== MENÚ COMPARTIR (CAJA) ====================
+function toggleMenuCompartirCaja(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('menuCompartirCaja');
+  if (m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('menuCompartirCaja');
+  if (m) m.style.display = 'none';
+});
