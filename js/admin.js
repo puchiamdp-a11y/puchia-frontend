@@ -1336,7 +1336,6 @@ function renderOrders() {
     const total = parseFloat(orden.total) || 0;
     const restoPagar = parseFloat(orden.resto_a_pagar) || (total - sena);
     const fechaCompra = formatDateShort(getOrderCreatedDate(orden));
-    const fechaEntrega = formatDateShort(orden.fecha_entrega);
     const shortId = formatShortOrderId(orden);
 
     return `
@@ -1350,7 +1349,7 @@ function renderOrders() {
         <td style="padding: 8px 12px;">
           ${createColoredStatusDropdown(orden.id, orden.estado)}
         </td>
-        <td style="padding: 8px 12px; font-size: 13px; color: #1a1a1a; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaEntrega}</td>
+        <td style="padding: 8px 12px; font-size: 13px; color: #1a1a1a; font-weight: 500; text-align: center; white-space: nowrap;"><input type="date" class="fecha-entrega-input" value="${valorFechaInput(orden.fecha_entrega)}" title="Click para cambiar la fecha de entrega" onchange="actualizarFechaEntregaRapida(${orden.id}, this)"></td>
         <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           <button class="btn btn-sm btn-secondary button-table-action" onclick="viewOrder(${orden.id})" title="Ver">👁️</button>
           <button class="btn btn-sm btn-primary button-table-action" onclick="abrirEditarOrden(${orden.id})" title="Editar">✏️</button>
@@ -5180,3 +5179,37 @@ document.addEventListener('click', () => {
   const m = document.getElementById('menuCompartir');
   if (m) m.style.display = 'none';
 });
+
+// ==================== FECHA DE ENTREGA EDITABLE EN EL LISTADO ====================
+function valorFechaInput(f) {
+  const m = f ? String(f).match(/^(\d{4}-\d{2}-\d{2})/) : null;
+  return m ? m[1] : '';
+}
+
+async function actualizarFechaEntregaRapida(ordenId, input) {
+  const orden = allOrdersData.find(o => o.id === ordenId);
+  if (!orden) return;
+  const anterior = orden.fecha_entrega;
+  const nueva = input.value; // YYYY-MM-DD o ''
+  input.disabled = true;
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenId}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      // la columna es DATE: se manda solo el día (igual que el formulario de edición)
+      body: JSON.stringify({ fecha_entrega: nueva || null })
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || data.message || 'error');
+    orden.fecha_entrega = nueva || null;
+    input.style.background = '#c8e6c9';
+    setTimeout(() => { input.style.background = ''; }, 1200);
+  } catch (error) {
+    console.error('Error actualizando fecha de entrega:', error);
+    input.value = valorFechaInput(anterior);
+    puchiaAlert('No se pudo guardar la fecha de entrega', 'error');
+  } finally {
+    input.disabled = false;
+  }
+}

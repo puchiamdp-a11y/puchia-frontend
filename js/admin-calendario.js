@@ -7,25 +7,25 @@ let calendarioState = {
   mesActual: new Date(),
   pedidoSeleccionado: null,
   coloresEstado: {
-    'pendiente': '#333333',
-    'señado': '#f57f17',
-    'preparandose': '#2e7d32',
-    'listo_retirar': '#1565c0',
-    'entregado': '#7f1f6e',
-    'anulado': '#c62828',
-    'rechazado': '#c62828',
-    'en_proceso': '#ff9800',
-    'listo_para_entregar': '#2196f3',
-    'cancelado': '#9e9e9e'
+    'pendiente': '#212121',
+    'señado': '#5d4300',
+    'preparandose': '#1b5e20',
+    'listo_retirar': '#0d3c78',
+    'entregado': '#4a148c',
+    'anulado': '#7f0000',
+    'rechazado': '#7f0000',
+    'en_proceso': '#8a4b00',
+    'listo_para_entregar': '#0d3c78',
+    'cancelado': '#424242'
   },
   coloresFondo: {
-    'pendiente': '#ffffff',
-    'señado': '#fffde7',
-    'preparandose': '#e8f5e9',
-    'listo_retirar': '#e3f2fd',
-    'entregado': '#f3e5f5',
-    'anulado': '#ffebee',
-    'rechazado': '#ffebee'
+    'pendiente': '#e0e0e0',
+    'señado': '#ffe58a',
+    'preparandose': '#b9e2bb',
+    'listo_retirar': '#b3d7f7',
+    'entregado': '#e1bee7',
+    'anulado': '#ffcdd2',
+    'rechazado': '#ffcdd2'
   }
 };
 
@@ -154,7 +154,7 @@ function renderCalendario() {
     </div>
 
     <!-- LEYENDA DE ESTADOS -->
-    <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; background: #f9f9f9; padding: 12px; border-radius: 8px;">
+    <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; background: #f0f0f0; padding: 12px; border-radius: 8px;">
       ${['pendiente', 'señado', 'preparandose', 'listo_retirar', 'entregado', 'anulado'].map(estado => {
         const color = calendarioState.coloresEstado[estado];
         const fondo = calendarioState.coloresFondo[estado];
@@ -184,10 +184,10 @@ function renderCalendarioMensual() {
   const diaInicio = primerDia.getDay();
 
   let html = `
-    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #eee;">
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #b0bec5;">
       <!-- ENCABEZADOS -->
       ${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sab'].map(d =>
-        `<div style="background: #f9f9f9; padding: 8px; text-align: center; font-weight: 600; font-size: 12px; color: #7f1f6e;">
+        `<div style="background: #ede0f0; padding: 8px; text-align: center; font-weight: 700; font-size: 12px; color: #5a1650;">
           ${d}
         </div>`
       ).join('')}
@@ -208,8 +208,8 @@ function renderCalendarioMensual() {
     const esHoy = fecha.toDateString() === new Date().toDateString();
 
     html += `
-      <div style="background: white; padding: 8px; min-height: 100px; border: ${esHoy ? '2px solid #7f1f6e' : '1px solid #eee'}; border-radius: 4px; overflow-y: auto;">
-        <div style="font-weight: 600; margin-bottom: 4px; color: ${esHoy ? '#7f1f6e' : '#666'}; font-size: 14px;">
+      <div style="background: white; padding: 8px; min-height: 100px; border: ${esHoy ? '2px solid #7f1f6e' : '1px solid #cfd8dc'}; border-radius: 4px; overflow-y: auto;">
+        <div style="font-weight: 600; margin-bottom: 4px; color: ${esHoy ? '#7f1f6e' : '#222'}; font-size: 14px;">
           ${dia}
         </div>
         <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -233,7 +233,7 @@ function renderCalendarioSemanal() {
   primerDiaSemana.setDate(hoy.getDate() - hoy.getDay());
 
   let html = `
-    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #eee;">
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #b0bec5;">
       <!-- ENCABEZADOS -->
   `;
 
@@ -324,7 +324,7 @@ function renderPedidoEnCalendario(pedido) {
 
   return `
     <div onclick="abrirDetallesPedido(${pedido.id})"
-         style="padding: 4px 6px; background: ${colorFondo}; color: ${colorTexto}; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid ${colorTexto}20;"
+         style="padding: 5px 7px; background: ${colorFondo}; color: ${colorTexto}; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid ${colorTexto}55; border-left: 5px solid ${colorTexto};"
          title="${tooltip}">
       ${textoEvento}
     </div>

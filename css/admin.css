@@ -823,3 +823,6 @@ select:focus {
 
 .menu-compartir-item { display: block; width: 100%; text-align: left; background: none; border: none; padding: 9px 12px; font-size: 13px; font-weight: 600; color: #333; border-radius: 6px; cursor: pointer; }
 .menu-compartir-item:hover { background: #f3e5f5; }
+
+.fecha-entrega-input { width: 100%; box-sizing: border-box; padding: 4px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; font-weight: 500; color: #1a1a1a; background: transparent; cursor: pointer; transition: background .3s; }
+.fecha-entrega-input:hover, .fecha-entrega-input:focus { border-color: #7f1f6e; background: #fff; }

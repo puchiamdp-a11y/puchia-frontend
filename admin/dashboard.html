@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100206">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100207">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -100,15 +100,15 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-label">Pedidos pendientes</div>
-                        <div class="stat-value" id="stat-pending">0</div>
+                        <div class="stat-value" style="color: #f57f17;" id="stat-pending">0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Pedidos del mes</div>
-                        <div class="stat-value" id="stat-month-count">0</div>
+                        <div class="stat-value" style="color: #1565c0;" id="stat-month-count">0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Total pedidos del mes ($)</div>
-                        <div class="stat-value" id="stat-month-total">$0,00</div>
+                        <div class="stat-value" style="color: #4caf50;" id="stat-month-total">$0,00</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">💵 Efectivo (histórico)</div>
@@ -258,7 +258,7 @@
                                 <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; width: 85px; cursor: pointer;" onclick="sortOrders('resto_a_pagar')" title="Ordenar por Resto">Resto <span class="sort-indicator">⇅</span></th>
                                 <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; width: 85px; cursor: pointer;" onclick="sortOrders('total')" title="Ordenar por Total">Total <span class="sort-indicator">⇅</span></th>
                                 <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; width: 90px; cursor: pointer;" onclick="sortOrders('estado')" title="Ordenar por Estado">Estado <span class="sort-indicator">⇅</span></th>
-                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; width: 95px; cursor: pointer;" onclick="sortOrders('fecha_entrega')" title="Ordenar por Entrega">Fecha Entrega <span class="sort-indicator">⇅</span></th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; width: 140px; cursor: pointer;" onclick="sortOrders('fecha_entrega')" title="Ordenar por Entrega">Fecha Entrega <span class="sort-indicator">⇅</span></th>
                                 <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; width: 120px;">Acciones</th>
                             </tr>
                         </thead>
@@ -488,9 +488,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="../js/admin.js?v=2026100207"></script>
+    <script src="../js/admin.js?v=2026100209"></script>
     <script src="../js/admin-clientes.js?v=2026090721"></script>
-    <script src="../js/admin-calendario.js?v=2026090721"></script>
+    <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026093008"></script>
     <script src="../js/admin-ordenes-io.js?v=2026093014"></script>
 
