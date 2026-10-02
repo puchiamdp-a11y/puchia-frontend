@@ -1896,28 +1896,11 @@ async function abrirModalCrearOrden() {
 }
 
 async function cargarClientesEnDropdown() {
+  // El cliente se elige con el buscador (js/admin-cliente-buscador.js), que consulta al servidor mientras se escribe.
+  // El <select> queda oculto como valor de formulario; acá solo se lo deja vacío.
   const select = document.getElementById('selectCliente');
-  select.innerHTML = '<option value="">-- Cargando clientes --</option>';
-
-  try {
-    const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/clientes?limite=1000`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await response.json();
-    ordenManualClientes = data.data || [];
-
-    select.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
-    ordenManualClientes.forEach(cliente => {
-      const option = document.createElement('option');
-      option.value = cliente.id;
-      option.textContent = `${cliente.codigo_cliente} - ${cliente.nombre}`;
-      select.appendChild(option);
-    });
-  } catch (error) {
-    console.error('Error cargando clientes:', error);
-    select.innerHTML = '<option value="">Error al cargar clientes</option>';
-  }
+  select.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
+  ordenManualClientes = [];
 }
 
 async function cargarProductosParaOrden() {
@@ -1957,11 +1940,14 @@ async function toggleNuevoCliente() {
 
     // Sugerir el correlativo que corresponde (el admin puede cambiarlo)
     const campoCodigo = document.getElementById('nuevoClienteCodigo');
-    document.getElementById('nuevoClienteCodigoAlerta').style.display = 'none';
-    campoCodigo.value = '';
-    campoCodigo.placeholder = 'Calculando...';
-    campoCodigo.value = await obtenerCodigoClienteSugerido();
-    campoCodigo.placeholder = 'J0001';
+    const alertaCod = document.getElementById('nuevoClienteCodigoAlerta');
+    if (alertaCod) alertaCod.style.display = 'none';
+    if (campoCodigo) {
+      campoCodigo.value = '';
+      campoCodigo.placeholder = 'Calculando...';
+      campoCodigo.value = await obtenerCodigoClienteSugerido();
+      campoCodigo.placeholder = 'J0001';
+    }
   } else {
     form.style.display = 'none';
     select.disabled = false;
@@ -2023,7 +2009,8 @@ async function guardarNuevoCliente() {
     puchiaAlert('Cliente guardado exitosamente', 'success');
 
     // Limpiar formulario
-    document.getElementById('nuevoClienteCodigo').value = '';
+    const campoCod = document.getElementById('nuevoClienteCodigo');
+    if (campoCod) campoCod.value = '';
     document.getElementById('nuevoClienteNombre').value = '';
     document.getElementById('nuevoClienteWhatsapp').value = '';
     document.getElementById('nuevoClienteDni').value = '';
@@ -2033,9 +2020,10 @@ async function guardarNuevoCliente() {
     document.getElementById('nuevoClienteProvincia').value = '';
     document.getElementById('nuevoClienteEmail').value = '';
 
-    // Recargar clientes y ocultar formulario
+    // Ocultar el formulario y dejar elegido al cliente recién creado
     await cargarClientesEnDropdown();
     toggleNuevoCliente();
+    if (data.data?.id && typeof clienteBuscadorEstablecer === 'function') clienteBuscadorEstablecer(data.data);
 
   } catch (error) {
     console.error('Error guardando cliente:', error);

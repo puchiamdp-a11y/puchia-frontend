@@ -1042,3 +1042,21 @@ a.menu-compartir-item:hover { background: #f3e5f5; }
 .lote-grupo input { width: 74px; }
 .chip-sinfoto { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 700; color: #9a6a00; background: #fff3c4; border-radius: 8px; padding: 1px 7px; white-space: nowrap; }
 #productos-list .producto-sel, #productosSelTodos { width: 16px; height: 16px; cursor: pointer; accent-color: #7f1f6e; }
+
+/* Buscador de clientes (Crear Pedido Manual) */
+.cb-wrap { position: relative; flex: 1; min-width: 0; }
+.cb-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+.cb-input:focus { outline: none; border-color: #7f1f6e; box-shadow: 0 0 0 3px rgba(127, 31, 110, .12); }
+.cb-chip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 9px 12px; border: 1px solid #b9e0c4; background: #eefaf1; border-radius: 8px; font-size: 14px; }
+.cb-ok { color: #2e9e5b; font-weight: 800; }
+.cb-cambiar { margin-left: auto; border: 1px solid #ccc; background: #fff; border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+.cb-lista { position: absolute; z-index: 60; left: 0; right: 0; top: 100%; margin-top: 4px; max-height: 320px; overflow-y: auto; background: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 10px 28px rgba(0, 0, 0, .18); }
+.cb-titulo { padding: 8px 12px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #9a909e; }
+.cb-item { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 9px 12px; cursor: pointer; border-bottom: 1px solid #f3eff5; }
+.cb-item:hover, .cb-item.activo { background: #f6eef8; }
+.cb-codigo { font-family: monospace; font-weight: 700; font-size: 12px; color: #7a5a00; background: #fff3c4; border-radius: 6px; padding: 1px 7px; }
+.cb-nombre { font-weight: 600; color: #2b2330; }
+.cb-extra { font-size: 12px; color: #8a8090; }
+.cb-vacio { padding: 12px; color: #8a8090; font-size: 13px; }
+.cb-nuevo { padding: 10px 12px; font-weight: 700; font-size: 13px; color: #7f1f6e; cursor: pointer; background: #faf6fb; position: sticky; bottom: 0; border-top: 1px solid #eadcee; }
+.cb-nuevo:hover { background: #f3e5f5; }

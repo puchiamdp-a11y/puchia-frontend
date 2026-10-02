@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100230">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100231">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -568,13 +568,14 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100220"></script>
-    <script src="../js/admin-clientes.js?v=2026100208"></script>
+    <script src="../js/admin.js?v=2026100222"></script>
+    <script src="../js/admin-clientes.js?v=2026100209"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100207"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>
     <script src="../js/admin-ordenes-io.js?v=2026100202"></script>
     <script src="../js/admin-excel-extra.js?v=2026100202"></script>
+    <script src="../js/admin-cliente-buscador.js?v=2026100201"></script>
 
     <!-- MODAL DETALLE PRODUCTO -->
     <div id="productDetailModal" class="modal">
@@ -941,7 +942,8 @@
                     <div>
                         <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Cliente *</label>
                         <div style="display: flex; gap: 8px;">
-                            <select id="selectCliente" required style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <!-- El <select> queda oculto: es el valor del formulario. Se elige con el buscador (admin-cliente-buscador.js) -->
+                            <select id="selectCliente" style="display: none;">
                                 <option value="">-- Selecciona un cliente --</option>
                             </select>
                             <button type="button" class="btn btn-secondary" onclick="toggleNuevoCliente()" style="white-space: nowrap;">+ Nuevo</button>
@@ -952,6 +954,12 @@
                     <div id="nuevoClienteForm" style="display: none; padding: 16px; border: 1px solid #eee; border-radius: 8px; background: #fafafa;">
                         <h4 style="margin: 0 0 12px; color: #333;">Datos del nuevo cliente</h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <!-- Código de cliente: se sugiere el próximo correlativo y se puede cambiar -->
+                            <div style="grid-column: 1 / -1;">
+                                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Código del cliente</label>
+                                <input type="text" id="nuevoClienteCodigo" placeholder="J0001" style="width: 100%; max-width: 220px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: monospace; text-transform: uppercase;">
+                                <div id="nuevoClienteCodigoAlerta" style="display: none; margin-top: 6px; font-size: 12px; color: #c5221f;"></div>
+                            </div>
                             <!-- CAMPO OBLIGATORIO: Nombre -->
                             <div>
                                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333;">Nombre *</label>

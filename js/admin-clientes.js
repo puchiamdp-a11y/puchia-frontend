@@ -959,23 +959,11 @@ async function nuevoPedidoDesdeFicha(clienteId) {
   document.querySelector('.sidebar-nav [data-page="ordenes"], [data-page="ordenes"]')?.click();
   if (typeof abrirModalCrearOrden !== 'function') { alert('No se pudo abrir el formulario de pedido'); return; }
   await abrirModalCrearOrden();
-  const select = document.getElementById('selectCliente');
-  if (!select) return;
-  if (![...select.options].some(o => o.value === String(clienteId))) {
-    // el desplegable trae un máximo de clientes: si no está, se agrega a mano
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/clientes/${clienteId}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
-      const data = await res.json();
-      if (data.success) {
-        const op = document.createElement('option');
-        op.value = data.data.id;
-        op.textContent = `${data.data.codigo_cliente} - ${data.data.nombre}`;
-        select.appendChild(op);
-      }
-    } catch (_) { /* queda sin seleccionar */ }
-  }
-  select.value = String(clienteId);
-  select.dispatchEvent(new Event('change', { bubbles: true }));
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/${clienteId}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const data = await res.json();
+    if (data.success && typeof clienteBuscadorEstablecer === 'function') clienteBuscadorEstablecer(data.data);   // queda elegido en el buscador
+  } catch (_) { /* queda sin elegir: se busca a mano */ }
 }
 
 // ==================== DUPLICADOS ====================
