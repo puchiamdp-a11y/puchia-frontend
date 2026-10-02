@@ -187,12 +187,13 @@ async function renderCajaInterface() {
       </div>
     </div>
 
-    <!-- TABS -->
-    <div style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 2px solid #eee;">
-      <button class="tab-btn tab-active" onclick="switchCajaTab('transacciones')">📋 Transacciones</button>
-      <button class="tab-btn" onclick="switchCajaTab('categorias')">📁 Categorías</button>
-      <button class="tab-btn" onclick="switchCajaTab('reportes')">📊 Reportes</button>
+    <!-- SOLAPAS PRINCIPALES (fichero) -->
+    <div class="orders-tabs" role="tablist" id="cajaMainTabs">
+      <button type="button" role="tab" class="orders-tab active" data-tab="transacciones" style="--tab-color:#7b1fa2;--tab-tint:#f3e5f5;--tab-text:#4a148c" onclick="switchCajaTab('transacciones')">📋 Transacciones</button>
+      <button type="button" role="tab" class="orders-tab" data-tab="categorias" style="--tab-color:#00897b;--tab-tint:#e0f2f1;--tab-text:#004d40" onclick="switchCajaTab('categorias')">📁 Categorías</button>
+      <button type="button" role="tab" class="orders-tab" data-tab="reportes" style="--tab-color:#ef6c00;--tab-tint:#fff3e0;--tab-text:#7a3500" onclick="switchCajaTab('reportes')">📊 Reportes</button>
     </div>
+    <div id="cajaMainFichero" class="orders-fichero" style="--tab-color:#7b1fa2;--tab-tint:#f3e5f5;margin-bottom:24px;">
 
     <!-- TAB: TRANSACCIONES -->
     <div id="tab-transacciones" class="tab-content">
@@ -234,9 +235,10 @@ async function renderCajaInterface() {
             <label for="filtroFechaHasta">Hasta</label>
             <input type="date" id="filtroFechaHasta" onchange="aplicarFiltrosCaja()" />
           </div>
-        </div>
-        <div class="caja-filtros-pie">
-          <button class="btn btn-small btn-secondary" onclick="limpiarFiltrosCaja()">🔄 Limpiar filtros</button>
+          <div class="caja-filtro caja-filtro-limpiar">
+            <label>&nbsp;</label>
+            <button type="button" class="caja-btn-limpiar" onclick="limpiarFiltrosCaja()" title="Limpiar filtros" aria-label="Limpiar filtros">🗑️</button>
+          </div>
         </div>
       </div>
 
@@ -343,6 +345,7 @@ async function renderCajaInterface() {
       <div id="reporteVacio" style="text-align: center; color: #999; padding: 40px;">
         Selecciona un mes y haz clic en "Generar Reporte" para ver el análisis
       </div>
+    </div>
     </div>
   `;
 
@@ -616,17 +619,22 @@ async function updateCajaResumen() {
 
 // ==================== FUNCIONES DE TABS ====================
 function switchCajaTab(tabName) {
-  const tabs = document.querySelectorAll('.tab-content');
-  const buttons = document.querySelectorAll('.tab-btn');
-
-  tabs.forEach(tab => tab.style.display = 'none');
-  buttons.forEach(btn => btn.classList.remove('tab-active'));
-
+  document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
   const selectedTab = document.getElementById(`tab-${tabName}`);
-  const selectedBtn = event?.target;
-
   if (selectedTab) selectedTab.style.display = 'block';
-  if (selectedBtn) selectedBtn.classList.add('tab-active');
+
+  document.querySelectorAll('#cajaMainTabs .orders-tab').forEach(btn => {
+    const activa = btn.dataset.tab === tabName;
+    btn.classList.toggle('active', activa);
+    btn.setAttribute('aria-selected', activa);
+    if (activa) {
+      const fich = document.getElementById('cajaMainFichero');
+      if (fich) {
+        fich.style.setProperty('--tab-color', btn.style.getPropertyValue('--tab-color'));
+        fich.style.setProperty('--tab-tint', btn.style.getPropertyValue('--tab-tint'));
+      }
+    }
+  });
 }
 
 // ==================== FUNCIONES DE FILTRADO ====================
