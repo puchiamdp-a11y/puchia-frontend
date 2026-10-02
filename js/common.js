@@ -312,17 +312,11 @@ function addToCart(product) {
     // Validar que no se agregue más cantidad que stock disponible
     const cantidadActual = existingItem ? existingItem.qty : 0;
     if (cantidadActual + 1 > product.stock_cantidad) {
-        const stockDisponible = product.stock_cantidad - cantidadActual;
         showPuchiaModal(
             '⚠️ Stock Limitado',
-            `Ya tienes ${cantidadActual} en el carrito. Solo hay ${stockDisponible} más disponible(s) de <strong>${product.name}</strong>.`,
+            `Ya tenés ${cantidadActual} en el carrito y no hay más stock disponible de <strong>${product.name}</strong>.`,
             [
-                {
-                    texto: `Agregar 1 más (Total: ${cantidadActual + 1})`,
-                    clase: 'primary',
-                    callback: 'addToCartForced(' + product.id + ')'
-                },
-                { texto: 'Cancelar', clase: 'secondary', callback: '' }
+                { texto: 'Entendido', clase: 'secondary', callback: '' }
             ]
         );
         return cart;
@@ -353,7 +347,13 @@ function updateCartQty(productId, qty) {
     let cart = getCart();
     const item = cart.find(item => item.id === productId);
     if (item) {
-        item.qty = Math.max(1, parseInt(qty));
+        let nueva = Math.max(1, parseInt(qty) || 1);
+        const tope = Number(item.stock_cantidad);
+        if (tope > 0 && nueva > tope) {
+            nueva = tope;
+            showToast(`Solo hay ${tope} disponible(s) de ${item.name}`, 'error');
+        }
+        item.qty = nueva;
         saveCart(cart);
         updateCartCount();
         renderCartSidebar();
@@ -440,6 +440,11 @@ function changeQty(productId, delta) {
     let cart = getCart();
     const item = cart.find(i => i.id === productId);
     if (item) {
+        const tope = Number(item.stock_cantidad);
+        if (delta > 0 && tope > 0 && item.qty + delta > tope) {
+            showToast(`Solo hay ${tope} disponible(s) de ${item.name}`, 'error');
+            return;
+        }
         item.qty += delta;
         if (item.qty < 1) item.qty = 1;
         saveCart(cart);

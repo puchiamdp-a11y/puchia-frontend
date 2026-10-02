@@ -17,7 +17,7 @@ const ICONOS_CATEGORIA = {
 
 async function loadProductsFromAPI() {
   try {
-    const response = await fetch(`${API_BASE_URL}/productos?limite=100`);
+    const response = await fetch(`${API_BASE_URL}/productos?limite=1000`);
     const data = await response.json();
 
     if (data.success && data.data && Array.isArray(data.data)) {
