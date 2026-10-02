@@ -98,7 +98,7 @@ function renderCategoryProducts(categoryId) {
                     <button class="qty-increase">+</button>
                 </div>
                 <button class="product-btn btn-add-to-cart">
-                    ${window.ICONO_CARRITO || ''}Agregar al Carrito
+                    Agregar al Carrito${window.ICONO_CARRITO || ''}
                 </button>
                 <button class="product-btn-secondary btn-view-details" style="margin-top: 8px;">
                     Ver Detalle

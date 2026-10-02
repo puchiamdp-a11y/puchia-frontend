@@ -54,7 +54,7 @@ function loadAndRenderProducts() {
                     <div class="product-name" style="cursor: pointer;">${product.name}</div>
                     <div class="product-price">${formatCurrency(product.price)}</div>
                     <button class="product-btn" onclick="openProductDetail(${product.id})">
-                        ${window.ICONO_CARRITO || ''}Agregar al Carrito
+                        Agregar al Carrito${window.ICONO_CARRITO || ''}
                     </button>
                 </div>
             </div>
@@ -230,7 +230,7 @@ async function openProductDetail(productId) {
 
             <div class="detail-actions">
               <button class="btn-add-cart modal-add-cart">
-                ${window.ICONO_CARRITO || ''}Agregar al Carrito
+                Agregar al Carrito${window.ICONO_CARRITO || ''}
               </button>
             </div>
           </div>
