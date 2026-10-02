@@ -4038,10 +4038,7 @@ function exportarProductos() {
         <div id="categoria-select" style="display: none; margin-left: 28px;">
           <select id="selectCategoria" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
             <option value="">-- Selecciona una categoría --</option>
-            <option value="cumpleanos">Cumpleaños</option>
-            <option value="regalos">Regalos</option>
-            <option value="emprendedores">Emprendedores</option>
-            <option value="promos">Promos</option>
+            ${(adminCategories || []).map(c => `<option value="${String(c.nombre).replace(/"/g, '&quot;')}">${String(c.nombre).replace(/</g, '&lt;')}</option>`).join('')}
           </select>
         </div>
 
@@ -4083,6 +4080,12 @@ function ejecutarExportacion() {
   const opcion = document.querySelector('input[name="export-option"]:checked').value;
   const categoria = document.getElementById('selectCategoria')?.value;
 
+  if (opcion === 'plantilla') {   // misma plantilla que "Descargar plantilla" (con hoja de ayuda)
+    document.querySelector('.modal.show')?.remove();
+    descargarPlantillaProductos();
+    return;
+  }
+
   let productos = [];
   const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
   let nombreArchivo = '';
@@ -4095,7 +4098,7 @@ function ejecutarExportacion() {
       alert('Selecciona una categoría');
       return;
     }
-    productos = (productosGlobal || []).filter(p => p.category === categoria);
+    productos = (productosGlobal || []).filter(p => (p.categorias || []).some(c => c.nombre === categoria));
     nombreArchivo = `productos_${categoria}_${fecha}.xlsx`;
   } else if (opcion === 'plantilla') {
     productos = [];
@@ -4208,8 +4211,10 @@ function validarYImportarProductos(jsonData) {
     }
 
     const stockType = (fila.stock_type || '').toString().toLowerCase().trim();
-    if (!['producto_simple', 'insumo'].includes(stockType)) {
-      erroresFila.push('Stock type debe ser "producto_simple" o "insumo"');
+    if (stockType === 'insumo') {
+      erroresFila.push('Los productos con insumo se crean desde "Nuevo Producto" (stock_type debe ser "simple")');
+    } else if (!['simple', 'producto_simple'].includes(stockType)) {
+      erroresFila.push('stock_type debe ser "simple"');
     }
 
     const habilitado = (fila.habilitado || '').toString().toLowerCase().trim();
@@ -4224,7 +4229,7 @@ function validarYImportarProductos(jsonData) {
         nombre: fila.nombre.toString().trim(),
         precio: precio,
         stock_cantidad: stock,
-        stock_type: stockType === 'producto_simple' ? 'producto_simple' : 'insumo',
+        stock_type: 'simple',
         categorias: (fila.categorias || '').toString().trim().split(',').map(c => c.trim()).filter(c => c),
         habilitado: ['si', 'true', 'verdadero'].includes(habilitado),
         descripcion: (fila.descripcion_completa || '').toString().trim()

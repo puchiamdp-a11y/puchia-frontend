@@ -202,7 +202,7 @@ async function renderCajaInterface() {
         <div style="position: relative;">
           <button class="btn btn-secondary" onclick="toggleMenuCompartirCaja(event)" aria-haspopup="true">🔗 Compartir ▾</button>
           <div id="menuCompartirCaja" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 230px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
-            <button class="menu-compartir-item" onclick="exportarPlantillaCaja()" title="Descarga un Excel con el encabezado para completar">📥 Exportar plantilla</button>
+            <button class="menu-compartir-item" onclick="exportarPlantillaCaja()" title="Descarga un Excel con el encabezado para completar">📄 Descargar plantilla</button>
             <button class="menu-compartir-item" onclick="importarTransaccionesCaja()" title="Carga transacciones desde el Excel completado">📤 Importar</button>
             <hr style="border: none; border-top: 1px solid #eee; margin: 4px 0;">
             <button class="menu-compartir-item" onclick="reconciliarOrdenesManual()">🔄 Sincronizar Órdenes</button>

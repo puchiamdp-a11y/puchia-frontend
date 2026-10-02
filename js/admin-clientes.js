@@ -578,7 +578,7 @@ async function exportarExcel() {
 
     if (data.success) {
       const link = document.createElement('a');
-      link.href = `http://127.0.0.1:3000${data.data.url}`;
+      link.href = `${typeof BACKEND_URL !== 'undefined' ? BACKEND_URL : 'https://puchia-backend-production.up.railway.app'}${data.data.url}`;
       link.download = data.data.filename;
       link.click();
     } else {

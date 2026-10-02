@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100229">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100230">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -167,8 +167,9 @@
                     <div style="position: relative;">
                         <button class="btn btn-secondary" onclick="toggleMenuCompartirProductos(event)" aria-haspopup="true">🔗 Compartir ▾</button>
                         <div id="menuCompartirProductos" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 220px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
-                            <button class="menu-compartir-item" id="importProductBtn">📥 Importar Excel</button>
                             <button class="menu-compartir-item" id="exportProductBtn">📤 Exportar Excel</button>
+                            <button class="menu-compartir-item" onclick="descargarPlantillaProductos()" title="Descarga un Excel vacío con el encabezado para completar">📄 Descargar plantilla</button>
+                            <button class="menu-compartir-item" id="importProductBtn">📥 Importar Excel</button>
                         </div>
                     </div>
                 </div>
@@ -233,8 +234,16 @@
             <!-- INSUMOS PAGE -->
             <div id="insumos-page" class="page" style="display: none;">
                 <h1 class="page-title">Gestión de Insumos</h1>
-                <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;">
                     <button class="btn btn-primary" id="newInsumoBtn">+ Nuevo Insumo</button>
+                    <div style="position: relative;">
+                        <button class="btn btn-secondary" onclick="toggleMenuCompartirInsumos(event)" aria-haspopup="true">🔗 Compartir ▾</button>
+                        <div id="menuCompartirInsumos" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 230px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
+                            <button class="menu-compartir-item" onclick="exportarInsumosExcel()">📤 Exportar Excel</button>
+                            <button class="menu-compartir-item" onclick="descargarPlantillaInsumos()" title="Descarga un Excel vacío con el encabezado para completar">📄 Descargar plantilla</button>
+                            <button class="menu-compartir-item" onclick="importarInsumosExcel()" title="Carga o actualiza insumos y variantes desde el Excel completado">📥 Importar Excel</button>
+                        </div>
+                    </div>
                 </div>
                 <div style="margin-bottom: 16px;">
                     <input type="text" id="insumoSearchInput" placeholder="🔍 Buscar insumo..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit;">
@@ -268,7 +277,7 @@
                         <button class="btn btn-secondary" onclick="toggleMenuCompartir(event)" aria-haspopup="true">🔗 Compartir ▾</button>
                     <div id="menuCompartir" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 240px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
                         <button class="menu-compartir-item" id="btnExportarOrdenes" onclick="exportarOrdenesToExcel()">📊 Exportar Excel</button>
-                        <button class="menu-compartir-item" onclick="exportarPlantillaPedidos()" title="Descarga un Excel con el encabezado para completar">📥 Exportar plantilla</button>
+                        <button class="menu-compartir-item" onclick="exportarPlantillaPedidos()" title="Descarga un Excel con el encabezado para completar">📄 Descargar plantilla</button>
                         <button class="menu-compartir-item" onclick="importarPedidos()" title="Carga pedidos desde el Excel completado, como registro (sin stock ni caja)">📤 Importar pedidos</button>
                         <hr style="border: none; border-top: 1px solid #eee; margin: 4px 0;">
                         <button class="menu-compartir-item" onclick="deshacerImportacionesPedidos()" title="Borra los pedidos importados (IMP-) y los clientes que crearon esas importaciones">↩️ Deshacer importaciones</button>
@@ -340,8 +349,9 @@
                     <div style="position: relative;">
                         <button class="btn btn-secondary" onclick="toggleMenuCompartirClientes(event)" aria-haspopup="true">🔗 Compartir ▾</button>
                         <div id="menuCompartirClientes" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 250px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
-                            <button class="menu-compartir-item" id="btnImportarExcel">📥 Importar Excel</button>
                             <button class="menu-compartir-item" id="btnExportarExcel">📤 Exportar Excel</button>
+                            <button class="menu-compartir-item" onclick="descargarPlantillaClientes()" title="Descarga un Excel vacío con el encabezado que acepta el importador">📄 Descargar plantilla</button>
+                            <button class="menu-compartir-item" id="btnImportarExcel">📥 Importar Excel</button>
                             <hr style="border: none; border-top: 1px solid #eee; margin: 4px 0;">
                             <button class="menu-compartir-item" onclick="abrirDuplicados()" title="Busca clientes cargados dos veces y permite fusionarlos">🧩 Revisar duplicados</button>
                             <button class="menu-compartir-item" onclick="recalcularProximoCodigoCliente()" title="Deja el contador en el mayor código J que tengas cargado">🔢 Recalcular próximo código</button>
@@ -374,7 +384,7 @@
                 <div id="importSection" style="display:none; background: #f8f8f8; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                     <h3 style="margin-bottom: 12px; font-size: 16px;">Importar Clientes desde Excel</h3>
                     <p style="font-size:13px;color:#666;margin-bottom:12px;">
-                        El archivo Excel debe tener columnas en orden: <strong>Nombre, Email, DNI, WhatsApp, Teléfono, Dirección, Ciudad, Código Postal, Notas</strong>
+                        El archivo Excel debe tener las columnas en este orden: <strong>Código, Nombre, Teléfono (se guarda como WhatsApp), Cantidad Compras, Total Ventas, Inconsistencia</strong>. Descargá la plantilla desde "Compartir". Los códigos que ya existen se omiten.
                     </p>
                     <input type="file" id="archivoExcel" accept=".xlsx,.xls" />
                     <button class="btn btn-primary" id="btnConfirmarImport" style="margin-top:10px;">Importar</button>
@@ -558,12 +568,13 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100215"></script>
-    <script src="../js/admin-clientes.js?v=2026100207"></script>
+    <script src="../js/admin.js?v=2026100217"></script>
+    <script src="../js/admin-clientes.js?v=2026100208"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
-    <script src="../js/admin-caja.js?v=2026100205"></script>
+    <script src="../js/admin-caja.js?v=2026100206"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>
-    <script src="../js/admin-ordenes-io.js?v=2026093014"></script>
+    <script src="../js/admin-ordenes-io.js?v=2026100202"></script>
+    <script src="../js/admin-excel-extra.js?v=2026100201"></script>
 
     <!-- MODAL DETALLE PRODUCTO -->
     <div id="productDetailModal" class="modal">
