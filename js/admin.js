@@ -386,9 +386,10 @@ async function loadDashboardStats() {
     console.error('Error cargando stats de caja:', cajaRes.reason);
   }
 
-  const periodoEl = document.getElementById('stat-periodo');
-  if (periodoEl) {
-    periodoEl.textContent = `📅 Pedidos del mes: ${rango.etiqueta}  ·  Pendientes: todos los meses  ·  💵💳 Efectivo y Mercado Pago: histórico acumulado`;
+  const mesSub = document.getElementById('stat-mes-sub');
+  if (mesSub) {
+    const mes = String(rango.etiqueta || '').split(' de ')[0];
+    mesSub.textContent = mes ? mes.charAt(0).toUpperCase() + mes.slice(1) : 'Mes actual';
   }
 }
 

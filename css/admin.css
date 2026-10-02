@@ -1014,3 +1014,21 @@ a.menu-compartir-item:hover { background: #f3e5f5; }
 .dup-motivos { margin-left: auto; display: flex; gap: 6px; text-transform: none; letter-spacing: 0; }
 .dup-acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 .clientes-buscador select { max-width: 190px; }
+
+/* Resumen: grupos con subtítulo y división sutil (igual que Caja) */
+.res-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 2fr); gap: 24px; margin-bottom: 32px; }
+.res-grupo-sep { border-left: 1px solid #d9cfdc; padding-left: 24px; }
+.res-sub-vacio { visibility: hidden; }
+.res-wrap .stat-value { font-size: 22px; white-space: nowrap; }
+@media (max-width: 1100px) {
+  .res-wrap { grid-template-columns: 1fr; gap: 16px; }
+  .res-grupo-sep { border-left: none; padding-left: 0; border-top: 1px solid #d9cfdc; padding-top: 16px; }
+  .res-sub-vacio { display: none; }
+}
+@media (max-width: 600px) { .res-wrap .caja-resumen-grid { grid-template-columns: 1fr !important; } }
+#dashboard-page .res-wrap .stat-card, #dashboard-page .res-wrap .stat-card:nth-child(n + 4) { grid-column: auto; }
+
+.res-wrap { grid-template-columns: minmax(0, .8fr) minmax(0, 2fr) minmax(0, 2fr); gap: 20px; }
+.res-grupo-sep { padding-left: 20px; }
+#dashboard-page .res-wrap .stat-card { padding: 16px; }
+#dashboard-page .res-wrap .stat-value { font-size: 19px; }
