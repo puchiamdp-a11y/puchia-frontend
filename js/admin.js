@@ -453,11 +453,25 @@ async function loadProducts() {
     });
     const data = await response.json();
     productosGlobal = data.data || [];
+    poblarFiltroCategoriaProductos();
     aplicarFiltrosProductos();
   } catch (error) {
     console.error('Error cargando productos:', error);
     document.getElementById('productos-list').innerHTML = '<tr><td colspan="7" style="text-align: center; color: #c5221f; padding: 20px;">Error cargando productos</td></tr>';
   }
+}
+
+// El filtro de categoría se arma con las categorías reales (antes tenía 3 fijas que ya podían no existir)
+function poblarFiltroCategoriaProductos() {
+  const select = document.getElementById('filtroCategoria');
+  if (!select) return;
+  const nombres = new Set((adminCategories || []).map(c => c.nombre));
+  productosGlobal.forEach(p => (p.categorias || []).forEach(c => c?.nombre && nombres.add(c.nombre)));
+  const actual = productosFiltroCategoria || select.value;
+  select.innerHTML = '<option value="">Todas las categorías</option>' +
+    [...nombres].sort((a, b) => a.localeCompare(b, 'es')).map(n => `<option value="${String(n).replace(/"/g, '&quot;')}">${String(n).replace(/</g, '&lt;')}</option>`).join('');
+  select.value = nombres.has(actual) ? actual : '';
+  if (!nombres.has(actual)) productosFiltroCategoria = '';
 }
 
 const ICONOS_CAT = { 'cumpleanos': '🎈', 'regalos': '🎁', 'emprendedores': '💼' };
@@ -5215,3 +5229,15 @@ async function actualizarFechaEntregaRapida(ordenId, input) {
     input.disabled = false;
   }
 }
+
+
+// ==================== MENÚ COMPARTIR (PRODUCTOS) ====================
+function toggleMenuCompartirProductos(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('menuCompartirProductos');
+  if (m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('menuCompartirProductos');
+  if (m) m.style.display = 'none';
+});

@@ -162,10 +162,15 @@
             <!-- PRODUCTOS PAGE -->
             <div id="productos-page" class="page" style="display: none;">
                 <h1 class="page-title">Gestión de Productos</h1>
-                <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;">
                     <button class="btn btn-primary" id="newProductBtn">+ Nuevo Producto</button>
-                    <button class="btn btn-secondary" id="importProductBtn">📥 Importar Excel</button>
-                    <button class="btn btn-secondary" id="exportProductBtn">📤 Exportar Excel</button>
+                    <div style="position: relative;">
+                        <button class="btn btn-secondary" onclick="toggleMenuCompartirProductos(event)" aria-haspopup="true">🔗 Compartir ▾</button>
+                        <div id="menuCompartirProductos" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 220px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
+                            <button class="menu-compartir-item" id="importProductBtn">📥 Importar Excel</button>
+                            <button class="menu-compartir-item" id="exportProductBtn">📤 Exportar Excel</button>
+                        </div>
+                    </div>
                 </div>
                 <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center;">
                     <input type="text" id="productSearchInput" placeholder="🔍 Buscar por nombre, descripción, categoría..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit;">
@@ -527,7 +532,7 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100212"></script>
+    <script src="../js/admin.js?v=2026100214"></script>
     <script src="../js/admin-clientes.js?v=2026100207"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100205"></script>
