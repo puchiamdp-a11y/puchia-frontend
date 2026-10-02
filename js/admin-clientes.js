@@ -49,7 +49,6 @@ function getToken() {
 
 function setupClientesEventListeners() {
   document.getElementById('btnNuevoCliente')?.addEventListener('click', abrirNuevoCliente);
-  document.getElementById('btnBuscar')?.addEventListener('click', () => { paginaActual = 1; listarClientes(); });
   document.getElementById('btnImportarExcel')?.addEventListener('click', toggleImportSection);
   document.getElementById('btnExportarExcel')?.addEventListener('click', exportarExcel);
   document.getElementById('btnConfirmarImport')?.addEventListener('click', importarExcel);
