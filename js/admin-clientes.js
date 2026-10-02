@@ -601,3 +601,15 @@ function cerrarConfirmacion() {
 function cerrarAlerta() {
   document.getElementById('modalAlertaError').classList.remove('show');
 }
+
+
+// ==================== MENÚ COMPARTIR (CLIENTES) ====================
+function toggleMenuCompartirClientes(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('menuCompartirClientes');
+  if (m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('menuCompartirClientes');
+  if (m) m.style.display = 'none';
+});

@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100215">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100217">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -283,18 +283,27 @@
                 <h1 class="page-title">Gestión de Clientes</h1>
 
                 <!-- BARRA DE ACCIONES -->
-                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;">
                     <button class="btn btn-primary" id="btnNuevoCliente">+ Nuevo Cliente</button>
-                    <button class="btn btn-secondary" id="btnImportarExcel">📥 Importar Excel</button>
-                    <button class="btn btn-secondary" id="btnExportarExcel">📤 Exportar Excel</button>
-                    <button class="btn btn-secondary" onclick="recalcularProximoCodigoCliente()" title="Deja el contador en el mayor código J que tengas cargado">🔢 Recalcular próximo código</button>
-                    <a href="./admin-alertas-config.html" class="btn btn-secondary">🔔 Configurar Alertas</a>
+                    <div style="position: relative;">
+                        <button class="btn btn-secondary" onclick="toggleMenuCompartirClientes(event)" aria-haspopup="true">🔗 Compartir ▾</button>
+                        <div id="menuCompartirClientes" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 250px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
+                            <button class="menu-compartir-item" id="btnImportarExcel">📥 Importar Excel</button>
+                            <button class="menu-compartir-item" id="btnExportarExcel">📤 Exportar Excel</button>
+                            <hr style="border: none; border-top: 1px solid #eee; margin: 4px 0;">
+                            <button class="menu-compartir-item" onclick="recalcularProximoCodigoCliente()" title="Deja el contador en el mayor código J que tengas cargado">🔢 Recalcular próximo código</button>
+                            <a href="./admin-alertas-config.html" class="menu-compartir-item">🔔 Configurar Alertas</a>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- BUSCADOR -->
-                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <input type="text" id="inputBusqueda" placeholder="Buscar por nombre, código, email, DNI..." style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; flex: 1; min-width: 200px;" />
-                    <select id="filtroActivo" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;">
+                <!-- BUSCADOR: búsqueda, estado y botón en la misma línea -->
+                <div class="clientes-buscador">
+                    <div class="clientes-buscar">
+                        <span class="caja-buscar-icono" aria-hidden="true">🔍</span>
+                        <input type="text" id="inputBusqueda" placeholder="Buscar por nombre, código, email, DNI..." />
+                    </div>
+                    <select id="filtroActivo">
                         <option value="">Todos</option>
                         <option value="true">Activos</option>
                         <option value="false">Inactivos</option>
@@ -490,7 +499,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
     <script src="../js/admin.js?v=2026100209"></script>
-    <script src="../js/admin-clientes.js?v=2026090721"></script>
+    <script src="../js/admin-clientes.js?v=2026100201"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100205"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>

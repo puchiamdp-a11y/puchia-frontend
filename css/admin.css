@@ -901,3 +901,13 @@ select:focus {
 @media print { #sidebar, .sidebar, header, .rep-controles { display: none !important; } .rep-card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; } }
 
 .rep-sub { font-size: 12px; font-weight: 700; color: #7b6b80; text-transform: uppercase; letter-spacing: .4px; margin: 6px 0 2px; }
+
+/* Clientes: buscador en una sola línea + menú Compartir */
+.clientes-buscador { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: nowrap; }
+.clientes-buscar { position: relative; flex: 1 1 0; min-width: 0; }
+.clientes-buscar input { width: 100%; box-sizing: border-box; padding: 9px 12px 9px 34px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; }
+.clientes-buscador select { flex: 0 0 auto; width: auto !important; min-width: 120px; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; }
+.clientes-buscador .btn { flex: 0 0 auto; }
+a.menu-compartir-item { text-decoration: none; box-sizing: border-box; }
+a.menu-compartir-item:hover { background: #f3e5f5; }
+@media (max-width: 480px) { .clientes-buscador { flex-wrap: wrap; } .clientes-buscar { flex-basis: 100%; } }
