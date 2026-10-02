@@ -1220,10 +1220,9 @@ async function loadAllOrders() {
     }
     if (data.success && data.data) {
       allOrdersData = data.data;
-      filteredOrdersData = [...allOrdersData];
       currentPage = 1;
       orderSortConfig = { field: 'created_at', direction: 'desc' }; // Reset sort
-      renderOrders();
+      applyOrderFilters(); // respeta la solapa y la búsqueda activas
       updateDashboardStatsFromOrders(); // Actualizar stats del dashboard
       console.log(`Órdenes cargadas: ${allOrdersData.length}`);
     }
@@ -1550,33 +1549,79 @@ function nextOrderPage() {
   }
 }
 
-function filterOrdersByStatus(estado) {
-  currentPage = 1;
-  orderSortConfig = { field: 'created_at', direction: 'desc' }; // Reset sort
-  if (estado === 'todos') {
-    filteredOrdersData = [...allOrdersData];
-  } else {
-    filteredOrdersData = allOrdersData.filter(orden => orden.estado === estado);
-  }
+// ==================== FICHERO DE PEDIDOS (solapas por estado) ====================
+// "Todos" oculta los entregados; aparecen igual si se busca texto o se abre su solapa.
+const ORDER_TABS = [
+  { key: 'todos',         label: 'Todos',              color: '#90a4ae', tint: '#eceff1' },
+  { key: 'pendiente',     label: 'Pendiente',          color: '#bdbdbd', tint: '#f3f3f3' },
+  { key: 'señado',        label: 'Señado',             color: '#fbc02d', tint: '#fff8dc' },
+  { key: 'preparandose',  label: 'Preparándose',       color: '#66bb6a', tint: '#e8f5e9' },
+  { key: 'listo_retirar', label: 'Listo para retirar', color: '#42a5f5', tint: '#e3f2fd' },
+  { key: 'entregado',     label: 'Entregado',          color: '#ba68c8', tint: '#f6e8f9' },
+  { key: 'anulado',       label: 'Anulado',            color: '#ef5350', tint: '#fdeaea' }
+];
+let ordersActiveTab = 'todos';
+let ordersSearchText = '';
+
+function ordenEnSolapa(orden, key) {
+  if (key === 'todos') return orden.estado !== 'entregado';
+  if (key === 'anulado') return orden.estado === 'anulado' || orden.estado === 'rechazado';
+  return orden.estado === key;
+}
+
+function ordenCoincideBusqueda(orden, q) {
+  return (orden.id_unico || '').toLowerCase().includes(q) ||
+    (orden.cliente_nombre || '').toLowerCase().includes(q) ||
+    (orden.cliente_codigo || '').toLowerCase().includes(q);
+}
+
+function renderOrdersTabs() {
+  const cont = document.getElementById('ordersTabs');
+  if (!cont) return;
+  const q = ordersSearchText;
+  cont.innerHTML = ORDER_TABS.map(t => {
+    // Con búsqueda activa, "Todos" incluye entregados y cada solapa cuenta sus coincidencias
+    const n = allOrdersData.filter(o =>
+      (q ? (t.key === 'todos' || ordenEnSolapa(o, t.key)) && ordenCoincideBusqueda(o, q) : ordenEnSolapa(o, t.key))
+    ).length;
+    const activa = t.key === ordersActiveTab;
+    return `<button type="button" role="tab" aria-selected="${activa}" class="orders-tab${activa ? ' active' : ''}"
+      style="--tab-color:${t.color};--tab-tint:${t.tint}" onclick="selectOrdersTab('${t.key}')">
+      ${t.label} <span class="orders-tab-count">${n}</span></button>`;
+  }).join('');
+  const t = ORDER_TABS.find(x => x.key === ordersActiveTab) || ORDER_TABS[0];
+  const fich = document.getElementById('ordersFichero');
+  if (fich) { fich.style.setProperty('--tab-color', t.color); fich.style.setProperty('--tab-tint', t.tint); }
+}
+
+function applyOrderFilters() {
+  const q = ordersSearchText;
+  filteredOrdersData = allOrdersData.filter(o => {
+    if (q) {
+      // Buscando: "Todos" revisa todos los estados (incluye entregados)
+      const enSolapa = ordersActiveTab === 'todos' || ordenEnSolapa(o, ordersActiveTab);
+      return enSolapa && ordenCoincideBusqueda(o, q);
+    }
+    return ordenEnSolapa(o, ordersActiveTab);
+  });
+  renderOrdersTabs();
   renderOrders();
 }
 
+function selectOrdersTab(key) {
+  ordersActiveTab = key;
+  currentPage = 1;
+  orderSortConfig = { field: 'created_at', direction: 'desc' };
+  applyOrderFilters();
+}
+
+function filterOrdersByStatus(estado) { selectOrdersTab(estado || 'todos'); }
+
 function searchOrders(query) {
   currentPage = 1;
-  orderSortConfig = { field: 'created_at', direction: 'desc' }; // Reset sort
-  const searchLower = query.toLowerCase().trim();
-
-  if (!searchLower) {
-    filteredOrdersData = [...allOrdersData];
-  } else {
-    filteredOrdersData = allOrdersData.filter(orden =>
-      (orden.id_unico || '').toLowerCase().includes(searchLower) ||
-      (orden.cliente_nombre || '').toLowerCase().includes(searchLower) ||
-      (orden.cliente_codigo || '').toLowerCase().includes(searchLower)
-    );
-  }
-
-  renderOrders();
+  orderSortConfig = { field: 'created_at', direction: 'desc' };
+  ordersSearchText = (query || '').toLowerCase().trim();
+  applyOrderFilters();
 }
 
 // Exportar órdenes filtradas a Excel

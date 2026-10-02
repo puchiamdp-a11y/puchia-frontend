@@ -804,3 +804,17 @@ select:focus {
         grid-column: auto;
     }
 }
+
+/* ===== Fichero de pedidos: solapas por estado ===== */
+.orders-tabs { display: flex; gap: 4px; align-items: flex-end; overflow-x: auto; padding: 0 4px; margin-top: 4px; }
+.orders-tab {
+  flex: 0 0 auto; border: 1px solid transparent; border-bottom: none; cursor: pointer;
+  padding: 8px 14px 6px; font-size: 13px; font-weight: 600; color: #444;
+  background: var(--tab-color); opacity: .6; border-radius: 10px 10px 0 0; margin-bottom: 0;
+  transition: opacity .15s, padding .15s;
+}
+.orders-tab:hover { opacity: .85; }
+.orders-tab.active { opacity: 1; padding-top: 11px; background: var(--tab-tint); border-color: var(--tab-color); color: #222; position: relative; z-index: 2; margin-bottom: -2px; border-bottom: 2px solid var(--tab-tint); }
+.orders-tab-count { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 6px; font-size: 11px; line-height: 18px; text-align: center; background: rgba(255,255,255,.75); border-radius: 9px; }
+.orders-fichero { background: var(--tab-tint, #eceff1); border: 2px solid var(--tab-color, #90a4ae); border-radius: 0 10px 10px 10px; padding: 12px; position: relative; z-index: 1; }
+.orders-fichero .table-container { background: #fff; border-radius: 8px; }
