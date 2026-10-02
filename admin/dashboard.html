@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100202">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100203">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -232,20 +232,16 @@
 
                 </div>
 
-                <!-- BOTONES DE EXPORTACIÓN -->
-                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <button class="btn btn-secondary" id="btnExportarOrdenes" onclick="exportarOrdenesToExcel()" style="display: flex; align-items: center; gap: 8px;">
-                        📊 Exportar Excel
-                    </button>
-                    <button class="btn btn-secondary" onclick="exportarPlantillaPedidos()" title="Descarga un Excel con el encabezado para completar" style="display: flex; align-items: center; gap: 8px;">
-                        📥 Exportar plantilla
-                    </button>
-                    <button class="btn btn-secondary" onclick="importarPedidos()" title="Carga pedidos desde el Excel completado, como registro (sin stock ni caja)" style="display: flex; align-items: center; gap: 8px;">
-                        📤 Importar pedidos
-                    </button>
-                    <button class="btn btn-secondary" onclick="deshacerImportacionesPedidos()" title="Borra los pedidos importados (IMP-) y los clientes que crearon esas importaciones" style="display: flex; align-items: center; gap: 8px;">
-                        ↩️ Deshacer importaciones
-                    </button>
+                <!-- COMPARTIR (exportar / importar) -->
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px; position: relative;">
+                    <button class="btn btn-secondary" onclick="toggleMenuCompartir(event)" aria-haspopup="true">🔗 Compartir ▾</button>
+                    <div id="menuCompartir" style="display: none; position: absolute; top: 100%; right: 0; z-index: 50; min-width: 240px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); padding: 6px;">
+                        <button class="menu-compartir-item" id="btnExportarOrdenes" onclick="exportarOrdenesToExcel()">📊 Exportar Excel</button>
+                        <button class="menu-compartir-item" onclick="exportarPlantillaPedidos()" title="Descarga un Excel con el encabezado para completar">📥 Exportar plantilla</button>
+                        <button class="menu-compartir-item" onclick="importarPedidos()" title="Carga pedidos desde el Excel completado, como registro (sin stock ni caja)">📤 Importar pedidos</button>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 4px 0;">
+                        <button class="menu-compartir-item" onclick="deshacerImportacionesPedidos()" title="Borra los pedidos importados (IMP-) y los clientes que crearon esas importaciones">↩️ Deshacer importaciones</button>
+                    </div>
                 </div>
 
                 <!-- FICHERO: solapas por estado -->
@@ -492,7 +488,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="../js/admin.js?v=2026100202"></script>
+    <script src="../js/admin.js?v=2026100203"></script>
     <script src="../js/admin-clientes.js?v=2026090721"></script>
     <script src="../js/admin-calendario.js?v=2026090721"></script>
     <script src="../js/admin-caja.js?v=2026093008"></script>

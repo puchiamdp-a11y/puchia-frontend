@@ -1550,7 +1550,7 @@ function nextOrderPage() {
 }
 
 // ==================== FICHERO DE PEDIDOS (solapas por estado) ====================
-// "Todos" oculta los entregados; aparecen igual si se busca texto o se abre su solapa.
+// "Todos" muestra todos los pedidos; cada otra solapa filtra por su estado.
 const ORDER_TABS = [
   { key: 'todos',         label: 'Todos',              color: '#90a4ae', tint: '#eceff1' },
   { key: 'pendiente',     label: 'Pendiente',          color: '#bdbdbd', tint: '#f3f3f3' },
@@ -1564,7 +1564,7 @@ let ordersActiveTab = 'todos';
 let ordersSearchText = '';
 
 function ordenEnSolapa(orden, key) {
-  if (key === 'todos') return orden.estado !== 'entregado';
+  if (key === 'todos') return true;
   if (key === 'anulado') return orden.estado === 'anulado' || orden.estado === 'rechazado';
   return orden.estado === key;
 }
@@ -5169,3 +5169,14 @@ function showBrandingStatus(message, type = 'info') {
     }
   }
 }
+
+// ==================== MENÚ "COMPARTIR" (exportar / importar pedidos) ====================
+function toggleMenuCompartir(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('menuCompartir');
+  if (m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('menuCompartir');
+  if (m) m.style.display = 'none';
+});
