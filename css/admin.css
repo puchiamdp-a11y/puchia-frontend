@@ -857,3 +857,9 @@ select:focus {
 #cajaMainTabs .orders-tab { margin-bottom: -3px; }
 #cajaMainTabs .orders-tab.active { margin-bottom: -3px; border-bottom: 3px solid var(--tab-color); box-shadow: none; }
 .caja-main-panel { margin-bottom: 24px; }
+
+/* Caja: las solapas principales son navegación (menos peso que el botón de acción primaria) */
+#cajaMainTabs { border-bottom: 2px solid #d9cfdc; }
+#cajaMainTabs .orders-tab { background: transparent; border: 1px solid transparent; border-bottom: none; color: #7b6b80; font-weight: 600; text-shadow: none; box-shadow: none; padding: 9px 16px 8px; }
+#cajaMainTabs .orders-tab:hover { background: #f6f0f8; color: #4a148c; filter: none; }
+#cajaMainTabs .orders-tab.active { background: #fff; color: #7f1f6e; font-weight: 800; font-size: 14px; padding: 11px 18px 9px; border: 2px solid #d9cfdc; border-bottom: 2px solid #fff; border-top: 3px solid #7f1f6e; margin-bottom: -2px; box-shadow: none; text-shadow: none; }
