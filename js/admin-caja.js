@@ -189,11 +189,11 @@ async function renderCajaInterface() {
 
     <!-- SOLAPAS PRINCIPALES (fichero) -->
     <div class="orders-tabs" role="tablist" id="cajaMainTabs">
-      <button type="button" role="tab" class="orders-tab active" data-tab="transacciones" style="--tab-color:#7b1fa2;--tab-tint:#f3e5f5;--tab-text:#4a148c" onclick="switchCajaTab('transacciones')">📋 Transacciones</button>
-      <button type="button" role="tab" class="orders-tab" data-tab="categorias" style="--tab-color:#00897b;--tab-tint:#e0f2f1;--tab-text:#004d40" onclick="switchCajaTab('categorias')">📁 Categorías</button>
-      <button type="button" role="tab" class="orders-tab" data-tab="reportes" style="--tab-color:#ef6c00;--tab-tint:#fff3e0;--tab-text:#7a3500" onclick="switchCajaTab('reportes')">📊 Reportes</button>
+      <button type="button" role="tab" class="orders-tab active" data-tab="transacciones" onclick="switchCajaTab('transacciones')">📋 Transacciones</button>
+      <button type="button" role="tab" class="orders-tab" data-tab="categorias" onclick="switchCajaTab('categorias')">📁 Categorías</button>
+      <button type="button" role="tab" class="orders-tab" data-tab="reportes" onclick="switchCajaTab('reportes')">📊 Reportes</button>
     </div>
-    <div id="cajaMainFichero" class="orders-fichero" style="--tab-color:#7b1fa2;--tab-tint:#f3e5f5;margin-bottom:24px;">
+    <div id="cajaMainFichero" class="caja-main-panel">
 
     <!-- TAB: TRANSACCIONES -->
     <div id="tab-transacciones" class="tab-content">
@@ -627,13 +627,6 @@ function switchCajaTab(tabName) {
     const activa = btn.dataset.tab === tabName;
     btn.classList.toggle('active', activa);
     btn.setAttribute('aria-selected', activa);
-    if (activa) {
-      const fich = document.getElementById('cajaMainFichero');
-      if (fich) {
-        fich.style.setProperty('--tab-color', btn.style.getPropertyValue('--tab-color'));
-        fich.style.setProperty('--tab-tint', btn.style.getPropertyValue('--tab-tint'));
-      }
-    }
   });
 }
 

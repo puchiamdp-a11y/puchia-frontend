@@ -851,3 +851,9 @@ select:focus {
 .caja-filtros-pie { margin-top: 12px; padding-top: 10px; border-top: 1px solid #f0ecf1; display: flex; gap: 8px; }
 @media (max-width: 800px) { .caja-filtros-grid { grid-template-columns: 1fr 1fr auto; } }
 @media (max-width: 500px) { .caja-filtros-grid { grid-template-columns: 1fr auto; } }
+
+/* Caja: solapas principales = solo la "cabeza" del fichero, todas del mismo color y sin recuadro */
+#cajaMainTabs { --tab-color: #7f1f6e; --tab-tint: #f3e5f5; --tab-text: #4a148c; border-bottom: 3px solid #7f1f6e; padding: 0; margin-bottom: 20px; gap: 4px; }
+#cajaMainTabs .orders-tab { margin-bottom: -3px; }
+#cajaMainTabs .orders-tab.active { margin-bottom: -3px; border-bottom: 3px solid var(--tab-color); box-shadow: none; }
+.caja-main-panel { margin-bottom: 24px; }
