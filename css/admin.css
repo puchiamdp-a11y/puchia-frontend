@@ -1032,3 +1032,13 @@ a.menu-compartir-item:hover { background: #f3e5f5; }
 .res-grupo-sep { padding-left: 20px; }
 #dashboard-page .res-wrap .stat-card { padding: 16px; }
 #dashboard-page .res-wrap .stat-value { font-size: 19px; }
+
+/* Productos: acciones en lote y marcas */
+.lote-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; background: #fff; border: 1px solid #e3d6e8; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(60, 20, 70, .08); }
+.lote-bar strong { color: #5a1650; font-size: 13px; }
+.lote-grupo { display: flex; align-items: center; gap: 6px; padding-left: 12px; border-left: 1px solid #eee; }
+.lote-grupo label { font-size: 12px; font-weight: 700; color: #7b6b80; }
+.lote-grupo select, .lote-grupo input { padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
+.lote-grupo input { width: 74px; }
+.chip-sinfoto { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 700; color: #9a6a00; background: #fff3c4; border-radius: 8px; padding: 1px 7px; white-space: nowrap; }
+#productos-list .producto-sel, #productosSelTodos { width: 16px; height: 16px; cursor: pointer; accent-color: #7f1f6e; }

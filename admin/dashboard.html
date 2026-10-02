@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100228">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100229">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -181,11 +181,36 @@
                         <option value="Emprendedores">Emprendedores</option>
                     </select>
                 </div>
+                <!-- FICHERO: solapas por estado -->
+                <div id="productosTabs" class="orders-tabs" role="tablist"></div>
+                <div id="productosFichero" class="orders-fichero">
+                <!-- ACCIONES EN LOTE (aparece al tildar productos) -->
+                <div id="productosLote" class="lote-bar" style="display:none;">
+                    <strong id="loteCount">0 seleccionados</strong>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="loteProductos('activar')">✅ Activar</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="loteProductos('desactivar')">⏸ Desactivar</button>
+                    <span class="lote-grupo">
+                        <select id="loteCategoria"><option value="">Cambiar categoría…</option></select>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="loteProductos('categoria')">Aplicar</button>
+                    </span>
+                    <span class="lote-grupo">
+                        <label for="lotePorcentaje">Precio</label>
+                        <input type="number" id="lotePorcentaje" step="0.1" placeholder="±%" title="Ej: 10 sube 10 %, -5 baja 5 %">
+                        <select id="loteRedondeo" title="Redondeo del precio nuevo">
+                            <option value="0">sin redondeo</option>
+                            <option value="1">a $1</option>
+                            <option value="10">a $10</option>
+                            <option value="100">a $100</option>
+                        </select>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="loteProductos('precio')">Aplicar</button>
+                    </span>
+                    <button type="button" class="btn btn-sm btn-secondary" style="margin-left:auto;" onclick="limpiarSeleccionProductos()">✕ Quitar selección</button>
+                </div>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th style="width:34px;"><input type="checkbox" id="productosSelTodos" onchange="seleccionarTodosProductos(this.checked)" title="Seleccionar todos los que se ven"></th>
                                 <th style="width:54px;">Foto</th>
                                 <th class="sortable" data-sort="nombre">Nombre <span class="sort-ind">↕</span></th>
                                 <th class="sortable" data-sort="precio">Precio <span class="sort-ind">↕</span></th>
@@ -201,6 +226,7 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
 
@@ -532,7 +558,7 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100214"></script>
+    <script src="../js/admin.js?v=2026100215"></script>
     <script src="../js/admin-clientes.js?v=2026100207"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100205"></script>

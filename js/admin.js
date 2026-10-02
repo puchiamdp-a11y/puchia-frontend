@@ -495,10 +495,11 @@ function renderProductos(lista) {
       ? `<td style="padding:6px;"><img src="${BACKEND_URL}${portada.url}" class="image-thumbnail-small" style="cursor:pointer;display:block;" onclick="openProductGallery(${p.id})" title="Ver galería" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'"></td>`
       : `<td style="padding:6px;text-align:center;"><span style="font-size:22px;" title="Sin fotos">${emoji}</span></td>`;
 
+    const sinFoto = !portada ? ' <span class="chip-sinfoto" title="Este producto no tiene fotos">📷 sin foto</span>' : '';
     return `<tr>
-      <td>${p.id}</td>
+      <td><input type="checkbox" class="producto-sel" ${productosSel.has(p.id) ? 'checked' : ''} onchange="toggleSeleccionProducto(${p.id}, this.checked)" aria-label="Seleccionar ${String(p.nombre).replace(/"/g, '&quot;')}"></td>
       ${fotoCell}
-      <td>${p.nombre}</td>
+      <td>${p.nombre}${sinFoto}</td>
       <td>$${precio}</td>
       <td id="stock-cell-${p.id}" style="cursor: pointer; padding: 8px; border-radius: 4px; background-color: transparent; transition: background 0.2s;" onclick="editarStock(${p.id}, ${p.stock_cantidad || 0})" onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">${stockVal}</td>
       <td>${categoria}</td>
@@ -510,6 +511,129 @@ function renderProductos(lista) {
       </td>
     </tr>`;
   }).join('');
+}
+
+// ----- Solapas por estado (fichero) -----
+const PRODUCTO_TABS = [
+  { key: 'todos',     label: 'Todos',     color: '#607d8b', tint: '#eceff1', text: '#263238' },
+  { key: 'activos',   label: 'Activos',   color: '#388e3c', tint: '#e8f5e9', text: '#1b5e20' },
+  { key: 'inactivos', label: 'Inactivos', color: '#757575', tint: '#f3f3f3', text: '#212121' },
+  { key: 'sinstock',  label: 'Sin stock', color: '#e53935', tint: '#fdeaea', text: '#7f0000' }
+];
+let productosTab = 'todos';
+let productosSel = new Set();
+
+// "Sin stock" solo se afirma cuando se puede saber (stock simple o insumo con variante); con variantes de stock no se cuenta
+function productoSinStock(p) {
+  if (p.tiene_variantes_stock) return false;
+  if (p.stock_type === 'insumo') return !!p.producto_insumo?.insumo_variant && Number(p.stock_disponible) <= 0;
+  return Number(p.stock_cantidad || 0) <= 0;
+}
+function productoEnSolapa(p, tab) {
+  if (tab === 'activos') return p.habilitado !== false;
+  if (tab === 'inactivos') return p.habilitado === false;
+  if (tab === 'sinstock') return productoSinStock(p);
+  return true;
+}
+function selectProductosTab(key) {
+  productosTab = key;
+  aplicarFiltrosProductos();
+}
+function renderProductosTabs(base) {
+  const cont = document.getElementById('productosTabs');
+  if (!cont) return;
+  cont.innerHTML = PRODUCTO_TABS.map(t => {
+    const activa = t.key === productosTab;
+    const n = base.filter(p => productoEnSolapa(p, t.key)).length;
+    return `<button type="button" role="tab" aria-selected="${activa}" data-key="${t.key}" class="orders-tab${activa ? ' active' : ''}"
+      style="--tab-color:${t.color};--tab-tint:${t.tint};--tab-text:${t.text}" onclick="selectProductosTab('${t.key}')">${t.label} <span class="orders-tab-count">${n}</span></button>`;
+  }).join('');
+  const t = PRODUCTO_TABS.find(x => x.key === productosTab) || PRODUCTO_TABS[0];
+  const fich = document.getElementById('productosFichero');
+  if (fich) { fich.style.setProperty('--tab-color', t.color); fich.style.setProperty('--tab-tint', t.tint); }
+}
+
+// ----- Selección y acciones en lote -----
+function toggleSeleccionProducto(id, marcado) {
+  if (marcado) productosSel.add(id); else productosSel.delete(id);
+  actualizarBarraLote();
+}
+function seleccionarTodosProductos(marcado) {
+  document.querySelectorAll('#productos-list .producto-sel').forEach(ch => {
+    ch.checked = marcado;
+    const id = parseInt(ch.getAttribute('onchange').match(/\((\d+),/)[1], 10);
+    if (marcado) productosSel.add(id); else productosSel.delete(id);
+  });
+  actualizarBarraLote();
+}
+function limpiarSeleccionProductos() {
+  productosSel.clear();
+  document.querySelectorAll('#productos-list .producto-sel').forEach(ch => { ch.checked = false; });
+  actualizarBarraLote();
+}
+function actualizarBarraLote() {
+  const barra = document.getElementById('productosLote');
+  const n = productosSel.size;
+  if (barra) barra.style.display = n ? 'flex' : 'none';
+  const cnt = document.getElementById('loteCount');
+  if (cnt) cnt.textContent = n === 1 ? '1 seleccionado' : `${n} seleccionados`;
+  const todos = document.getElementById('productosSelTodos');
+  if (todos) {
+    const checks = [...document.querySelectorAll('#productos-list .producto-sel')];
+    const marcados = checks.filter(c => c.checked).length;
+    todos.checked = checks.length > 0 && marcados === checks.length;
+    todos.indeterminate = marcados > 0 && marcados < checks.length;
+  }
+  const sel = document.getElementById('loteCategoria');
+  if (sel && n && sel.options.length <= 1) {
+    (adminCategories || []).forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sel.appendChild(o); });
+  }
+}
+
+async function loteProductos(accion) {
+  const ids = [...productosSel];
+  if (!ids.length) return;
+  const body = { ids };
+  let mensaje = '';
+  if (accion === 'activar' || accion === 'desactivar') {
+    body.accion = accion;
+    mensaje = `${accion === 'activar' ? 'Activar' : 'Desactivar'} ${ids.length} producto(s).`;
+  } else if (accion === 'categoria') {
+    const sel = document.getElementById('loteCategoria');
+    if (!sel.value) { puchiaAlert('Elegí la categoría a la que querés pasarlos', 'warning'); return; }
+    body.accion = 'categoria';
+    body.valor = Number(sel.value);
+    mensaje = `Pasar ${ids.length} producto(s) a la categoría "${sel.options[sel.selectedIndex].textContent}".\n\nReemplaza la categoría que tienen hoy.`;
+  } else if (accion === 'precio') {
+    const pct = parseFloat(document.getElementById('lotePorcentaje').value);
+    if (!Number.isFinite(pct) || pct === 0) { puchiaAlert('Escribí el porcentaje (por ejemplo 10 para subir 10 %, -5 para bajar 5 %)', 'warning'); return; }
+    body.accion = 'precio_porcentaje';
+    body.valor = pct;
+    body.redondeo = Number(document.getElementById('loteRedondeo').value);
+    const ej = productosGlobal.find(p => productosSel.has(p.id));
+    const nuevo = ej ? (() => { let n = Number(ej.precio) * (1 + pct / 100); n = body.redondeo > 0 ? Math.round(n / body.redondeo) * body.redondeo : Math.round(n * 100) / 100; return n; })() : null;
+    mensaje = `${pct > 0 ? 'Subir' : 'Bajar'} ${Math.abs(pct)} % el precio de ${ids.length} producto(s).` +
+      (ej ? `\n\nEjemplo: "${ej.nombre}" pasa de $${Number(ej.precio).toLocaleString('es-AR')} a $${nuevo.toLocaleString('es-AR')}.` : '') +
+      '\n\nNo hay botón de deshacer: para volver atrás habría que aplicar el porcentaje inverso.';
+  }
+  const ok = await puchiaConfirm(mensaje, '¿Aplicar a los seleccionados?');
+  if (!ok) return;
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const res = await fetch(`${API_BASE_URL}/admin/productos/lote`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) { puchiaAlert(data.error || data.message || 'No se pudo aplicar la acción', 'error'); return; }
+    puchiaAlert(`Listo: ${data.data.cambiados} producto(s) actualizados`, 'success');
+    productosSel.clear();
+    await loadProducts();
+  } catch (error) {
+    console.error('Error en acción en lote:', error);
+    puchiaAlert('Error de conexión', 'error');
+  }
 }
 
 function aplicarFiltrosProductos() {
@@ -528,6 +652,9 @@ function aplicarFiltrosProductos() {
       String(p.precio).includes(txt)
     );
   }
+
+  renderProductosTabs(lista);                       // los contadores respetan categoría y búsqueda
+  lista = lista.filter(p => productoEnSolapa(p, productosTab));
 
   if (productosSortColumn) {
     lista.sort((a, b) => {
@@ -568,7 +695,10 @@ function aplicarFiltrosProductos() {
     }
   }
 
+  const visibles = new Set(lista.map(p => p.id));
+  productosSel = new Set([...productosSel].filter(id => visibles.has(id)));   // la selección solo vale para lo que se ve
   renderProductos(lista);
+  actualizarBarraLote();
 }
 
 async function toggleHabilitadoProducto(id, currentHabilitado) {
@@ -890,6 +1020,12 @@ async function saveProduct(e) {
 }
 
 async function deleteProduct(id) {
+  const prod = productosGlobal.find(p => p.id === id);
+  if (prod && prod.pedidos_count > 0) {
+    const desactivar = await puchiaConfirm(`"${prod.nombre}" está en ${prod.pedidos_count} pedido(s): si lo eliminás se perdería ese historial, por eso el sistema no lo permite.\n\n¿Querés desactivarlo para que deje de mostrarse en la tienda?`, 'No se puede eliminar');
+    if (desactivar && prod.habilitado !== false) await toggleHabilitadoProducto(id, true);
+    return;
+  }
   const confirmar = await puchiaConfirm('Esta acción eliminará el producto permanentemente y no se puede deshacer.', '¿Eliminar producto?');
   if (!confirmar) return;
 
@@ -909,6 +1045,7 @@ async function deleteProduct(id) {
       loadProducts();
     } else {
       puchiaAlert(data.message || 'No se pudo eliminar el producto', 'error');
+      if (data.code === 'TIENE_PEDIDOS') loadProducts();
     }
   } catch (error) {
     console.error('Error eliminando producto:', error);
