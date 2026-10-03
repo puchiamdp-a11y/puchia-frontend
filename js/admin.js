@@ -253,6 +253,8 @@ function setupEventListeners() {
           loadInsumos();
         } else if (page === 'calendario') {
           initCalendario();
+        } else if (page === 'alertas') {
+          if (typeof cargarAlertas === 'function') cargarAlertas();
         } else if (page === 'settings') {
           loadSettings();
         }

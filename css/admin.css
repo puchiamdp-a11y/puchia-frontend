@@ -1063,3 +1063,34 @@ a.menu-compartir-item:hover { background: #f3e5f5; }
 
 /* Nombre del cliente en Pedidos: abre el pedido completo */
 .cliente-link-pedido:hover { color: #7f1f6e !important; text-decoration: underline !important; }
+
+/* ==================== ALERTAS ==================== */
+.alertas-sub { color: #666; font-size: 14px; margin: -14px 0 18px; max-width: 760px; }
+.alertas-filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.alertas-chip { border: 1px solid #ddd; background: #fff; color: #444; padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.alertas-chip span { background: #eee; border-radius: 10px; padding: 1px 8px; margin-left: 4px; font-size: 12px; }
+.alertas-chip.activo { background: #7f1f6e; border-color: #7f1f6e; color: #fff; }
+.alertas-chip.activo span { background: rgba(255,255,255,.25); }
+.alertas-vacio { background: #fff; border: 1px dashed #ccc; border-radius: 10px; padding: 36px 16px; text-align: center; color: #666; font-size: 15px; }
+.alerta-card { display: flex; gap: 14px; background: #fff; border: 1px solid #e8e8e8; border-left: 5px solid #9aa4b2; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; max-width: 900px; }
+.alerta-card.prioridad-1 { border-left-color: #d93025; }
+.alerta-card.prioridad-2 { border-left-color: #e08a00; }
+.alerta-card.oculta { opacity: .65; background: #fafafa; }
+.alerta-icono { font-size: 24px; line-height: 1.2; }
+.alerta-cuerpo { flex: 1; min-width: 0; }
+.alerta-titulo { font-weight: 700; font-size: 15px; color: #222; }
+.alerta-cliente { font-size: 13px; font-weight: 600; color: #7f1f6e; margin-top: 2px; }
+.alerta-cliente span { color: #888; font-weight: 500; }
+.alerta-detalle { font-size: 13px; color: #555; margin-top: 4px; line-height: 1.5; }
+.alerta-acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.alerta-btn-wa { background: #25d366; color: #fff !important; border: none; text-decoration: none; }
+.alerta-btn-hecho { background: #2e9d57; color: #fff; border: none; }
+.alerta-sin-wa { font-size: 12px; color: #999; }
+.alerta-posponer { position: relative; display: inline-block; }
+.alerta-posponer-menu { display: none; position: absolute; top: 100%; left: 0; z-index: 20; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.12); min-width: 140px; padding: 4px; margin-top: 4px; }
+.alerta-posponer-menu.abierto { display: block; }
+.alerta-posponer-menu button { display: block; width: 100%; text-align: left; background: none; border: none; padding: 8px 10px; font-size: 13px; cursor: pointer; border-radius: 6px; }
+.alerta-posponer-menu button:hover { background: #f3e9f1; }
+.alertas-ocultas-head { margin: 18px 0 10px; }
+.alertas-badge { background: #d93025; color: #fff; border-radius: 10px; font-size: 11px; font-weight: 700; padding: 1px 7px; margin-left: 8px; }
+@media (max-width: 600px) { .alerta-card { padding: 12px; gap: 10px; } }
