@@ -1060,3 +1060,6 @@ a.menu-compartir-item:hover { background: #f3e5f5; }
 .cb-vacio { padding: 12px; color: #8a8090; font-size: 13px; }
 .cb-nuevo { padding: 10px 12px; font-weight: 700; font-size: 13px; color: #7f1f6e; cursor: pointer; background: #faf6fb; position: sticky; bottom: 0; border-top: 1px solid #eadcee; }
 .cb-nuevo:hover { background: #f3e5f5; }
+
+/* Nombre del cliente en Pedidos: abre el pedido completo */
+.cliente-link-pedido:hover { color: #7f1f6e !important; text-decoration: underline !important; }

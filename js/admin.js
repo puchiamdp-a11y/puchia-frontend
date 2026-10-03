@@ -1518,7 +1518,7 @@ function renderOrders() {
       <tr class="table-row-responsive">
         <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Pedido ${orden.id_unico}">${orden.cliente_codigo || '—'}</td>
         <td style="padding: 8px 12px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaCompra}</td>
-        <td class="table-cell-cliente" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
+        <td class="table-cell-cliente" title="Ver pedido completo"><a href="#" class="cliente-link-pedido" style="color:inherit;font-weight:600;text-decoration:none;cursor:pointer;" onclick="viewOrder(${orden.id}); return false;">${orden.cliente_nombre}</a></td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${sena.toFixed(2)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${restoPagar.toFixed(2)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${total.toFixed(2)}</td>
@@ -1527,7 +1527,6 @@ function renderOrders() {
         </td>
         <td style="padding: 8px 12px; font-size: 13px; color: #1a1a1a; font-weight: 500; text-align: center; white-space: nowrap;"><input type="date" class="fecha-entrega-input" value="${valorFechaInput(orden.fecha_entrega)}" title="Click para cambiar la fecha de entrega" onchange="actualizarFechaEntregaRapida(${orden.id}, this)"></td>
         <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <button class="btn btn-sm btn-secondary button-table-action" onclick="viewOrder(${orden.id})" title="Ver">👁️</button>
           <button class="btn btn-sm btn-primary button-table-action" onclick="abrirEditarOrden(${orden.id})" title="Editar">✏️</button>
           <button class="btn btn-sm btn-danger button-table-action" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" title="Eliminar">🗑️</button>
         </td>
