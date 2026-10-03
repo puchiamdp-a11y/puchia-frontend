@@ -3243,103 +3243,86 @@ async function viewOrder(id) {
       const fechaEntrega = formatDateLong(orden.fecha_entrega) !== '—' ? formatDateLong(orden.fecha_entrega) : 'No especificada';
       const shortId = formatShortOrderId(orden);
 
+      if (!orden.cliente_codigo) orden.cliente_codigo = (allOrdersData.find(o => o.id === orden.id) || {}).cliente_codigo;
+      const ec = getEstadoColor(orden.estado);
+      const dato = (t, v) => `<span style="white-space:nowrap;"><span style="color:#999;">${t}</span> ${v || '—'}</span>`;
+      const itemsHtml = (orden.items || []).map(item => {
+        const precio = parseFloat(item.precio_unitario) || 0;
+        const cantidad = item.cantidad || 0;
+        return `
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 14px 12px; font-size: 15px; font-weight: 600; color: #222;">${item.producto?.nombre || item.nombre || 'Producto'}</td>
+            <td style="text-align: center; padding: 14px 12px; font-size: 15px; font-weight: 700; color:#7f1f6e;">× ${cantidad}</td>
+            <td style="text-align: right; padding: 14px 12px; font-size: 14px; color:#555;">$${precio.toFixed(2)}</td>
+            <td style="text-align: right; padding: 14px 12px; font-size: 15px; font-weight: 700; color:#222;">$${(precio * cantidad).toFixed(2)}</td>
+          </tr>`;
+      }).join('');
+
       modalContent.innerHTML = `
-        <h2>Detalle de Orden</h2>
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 4px;">
 
-          <!-- INFO PRINCIPAL -->
-          <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-              <div>
-                <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Número de Orden</div>
-                <div style="font-size: 16px; font-weight: 700; color: #7f1f6e;" title="${orden.id_unico}">${shortId}</div>
-              </div>
-              <div>
-                <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Estado</div>
-                <div style="display: inline-block; padding: 6px 12px; background: ${getEstadoColor(orden.estado).bg}; color: ${getEstadoColor(orden.estado).text}; border: 1px solid ${getEstadoColor(orden.estado).border}; border-radius: 20px; font-size: 12px; font-weight: 600;">${orden.estado}</div>
-              </div>
+          <!-- ENCABEZADO: quién, qué estado, cuándo (compacto) -->
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+            <div>
+              <h2 style="margin:0; font-size:22px; color:#222;">${orden.cliente_nombre}</h2>
+              <div style="font-size:12px; color:#888; margin-top:2px;" title="${orden.id_unico}">${orden.cliente_codigo ? 'Cliente ' + orden.cliente_codigo + ' · ' : ''}Pedido ${shortId}</div>
             </div>
+            <div style="display: inline-block; padding: 6px 14px; background: ${ec.bg}; color: ${ec.text}; border: 1px solid ${ec.border}; border-radius: 20px; font-size: 13px; font-weight: 700;">${orden.estado}</div>
+          </div>
+          <div style="display:flex; gap:20px; flex-wrap:wrap; font-size:13px; color:#444; margin-bottom:18px;">
+            ${dato('Compra:', fechaCompra)}
+            ${dato('Entrega:', fechaEntrega)}
+          </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              <div>
-                <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Fecha de Compra</div>
-                <div style="font-size: 14px; color: #333;">${fechaCompra}</div>
-              </div>
-              <div>
-                <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Entrega Estimada</div>
-                <div style="font-size: 14px; color: #333;">${fechaEntrega}</div>
-              </div>
+          <!-- MONTOS (lo más importante) -->
+          <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; margin-bottom: 22px;">
+            <div style="background: linear-gradient(135deg, #7f1f6e 0%, #5a1550 100%); color: white; padding: 18px; border-radius: 10px; text-align: center;">
+              <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.9; margin-bottom: 6px;">Total</div>
+              <div style="font-size: 30px; font-weight: 800;">$${total.toFixed(2)}</div>
+            </div>
+            <div style="background: #eaf7ee; border-left: 5px solid #2e9d57; padding: 18px; border-radius: 10px; text-align: center;">
+              <div style="font-size: 12px; color: #1f6e3d; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; margin-bottom: 6px;">Seña pagada</div>
+              <div style="font-size: 26px; font-weight: 800; color: #1f6e3d;">$${sena.toFixed(2)}</div>
+            </div>
+            <div style="background: #fff4e5; border-left: 5px solid #e08a00; padding: 18px; border-radius: 10px; text-align: center;">
+              <div style="font-size: 12px; color: #9a5b00; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; margin-bottom: 6px;">Resto a pagar</div>
+              <div style="font-size: 26px; font-weight: 800; color: #9a5b00;">$${restoPagar.toFixed(2)}</div>
             </div>
           </div>
 
-          <!-- CLIENTE -->
-          <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-            <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #333;">Cliente</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
-              <div><strong>Nombre:</strong> ${orden.cliente_nombre}</div>
-              <div><strong>Email:</strong> ${orden.cliente_email || '—'}</div>
-              <div><strong>WhatsApp:</strong> ${orden.cliente_whatsapp || '—'}</div>
-              <div><strong>DNI:</strong> ${orden.cliente_dni || '—'}</div>
-              <div style="grid-column: 1 / -1;"><strong>Dirección:</strong> ${orden.cliente_direccion || '—'}</div>
-              <div><strong>Ciudad:</strong> ${orden.cliente_ciudad || '—'}</div>
-              <div><strong>CP:</strong> ${orden.cliente_cp || '—'}</div>
-            </div>
-          </div>
-
-          <!-- MONTOS -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-            <div style="background: linear-gradient(135deg, #7f1f6e 0%, #5a1550 100%); color: white; padding: 16px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; margin-bottom: 6px;">Total</div>
-              <div style="font-size: 24px; font-weight: 700;">$${total.toFixed(2)}</div>
-            </div>
-            <div style="background: #f9f9f9; border-left: 4px solid #333; padding: 16px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;">Seña Pagada</div>
-              <div style="font-size: 20px; font-weight: 700; color: #333;">$${sena.toFixed(2)}</div>
-            </div>
-            <div style="background: #f0f0f0; border-left: 4px solid #666; padding: 16px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;">Resto a Pagar</div>
-              <div style="font-size: 20px; font-weight: 700; color: #333;">$${restoPagar.toFixed(2)}</div>
-            </div>
-          </div>
-
-          <!-- ITEMS -->
-          <h3 style="margin: 20px 0 12px 0; font-size: 14px; color: #333;">Productos</h3>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+          <!-- PRODUCTOS -->
+          <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #222;">Productos</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border:1px solid #eee; border-radius:8px;">
             <thead>
-              <tr style="border-bottom: 2px solid #ddd; background: #f9f9f9;">
-                <th style="text-align: left; padding: 12px; font-weight: 600; color: #333;">Producto</th>
-                <th style="text-align: center; padding: 12px; font-weight: 600; color: #333; width: 80px;">Cantidad</th>
-                <th style="text-align: right; padding: 12px; font-weight: 600; color: #333; width: 100px;">Precio Unit.</th>
-                <th style="text-align: right; padding: 12px; font-weight: 600; color: #333; width: 100px;">Subtotal</th>
+              <tr style="border-bottom: 2px solid #ddd; background: #f9f9f9; font-size:12px; color:#666; text-transform:uppercase;">
+                <th style="text-align: left; padding: 10px 12px;">Producto</th>
+                <th style="text-align: center; padding: 10px 12px; width: 90px;">Cant.</th>
+                <th style="text-align: right; padding: 10px 12px; width: 110px;">Precio</th>
+                <th style="text-align: right; padding: 10px 12px; width: 110px;">Subtotal</th>
               </tr>
             </thead>
-            <tbody>
-              ${orden.items.map(item => {
-                const precio = parseFloat(item.precio_unitario) || 0;
-                const cantidad = item.cantidad || 0;
-                const subtotal = precio * cantidad;
-                return `
-                  <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px;">${item.producto?.nombre || item.nombre || 'Producto'}</td>
-                    <td style="text-align: center; padding: 12px;">${cantidad}</td>
-                    <td style="text-align: right; padding: 12px;">$${precio.toFixed(2)}</td>
-                    <td style="text-align: right; padding: 12px; font-weight: 600;">$${subtotal.toFixed(2)}</td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
+            <tbody>${itemsHtml || '<tr><td colspan="4" style="padding:14px; color:#999; text-align:center;">Sin productos cargados</td></tr>'}</tbody>
           </table>
 
           <!-- NOTAS -->
           ${orden.notas ? `
-            <div style="background: #fffbf0; padding: 16px; border-left: 4px solid #F3E93F; border-radius: 8px; margin-bottom: 20px;">
-              <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Notas</div>
-              <div style="font-size: 13px; color: #333; line-height: 1.6;">${orden.notas}</div>
+            <div style="background: #fff8d6; padding: 16px 18px; border-left: 5px solid #e0c200; border-radius: 8px; margin-bottom: 20px;">
+              <div style="font-size: 12px; color: #7a6a00; text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">Notas del pedido</div>
+              <div style="font-size: 15px; color: #222; line-height: 1.6; white-space: pre-wrap;">${orden.notas}</div>
             </div>
           ` : ''}
 
+          <!-- DATOS DEL CLIENTE (secundario, compacto) -->
+          <div style="background: #f7f7f7; padding: 10px 14px; border-radius: 8px; font-size: 12px; color: #555; line-height: 1.9; display:flex; flex-wrap:wrap; column-gap:18px;">
+            ${dato('WhatsApp:', orden.cliente_whatsapp)}
+            ${dato('Email:', orden.cliente_email)}
+            ${dato('DNI:', orden.cliente_dni)}
+            ${dato('Ciudad:', [orden.cliente_ciudad, orden.cliente_cp].filter(Boolean).join(' · '))}
+            <span style="flex-basis:100%;"><span style="color:#999;">Dirección:</span> ${orden.cliente_direccion || '—'}</span>
+          </div>
+
           <!-- BOTONES DE ACCIONES -->
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px;">
             <button type="button" class="btn btn-primary" onclick="descargarTicket()" style="display: flex; align-items: center; gap: 8px;">
               📋 Descargar Ticket (Imagen)
             </button>
