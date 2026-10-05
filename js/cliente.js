@@ -19,8 +19,8 @@ function updateUIWithSettings() {
 }
 
 async function loadInterface() {
-    await loadSettingsFromAPI();
-    await updateLogoAndFavicon();
+    // Independientes entre sí: en paralelo (antes uno esperaba al otro, ~0,4 s de más)
+    await Promise.all([loadSettingsFromAPI(), updateLogoAndFavicon()]);
     updateUIWithSettings();
     updateWhatsappLinks();
 
@@ -585,29 +585,39 @@ function goToHome() {
     window.location.href = 'index.html';
 }
 
-window.addEventListener('load', async () => {
-    // Load defaults immediately, then fetch API in background
-    await loadInterface();
-    renderCategoryFilters();
-    updateCartCount();
-    renderCartSidebar();
+async function initProductsPage() {
+    // Los productos se piden YA, en paralelo con ajustes y logo (antes esperaban a que terminaran
+    // y además al evento 'load' de la página: 1-2 s de grilla vacía).
+    const productosListos = loadProductsFromAPI();
 
-    // Si venimos de "Ir a Checkout" desde otra página, abrir el modal
-    if (localStorage.getItem('openCheckout') === 'true') {
-        localStorage.removeItem('openCheckout');
-        setTimeout(() => {
-            if (typeof goToCheckout === 'function') goToCheckout();
-        }, 150);
-    }
+    const interfazLista = (async () => {
+        await loadInterface();
+        renderCategoryFilters();
+        updateCartCount();
+        renderCartSidebar();
 
-    // Fetch API data without blocking UI
-    loadProductsFromAPI().then(() => {
-        // ✅ Use chunked rendering instead of monolithic
-        renderProductsChunked(allProducts);
-        renderPromosChunked(promoProducts);
-        startProductPolling();
-    });
-});
+        // Si venimos de "Ir a Checkout" desde otra página, abrir el modal
+        if (localStorage.getItem('openCheckout') === 'true') {
+            localStorage.removeItem('openCheckout');
+            setTimeout(() => {
+                if (typeof goToCheckout === 'function') goToCheckout();
+            }, 150);
+        }
+    })();
+
+    await Promise.all([productosListos, interfazLista]);
+    // ✅ Use chunked rendering instead of monolithic
+    renderProductsChunked(allProducts);
+    renderPromosChunked(promoProducts);
+    startProductPolling();
+}
+
+// Arranca con el DOM listo (no espera imágenes, fuentes ni estilos)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProductsPage);
+} else {
+    initProductsPage();
+}
 
 // ==================== POLLING AUTOMÁTICO ====================
 // Cada 30s consulta la API. Si los productos cambiaron, re-renderiza.

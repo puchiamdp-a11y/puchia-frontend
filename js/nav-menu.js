@@ -52,8 +52,9 @@
 
     try {
       const base = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
-      const response = await fetch(`${base}/categorias?t=${Date.now()}`, { cache: 'no-store' });
-      const data = await response.json();
+      // Se comparte con categorias.js (window.__categoriasResp) para pedir /categorias una sola vez
+      window.__categoriasResp = window.__categoriasResp || fetch(`${base}/categorias`, { cache: 'no-cache' }).then(r => r.json());
+      const data = await window.__categoriasResp;
       if (!data.success || !Array.isArray(data.data)) return;
 
       const cat = data.data.find(c => c.en_menu === true) || null;

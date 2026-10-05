@@ -4,8 +4,9 @@ let categories = [];
 
 async function loadCategoriasFromAPI() {
   try {
-    const response = await fetch(`${window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1'}/categorias?t=${Date.now()}`, { cache: 'no-store' });
-    const data = await response.json();
+    // Reutiliza la petición de nav-menu.js si ya está en curso (una sola llamada a /categorias)
+    window.__categoriasResp = window.__categoriasResp || fetch(`${window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1'}/categorias`, { cache: 'no-cache' }).then(r => r.json());
+    const data = await window.__categoriasResp;
 
     categories = data.data.map(cat => ({
       id: cat.nombre.toLowerCase().replace(/ñ/g, 'n'),
@@ -161,7 +162,7 @@ function goBackToCategories() {
 window.addEventListener('load', async () => {
     // En el home (index.html) settings, categorías y productos ya los pide home.js / el CMS:
     // repetirlos aquí duplicaba 3 llamadas a la API en cada carga.
-    if (document.getElementById('homeSections')) return;
+    if (document.getElementById('homeSections') || document.getElementById('productsGrid')) return;
 
     // Load UI immediately with default products
     await loadSettingsFromAPI();
