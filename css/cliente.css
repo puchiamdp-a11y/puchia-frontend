@@ -1483,3 +1483,51 @@
     font-size: 22px;
   }
 }
+
+
+/* ---------- Foto de la tarjeta de producto en formato VERTICAL (4:5) ----------
+   La mayoría de las fotos son verticales: la tarjeta cerrada ya no usa una caja baja y ancha. */
+.product-card .product-image,
+.product-card .product-image-wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0 !important;
+  max-height: none !important;
+  height: auto !important;
+  aspect-ratio: 4 / 5;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: var(--gray-light);
+}
+
+.product-card .product-image img,
+.product-card .product-image-wrapper img {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  border-radius: 0 !important;
+  background: #f5f5f5;
+  transition: transform 0.3s ease;
+}
+
+/* El zoom al pasar el mouse se aplica a la foto, no a toda la caja */
+.product-card .product-image:hover,
+.product-card .product-image-wrapper:hover {
+  transform: none;
+}
+
+.product-card .product-image:hover img,
+.product-card .product-image-wrapper:hover img {
+  transform: scale(1.05);
+}
+
+/* Sin foto: el emoji queda centrado en la caja vertical */
+.product-card .product-image-wrapper .product-icon-responsive {
+  width: 100%;
+  height: 100% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
