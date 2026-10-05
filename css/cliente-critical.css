@@ -179,34 +179,7 @@
     display: block;
 }
 
-/* ========== PRODUCT DETAIL MODAL ========== */
-.product-detail-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 3000;
-    overflow-y: auto;
-    padding: 10px 0;
-    background: rgba(0, 0, 0, 0.5);
-}
-
-.modal-box {
-    position: relative;
-    background: white;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 500px;
-    margin: 20px auto;
-    z-index: 1001;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    max-height: 90vh;
-    overflow-y: auto;
-}
+/* PRODUCT DETAIL MODAL: estilos en cliente.css */
 
 /* ========== TABLET BREAKPOINT ========== */
 @media (max-width: 768px) {
@@ -259,19 +232,6 @@
     .product-btn {
         padding: 8px 12px;
         font-size: 12px;
-    }
-
-    .modal-box {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 16px 16px 0 0 !important;
-        max-height: 90vh !important;
-        margin: 0 !important;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15) !important;
-    }
-
-    .product-detail-modal {
-        align-items: flex-end !important;
     }
 
     .cart-sidebar {

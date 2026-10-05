@@ -15,6 +15,24 @@ const ICONOS_CATEGORIA = {
   'otras': '📦'
 };
 
+// Las fotos de producto se guardan en el backend con una ruta relativa (/uploads/productos/...).
+// Esta función arma la URL absoluta (el sitio está en Vercel y las fotos en Railway).
+function resolveMediaUrl(url) {
+  if (!url) return '';
+  if (/^(https?:)?\/\/|^data:|^blob:/i.test(url)) return url;
+  const base = (window.API_BASE_URL || API_BASE_URL).replace(/\/api\/v1\/?$/, '');
+  return base + (url.startsWith('/') ? '' : '/') + url;
+}
+
+// Foto de portada del producto (o el emoji si no tiene foto o no carga).
+// imgStyle: estilo inline de la <img>; el emoji queda igual que antes.
+function productImageHTML(product, imgStyle) {
+  if (!product || !product.portada) return product && product.icon ? product.icon : '📦';
+  const alt = String(product.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const style = imgStyle || 'width:100%;height:180px;object-fit:cover;border-radius:8px;display:block;';
+  return `<img src="${resolveMediaUrl(product.portada)}" alt="${alt}" style="${style}" loading="lazy" onerror="this.outerHTML='<span>${product.icon || '📦'}</span>'">`;
+}
+
 async function loadProductsFromAPI() {
   try {
     const response = await fetch(`${API_BASE_URL}/productos?limite=1000`);

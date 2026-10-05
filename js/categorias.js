@@ -87,7 +87,7 @@ function renderCategoryProducts(categoryId) {
     const html = filtered.map(product => `
         <div class="product-card" data-product-id="${product.id}">
             <div class="product-image-wrapper" style="cursor: pointer;">
-                ${product.icon}
+                ${productImageHTML(product)}
             </div>
             <div class="product-info">
                 <div class="product-name-wrapper" style="cursor: pointer;">
