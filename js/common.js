@@ -691,3 +691,13 @@ function showCMSErrorPage(message = 'No pudimos cargar correctamente el sitio') 
     document.body.appendChild(errorScreen);
   }
 }
+
+// Flechas del teclado para pasar de foto en el detalle del producto (si el modal está abierto)
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  if (!document.getElementById('productDetailModal')) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) return;
+  const dir = e.key === 'ArrowRight' ? 1 : -1;
+  if (typeof stepDetailMedia === 'function' && window._currentDetailMedia) stepDetailMedia(dir);
+  else if (typeof homeGalleryStep === 'function') homeGalleryStep(dir);
+});
