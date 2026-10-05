@@ -33,7 +33,17 @@ function productImageHTML(product, imgStyle) {
   return `<img src="${resolveMediaUrl(product.portada)}" alt="${alt}" style="${style}" loading="lazy" onerror="this.outerHTML='<span>${product.icon || '📦'}</span>'">`;
 }
 
-async function loadProductsFromAPI() {
+// Varios scripts piden los productos al arrancar (home, renderer, categorías): se comparte
+// una sola petición en curso en vez de repetirla.
+let _productsInflight = null;
+function loadProductsFromAPI() {
+  if (!_productsInflight) {
+    _productsInflight = _loadProductsFromAPI().finally(() => { _productsInflight = null; });
+  }
+  return _productsInflight;
+}
+
+async function _loadProductsFromAPI() {
   try {
     const response = await fetch(`${API_BASE_URL}/productos?limite=1000`);
     const data = await response.json();
