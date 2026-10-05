@@ -953,6 +953,18 @@ async function saveProduct(e) {
   console.log('DEBUG saveProduct - quillEditor exists:', !!quillEditor);
   console.log('DEBUG saveProduct - descripcion_completa:', descripcion_completa);
 
+  // Nunca se borra una descripción guardada por accidente: si el editor está vacío (p. ej. no llegó a
+  // cargar) y el producto ya tenía una, no se envía el campo salvo que se confirme borrarla.
+  const editorVacio = !descripcion_completa || descripcion_completa === '<p><br></p>';
+  let descripcionAEnviar = null;
+  if (!editorVacio) {
+    descripcionAEnviar = descripcion_completa;
+  } else if (productoActualEnEdicion && productoActualEnEdicion.descripcion) {
+    descripcionAEnviar = confirm('La descripción está vacía. ¿Querés BORRAR la descripción guardada de este producto?\n\nAceptar = borrarla · Cancelar = conservarla')
+      ? ''
+      : undefined;
+  }
+
   try {
     const token = localStorage.getItem('puchia_admin_token');
     const method = productoActualEnEdicion ? 'PUT' : 'POST';
@@ -962,7 +974,7 @@ async function saveProduct(e) {
 
     const requestPayload = {
       nombre,
-      descripcion: descripcion_completa && descripcion_completa !== '<p><br></p>' ? descripcion_completa : null,
+      descripcion: descripcionAEnviar,
       precio: Number(precio),
       stock_type: stockType === 'infinito' ? 'simple' : stockType,
       categorias: [Number(categoriaId)],
