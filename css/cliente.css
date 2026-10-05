@@ -1485,8 +1485,8 @@
 }
 
 
-/* ---------- Foto de la tarjeta de producto en formato VERTICAL (2:3) ----------
-   La mayoría de las fotos son verticales: la tarjeta cerrada ya no usa una caja baja y ancha. */
+/* ---------- Foto de la tarjeta de producto CUADRADA (1:1) ----------
+   Más compacta: entran 2 tarjetas por fila, 2 filas visibles en pantalla. */
 .product-card .product-image,
 .product-card .product-image-wrapper {
   box-sizing: border-box;
@@ -1494,7 +1494,7 @@
   min-height: 0 !important;
   max-height: none !important;
   height: auto !important;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 1 / 1;
   padding: 0 !important;
   overflow: hidden !important;
   background: var(--gray-light);
