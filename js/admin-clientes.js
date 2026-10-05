@@ -124,7 +124,7 @@ async function listarClientes() {
     const data = await res.json();
 
     if (!data.success) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;">${data.error || 'Error al cargar'}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;">${esc(data.error || 'Error al cargar')}</td></tr>`;
       return;
     }
 
@@ -134,7 +134,7 @@ async function listarClientes() {
     clientesActuales = data.data || [];
     renderClientes();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;">Error de conexión: ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;">Error de conexión: ${esc(err.message)}</td></tr>`;
   }
 }
 
@@ -151,16 +151,16 @@ function renderClientes() {
   const data = aplicarSort(clientesActuales);
   tbody.innerHTML = data.map(c => `
     <tr>
-      <td><span class="${getCodigoBadgeClass(c.codigo_cliente)}">${c.codigo_cliente}</span></td>
-      <td><strong>${c.nombre}</strong></td>
-      <td>${c.whatsapp || '-'}</td>
-      <td>${c.ciudad || '-'}</td>
-      <td><button class="badge badge-${c.activo ? 'activo' : 'inactivo'}" onclick="toggleClienteEstado(${c.id}, ${c.activo}, '${c.nombre.replace(/'/g, "\\'")}');" style="border: none; cursor: pointer; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">${c.activo ? 'Activo' : 'Inactivo'}</button></td>
+      <td><span class="${getCodigoBadgeClass(c.codigo_cliente)}">${esc(c.codigo_cliente)}</span></td>
+      <td><strong>${esc(c.nombre)}</strong></td>
+      <td>${esc(c.whatsapp || '-')}</td>
+      <td>${esc(c.ciudad || '-')}</td>
+      <td><button class="badge badge-${c.activo ? 'activo' : 'inactivo'}" onclick="toggleClienteEstado(${escNum(c.id)}, ${c.activo ? 'true' : 'false'}, this.dataset.nombre);" data-nombre="${esc(c.nombre)}" style="border: none; cursor: pointer; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">${c.activo ? 'Activo' : 'Inactivo'}</button></td>
       <td style="font-size:12px;">${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</td>
       <td><div class="acciones-cell">
-        <button class="btn btn-sm btn-secondary" onclick="verCliente(${c.id})">Ver</button>
-        <button class="btn btn-sm btn-warning" onclick="editarCliente(${c.id})">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="iniciarEliminacion(${c.id}, '${c.nombre.replace(/'/g, "\\'")}')">Eliminar</button>
+        <button class="btn btn-sm btn-secondary" onclick="verCliente(${escNum(c.id)})">Ver</button>
+        <button class="btn btn-sm btn-warning" onclick="editarCliente(${escNum(c.id)})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="iniciarEliminacion(${escNum(c.id)}, this.dataset.nombre)" data-nombre="${esc(c.nombre)}">Eliminar</button>
       </div></td>
     </tr>
   `).join('');
@@ -211,26 +211,26 @@ async function verCliente(id) {
     document.getElementById('detalleContenido').innerHTML = `
       <h2 style="color:#7f1f6e;">Detalle de Cliente</h2>
       <div style="margin-top:16px;">
-        <div class="detail-row"><span class="detail-label">Código:</span> <span class="${getCodigoBadgeClass(c.codigo_cliente)}">${c.codigo_cliente}</span></div>
-        <div class="detail-row"><span class="detail-label">Nombre:</span> ${c.nombre}</div>
-        <div class="detail-row"><span class="detail-label">Email:</span> ${c.email}</div>
-        <div class="detail-row"><span class="detail-label">DNI:</span> ${c.dni || '-'}</div>
-        <div class="detail-row"><span class="detail-label">WhatsApp:</span> ${c.whatsapp || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Teléfono:</span> ${c.telefono || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Dirección:</span> ${c.direccion || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Ciudad:</span> ${c.ciudad || '-'}</div>
-        <div class="detail-row"><span class="detail-label">Cód. Postal:</span> ${c.codigo_postal || '-'}</div>
+        <div class="detail-row"><span class="detail-label">Código:</span> <span class="${getCodigoBadgeClass(c.codigo_cliente)}">${esc(c.codigo_cliente)}</span></div>
+        <div class="detail-row"><span class="detail-label">Nombre:</span> ${esc(c.nombre)}</div>
+        <div class="detail-row"><span class="detail-label">Email:</span> ${esc(c.email || '-')}</div>
+        <div class="detail-row"><span class="detail-label">DNI:</span> ${esc(c.dni || '-')}</div>
+        <div class="detail-row"><span class="detail-label">WhatsApp:</span> ${esc(c.whatsapp || '-')}</div>
+        <div class="detail-row"><span class="detail-label">Teléfono:</span> ${esc(c.telefono || '-')}</div>
+        <div class="detail-row"><span class="detail-label">Dirección:</span> ${esc(c.direccion || '-')}</div>
+        <div class="detail-row"><span class="detail-label">Ciudad:</span> ${esc(c.ciudad || '-')}</div>
+        <div class="detail-row"><span class="detail-label">Cód. Postal:</span> ${esc(c.codigo_postal || '-')}</div>
         <div class="detail-row"><span class="detail-label">Estado:</span> <span class="badge badge-${c.activo ? 'activo' : 'inactivo'}">${c.activo ? 'Activo' : 'Inactivo'}</span></div>
         <div style="margin-top:12px;padding:12px;background:#f5f5f5;border-radius:6px;">
           <div class="detail-row"><span class="detail-label">Pedidos históricos:</span> <strong>${pedidosHistoricos}</strong></div>
           <div class="detail-row"><span class="detail-label">Pedidos nuevos (web):</span> <strong>${pedidosNuevos}</strong></div>
           <div class="detail-row" style="background:#fff;padding:8px;border-radius:4px;margin-top:8px;"><span class="detail-label">Todos los pedidos:</span> <strong style="font-size:16px;color:#7f1f6e;">${totalPedidos}</strong></div>
         </div>
-        <div class="detail-row"><span class="detail-label">Notas:</span> ${c.notas || '-'}</div>
+        <div class="detail-row"><span class="detail-label">Notas:</span> ${esc(c.notas || '-')}</div>
         <div class="detail-row"><span class="detail-label">Creado:</span> ${c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '-'}</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
-        <button class="btn btn-warning" onclick="cerrarDetalle();editarCliente(${c.id})">Editar</button>
+        <button class="btn btn-warning" onclick="cerrarDetalle();editarCliente(${escNum(c.id)})">Editar</button>
         <button class="btn btn-secondary" onclick="cerrarDetalle()">Cerrar</button>
       </div>
     `;
@@ -405,20 +405,20 @@ async function importarExcel() {
       resultDiv.className = 'import-result success';
       resultDiv.innerHTML = `
         <strong>✅ Importación completada</strong><br>
-        Total filas: ${d.total_filas} | Exitosos: ${d.exitosos} | Errores: ${d.errores}<br>
-        ${d.detalle_errores.length ? `<details style="margin-top:8px;"><summary>Ver errores (${d.errores})</summary>
+        Total filas: ${escNum(d.total_filas)} | Exitosos: ${escNum(d.exitosos)} | Errores: ${escNum(d.errores)}<br>
+        ${d.detalle_errores.length ? `<details style="margin-top:8px;"><summary>Ver errores (${escNum(d.errores)})</summary>
           <ul style="margin:8px 0 0 16px;font-size:12px;">
-            ${d.detalle_errores.map(e => `<li>Fila ${e.fila}: ${e.error}</li>`).join('')}
+            ${d.detalle_errores.map(e => `<li>Fila ${esc(e.fila)}: ${esc(e.error)}</li>`).join('')}
           </ul></details>` : ''}
       `;
       if (d.exitosos > 0) listarClientes();
     } else {
       resultDiv.className = 'import-result error';
-      resultDiv.innerHTML = `<strong>❌ Error:</strong> ${data.error}`;
+      resultDiv.innerHTML = `<strong>❌ Error:</strong> ${esc(data.error)}`;
     }
   } catch (err) {
     resultDiv.className = 'import-result error';
-    resultDiv.innerHTML = `<strong>❌ Error de conexión:</strong> ${err.message}`;
+    resultDiv.innerHTML = `<strong>❌ Error de conexión:</strong> ${esc(err.message)}`;
   }
 }
 
@@ -429,16 +429,23 @@ async function exportarExcel() {
     const res = await fetch(`${API_BASE_URL}/admin/clientes/exportar`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     });
-    const data = await res.json();
-
-    if (data.success) {
-      const link = document.createElement('a');
-      link.href = `http://127.0.0.1:3000${data.data.url}`;
-      link.download = data.data.filename;
-      link.click();
-    } else {
-      alert('Error al exportar: ' + data.error);
+    if (!res.ok) {
+      let mensaje = 'No se pudo generar el Excel';
+      try { mensaje = (await res.json()).error || mensaje; } catch (_) {}
+      alert('Error al exportar: ' + mensaje);
+      return;
     }
+
+    // El archivo llega como descarga autenticada (no existe ninguna URL pública)
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `clientes_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
     alert('Error: ' + err.message);
   }

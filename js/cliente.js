@@ -87,25 +87,25 @@ function loadAndRenderProducts() {
     const BACKEND = 'https://puchia-backend-production.up.railway.app';
     const html = filtered.map(product => {
         const imgContent = product.portada
-            ? `<img src="${BACKEND}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
+            ? `<img src="${escUrl(BACKEND + product.portada)}" alt="${esc(product.name)}" style="width:100%;height:180px;object-fit:cover;" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
             : `<div style="font-size: 80px; text-align: center; padding: 40px 20px; display: flex; align-items: center; justify-content: center; height: 180px;">${product.icon}</div>`;
 
         // Determine summary text
         const summaryText = product.resumen || (product.descripcion_completa ? product.descripcion_completa.substring(0, 100) : '');
 
-        return `<div class="product-card" data-product-id="${product.id}">
+        return `<div class="product-card" data-product-id="${escNum(product.id)}">
             <div class="product-image-wrapper" style="cursor: pointer; background: var(--gray-light); min-height: 180px; overflow: hidden;">
                 ${imgContent}
             </div>
             <div class="product-info" style="padding: 20px;">
                 <div class="product-name-wrapper" style="cursor: pointer; font-weight: 600; font-size: 16px; color: var(--purple); margin-bottom: 8px;">
-                    ${product.name}
+                    ${esc(product.name)}
                 </div>
                 <div class="product-price" style="font-size: 20px; font-weight: 700; color: var(--purple); margin-bottom: 16px;">
-                    ${formatCurrency(product.price)}
+                    ${esc(formatCurrency(product.price))}
                 </div>
                 <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
-                    Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
+                    Stock: <strong>${escNum(product.stock_cantidad)} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
                 </div>
                 <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
                     ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
@@ -146,25 +146,25 @@ function loadAndRenderPromos() {
     const BACKEND_PROMO = 'https://puchia-backend-production.up.railway.app';
     const html = promoProducts.map(product => {
         const imgContent = product.portada
-            ? `<img src="${BACKEND_PROMO}${product.portada}" alt="${product.name}" style="width:100%;height:180px;object-fit:cover;" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
+            ? `<img src="${escUrl(BACKEND_PROMO + product.portada)}" alt="${esc(product.name)}" style="width:100%;height:180px;object-fit:cover;" onerror="this.outerHTML='<div style=font-size:80px;display:flex;align-items:center;justify-content:center;height:180px>${product.icon}</div>'">`
             : `<div style="font-size: 80px; text-align: center; padding: 40px 20px; display: flex; align-items: center; justify-content: center; height: 180px;">${product.icon}</div>`;
 
         // Determine summary text
         const summaryText = product.resumen || (product.descripcion_completa ? product.descripcion_completa.substring(0, 100) : '');
 
-        return `<div class="product-card" data-product-id="${product.id}">
+        return `<div class="product-card" data-product-id="${escNum(product.id)}">
             <div class="product-image-wrapper" style="cursor: pointer; background: var(--gray-light); min-height: 180px; overflow: hidden;">
                 ${imgContent}
             </div>
             <div class="product-info" style="padding: 20px;">
                 <div class="product-name-wrapper" style="cursor: pointer; font-weight: 600; font-size: 16px; color: var(--purple); margin-bottom: 8px;">
-                    ${product.name}
+                    ${esc(product.name)}
                 </div>
                 <div class="product-price" style="font-size: 20px; font-weight: 700; color: var(--purple); margin-bottom: 16px;">
-                    ${formatCurrency(product.price)}
+                    ${esc(formatCurrency(product.price))}
                 </div>
                 <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
-                    Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
+                    Stock: <strong>${escNum(product.stock_cantidad)} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>
                 </div>
                 <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
                     ${product.stock_cantidad > 0 ? 'Agregar al Carrito' : 'Agotado'}
@@ -209,6 +209,27 @@ function closeCheckout() {
     if (modal) modal.classList.remove('active');
 }
 
+// ==================== TURNSTILE (CAPTCHA del checkout) ====================
+let turnstileWidgetId = null;
+
+function initTurnstile() {
+    const contenedor = document.getElementById('turnstileWidget');
+    if (!TURNSTILE_SITE_KEY || !contenedor || turnstileWidgetId !== null) return;
+    if (typeof turnstile === 'undefined') return; // el script de Cloudflare todavía no cargó
+    turnstileWidgetId = turnstile.render(contenedor, { sitekey: TURNSTILE_SITE_KEY, language: 'es' });
+}
+window.onTurnstileLoad = initTurnstile;
+
+function getTurnstileToken() {
+    if (turnstileWidgetId === null || typeof turnstile === 'undefined') return null;
+    return turnstile.getResponse(turnstileWidgetId) || null;
+}
+
+// Cada token sirve una sola vez: tras un intento hay que pedir otro
+function resetTurnstile() {
+    if (turnstileWidgetId !== null && typeof turnstile !== 'undefined') turnstile.reset(turnstileWidgetId);
+}
+
 async function submitOrder(e) {
     console.log('submitOrder() INICIADO - Timestamp:', new Date().toISOString());
     console.log('Stack trace:', new Error().stack);
@@ -229,8 +250,31 @@ async function submitOrder(e) {
     const address  = document.getElementById('checkoutAddress').value;
     const notes    = document.getElementById('checkoutNotes').value;
 
+    // Reactiva el botón (validación fallida / el servidor rechazó el pedido)
+    const reabrirFormulario = () => {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirmar Orden";
+            confirmBtn.style.opacity = "";
+        }
+        resetTurnstile();
+    };
+
     if (!name || !email || !phone || !dni || !province || !address) {
         showToast('Completa todos los campos obligatorios', 'error');
+        reabrirFormulario();
+        return;
+    }
+
+    // CAPTCHA (solo si hay site key configurada): el servidor lo vuelve a verificar
+    const turnstileToken = getTurnstileToken();
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+        showToast('Completá la verificación de seguridad', 'error');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirmar Orden";
+            confirmBtn.style.opacity = "";
+        }
         return;
     }
 
@@ -238,6 +282,50 @@ async function submitOrder(e) {
     const cart    = getCart();
     const total   = getCartTotal();
     const today   = new Date().toISOString().split('T')[0];
+
+    // Enviar al backend primero: él valida stock y decide si la orden existe.
+    // Solo se vincula a una cuenta si hay sesión iniciada (token); nunca por email/WhatsApp.
+    try {
+        const backendPayload = {
+            cliente_nombre:   name,
+            cliente_email:    email,
+            cliente_dni:      dni,
+            cliente_whatsapp: phone,
+            cliente_direccion: address,
+            cliente_ciudad:   province,
+            notas: notes,
+            items: cart.map(item => ({
+                producto_id:   item.id,
+                cantidad:      item.qty,
+                atributos_json: item.atributos || {}
+            }))
+        };
+        if (turnstileToken) backendPayload.turnstile_token = turnstileToken;
+        const token = typeof getClienteToken === 'function' ? getClienteToken() : null;
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(`${API_BASE_URL}/ordenes`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(backendPayload)
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data?.data?.id_unico) {
+                localStorage.setItem('lastBackendOrderId', data.data.id_unico);
+            }
+        } else if (res.status < 500) {
+            // Rechazo del servidor (sin stock, datos inválidos, CAPTCHA, demasiados pedidos):
+            // la orden NO existe, así que no se confirma ni se vacía el carrito
+            const data = await res.json().catch(() => ({}));
+            showToast(data.error || 'No pudimos procesar tu pedido. Revisá los datos e intentá de nuevo', 'error', 5000);
+            reabrirFormulario();
+            return;
+        }
+    } catch (err) {
+        // Backend no disponible — la orden local sigue siendo válida
+        console.warn('Orden no enviada al backend:', err.message);
+    }
 
     // Guardar orden localmente
     const order = {
@@ -264,44 +352,6 @@ async function submitOrder(e) {
     orders.push(order);
     saveOrders(orders);
 
-    // Enviar al backend — asocia por WhatsApp si ya existe, actualiza email si faltaba
-    try {
-        console.log('Preparando fetch a /ordenes...');
-        const backendPayload = {
-            cliente_nombre:   name,
-            cliente_email:    email,
-            cliente_dni:      dni,
-            cliente_whatsapp: phone,
-            cliente_direccion: address,
-            cliente_ciudad:   province,
-            notas: notes,
-            items: cart.map(item => ({
-                producto_id:   item.id,
-                cantidad:      item.qty,
-                atributos_json: item.atributos || {}
-            }))
-        };
-        const token = typeof getClienteToken === 'function' ? getClienteToken() : null;
-        const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        console.log('Enviando fetch a /ordenes...');
-        const res = await fetch(`${API_BASE_URL}/ordenes`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(backendPayload)
-        });
-        console.log('Fetch completado. Status:', res.status, 'OK:', res.ok);
-        if (res.ok) {
-            const data = await res.json();
-            if (data?.data?.id_unico) {
-                localStorage.setItem('lastBackendOrderId', data.data.id_unico);
-            }
-        }
-    } catch (err) {
-        // Backend no disponible — la orden local sigue siendo válida
-        console.warn('Orden no enviada al backend:', err.message);
-    }
-
     closeCheckout();
     clearCart();
     renderCartSidebar();
@@ -320,6 +370,7 @@ function goToHome() {
 }
 
 window.addEventListener('load', async () => {
+    initTurnstile();
     // Load defaults immediately, then fetch API in background
     loadInterface();
     renderCategoryFilters();
@@ -400,8 +451,8 @@ async function openProductDetail(productId) {
     let displayHTML;
     if (portadaItem) {
       const mainMedia = portadaItem.tipo === 'video'
-        ? `<video id="detailMainMedia" src="${BK}${portadaItem.url}" controls style="width:100%;max-height:280px;object-fit:contain;border-radius:8px;background:#000;"></video>`
-        : `<img id="detailMainMedia" src="${BK}${portadaItem.url}" alt="${product.name}" style="width:100%;max-height:280px;object-fit:contain;border-radius:8px;" onerror="this.outerHTML='<div style=font-size:80px;text-align:center;padding:20px>${product.icon}</div>'">`;
+        ? `<video id="detailMainMedia" src="${escUrl(BK + portadaItem.url)}" controls style="width:100%;max-height:280px;object-fit:contain;border-radius:8px;background:#000;"></video>`
+        : `<img id="detailMainMedia" src="${escUrl(BK + portadaItem.url)}" alt="${esc(product.name)}" style="width:100%;max-height:280px;object-fit:contain;border-radius:8px;" onerror="this.outerHTML='<div style=font-size:80px;text-align:center;padding:20px>${product.icon}</div>'">`;
 
       const thumbsHTML = mediaList.length > 1
         ? `<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;scrollbar-width:thin;">
@@ -409,7 +460,7 @@ async function openProductDetail(productId) {
               const isFirst = idx === 0;
               const thumbContent = m.tipo === 'video'
                 ? `<div style="width:100%;height:100%;background:#333;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;">▶</div>`
-                : `<img src="${BK}${m.url}" style="width:100%;height:100%;object-fit:cover;">`;
+                : `<img src="${escUrl(BK + m.url)}" style="width:100%;height:100%;object-fit:cover;">`;
               return `<div class="detail-thumb" onclick="changeDetailMedia(${idx})" style="width:56px;height:56px;flex-shrink:0;border-radius:6px;overflow:hidden;cursor:pointer;border:${isFirst ? '2px solid #9b2d7d' : '2px solid #ddd'};">${thumbContent}</div>`;
             }).join('')}
            </div>`
@@ -435,10 +486,10 @@ async function openProductDetail(productId) {
             ${displayHTML}
 
             <div class="detail-info">
-              <h2 style="font-size: 24px; color: #9b2d7d; margin: 0 0 8px; font-weight: 700;">${product.name}</h2>
-              <p class="detail-category" style="color: #888; font-size: 13px; margin: 0 0 12px;">Categoría: ${product.category}</p>
+              <h2 style="font-size: 24px; color: #9b2d7d; margin: 0 0 8px; font-weight: 700;">${esc(product.name)}</h2>
+              <p class="detail-category" style="color: #888; font-size: 13px; margin: 0 0 12px;">Categoría: ${esc(product.category)}</p>
               <p class="detail-price" style="font-size: 30px; color: #9b2d7d; font-weight: 700; margin: 0 0 16px;">
-                ${formatCurrency(product.price)}
+                ${esc(formatCurrency(product.price))}
               </p>
 
               <div class="detail-quantity" style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 16px; padding: 0 0 16px 0; border-bottom: 1px solid #eee;">
@@ -479,21 +530,21 @@ async function openProductDetail(productId) {
     if (modal) {
       const descDiv = document.getElementById(`product-desc-${product.id}`);
       if (descDiv) {
-        descDiv.innerHTML = product.descripcion_completa || product.descripcion || '<em>Sin descripción disponible</em>';
+        descDiv.innerHTML = sanitizarHTML(product.descripcion_completa || product.descripcion || '<em>Sin descripción disponible</em>');
       }
 
       // Especificaciones
       const specDiv = document.getElementById(`product-spec-${product.id}`);
       if (specDiv && product.especificaciones) {
         specDiv.style.display = 'block';
-        specDiv.querySelector('div:last-child').innerHTML = product.especificaciones;
+        specDiv.querySelector('div:last-child').innerHTML = sanitizarHTML(product.especificaciones);
       }
 
       // Instrucciones
       const instrDiv = document.getElementById(`product-instr-${product.id}`);
       if (instrDiv && product.instrucciones) {
         instrDiv.style.display = 'block';
-        instrDiv.querySelector('div:last-child').innerHTML = product.instrucciones;
+        instrDiv.querySelector('div:last-child').innerHTML = sanitizarHTML(product.instrucciones);
       }
       const qtyInput = modal.querySelector('.qty-input');
       const decreaseBtn = modal.querySelector('.qty-decrease');
@@ -580,7 +631,7 @@ function renderCategoryFilters() {
 
   // Crear botón para cada categoría
   const categoryButtons = (categories || []).map(cat =>
-    `<button class="filter-btn" onclick="filterProducts('${cat.id}')">${cat.icon} ${cat.name}</button>`
+    `<button class="filter-btn" onclick="filterProducts(this.dataset.id)" data-id="${esc(cat.id)}">${esc(cat.icon)} ${esc(cat.name)}</button>`
   ).join('');
 
   // Agregar después del botón "Todos"

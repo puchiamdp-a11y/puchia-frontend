@@ -5,6 +5,10 @@ let promoProducts = [];
 
 const API_BASE_URL = 'https://puchia-backend-production.up.railway.app/api/v1';
 
+// Site key PÚBLICA de Cloudflare Turnstile (la secret va solo en el backend: TURNSTILE_SECRET_KEY).
+// Vacía = el checkout no muestra CAPTCHA. Pegar acá la site key del dashboard de Cloudflare.
+const TURNSTILE_SITE_KEY = '';
+
 const ICONOS_CATEGORIA = {
   'cumpleanos': '🎈',
   'regalos': '🎁',

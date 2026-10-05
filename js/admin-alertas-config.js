@@ -119,7 +119,7 @@ async function enviarPrueba() {
   resultDiv.style.color = '#1a7c3a';
   resultDiv.innerHTML = `
     <strong>✅ Mensaje de prueba enviado (simulado)</strong><br>
-    Destino: ${numero}<br>
+    Destino: ${esc(numero)}<br>
     <em style="font-size:12px;">En modo desarrollo los mensajes se registran en la consola del servidor</em>
   `;
 

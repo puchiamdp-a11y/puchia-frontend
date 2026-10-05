@@ -9,3 +9,10 @@ yarn.lock
 dist/
 build/
 *.log
+
+# Documentación interna, logs y respaldos: NUNCA al repositorio público
+PLANIFICACION/
+*.bak
+*.backup
+*.log
+*.md.local

@@ -462,6 +462,8 @@
         <div style="font-size:13px;color:#aaa;">© 2025 Puchia. Todos los derechos reservados.</div>
     </footer>
 
+    <script src="js/vendor/purify.min.js"></script>
+    <script src="js/security.js"></script>
     <script src="js/common.js"></script>
     <script src="js/auth-cliente.js"></script>
     <script>
@@ -541,22 +543,22 @@
                 const badgeLabel = ESTADOS_LABEL[orden.estado] || orden.estado;
 
                 const productos = Array.isArray(orden.items)
-                    ? orden.items.map(i => `${i.nombre || i.name} x${i.cantidad || i.qty}`).join(', ')
-                    : (orden.descripcion || 'Productos personalizados');
+                    ? orden.items.map(i => `${esc(i.nombre || i.name)} x${escNum(i.cantidad || i.qty)}`).join(', ')
+                    : esc(orden.descripcion || 'Productos personalizados');
 
                 return `
                 <div class="orden-item">
                     <div class="orden-top">
                         <div>
-                            <div class="orden-id">#${orden.id || orden.numero}</div>
-                            <div class="orden-fecha">${formatDateLocal(orden.createdAt || orden.created_at || orden.fecha)}</div>
+                            <div class="orden-id">#${esc(orden.id || orden.numero)}</div>
+                            <div class="orden-fecha">${esc(formatDateLocal(orden.createdAt || orden.created_at || orden.fecha))}</div>
                         </div>
-                        <span class="orden-badge ${badgeClass}">${badgeLabel}</span>
+                        <span class="orden-badge ${badgeClass}">${esc(badgeLabel)}</span>
                     </div>
                     <div class="orden-productos">${productos}</div>
                     <div class="orden-bottom">
-                        <span class="orden-total">${formatCurrencyLocal(orden.total)}</span>
-                        <span class="orden-metodo">${orden.metodo_pago ? '💳 ' + orden.metodo_pago : ''}</span>
+                        <span class="orden-total">${esc(formatCurrencyLocal(orden.total))}</span>
+                        <span class="orden-metodo">${orden.metodo_pago ? '💳 ' + esc(orden.metodo_pago) : ''}</span>
                     </div>
                 </div>`;
             }).join('');
@@ -580,7 +582,7 @@
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
                         <h4>No se pudieron cargar las órdenes</h4>
-                        <p>${err.message || 'Verificá tu conexión e intentá de nuevo.'}</p>
+                        <p>${esc(err.message || 'Verificá tu conexión e intentá de nuevo.')}</p>
                     </div>`;
             }
         }

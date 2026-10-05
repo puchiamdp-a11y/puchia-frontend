@@ -204,15 +204,15 @@ function renderCartSidebar() {
         if (checkoutBtn) checkoutBtn.disabled = false;
         const html = cart.map(item => `
             <div class="cart-item">
-                <div class="cart-item-icon">${item.icon || '🎁'}</div>
+                <div class="cart-item-icon">${esc(item.icon || '🎁')}</div>
                 <div class="cart-item-info">
-                    <div class="cart-item-name" style="cursor: pointer; color: #9b2d7d; font-weight: 600;" onclick="openProductFromCart(${item.id})">${item.name}</div>
-                    <div class="cart-item-price">${formatCurrency(item.price)}</div>
+                    <div class="cart-item-name" style="cursor: pointer; color: #9b2d7d; font-weight: 600;" onclick="openProductFromCart(${escNum(item.id)})">${esc(item.name)}</div>
+                    <div class="cart-item-price">${esc(formatCurrency(item.price))}</div>
                     <div class="cart-item-qty">
-                        <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
-                        <span style="min-width: 30px; text-align: center; font-weight: 600;">${item.qty}</span>
-                        <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
-                        <button class="remove-item" onclick="removeItem(${item.id})">🗑️</button>
+                        <button class="qty-btn" onclick="changeQty(${escNum(item.id)}, -1)">−</button>
+                        <span style="min-width: 30px; text-align: center; font-weight: 600;">${escNum(item.qty)}</span>
+                        <button class="qty-btn" onclick="changeQty(${escNum(item.id)}, 1)">+</button>
+                        <button class="remove-item" onclick="removeItem(${escNum(item.id)})">🗑️</button>
                     </div>
                 </div>
             </div>
@@ -300,7 +300,7 @@ function prefillCheckoutFromUser() {
         const banner = document.createElement('div');
         banner.id = 'prefillBanner';
         banner.style.cssText = 'background:#eafaf1;border:1px solid #a9dfbf;color:#1e8449;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:18px;';
-        banner.innerHTML = `✓ Hola <strong>${user.nombre || ''}</strong>, pre-cargamos tus datos. Podés editarlos si necesitás.`;
+        banner.innerHTML = `✓ Hola <strong>${esc(user.nombre || '')}</strong>, pre-cargamos tus datos. Podés editarlos si necesitás.`;
         form.insertBefore(banner, form.firstChild);
     }
 }

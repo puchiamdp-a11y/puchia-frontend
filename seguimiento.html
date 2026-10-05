@@ -382,6 +382,8 @@
         </div>
     </div>
 
+    <script src="js/vendor/purify.min.js"></script>
+    <script src="js/security.js"></script>
     <script>
         // Configuración
         const urlParams = new URLSearchParams(window.location.search);
@@ -419,7 +421,7 @@
                 return;
             }
 
-            const url = `${API_BASE_URL}/ordenes/${ordenId}/publico`;
+            const url = `${API_BASE_URL}/ordenes/${encodeURIComponent(ordenId)}/publico`;
 
             try {
                 const response = await fetch(url);
@@ -435,6 +437,11 @@
                 console.error('Error:', error);
                 mostrarError('Error al cargar la orden: ' + error.message);
             }
+        }
+
+        // La página es pública: todo texto que viene de la API se escapa antes de ir al HTML
+        function escapeHtml(texto) {
+            return String(texto).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
         function mostrarOrden(orden) {
@@ -463,8 +470,8 @@
                     ${orden.items.map(item => `
                         <div class="item">
                             <div class="item-detail">
-                                <div class="item-name">${item.producto?.nombre || 'Producto'}</div>
-                                <div class="item-specs">Cantidad: ${item.cantidad} × $${parseFloat(item.precio_unitario).toFixed(2)}</div>
+                                <div class="item-name">${escapeHtml(item.producto?.nombre || 'Producto')}</div>
+                                <div class="item-specs">Cantidad: ${escNum(item.cantidad)} × $${(parseFloat(item.precio_unitario) || 0).toFixed(2)}</div>
                             </div>
                             <div class="item-subtotal">$${parseFloat(item.subtotal || 0).toFixed(2)}</div>
                         </div>
@@ -472,15 +479,9 @@
                 </div>`
                 : '';
 
-            // Cliente (pequeño al final)
-            const clienteHTML = `
-                <div class="client-info">
-                    <div class="client-info-title">Datos del Cliente</div>
-                    <div class="client-detail"><strong>${orden.cliente_nombre}</strong></div>
-                    <div class="client-detail">${orden.cliente_whatsapp || 'N/A'}</div>
-                    <div class="client-detail">${orden.cliente_ciudad || 'N/A'}</div>
-                </div>
-            `;
+            // Seña y resto: la API los devuelve como texto decimal ("50.00")
+            const senaApi = parseFloat(orden.sena);
+            const sena = isNaN(senaApi) ? total / 2 : senaApi;
 
             const html = `
                 ${progressHTML}
@@ -495,12 +496,12 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0;">
                     <div style="background: #f9f9f9; border-left: 4px solid #333; padding: 16px; border-radius: 8px;">
                         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; font-weight: 600; margin-bottom: 8px;">Seña</div>
-                        <div style="font-size: 24px; font-weight: 700; color: #333;">$${(orden.sena || (total / 2)).toFixed(2)}</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #333;">$${sena.toFixed(2)}</div>
                         <div style="font-size: 11px; color: #999; margin-top: 4px;">Monto a depositar</div>
                     </div>
                     <div style="background: #f0f0f0; border-left: 4px solid #666; padding: 16px; border-radius: 8px;">
                         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; font-weight: 600; margin-bottom: 8px;">Resto a Pagar</div>
-                        <div style="font-size: 24px; font-weight: 700; color: #333;">$${(total - (orden.sena || (total / 2))).toFixed(2)}</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #333;">$${(total - sena).toFixed(2)}</div>
                         <div style="font-size: 11px; color: #999; margin-top: 4px;">Al retiro/entrega</div>
                     </div>
                 </div>
@@ -516,7 +517,6 @@
                     </div>
                 </div>
 
-                ${clienteHTML}
             `;
 
             document.getElementById('content').innerHTML = html;
@@ -559,7 +559,7 @@
             document.getElementById('content').innerHTML = `
                 <div class="error">
                     <strong>⚠️ Error</strong>
-                    <p style="margin-top: 8px;">${mensaje}</p>
+                    <p style="margin-top: 8px;">${esc(mensaje)}</p>
                 </div>
             `;
         }

@@ -369,6 +369,8 @@
 
     <a href="index.html" class="back-home">← Volver al inicio</a>
 
+    <script src="js/vendor/purify.min.js"></script>
+    <script src="js/security.js"></script>
     <script src="js/auth-cliente.js"></script>
     <script>
         if (isClienteLoggedIn()) {
@@ -478,32 +480,7 @@
 
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span>Verificando datos...';
-
-            // Validar que el WhatsApp no esté ya registrado (obligatorio)
-            try {
-                const check = await apiClienteCheckWhatsapp(whatsapp);
-
-                if (check && check.existe === true) {
-                    setFieldError('whatsapp', 'Este WhatsApp ya está registrado');
-                    showAlert('error',
-                        '<strong>Este WhatsApp ya está registrado.</strong><br>' +
-                        '<a href="login.html" style="color:#7f1f6e;font-weight:600;text-decoration:underline;">Iniciá sesión</a> con tu cuenta existente.'
-                    );
-                    btn.disabled = false;
-                    btn.innerHTML = 'Crear mi cuenta';
-                    return;
-                }
-            } catch (err) {
-                // Backend no disponible — no permitir (WhatsApp es ahora obligatorio)
-                console.warn('Error verificando WhatsApp:', err.message);
-                showAlert('error',
-                    '<strong>No se pudo verificar el WhatsApp.</strong><br>Por favor, intenta de nuevo más tarde.'
-                );
-                btn.disabled = false;
-                btn.innerHTML = 'Crear mi cuenta';
-                return;
-            }
+            btn.innerHTML = '<span class="spinner"></span>Creando cuenta...';
 
             btn.innerHTML = '<span class="spinner"></span>Creando cuenta...';
 
@@ -513,11 +490,10 @@
             try {
                 const data = await apiClientePostNoAuth('/clientes/registro', body);
 
-                saveClienteToken(data.data.token);
-                saveClienteUser(data.data);
-
-                showAlert('success', '¡Cuenta creada! Redirigiendo a tu perfil...');
-                setTimeout(() => { window.location.href = 'perfil.html'; }, 900);
+                // El servidor responde igual exista o no el email (no revela quién tiene cuenta),
+                // así que no hay sesión automática: se pasa al login.
+                showAlert('success', '¡Listo! Ahora iniciá sesión con tu email y contraseña...');
+                setTimeout(() => { window.location.href = 'login.html'; }, 1500);
 
             } catch (err) {
                 const msg = (err.message || '').toLowerCase();
@@ -532,7 +508,7 @@
                     );
                     setFieldError('email', 'Este email ya está registrado');
                 } else {
-                    showAlert('error', err.message || 'No se pudo crear la cuenta. Intentá de nuevo.');
+                    showAlert('error', esc(err.message || 'No se pudo crear la cuenta. Intentá de nuevo.'));
                 }
                 btn.disabled = false;
                 btn.innerHTML = 'Crear mi cuenta';

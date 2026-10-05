@@ -304,10 +304,10 @@ async function loadRecentOrders() {
     if (data.success && data.data.length > 0) {
       tbody.innerHTML = data.data.map(orden => `
         <tr>
-          <td>${orden.id_unico || orden.id}</td>
-          <td>${orden.cliente_nombre}</td>
-          <td>$${orden.total}</td>
-          <td><span style="background: #f0e6f6; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${orden.estado}</span></td>
+          <td>${esc(orden.id_unico || orden.id)}</td>
+          <td>${esc(orden.cliente_nombre)}</td>
+          <td>$${esc(orden.total)}</td>
+          <td><span style="background: #f0e6f6; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${esc(orden.estado)}</span></td>
           <td>${formatDateShort(getOrderCreatedDate(orden))}</td>
           <td>
             <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})">Ver</button>
@@ -366,16 +366,16 @@ function renderProductos(lista) {
 
     const portada = p.media?.find(m => m.es_portada) || p.media?.[0] || null;
     const fotoCell = portada
-      ? `<td style="padding:6px;"><img src="${BACKEND_URL}${portada.url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid #ddd;display:block;" onclick="openProductGallery(${p.id})" title="Ver galería" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'"></td>`
+      ? `<td style="padding:6px;"><img src="${escUrl(BACKEND_URL + portada.url)}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid #ddd;display:block;" onclick="openProductGallery(${p.id})" title="Ver galería" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'"></td>`
       : `<td style="padding:6px;text-align:center;"><span style="font-size:22px;" title="Sin fotos">${emoji}</span></td>`;
 
     return `<tr>
       <td>${p.id}</td>
       ${fotoCell}
-      <td>${p.nombre}</td>
-      <td>$${precio}</td>
-      <td id="stock-cell-${p.id}" style="cursor: pointer; padding: 8px; border-radius: 4px; background-color: transparent; transition: background 0.2s;" onclick="editarStock(${p.id}, ${p.stock_cantidad || 0})" onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">${stockVal}</td>
-      <td>${categoria}</td>
+      <td>${esc(p.nombre)}</td>
+      <td>$${esc(precio)}</td>
+      <td id="stock-cell-${p.id}" style="cursor: pointer; padding: 8px; border-radius: 4px; background-color: transparent; transition: background 0.2s;" onclick="editarStock(${p.id}, ${p.stock_cantidad || 0})" onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">${esc(stockVal)}</td>
+      <td>${esc(categoria)}</td>
       <td><button class="toggle-estado-btn ${habilitado ? 'activo' : 'inactivo'}" onclick="toggleHabilitadoProducto(${p.id}, ${habilitado})">${habilitado ? '✅ Activo' : '❌ Inactivo'}</button></td>
       <td class="acciones-cell">
         <button class="btn btn-sm btn-secondary" onclick="editProduct(${p.id})">Editar</button>
@@ -526,7 +526,7 @@ function editProduct(id) {
     initQuillEditor();
     console.log('Descripción desde BD:', productoActualEnEdicion.descripcion);
     if (quillEditor && productoActualEnEdicion.descripcion) {
-      quillEditor.root.innerHTML = productoActualEnEdicion.descripcion;
+      quillEditor.root.innerHTML = sanitizarHTML(productoActualEnEdicion.descripcion);
       console.log('Contenido del editor después de cargar:', quillEditor.root.innerHTML);
     } else if (quillEditor) {
       quillEditor.setContents([]);
@@ -815,21 +815,21 @@ function renderOrders() {
 
     return `
       <tr style="border-bottom: 1px solid #eee; height: 44px;">
-        <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${orden.id_unico}">${shortId}</td>
+        <td style="padding: 8px 12px; font-weight: 600; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${esc(orden.id_unico)}">${esc(shortId)}</td>
         <td style="padding: 8px 12px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaCompra}</td>
-        <td style="padding: 8px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;" title="${orden.cliente_nombre}">${orden.cliente_nombre}</td>
+        <td style="padding: 8px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;" title="${esc(orden.cliente_nombre)}">${esc(orden.cliente_nombre)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${restoPagar.toFixed(2)}</td>
         <td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #7f1f6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">$${parseFloat(orden.total).toFixed(2)}</td>
         <td style="padding: 8px 12px;">
           <select onchange="updateOrderStatus(${orden.id}, this.value)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px; width: 100%; overflow: hidden; text-overflow: ellipsis;">
-            ${orderStatuses.map(s => `<option value="${s.valor}" ${orden.estado === s.valor ? 'selected' : ''}>${s.nombre}</option>`).join('')}
+            ${orderStatuses.map(s => `<option value="${esc(s.valor)}" ${orden.estado === s.valor ? 'selected' : ''}>${esc(s.nombre)}</option>`).join('')}
           </select>
         </td>
         <td style="padding: 8px 12px; font-size: 13px; color: #1a1a1a; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fechaEntrega}</td>
         <td style="padding: 8px 12px; display: flex; gap: 3px; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           <button class="btn btn-sm btn-secondary" onclick="viewOrder(${orden.id})" style="padding: 4px 8px; font-size: 11px;" title="Ver">👁️</button>
           <button class="btn btn-sm btn-primary" onclick="abrirEditarOrden(${orden.id})" style="padding: 4px 8px; font-size: 11px;" title="Editar">✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${orden.id}, '${orden.id_unico}')" style="padding: 4px 8px; font-size: 11px;" title="Eliminar">🗑️</button>
+          <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${escNum(orden.id)}, this.dataset.idUnico)" data-id-unico="${esc(orden.id_unico)}" style="padding: 4px 8px; font-size: 11px;" title="Eliminar">🗑️</button>
         </td>
       </tr>
     `;
@@ -1053,7 +1053,7 @@ function agregarProductoRow() {
   const tbody = document.getElementById('ordenItemsTable');
 
   const opciones = ordenManualProductos.map(p =>
-    `<option value="${p.id}" data-precio="${p.precio}">${p.nombre} - $${p.precio}</option>`
+    `<option value="${escNum(p.id)}" data-precio="${esc(p.precio)}">${esc(p.nombre)} - $${esc(p.precio)}</option>`
   ).join('');
 
   const tr = document.createElement('tr');
@@ -1344,7 +1344,7 @@ async function descargarTicket() {
             text-align: center;
           ">
             <div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600;">Código de orden</div>
-            <div style="font-size: 18px; color: #7f1f6e; font-weight: 700; font-family: monospace; letter-spacing: 1px;">${orden.id_unico}</div>
+            <div style="font-size: 18px; color: #7f1f6e; font-weight: 700; font-family: monospace; letter-spacing: 1px;">${esc(orden.id_unico)}</div>
           </div>
 
           <!-- ESTADO -->
@@ -1358,7 +1358,7 @@ async function descargarTicket() {
               border-radius: 20px;
               font-size: 11px;
               font-weight: 600;
-            ">${orden.estado || 'Pendiente'}</div>
+            ">${esc(orden.estado || 'Pendiente')}</div>
           </div>
 
           <!-- CLIENTE -->
@@ -1366,15 +1366,15 @@ async function descargarTicket() {
             <div style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">Cliente</div>
             <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #eee; font-size: 12px;">
               <span style="color: #666; font-weight: 500;">Nombre</span>
-              <span style="color: #333; font-weight: 600;">${orden.cliente_nombre || 'N/A'}</span>
+              <span style="color: #333; font-weight: 600;">${esc(orden.cliente_nombre || 'N/A')}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #eee; font-size: 12px;">
               <span style="color: #666; font-weight: 500;">Teléfono</span>
-              <span style="color: #333; font-weight: 600;">${orden.cliente_whatsapp || 'N/A'}</span>
+              <span style="color: #333; font-weight: 600;">${esc(orden.cliente_whatsapp || 'N/A')}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px;">
               <span style="color: #666; font-weight: 500;">Ciudad</span>
-              <span style="color: #333; font-weight: 600;">${orden.cliente_ciudad || 'N/A'}</span>
+              <span style="color: #333; font-weight: 600;">${esc(orden.cliente_ciudad || 'N/A')}</span>
             </div>
           </div>
 
@@ -1388,7 +1388,7 @@ async function descargarTicket() {
                 const subtotal = precio * cantidad;
                 return `
                   <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 14px;">
-                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${item.producto?.nombre || 'Producto sin nombre'}</div>
+                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${esc(item.producto?.nombre || 'Producto sin nombre')}</div>
                     <div style="display: flex; justify-content: space-between; color: #666; font-size: 12px;">
                       <span>Cant: ${cantidad} × $${precio.toFixed(2)}</span>
                       <span style="color: #333; font-weight: 700;">$${subtotal.toFixed(2)}</span>
@@ -1710,11 +1710,11 @@ async function viewOrder(id) {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
               <div>
                 <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Número de Orden</div>
-                <div style="font-size: 16px; font-weight: 700; color: #7f1f6e;" title="${orden.id_unico}">${shortId}</div>
+                <div style="font-size: 16px; font-weight: 700; color: #7f1f6e;" title="${esc(orden.id_unico)}">${esc(shortId)}</div>
               </div>
               <div>
                 <div style="font-size: 11px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Estado</div>
-                <div style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; font-weight: 600;">${orden.estado}</div>
+                <div style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; font-weight: 600;">${esc(orden.estado)}</div>
               </div>
             </div>
 
@@ -1734,13 +1734,13 @@ async function viewOrder(id) {
           <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
             <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #333;">Cliente</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
-              <div><strong>Nombre:</strong> ${orden.cliente_nombre}</div>
-              <div><strong>Email:</strong> ${orden.cliente_email || '—'}</div>
-              <div><strong>WhatsApp:</strong> ${orden.cliente_whatsapp || '—'}</div>
-              <div><strong>DNI:</strong> ${orden.cliente_dni || '—'}</div>
-              <div style="grid-column: 1 / -1;"><strong>Dirección:</strong> ${orden.cliente_direccion || '—'}</div>
-              <div><strong>Ciudad:</strong> ${orden.cliente_ciudad || '—'}</div>
-              <div><strong>CP:</strong> ${orden.cliente_cp || '—'}</div>
+              <div><strong>Nombre:</strong> ${esc(orden.cliente_nombre)}</div>
+              <div><strong>Email:</strong> ${esc(orden.cliente_email || '—')}</div>
+              <div><strong>WhatsApp:</strong> ${esc(orden.cliente_whatsapp || '—')}</div>
+              <div><strong>DNI:</strong> ${esc(orden.cliente_dni || '—')}</div>
+              <div style="grid-column: 1 / -1;"><strong>Dirección:</strong> ${esc(orden.cliente_direccion || '—')}</div>
+              <div><strong>Ciudad:</strong> ${esc(orden.cliente_ciudad || '—')}</div>
+              <div><strong>CP:</strong> ${esc(orden.cliente_cp || '—')}</div>
             </div>
           </div>
 
@@ -1778,7 +1778,7 @@ async function viewOrder(id) {
                 const subtotal = precio * cantidad;
                 return `
                   <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px;">${item.producto?.nombre || item.nombre || 'Producto'}</td>
+                    <td style="padding: 12px;">${esc(item.producto?.nombre || item.nombre || 'Producto')}</td>
                     <td style="text-align: center; padding: 12px;">${cantidad}</td>
                     <td style="text-align: right; padding: 12px;">$${precio.toFixed(2)}</td>
                     <td style="text-align: right; padding: 12px; font-weight: 600;">$${subtotal.toFixed(2)}</td>
@@ -1792,7 +1792,7 @@ async function viewOrder(id) {
           ${orden.notas ? `
             <div style="background: #fffbf0; padding: 16px; border-left: 4px solid #F3E93F; border-radius: 8px; margin-bottom: 20px;">
               <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Notas</div>
-              <div style="font-size: 13px; color: #333; line-height: 1.6;">${orden.notas}</div>
+              <div style="font-size: 13px; color: #333; line-height: 1.6;">${esc(orden.notas)}</div>
             </div>
           ` : ''}
 
@@ -1933,9 +1933,9 @@ function renderMediaGallery(items) {
     const previewHtml = esVideo
       ? `<div style="width:100%;height:100%;background:#1a1a2e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;box-sizing:border-box;">
            <span style="font-size:20px;">▶️</span>
-           <span style="color:rgba(255,255,255,0.65);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:72px;text-align:center;">${item.url.split('/').pop()}</span>
+           <span style="color:rgba(255,255,255,0.65);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:72px;text-align:center;">${esc(item.url.split('/').pop())}</span>
          </div>`
-      : `<img src="${BACKEND_URL}${item.url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=background:#f5f5f5;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px>📷</div>'">`;
+      : `<img src="${escUrl(BACKEND_URL + item.url)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=background:#f5f5f5;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px>📷</div>'">`;
 
     return `<div data-media-id="${item.id}" style="position:relative;width:88px;height:88px;border-radius:8px;overflow:hidden;border:${border};flex-shrink:0;cursor:pointer;" onclick="openGalleryViewModal(${mediaCurrentProductoId}, mediaItems, ${idx})">
       ${previewHtml}
@@ -2192,7 +2192,7 @@ function renderGalleryModal() {
       const opacity = isCurrent ? '1' : '0.65';
       const previewHtml = it.tipo === 'video'
         ? `<div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;font-size:16px;">▶</div>`
-        : `<img src="${BACKEND_URL}${it.url}" style="width:100%;height:100%;object-fit:cover;">`;
+        : `<img src="${escUrl(BACKEND_URL + it.url)}" style="width:100%;height:100%;object-fit:cover;">`;
 
       return `<div onclick="galleryGoTo(${idx})" style="width:58px;height:58px;border-radius:6px;overflow:hidden;border:${border};cursor:pointer;flex-shrink:0;opacity:${opacity};transition:opacity 0.2s;">${previewHtml}</div>`;
     }).join('');
@@ -2411,7 +2411,7 @@ function setupQuillAutosave(productoId) {
   const autosave_desc = localStorage.getItem(autosaveKey_desc);
   if (autosave_desc && quillEditor) {
     try {
-      quillEditor.root.innerHTML = autosave_desc;
+      quillEditor.root.innerHTML = sanitizarHTML(autosave_desc);
       console.log(`[Autosave] Descripción cargada desde localStorage para producto ${productoId}`);
     } catch (e) {
       console.warn('[Autosave] Error cargando descripción:', e);
@@ -2456,7 +2456,7 @@ editProduct = function(id) {
 
     if (quillEditor && productoActualEnEdicion?.descripcion_completa) {
       try {
-        quillEditor.root.innerHTML = productoActualEnEdicion.descripcion_completa;
+        quillEditor.root.innerHTML = sanitizarHTML(productoActualEnEdicion.descripcion_completa);
       } catch (e) {
         quillEditor.setContents([]);
       }
@@ -2476,7 +2476,7 @@ duplicarProducto = function(id) {
 
     if (quillEditor && original?.descripcion_completa) {
       try {
-        quillEditor.root.innerHTML = original.descripcion_completa;
+        quillEditor.root.innerHTML = sanitizarHTML(original.descripcion_completa);
       } catch (e) {
         quillEditor.setContents([]);
       }
@@ -2723,7 +2723,7 @@ function mostrarErroresImportacion(errores) {
     <div class="modal-content" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
       <h2 style="margin-bottom: 20px; color: #c5221f;">Errores en la importación</h2>
       <div style="background: #fce8e6; border: 1px solid #f1d5d3; border-radius: 8px; padding: 16px; margin-bottom: 20px; max-height: 300px; overflow-y: auto;">
-        ${errores.map((e, i) => `<div style="margin-bottom: 8px; font-size: 13px;">❌ ${e}</div>`).join('')}
+        ${errores.map((e, i) => `<div style="margin-bottom: 8px; font-size: 13px;">❌ ${esc(e)}</div>`).join('')}
       </div>
       <div style="background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 13px;">
         ⚠️ Verifica los datos en el Excel y vuelve a intentar. Recuerda que las categorías deben existir en el sistema.
@@ -2822,11 +2822,11 @@ function renderCategorias(categorias) {
 
   tbody.innerHTML = categorias.map(cat => `
     <tr>
-      <td>${cat.id}</td>
-      <td><strong>${cat.nombre}</strong></td>
-      <td style="color: #666; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${cat.descripcion || '—'}</td>
+      <td>${esc(cat.id)}</td>
+      <td><strong>${esc(cat.nombre)}</strong></td>
+      <td style="color: #666; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${esc(cat.descripcion || '—')}</td>
       <td>
-        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}')" title="Editar">✏️ Editar</button>
+        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${escNum(cat.id)}, this.dataset.nombre, this.dataset.descripcion)" data-nombre="${esc(cat.nombre)}" data-descripcion="${esc(cat.descripcion || '')}" title="Editar">✏️ Editar</button>
         <button class="btn btn-sm btn-danger" onclick="eliminarCategoria(${cat.id})" title="Eliminar">🗑️ Eliminar</button>
       </td>
     </tr>
@@ -3177,10 +3177,10 @@ function renderStocks(stocks) {
 
     return `
       <tr>
-        <td>${nombreProducto}</td>
-        <td>${variantesStr}</td>
+        <td>${esc(nombreProducto)}</td>
+        <td>${esc(variantesStr)}</td>
         <td>
-          <input type="number" value="${stock.cantidad}" onchange="actualizarCantidadStock(${stock.id}, this.value)" style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" />
+          <input type="number" value="${esc(stock.cantidad)}" onchange="actualizarCantidadStock(${stock.id}, this.value)" style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" />
         </td>
         <td>
           <div class="acciones-cell">
@@ -3265,8 +3265,8 @@ async function editarStock(stockId) {
         row.id = `variant-row-${rowId}`;
         row.style.cssText = 'display: flex; gap: 8px; align-items: center;';
         row.innerHTML = `
-          <input type="text" value="${v.tipo}" class="variant-tipo" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
-          <input type="text" value="${v.valor}" class="variant-valor" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
+          <input type="text" value="${esc(v.tipo)}" class="variant-tipo" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
+          <input type="text" value="${esc(v.valor)}" class="variant-valor" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
           <button type="button" class="btn btn-danger" onclick="eliminarVarianteRow('${rowId}')" style="padding: 6px 10px; font-size: 12px;">−</button>
         `;
         variantesContainer.appendChild(row);
@@ -3464,8 +3464,8 @@ function cargarVariantesEnFormulario(variantes) {
 
     const valoresStr = (v.valores || []).join(', ');
     row.innerHTML = `
-      <input type="text" value="${v.tipo}" class="var-tipo" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
-      <input type="text" value="${valoresStr}" class="var-valores" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
+      <input type="text" value="${esc(v.tipo)}" class="var-tipo" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
+      <input type="text" value="${esc(valoresStr)}" class="var-valores" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
       <button type="button" class="btn btn-danger" onclick="eliminarVarianteProducto('${rowId}')" style="padding: 4px 8px; font-size: 11px; height: 30px;">−</button>
     `;
     container.appendChild(row);

@@ -37,10 +37,10 @@ function renderCategories() {
     if (!grid) return;
 
     const html = categories.map(category => `
-        <div class="category-card" onclick="selectCategory('${category.id}')">
-            <div class="category-card-icon">${category.icon}</div>
-            <div class="category-card-name">${category.name}</div>
-            <p style="color: #999; font-size: 14px; margin-top: 8px;">${category.description}</p>
+        <div class="category-card" onclick="selectCategory(this.dataset.id)" data-id="${esc(category.id)}">
+            <div class="category-card-icon">${esc(category.icon)}</div>
+            <div class="category-card-name">${esc(category.name)}</div>
+            <p style="color: #999; font-size: 14px; margin-top: 8px;">${esc(category.description)}</p>
         </div>
     `).join('');
 
@@ -82,15 +82,15 @@ function renderCategoryProducts(categoryId) {
     }
 
     const html = filtered.map(product => `
-        <div class="product-card" data-product-id="${product.id}">
+        <div class="product-card" data-product-id="${escNum(product.id)}">
             <div class="product-image-wrapper" style="cursor: pointer;">
                 ${product.icon}
             </div>
             <div class="product-info">
                 <div class="product-name-wrapper" style="cursor: pointer;">
-                    ${product.name}
+                    ${esc(product.name)}
                 </div>
-                <div class="product-price">${formatCurrency(product.price)}</div>
+                <div class="product-price">${esc(formatCurrency(product.price))}</div>
                 <div class="product-quantity">
                     <button class="qty-decrease">−</button>
                     <input type="number" class="qty-input" value="1" min="1">

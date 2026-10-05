@@ -379,6 +379,8 @@
 
     <a href="index.html" class="back-home">← Volver al inicio</a>
 
+    <script src="js/vendor/purify.min.js"></script>
+    <script src="js/security.js"></script>
     <script src="js/auth-cliente.js"></script>
     <script>
         // Pre-llenar email si viene en query string
@@ -402,7 +404,7 @@
         function showAlert(type, html) {
             hideAlerts();
             const el = document.getElementById('alert' + type.charAt(0).toUpperCase() + type.slice(1));
-            el.innerHTML = html;
+            el.textContent = html; // texto plano: nunca HTML
             el.classList.add('show');
         }
 
@@ -449,11 +451,7 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span>Enviando código...';
             try {
-                const result = await apiClientePostNoAuth('/clientes/recuperar/solicitar', { email });
-                // En DEMO, el endpoint devuelve demo_codigo
-                if (result.demo_codigo) {
-                    console.log(`[DEMO] Código: ${result.demo_codigo}`);
-                }
+                await apiClientePostNoAuth('/clientes/recuperar/solicitar', { email });
             } catch (err) {
                 // Por seguridad NO revelamos si el email existe o no
                 console.warn('Recuperar:', err);
@@ -483,14 +481,7 @@
                 estado.codigo = codigo;
                 irAlPaso(3);
             } catch (err) {
-                if (err.status === 404) {
-                    // Endpoint no implementado todavía → permitir avanzar para demo de UI
-                    estado.codigo = codigo;
-                    irAlPaso(3);
-                    showAlert('info', '⚠️ Modo demo: el endpoint de verificación no está disponible aún.');
-                } else {
-                    showAlert('error', err.message || 'Código incorrecto o expirado. Intentá de nuevo.');
-                }
+                showAlert('error', err.data?.error || 'Código incorrecto o vencido. Intentá de nuevo.');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Verificar código';
@@ -523,11 +514,7 @@
                 });
                 irAlPaso(4);
             } catch (err) {
-                if (err.status === 404) {
-                    irAlPaso(4);
-                } else {
-                    showAlert('error', err.message || 'No se pudo cambiar la contraseña. Intentá de nuevo.');
-                }
+                showAlert('error', err.data?.error || 'No se pudo cambiar la contraseña. Intentá de nuevo.');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Cambiar contraseña';

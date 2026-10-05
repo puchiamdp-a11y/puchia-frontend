@@ -36,17 +36,17 @@ function loadAndRenderProducts() {
         const badge = featuredBadges[product.id];
         if (badge) {
             const badgeClass = badge === 'Nuevo' ? 'badge-new' : 'badge-hot';
-            badgeHtml = `<div class="product-badge ${badgeClass}">${badge}</div>`;
+            badgeHtml = `<div class="product-badge ${badgeClass}">${esc(badge)}</div>`;
         }
 
         return `
-            <div class="product-card" data-product-id="${product.id}">
+            <div class="product-card" data-product-id="${escNum(product.id)}">
                 ${badgeHtml}
                 <div class="product-image" style="cursor: pointer;">${product.icon}</div>
                 <div class="product-info">
-                    <div class="product-name" style="cursor: pointer;">${product.name}</div>
-                    <div class="product-price">${formatCurrency(product.price)}</div>
-                    <button class="product-btn" onclick="openProductDetail(${product.id})">
+                    <div class="product-name" style="cursor: pointer;">${esc(product.name)}</div>
+                    <div class="product-price">${esc(formatCurrency(product.price))}</div>
+                    <button class="product-btn" onclick="openProductDetail(${escNum(product.id)})">
                         Agregar al Carrito
                     </button>
                 </div>
@@ -193,9 +193,9 @@ async function openProductDetail(productId) {
             <div class="detail-image">${product.icon}</div>
 
             <div class="detail-info">
-              <h2>${product.name}</h2>
-              <p class="detail-category">Categoría: ${product.category}</p>
-              <p class="detail-price">${formatCurrency(product.price)}</p>
+              <h2>${esc(product.name)}</h2>
+              <p class="detail-category">Categoría: ${esc(product.category)}</p>
+              <p class="detail-price">${esc(formatCurrency(product.price))}</p>
 
               <div class="detail-quantity">
                 <button class="qty-decrease">−</button>
@@ -203,9 +203,9 @@ async function openProductDetail(productId) {
                 <button class="qty-increase">+</button>
               </div>
 
-              <p class="detail-description">
-                ${product.descripcion || 'Sin descripción disponible'}
-              </p>
+              <div class="detail-description">
+                ${sanitizarHTML(product.descripcion || 'Sin descripción disponible')}
+              </div>
             </div>
 
             <div class="detail-actions">
@@ -312,10 +312,10 @@ function renderCategoriesHome() {
   if (!categoriasGrid || !categories || categories.length === 0) return;
 
   const categoriesHTML = categories.map(cat => `
-    <div class="category-card" onclick="goToPromos('${cat.id}')">
-      <div class="category-icon">${cat.icon}</div>
-      <h3>${cat.name}</h3>
-      <p>${cat.description}</p>
+    <div class="category-card" onclick="goToPromos(this.dataset.id)" data-id="${esc(cat.id)}">
+      <div class="category-icon">${esc(cat.icon)}</div>
+      <h3>${esc(cat.name)}</h3>
+      <p>${esc(cat.description)}</p>
     </div>
   `).join('');
 
