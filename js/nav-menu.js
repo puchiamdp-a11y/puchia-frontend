@@ -52,7 +52,7 @@
 
     try {
       const base = window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1';
-      const response = await fetch(`${base}/categorias`);
+      const response = await fetch(`${base}/categorias?t=${Date.now()}`, { cache: 'no-store' });
       const data = await response.json();
       if (!data.success || !Array.isArray(data.data)) return;
 
