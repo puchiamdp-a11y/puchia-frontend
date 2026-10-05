@@ -233,9 +233,9 @@ async function openProductDetail(productId) {
                 <button class="qty-increase">+</button>
               </div>
 
-              <p class="detail-description">
+              <div class="detail-description">
                 ${product.descripcion || 'Sin descripción disponible'}
-              </p>
+              </div>
             </div>
 
             <div class="detail-actions">

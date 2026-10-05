@@ -488,7 +488,7 @@
   inset: 0;
   z-index: 3000;
   box-sizing: border-box;
-  display: grid;
+  display: grid !important; /* home.js fija display:flex inline */
   grid-template-columns: min(100%, 880px);
   justify-content: center;
   align-content: center;
@@ -873,6 +873,7 @@
   min-height: 48px;
   margin: 0;
   padding: 0 24px;
+  white-space: nowrap;
   background: var(--pd-brand);
   color: #fff;
   border: 0;
@@ -1063,6 +1064,10 @@
     bottom: 0;
     padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -8px 20px rgba(30, 10, 26, 0.06);
+  }
+
+  .product-detail-modal .btn-add-cart {
+    padding: 0 14px;
   }
 
   .product-detail-modal .detail-description {
