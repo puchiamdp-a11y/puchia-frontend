@@ -210,7 +210,7 @@ async function openProductDetail(productId) {
       ? `<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;">${fotos.map(m => `<img src="${resolveMediaUrl(m.url)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;cursor:pointer;flex:0 0 auto;" loading="lazy" onclick="document.getElementById('detailMainMedia').src=this.src">`).join('')}</div>`
       : '';
     const detalleImagen = fotoPortada
-      ? `<div style="width:100%;"><img id="detailMainMedia" src="${resolveMediaUrl(fotoPortada.url)}" alt="${String(product.name).replace(/"/g, '&quot;')}" style="width:100%;max-height:360px;object-fit:contain;border-radius:10px;display:block;" onerror="this.outerHTML='<span>${product.icon}</span>'">${miniaturas}</div>`
+      ? `<div style="width:100%;"><img id="detailMainMedia" src="${resolveMediaUrl(fotoPortada.url)}" alt="${String(product.name).replace(/"/g, '&quot;')}" style="width:100%;max-height:min(72vh,640px);object-fit:contain;border-radius:10px;display:block;" onerror="this.outerHTML='<span>${product.icon}</span>'">${miniaturas}</div>`
       : product.icon;
 
     const modalHTML = `
