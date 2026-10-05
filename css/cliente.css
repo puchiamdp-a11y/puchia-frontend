@@ -1485,16 +1485,15 @@
 }
 
 
-/* ---------- Foto de la tarjeta de producto CUADRADA (1:1) ----------
-   Más compacta: entran 2 tarjetas por fila, 2 filas visibles en pantalla. */
+/* ---------- Foto de la tarjeta de producto VERTICAL COMPACTA ----------
+   2 filas de 3 productos en pantalla: foto máx 280px de alto, vertical (más alto que ancho). */
 .product-card .product-image,
 .product-card .product-image-wrapper {
   box-sizing: border-box;
   width: 100%;
   min-height: 0 !important;
-  max-height: none !important;
-  height: auto !important;
-  aspect-ratio: 1 / 1;
+  height: 280px !important;
+  max-height: 280px !important;
   padding: 0 !important;
   overflow: hidden !important;
   background: var(--gray-light);
