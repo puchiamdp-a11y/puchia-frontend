@@ -68,17 +68,29 @@ function takeHomeSectionsSnapshot(data) {
 }
 
 // ======================== CARGA DE DATOS ========================
+// Huella del HOME publicado (la devuelve el backend); permite saber si hay cambios sin bajar todo.
+let homeSectionsVersion = null;
+
 async function loadHomeSectionsData() {
-  // Agregar timestamp para evitar caché del navegador
-  const timestamp = new Date().getTime();
-  const response = await fetch(`${HOME_SECTIONS_API}/home-sections?t=${timestamp}`, {
-    cache: 'no-store'
-  });
+  // 'no-cache' = siempre revalida con el servidor (ETag): si no cambió, responde 304 sin cuerpo
+  const response = await fetch(`${HOME_SECTIONS_API}/home-sections`, { cache: 'no-cache' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
   const result = await response.json();
+  homeSectionsVersion = result.version || null;
   const data = result.data || result;
   return Array.isArray(data) ? data : null;
+}
+
+// Consulta liviana (unos pocos bytes) de la versión actual del HOME.
+async function fetchHomeSectionsVersion() {
+  try {
+    const response = await fetch(`${HOME_SECTIONS_API}/home-sections/version`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return (await response.json()).version || null;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function loadHomeSectionsCategories() {
@@ -124,6 +136,11 @@ async function loadAndRenderHomeSections() {
   if (!container) return;
 
   try {
+    // Los productos se piden en paralelo con las secciones (antes esperaban a que terminaran)
+    const productosEnCurso = (typeof loadProductsFromAPI === 'function' &&
+      (typeof allProducts === 'undefined' || !allProducts || allProducts.length === 0))
+      ? loadProductsFromAPI().catch(() => {})
+      : null;
     const data = await loadHomeSectionsData();
 
     if (!data || data.length === 0) {
@@ -133,6 +150,7 @@ async function loadAndRenderHomeSections() {
     }
 
     homeSectionsData = data;
+    if (productosEnCurso) await productosEnCurso;
     await ensureHomeSectionsDependencies(data);
 
     renderHomeSections();
@@ -563,6 +581,11 @@ async function refreshHomeSections() {
   if (homeSectionsRefreshing) return;
   homeSectionsRefreshing = true;
   try {
+    // Si el backend informa la versión, no se baja nada mientras no haya cambios
+    if (homeSectionsVersion) {
+      const actual = await fetchHomeSectionsVersion();
+      if (actual && actual === homeSectionsVersion) return;
+    }
     const data = await loadHomeSectionsData();
     if (!data || data.length === 0) return;
 
@@ -584,8 +607,12 @@ async function refreshHomeSections() {
 function startHomeSectionsPolling() {
   if (homeSectionsPollingInterval) clearInterval(homeSectionsPollingInterval);
 
+  // Con versión es una consulta de pocos bytes; sin ella (backend viejo) se baja todo, así que se espacia.
+  let tick = 0;
   homeSectionsPollingInterval = setInterval(() => {
-    if (!document.hidden) refreshHomeSections();
+    if (document.hidden) return;
+    tick++;
+    if (homeSectionsVersion || tick % 4 === 0) refreshHomeSections();
   }, 15000);
 
   if (window.__homeSectionsLiveListeners) return;
@@ -603,10 +630,10 @@ function startHomeSectionsPolling() {
   });
 }
 
-// Inicializar cuando la página terminó de cargar, para que los datos de productos
-// y las funciones de home.js ya estén disponibles.
-if (document.readyState === 'complete') {
-  loadAndRenderHomeSections();
+// Se inicia apenas el DOM está listo (no espera a imágenes, fuentes ni estilos): los scripts
+// de home.js ya están definidos para cuando llegan los datos.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadAndRenderHomeSections);
 } else {
-  window.addEventListener('load', loadAndRenderHomeSections);
+  loadAndRenderHomeSections();
 }

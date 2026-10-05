@@ -581,7 +581,7 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 1fr) 420px;
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
@@ -601,8 +601,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 420px;
-  padding: 20px;
+  min-height: 520px;
+  padding: 16px;
   font-size: clamp(96px, 13vw, 150px) !important;
   line-height: 1;
   text-align: center;
@@ -623,7 +623,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   overflow: hidden;
 }
 
@@ -650,8 +650,9 @@
 .product-detail-modal .detail-media-responsive {
   display: block;
   width: 100%;
-  max-height: none;
-  aspect-ratio: 1 / 1;
+  height: auto;
+  max-height: min(68vh, 620px);
+  aspect-ratio: auto;
   object-fit: contain;
   border-radius: 0;
 }
@@ -1435,4 +1436,50 @@
     font-size: 12px;
   }
 
+}
+
+
+/* ---------- Flechas de la galería (foto anterior / siguiente) ---------- */
+.product-detail-modal .pd-gallery {
+  position: relative;
+  width: 100%;
+}
+
+.product-detail-modal .pd-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--pd-brand);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(30, 10, 26, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.product-detail-modal .pd-arrow:hover {
+  background: #fff;
+  transform: scale(1.08);
+}
+
+.product-detail-modal .pd-arrow-prev { left: 10px; }
+.product-detail-modal .pd-arrow-next { right: 10px; }
+
+@media (max-width: 720px) {
+  .product-detail-modal .pd-arrow {
+    width: 38px;
+    height: 38px;
+    margin-top: -19px;
+    font-size: 22px;
+  }
 }

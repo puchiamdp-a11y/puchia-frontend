@@ -661,6 +661,7 @@ async function openProductDetail(productId) {
     const BK = window.API_BASE_URL?.replace('/api/v1', '') || 'https://puchia-backend-production.up.railway.app';
     const mediaList = product.media || [];
     window._currentDetailMedia = mediaList;
+    window._currentDetailIdx = Math.max(0, mediaList.findIndex(m => m.es_portada));
     const portadaItem = mediaList.find(m => m.es_portada) || mediaList[0] || null;
 
     // Display principal: foto/video o emoji
@@ -683,7 +684,8 @@ async function openProductDetail(productId) {
         : '';
 
       displayHTML = `<div style="margin-bottom:12px;">
-        <div style="width:100%;background:#f5f5f5;border-radius:10px;overflow:hidden;margin-bottom:${mediaList.length > 1 ? '0' : '0'};">
+        <div class="pd-gallery" style="width:100%;background:#f5f5f5;border-radius:10px;overflow:hidden;margin-bottom:0;">
+          ${mediaList.length > 1 ? '<button type="button" class="pd-arrow pd-arrow-prev" aria-label="Foto anterior" onclick="stepDetailMedia(-1)">‹</button><button type="button" class="pd-arrow pd-arrow-next" aria-label="Foto siguiente" onclick="stepDetailMedia(1)">›</button>' : ''}
           ${mainMedia}
         </div>
         ${thumbsHTML}
@@ -868,18 +870,26 @@ function closeProductDetail() {
   if (modal) modal.remove();
 }
 
+// Flechas: foto/video anterior (-1) o siguiente (+1), de forma circular
+function stepDetailMedia(dir) {
+  const n = (window._currentDetailMedia || []).length;
+  if (n < 2) return;
+  changeDetailMedia((((window._currentDetailIdx || 0) + dir) % n + n) % n);
+}
+
 // Cambia la foto/video principal al hacer click en thumbnail del modal
 function changeDetailMedia(idx) {
   const media = window._currentDetailMedia || [];
   const item = media[idx];
   if (!item) return;
+  window._currentDetailIdx = idx;
 
   const BK = window.API_BASE_URL?.replace('/api/v1', '') || 'https://puchia-backend-production.up.railway.app';
   const mainEl = document.getElementById('detailMainMedia');
   if (!mainEl) return;
 
   const thumbs = document.getElementById('productDetailModal')?.querySelectorAll('.detail-thumb');
-  thumbs?.forEach((t, i) => { t.style.border = i === idx ? '2px solid #9b2d7d' : '2px solid #ddd'; });
+  thumbs?.forEach((t, i) => { t.style.border = i === idx ? '2px solid #9b2d7d' : '2px solid #ddd'; t.classList.toggle('active', i === idx); });
 
   if (item.tipo === 'video') {
     if (mainEl.tagName === 'VIDEO') {

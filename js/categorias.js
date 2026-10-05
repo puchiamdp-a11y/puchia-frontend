@@ -159,6 +159,10 @@ function goBackToCategories() {
 
 // Initialize on page load
 window.addEventListener('load', async () => {
+    // En el home (index.html) settings, categorías y productos ya los pide home.js / el CMS:
+    // repetirlos aquí duplicaba 3 llamadas a la API en cada carga.
+    if (document.getElementById('homeSections')) return;
+
     // Load UI immediately with default products
     await loadSettingsFromAPI();
     updateUIWithSettings();

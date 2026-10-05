@@ -161,8 +161,8 @@ function animateCounters() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Cargar settings desde la API antes de actualizar UI
-    await loadSettingsFromAPI();
-    await updateLogoAndFavicon();
+    // Las dos llamadas son independientes: en paralelo ahorran ~0,5 s al pintar el encabezado
+    await Promise.all([loadSettingsFromAPI(), updateLogoAndFavicon()]);
     updateUIWithSettings();
     updateWhatsappLinks();
 
@@ -207,10 +207,11 @@ async function openProductDetail(productId) {
     const fotos = (product.media || []).filter(m => m.tipo !== 'video');
     const fotoPortada = fotos.find(m => m.es_portada) || fotos[0] || null;
     const miniaturas = fotos.length > 1
-      ? `<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;">${fotos.map(m => `<img src="${resolveMediaUrl(m.url)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;cursor:pointer;flex:0 0 auto;" loading="lazy" onclick="document.getElementById('detailMainMedia').src=this.src">`).join('')}</div>`
+      ? `<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;">${fotos.map(m => `<img src="${resolveMediaUrl(m.url)}" class="pd-thumb" data-idx="${fotos.indexOf(m)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;cursor:pointer;flex:0 0 auto;border:2px solid transparent;" loading="lazy" onclick="homeGalleryGo(${fotos.indexOf(m)})">`).join('')}</div>`
       : '';
+    window._homeGallery = { fotos, idx: Math.max(0, fotos.indexOf(fotoPortada)) };
     const detalleImagen = fotoPortada
-      ? `<div style="width:100%;"><img id="detailMainMedia" src="${resolveMediaUrl(fotoPortada.url)}" alt="${String(product.name).replace(/"/g, '&quot;')}" style="width:100%;max-height:min(72vh,640px);object-fit:contain;border-radius:10px;display:block;" onerror="this.outerHTML='<span>${product.icon}</span>'">${miniaturas}</div>`
+      ? `<div style="width:100%;"><div class="pd-gallery">${fotos.length > 1 ? '<button type="button" class="pd-arrow pd-arrow-prev" aria-label="Foto anterior" onclick="homeGalleryStep(-1)">‹</button><button type="button" class="pd-arrow pd-arrow-next" aria-label="Foto siguiente" onclick="homeGalleryStep(1)">›</button>' : ''}<img id="detailMainMedia" src="${resolveMediaUrl(fotoPortada.url)}" alt="${String(product.name).replace(/"/g, '&quot;')}" style="width:100%;max-height:min(72vh,640px);object-fit:contain;border-radius:10px;display:block;" onerror="this.outerHTML='<span>${product.icon}</span>'"></div>${miniaturas}</div>`
       : product.icon;
 
     const modalHTML = `
@@ -284,6 +285,19 @@ async function openProductDetail(productId) {
     showToast('Error al cargar el producto', 'error');
   }
 }
+
+// Galería del modal (home / categorías): ir a una foto, anterior o siguiente
+function homeGalleryGo(idx) {
+  const g = window._homeGallery;
+  if (!g || !g.fotos.length) return;
+  g.idx = (idx + g.fotos.length) % g.fotos.length;
+  const main = document.getElementById('detailMainMedia');
+  if (main && main.tagName === 'IMG') main.src = resolveMediaUrl(g.fotos[g.idx].url);
+  document.querySelectorAll('#productDetailModal .pd-thumb').forEach((t) => {
+    t.style.borderColor = Number(t.dataset.idx) === g.idx ? '#9b2d7d' : 'transparent';
+  });
+}
+function homeGalleryStep(dir) { const g = window._homeGallery; if (g) homeGalleryGo(g.idx + dir); }
 
 function closeProductDetail() {
   const modal = document.getElementById('productDetailModal');
