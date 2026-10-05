@@ -1485,7 +1485,7 @@
 }
 
 
-/* ---------- Foto de la tarjeta de producto en formato VERTICAL (4:5) ----------
+/* ---------- Foto de la tarjeta de producto en formato VERTICAL (2:3) ----------
    La mayoría de las fotos son verticales: la tarjeta cerrada ya no usa una caja baja y ancha. */
 .product-card .product-image,
 .product-card .product-image-wrapper {
@@ -1494,7 +1494,7 @@
   min-height: 0 !important;
   max-height: none !important;
   height: auto !important;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 2 / 3;
   padding: 0 !important;
   overflow: hidden !important;
   background: var(--gray-light);
