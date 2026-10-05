@@ -62,6 +62,11 @@ function getActualSectionType(section) {
   return type;
 }
 
+// Huella de lo que se ve en pantalla: secciones + categorías.
+function takeHomeSectionsSnapshot(data) {
+  return JSON.stringify(data) + '|' + JSON.stringify(homeSectionsCategories);
+}
+
 // ======================== CARGA DE DATOS ========================
 async function loadHomeSectionsData() {
   // Agregar timestamp para evitar caché del navegador
@@ -78,13 +83,13 @@ async function loadHomeSectionsData() {
 
 async function loadHomeSectionsCategories() {
   try {
-    const response = await fetch(`${HOME_SECTIONS_API}/categorias`);
+    const response = await fetch(`${HOME_SECTIONS_API}/categorias?t=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const result = await response.json();
     homeSectionsCategories = result.data || [];
   } catch (error) {
+    // Si falla, se conservan las últimas categorías conocidas en vez de vaciar la sección.
     console.warn('[CMS] No se pudieron cargar las categorías:', error.message);
-    homeSectionsCategories = [];
   }
 }
 
@@ -99,9 +104,15 @@ async function ensureHomeSectionsDependencies(data) {
     tasks.push(loadProductsFromAPI());
   }
 
-  const needsCategories = visible.some(s => s.section_type === 'categories');
-  if (needsCategories && homeSectionsCategories.length === 0) {
-    tasks.push(loadHomeSectionsCategories());
+  // Las categorías (emoji, nombre) vienen con la sección; si el backend no las
+  // envía, se piden en vivo. Nunca se reutilizan las de una carga anterior.
+  const categoriesSection = visible.find(s => s.section_type === 'categories');
+  if (categoriesSection) {
+    if (Array.isArray(categoriesSection.data)) {
+      homeSectionsCategories = categoriesSection.data;
+    } else {
+      tasks.push(loadHomeSectionsCategories());
+    }
   }
 
   await Promise.all(tasks);
@@ -216,7 +227,7 @@ function renderHomeSections() {
 
   // Marca que el HOME lo controla el CMS, para que home.js no pise estas secciones.
   window.__cmsHomeActive = true;
-  homeSectionsSnapshot = JSON.stringify(homeSectionsData);
+  homeSectionsSnapshot = takeHomeSectionsSnapshot(homeSectionsData);
 
   attachHomeSectionsBehaviour();
 }
@@ -544,32 +555,52 @@ function renderHomeImageGallery(config) {
   `;
 }
 
-// ======================== POLLING ========================
+// ======================== ACTUALIZACIÓN EN VIVO ========================
 // Detecta publicaciones nuevas sin que el cliente tenga que recargar la página.
+let homeSectionsRefreshing = false;
+
+async function refreshHomeSections() {
+  if (homeSectionsRefreshing) return;
+  homeSectionsRefreshing = true;
+  try {
+    const data = await loadHomeSectionsData();
+    if (!data || data.length === 0) return;
+
+    await ensureHomeSectionsDependencies(data);
+
+    const newSnapshot = takeHomeSectionsSnapshot(data);
+    if (newSnapshot !== homeSectionsSnapshot) {
+      console.log('[CMS] Cambios detectados, actualizando secciones...');
+      homeSectionsData = data;
+      renderHomeSections(); // renderHomeSections actualiza el snapshot
+    }
+  } catch (error) {
+    console.warn('[CMS Refresh] Error:', error.message);
+  } finally {
+    homeSectionsRefreshing = false;
+  }
+}
+
 function startHomeSectionsPolling() {
   if (homeSectionsPollingInterval) clearInterval(homeSectionsPollingInterval);
 
-  // Chequear cambios cada 10 segundos (en lugar de 60) para detectar cambios rápidamente
-  homeSectionsPollingInterval = setInterval(async () => {
-    if (document.hidden) return;
+  homeSectionsPollingInterval = setInterval(() => {
+    if (!document.hidden) refreshHomeSections();
+  }, 15000);
 
-    try {
-      const data = await loadHomeSectionsData();
-      if (!data || data.length === 0) return;
+  if (window.__homeSectionsLiveListeners) return;
+  window.__homeSectionsLiveListeners = true;
 
-      const newSnapshot = JSON.stringify(data);
-      if (newSnapshot !== homeSectionsSnapshot) {
-        console.log('[CMS] Cambios detectados, actualizando secciones...');
-        homeSectionsData = data;
-        homeSectionsSnapshot = newSnapshot;  // ⚠️ CRÍTICO: Actualizar snapshot DESPUÉS de detectar cambios
-        await ensureHomeSectionsDependencies(data);
-        renderHomeSections();
-        console.log('[CMS] Secciones actualizadas via polling', data.length, 'secciones');
-      }
-    } catch (error) {
-      console.warn('[CMS Polling] Error:', error.message);
-    }
-  }, 45000);  // Polling cada 45 segundos para evitar rate limiting (429)
+  // Al volver a la pestaña se actualiza de inmediato.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshHomeSections();
+  });
+
+  // El panel de administración avisa cada vez que publica (mismo navegador y origen):
+  // el cambio se ve al instante en cualquier pestaña del sitio abierta.
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'puchia_home_published') refreshHomeSections();
+  });
 }
 
 // Inicializar cuando la página terminó de cargar, para que los datos de productos

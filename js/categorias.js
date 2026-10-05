@@ -4,13 +4,13 @@ let categories = [];
 
 async function loadCategoriasFromAPI() {
   try {
-    const response = await fetch(`${window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1'}/categorias`);
+    const response = await fetch(`${window.API_BASE_URL || 'https://puchia-backend-production.up.railway.app/api/v1'}/categorias?t=${Date.now()}`, { cache: 'no-store' });
     const data = await response.json();
 
     categories = data.data.map(cat => ({
       id: cat.nombre.toLowerCase().replace(/ñ/g, 'n'),
       name: cat.nombre,
-      icon: getIconoCategoria(cat.nombre),
+      icon: getIconoCategoria(cat.nombre, cat.emoji),
       description: cat.descripcion || ''
     }));
 
@@ -21,7 +21,9 @@ async function loadCategoriasFromAPI() {
   }
 }
 
-function getIconoCategoria(nombre) {
+function getIconoCategoria(nombre, emoji) {
+  // El emoji elegido en el admin manda; el mapa es sólo para categorías sin emoji.
+  if (emoji) return emoji;
   const iconos = {
     'CUMPLEAÑOS': '🎉',
     'REGALOS': '🎁',

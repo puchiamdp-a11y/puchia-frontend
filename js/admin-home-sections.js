@@ -244,7 +244,9 @@ function formatPreviewPrice(value) {
   return '$' + number.toLocaleString('es-AR');
 }
 
-function getIconoCategoriaPreview(nombre) {
+function getIconoCategoriaPreview(nombre, emoji) {
+  // Igual que el sitio: el emoji elegido en el admin manda sobre el mapa por defecto.
+  if (emoji) return emoji;
   const iconos = {
     'CUMPLEAÑOS': '🎉',
     'REGALOS': '🎁',
@@ -350,7 +352,7 @@ function renderPreviewCategories(config) {
 
   const categoriesHTML = categoriesToShow.map(category => `
     <div class="category-card">
-      <div class="category-card-icon">${getIconoCategoriaPreview(category.nombre)}</div>
+      <div class="category-card-icon">${getIconoCategoriaPreview(category.nombre, category.emoji)}</div>
       <div class="category-card-name">${escapeHTML(category.nombre)}</div>
       <p style="color: #999; font-size: 14px; margin-top: 8px;">${escapeHTML(category.descripcion || '')}</p>
     </div>
@@ -585,12 +587,19 @@ function toggleSectionEnabled(sectionId, enabled) {
   section.enabled = enabled;
   hasUnsavedChanges = true;
   updatePreview();
-  showStatus(
-    enabled
-      ? '✅ Sección activada (clickea "Guardar Cambios" para publicar)'
-      : '✅ Sección ocultada (clickea "Guardar Cambios" para publicar)',
-    'success'
-  );
+  savePublishAndReport(enabled ? 'Sección activada' : 'Sección ocultada');
+}
+
+// Guarda + publica y avisa el resultado en la barra de estado.
+async function savePublishAndReport(okMessage) {
+  showStatus('💾 Publicando en el sitio...', 'info');
+  try {
+    await persistHomeSections();
+    showStatus(`✅ ${okMessage}. Ya está visible en el sitio.`, 'success');
+  } catch (error) {
+    console.error('Error publicando:', error);
+    showStatus('⚠️ No se pudo publicar: ' + error.message, 'error');
+  }
 }
 
 // ======================== CARGAR PRODUCTOS ========================
@@ -608,7 +617,7 @@ async function loadProductsForSelector() {
 // ======================== CARGAR CATEGORÍAS ========================
 async function loadCategoriesForSelector() {
   try {
-    const response = await fetch(`${API_BASE_URL}/categorias`);
+    const response = await fetch(`${API_BASE_URL}/categorias?t=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Error cargando categorías');
     const result = await response.json();
 
@@ -1016,30 +1025,8 @@ async function saveSectionFromForm(e) {
     renderSections();
     updatePreview(); // Refrescar preview
     hasUnsavedChanges = true;
-    showStatus('💾 Guardando cambios en el servidor...', 'info');
     closeModal('editSectionModal');
-
-    // Guardar en el servidor (borrador)
-    const token = await getTokenWithRetry();
-    if (token) {
-      const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-      const response = await fetch(saveDraftUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ sections })
-      });
-
-      if (response.ok) {
-        showStatus('✅ Cambios guardados en borrador. Clickea "Publicar Cambios" para publicar', 'success');
-      } else {
-        const error = await response.json();
-        console.error('Error saving draft:', error);
-        showStatus('⚠️ Error guardando en servidor: ' + error.message, 'error');
-      }
-    }
+    await savePublishAndReport('Cambios guardados');
   } catch (error) {
     console.error('Error updating section:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -1122,32 +1109,7 @@ async function reorderSections(order) {
     renderSections();
     updatePreview(); // Refrescar preview
     hasUnsavedChanges = true;
-    showStatus('✅ Orden actualizado en borrador (sin publicar aún)', 'success');
-
-    // Guardar en borrador de forma asincrónica
-    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-    try {
-      const response = await fetch(saveDraftUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ sections })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('❌ Draft save failed (HTTP ' + response.status + '):', errorData);
-        showStatus('⚠️ Error guardando reorden en servidor: ' + errorData.message, 'error');
-      } else {
-        const result = await response.json();
-        console.log('✅ Draft saved successfully after reorder:', result.data.sections_count, 'sections');
-      }
-    } catch (saveErr) {
-      console.error('❌ Draft save network error:', saveErr);
-      showStatus('⚠️ Error de red guardando reorden', 'error');
-    }
+    await savePublishAndReport('Orden actualizado');
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -1185,18 +1147,7 @@ async function duplicateSection(sectionId) {
     renderSections();
     updatePreview(); // Refrescar preview
     hasUnsavedChanges = true;
-    showStatus('✅ Sección duplicada en borrador (sin publicar aún)', 'success');
-
-    // Guardar en borrador de forma asincrónica
-    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-    await fetch(saveDraftUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
-    }).catch(err => console.error('Draft save failed:', err));
+    await savePublishAndReport('Sección duplicada');
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -1221,18 +1172,7 @@ async function deleteSection(sectionId) {
     renderSections();
     updatePreview(); // Refrescar preview
     hasUnsavedChanges = true;
-    showStatus('✅ Sección eliminada del borrador (sin publicar aún)', 'success');
-
-    // Guardar en borrador de forma asincrónica
-    const saveDraftUrl = `${API_BASE_URL}/admin/home-draft/save`;
-    await fetch(saveDraftUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ sections })
-    }).catch(err => console.error('Draft save failed:', err));
+    await savePublishAndReport('Sección eliminada');
   } catch (error) {
     console.error('Error:', error);
     showStatus('Error: ' + error.message, 'error');
@@ -1976,33 +1916,59 @@ function showBrandingStatus(message, type = 'info') {
   }, 4000);
 }
 
+// ======================== GUARDAR Y PUBLICAR AL INSTANTE ========================
+// Cada cambio del editor queda publicado en el sitio del cliente sin pasos extra.
+// Las operaciones se encolan: una publicación nunca se pisa con la siguiente.
+let persistChain = Promise.resolve();
+
+function persistHomeSections() {
+  const run = async () => {
+    const token = await getTokenWithRetry();
+    if (!token) throw new Error('No autenticado. Recargá la página e iniciá sesión nuevamente.');
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+
+    // Se toma el estado más reciente al momento de ejecutar, no al de encolar.
+    const draftResponse = await fetch(`${API_BASE_URL}/admin/home-draft/save`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ sections })
+    });
+    if (!draftResponse.ok) {
+      const err = await draftResponse.json().catch(() => ({}));
+      throw new Error(err.message || err.error || `No se pudo guardar (HTTP ${draftResponse.status})`);
+    }
+
+    const publishResponse = await fetch(`${API_BASE_URL}/admin/home-sections/publish`, {
+      method: 'POST',
+      headers
+    });
+    const publishData = await publishResponse.json().catch(() => ({}));
+    if (!publishResponse.ok || !publishData.success) {
+      throw new Error(publishData.error || publishData.message || 'No se pudo publicar');
+    }
+
+    hasUnsavedChanges = false;
+    // Avisa a las pestañas del sitio abiertas en este navegador para que se actualicen ya.
+    try { localStorage.setItem('puchia_home_published', String(Date.now())); } catch (e) { /* opcional */ }
+    return publishData;
+  };
+
+  const result = persistChain.then(run);
+  persistChain = result.catch(() => {}); // un error no bloquea las siguientes
+  return result;
+}
+
 // ======================== PUBLICAR CAMBIOS ========================
+// Botón manual: vuelve a guardar y publicar lo que se ve en el panel.
 async function publishChanges() {
   try {
-    const token = localStorage.getItem('puchia_admin_token');
-    if (!token) {
-      showStatus('❌ No autenticado. Por favor inicia sesión nuevamente.', 'error');
-      return;
-    }
-
     showStatus('📤 Publicando cambios...', 'info');
-
-    const response = await fetch(`${API_BASE_URL}/admin/home-sections/publish`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || 'Error al publicar cambios');
-    }
-
-    showStatus(`✅ ${data.count} secciones publicadas correctamente. Los cambios aparecerán en el sitio público.`, 'success');
-    console.log('✅ Cambios publicados:', data);
+    const data = await persistHomeSections();
+    showStatus(`✅ ${data.count} secciones publicadas. Ya están visibles en el sitio.`, 'success');
   } catch (error) {
     showStatus(`❌ Error al publicar: ${error.message}`, 'error');
     console.error('Publish error:', error);
