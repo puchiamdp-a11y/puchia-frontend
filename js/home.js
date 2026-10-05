@@ -49,7 +49,7 @@ function loadAndRenderProducts() {
         return `
             <div class="product-card" data-product-id="${product.id}">
                 ${badgeHtml}
-                <div class="product-image" style="cursor: pointer;">${product.icon}</div>
+                <div class="product-image" style="cursor: pointer;">${productImageHTML(product)}</div>
                 <div class="product-info">
                     <div class="product-name" style="cursor: pointer;">${product.name}</div>
                     <div class="product-price">${formatCurrency(product.price)}</div>
@@ -203,6 +203,16 @@ async function openProductDetail(productId) {
     const oldModal = document.getElementById('productDetailModal');
     if (oldModal) oldModal.remove();
 
+    // Fotos del producto (si no tiene, se muestra el emoji como antes)
+    const fotos = (product.media || []).filter(m => m.tipo !== 'video');
+    const fotoPortada = fotos.find(m => m.es_portada) || fotos[0] || null;
+    const miniaturas = fotos.length > 1
+      ? `<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;">${fotos.map(m => `<img src="${resolveMediaUrl(m.url)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;cursor:pointer;flex:0 0 auto;" loading="lazy" onclick="document.getElementById('detailMainMedia').src=this.src">`).join('')}</div>`
+      : '';
+    const detalleImagen = fotoPortada
+      ? `<div style="width:100%;"><img id="detailMainMedia" src="${resolveMediaUrl(fotoPortada.url)}" alt="${String(product.name).replace(/"/g, '&quot;')}" style="width:100%;max-height:360px;object-fit:contain;border-radius:10px;display:block;" onerror="this.outerHTML='<span>${product.icon}</span>'">${miniaturas}</div>`
+      : product.icon;
+
     const modalHTML = `
       <div class="product-detail-modal" id="productDetailModal">
         <div class="modal-overlay"></div>
@@ -210,7 +220,7 @@ async function openProductDetail(productId) {
           <button class="modal-box-close">✕</button>
 
           <div class="modal-detail-content">
-            <div class="detail-image">${product.icon}</div>
+            <div class="detail-image">${detalleImagen}</div>
 
             <div class="detail-info">
               <h2>${product.name}</h2>
@@ -306,7 +316,7 @@ window.addEventListener('load', async () => {
 let _lastHomeSnapshot = '';
 let _homePollingInterval = null;
 function _snapshotHome() {
-    return (allProducts || []).map(p => `${p.id}|${p.name}|${p.price}|${p.stock}|${p.habilitado}|${p.category}`).join(';');
+    return (allProducts || []).map(p => `${p.id}|${p.name}|${p.price}|${p.stock}|${p.habilitado}|${p.category}|${p.portada || ""}`).join(';');
 }
 function startHomeProductPolling() {
     _lastHomeSnapshot = _snapshotHome();

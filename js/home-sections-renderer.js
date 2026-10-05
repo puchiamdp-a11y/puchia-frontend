@@ -442,7 +442,7 @@ function renderHomeProducts(config) {
         return `
         <div class="product-card" data-product-id="${product.id}">
           ${badge ? `<div class="product-badge badge-${badge.toLowerCase().replace(/ /g, '-')}">${escapeHomeHTML(badge)}</div>` : ''}
-          <div class="product-image" style="cursor: pointer;">${escapeHomeHTML(product.icon || '📦')}</div>
+          <div class="product-image" style="cursor: pointer;">${typeof productImageHTML === 'function' ? productImageHTML(product) : escapeHomeHTML(product.icon || '📦')}</div>
           <div class="product-info">
             <div class="product-name" style="cursor: pointer;">${escapeHomeHTML(product.name)}</div>
             <div class="product-price">${formatHomePrice(product.price)}</div>
