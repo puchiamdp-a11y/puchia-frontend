@@ -760,6 +760,7 @@ const esStockIlimitado = (p) => p && p.stock_type === 'simple' && Number(p.stock
 
 function openNewProductModal() {
   productoActualEnEdicion = null;
+  productInsumosTemp = []; // Inicializar array de insumos vacío
   document.getElementById('modalProductoTitle').textContent = 'Nuevo Producto';
   document.getElementById('formProducto').reset();
   document.getElementById('productHabilitado').checked = true;
@@ -785,18 +786,36 @@ function editProduct(id) {
 
   // Cargar insumos y esperar a que se complete
   loadInsumosForForm().then(() => {
-    // Si es producto tipo insumo, restaurar insumo_id y variante
+    // Si es producto tipo insumo, restaurar insumo(s)
     if (productoActualEnEdicion.stock_type === 'insumo' && productoActualEnEdicion.producto_insumo) {
+      // producto_insumo puede ser un array o un objeto
+      const insumosData = Array.isArray(productoActualEnEdicion.producto_insumo)
+        ? productoActualEnEdicion.producto_insumo
+        : [productoActualEnEdicion.producto_insumo];
 
-      const insumoId = productoActualEnEdicion.producto_insumo.insumo_id;
-      document.getElementById('productInsumo').value = insumoId || '';
+      // Inicializar productInsumosTemp con los insumos existentes
+      productInsumosTemp = insumosData.map(piv => ({
+        insumo_id: piv.insumo_id,
+        insumo_nombre: piv.insumo?.nombre || `Insumo ${piv.insumo_id}`,
+        insumo_variant_id: piv.insumo_variant_id || null,
+        cantidad_requerida: piv.cantidad_requerida || 1
+      }));
 
-      // Cargar variantes del insumo y restaurar selección
-      loadInsumoVariantes().then(() => {
-        if (productoActualEnEdicion.producto_insumo?.insumo_variant_id) {
-          document.getElementById('productInsumoVariante').value = productoActualEnEdicion.producto_insumo.insumo_variant_id;
-        }
-      });
+      console.log('✅ [editProduct] Insumos cargados:', productInsumosTemp);
+      renderizarInsumosLista();
+
+      // Backward compatibility: si hay solo 1 insumo, también cargar en select legacy
+      if (insumosData.length === 1) {
+        const insumoId = insumosData[0].insumo_id;
+        document.getElementById('productInsumo').value = insumoId || '';
+
+        // Cargar variantes del insumo y restaurar selección
+        loadInsumoVariantes().then(() => {
+          if (insumosData[0]?.insumo_variant_id) {
+            document.getElementById('productInsumoVariante').value = insumosData[0].insumo_variant_id;
+          }
+        });
+      }
     }
   });
 
@@ -824,6 +843,7 @@ function toggleProductTypeFields(isEditing = false) {
 
   // Ocultar todas las secciones
   document.getElementById('simpleStockSection').style.display = 'none';
+  document.getElementById('insumosSection').style.display = 'none';
   document.getElementById('insumoSection').style.display = 'none';
   document.getElementById('insumoVarianteSection').style.display = 'none';
 
@@ -831,15 +851,20 @@ function toggleProductTypeFields(isEditing = false) {
   if (stockType === 'simple') {
     document.getElementById('simpleStockSection').style.display = 'flex';
   } else if (stockType === 'insumo') {
-    document.getElementById('insumoSection').style.display = 'flex';
-    document.getElementById('insumoVarianteSection').style.display = 'flex';
+    document.getElementById('insumosSection').style.display = 'flex';
     // Solo cargar insumos si NO estamos editando (editProduct ya lo hace)
     if (!isEditing) {
       loadInsumosForForm();
+      // Inicializar array de insumos para el producto
+      productInsumosTemp = [];
+      renderizarInsumosLista();
     }
   }
   // Si es 'infinito' no muestra nada de stock
 }
+
+// Variable temporal para almacenar insumos mientras se edita/crea el producto
+let productInsumosTemp = [];
 
 /**
  * Carga variantes del insumo seleccionado
@@ -887,15 +912,28 @@ async function loadInsumosForForm() {
     console.log('📍 [loadInsumosForForm] Insumos cargados:', data);
 
     if (data.data && Array.isArray(data.data)) {
+      // Cargar en select legacy
       const insumoSelect = document.getElementById('productInsumo');
       insumoSelect.innerHTML = '<option value="">-- Selecciona insumo --</option>';
+      // Cargar en nuevo select para múltiples insumos
+      const insumoSelectNew = document.getElementById('productInsumoSelect');
+      insumoSelectNew.innerHTML = '<option value="">-- Selecciona insumo --</option>';
+
       data.data.forEach(insumo => {
         const opt = document.createElement('option');
         opt.value = insumo.id;
-        opt.textContent = `${insumo.nombre} (${insumo.insumo_variants ? insumo.insumo_variants.length : 0} variantes)`;
+        const texto = `${insumo.nombre} (${insumo.insumo_variants ? insumo.insumo_variants.length : 0} variantes)`;
+        opt.textContent = texto;
         insumoSelect.appendChild(opt);
+
+        // También agregar al nuevo select
+        const opt2 = document.createElement('option');
+        opt2.value = insumo.id;
+        opt2.textContent = texto;
+        opt2.dataset.insumoNombre = insumo.nombre;
+        insumoSelectNew.appendChild(opt2);
       });
-      console.log('✅ [loadInsumosForForm] Dropdown de insumos actualizado con', data.data.length, 'insumos');
+      console.log('✅ [loadInsumosForForm] Dropdowns de insumos actualizado con', data.data.length, 'insumos');
       return Promise.resolve();
     } else {
       console.warn('⚠️ [loadInsumosForForm] Respuesta sin datos:', data);
@@ -905,6 +943,88 @@ async function loadInsumosForForm() {
     console.error('❌ [loadInsumosForForm] Error cargando insumos:', error);
     return Promise.resolve();
   }
+}
+
+/**
+ * Agrega un insumo a la lista temporal del producto
+ */
+function agregarInsumoAlProducto() {
+  const select = document.getElementById('productInsumoSelect');
+  const insumoId = select.value;
+
+  if (!insumoId) {
+    puchiaAlert('Selecciona un insumo', 'warning');
+    return;
+  }
+
+  // Verificar si ya existe en la lista
+  if (productInsumosTemp.some(i => i.insumo_id === parseInt(insumoId))) {
+    puchiaAlert('Este insumo ya está en la lista', 'warning');
+    return;
+  }
+
+  const option = select.options[select.selectedIndex];
+  productInsumosTemp.push({
+    insumo_id: parseInt(insumoId),
+    insumo_nombre: option.dataset.insumoNombre || option.textContent.split('(')[0].trim(),
+    insumo_variant_id: null,
+    cantidad_requerida: 1
+  });
+
+  console.log('✅ Insumo agregado. Total:', productInsumosTemp.length);
+  renderizarInsumosLista();
+  select.value = '';
+}
+
+/**
+ * Renderiza la lista de insumos agregados
+ */
+function renderizarInsumosLista() {
+  const container = document.getElementById('productInsumosLista');
+
+  if (productInsumosTemp.length === 0) {
+    container.innerHTML = '<div style="color: #999; font-size: 13px; text-align: center; padding: 20px;">Sin insumos agregados</div>';
+    return;
+  }
+
+  const html = productInsumosTemp.map((insumo, idx) => `
+    <div style="display: flex; gap: 8px; align-items: center; padding: 10px; border-bottom: 1px solid #eee; background: white; margin-bottom: 4px; border-radius: 4px;">
+      <div style="flex: 1;">
+        <div style="font-weight: 600; font-size: 13px;">${insumo.insumo_nombre}</div>
+        <div style="font-size: 12px; color: #999;">ID: ${insumo.insumo_id}</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="font-size: 12px; color: #666;">Cantidad:</label>
+        <input type="number" min="1" value="${insumo.cantidad_requerida}" onchange="actualizarCantidadInsumo(${idx}, this.value)" style="width: 50px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+      </div>
+      <button type="button" onclick="eliminarInsumoDelProducto(${idx})" style="background: #ff4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Eliminar</button>
+    </div>
+  `).join('');
+
+  container.innerHTML = html;
+}
+
+/**
+ * Elimina un insumo de la lista temporal
+ */
+function eliminarInsumoDelProducto(index) {
+  productInsumosTemp.splice(index, 1);
+  console.log('🗑️ Insumo eliminado. Total:', productInsumosTemp.length);
+  renderizarInsumosLista();
+}
+
+/**
+ * Actualiza la cantidad requerida de un insumo
+ */
+function actualizarCantidadInsumo(index, cantidad) {
+  const cant = parseInt(cantidad) || 1;
+  if (cant < 1) {
+    puchiaAlert('La cantidad debe ser mayor a 0', 'warning');
+    renderizarInsumosLista();
+    return;
+  }
+  productInsumosTemp[index].cantidad_requerida = cant;
+  console.log('📝 Cantidad actualizada para insumo', index, ':', cant);
 }
 
 async function saveProduct(e) {
@@ -988,14 +1108,25 @@ async function saveProduct(e) {
       requestPayload.stock_cantidad = Number(stock);
       requestPayload.tiene_variantes_stock = false;
     } else if (stockType === 'insumo') {
-      const insumoId = document.getElementById('productInsumo')?.value;
-      const insumoVarianteId = document.getElementById('productInsumoVariante')?.value;
-      console.log('📍 [saveProduct] INSUMO - insumoId:', insumoId, 'type:', typeof insumoId);
-      console.log('📍 [saveProduct] INSUMO - insumoVarianteId:', insumoVarianteId, 'type:', typeof insumoVarianteId);
-      requestPayload.insumo_id = Number(insumoId);
-      if (insumoVarianteId) {
-        requestPayload.insumo_variant_id = Number(insumoVarianteId);
+      // Validar que haya al menos 1 insumo
+      if (productInsumosTemp.length === 0) {
+        throw new Error('Debes agregar al menos un insumo');
       }
+
+      console.log('📍 [saveProduct] INSUMO - Total insumos:', productInsumosTemp.length);
+      console.log('📍 [saveProduct] INSUMO - Insumos:', JSON.stringify(productInsumosTemp, null, 2));
+
+      // Enviar array de insumos al backend
+      requestPayload.insumos = productInsumosTemp;
+
+      // Mantener backward compatibility: si hay solo 1 insumo, también enviar insumo_id
+      if (productInsumosTemp.length === 1) {
+        requestPayload.insumo_id = productInsumosTemp[0].insumo_id;
+        if (productInsumosTemp[0].insumo_variant_id) {
+          requestPayload.insumo_variant_id = productInsumosTemp[0].insumo_variant_id;
+        }
+      }
+
       requestPayload.tiene_variantes_stock = false;
       console.log('📍 [saveProduct] INSUMO - requestPayload COMPLETO:', JSON.stringify(requestPayload, null, 2));
     } else if (stockType === 'infinito') {
