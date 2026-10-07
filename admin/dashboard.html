@@ -573,7 +573,7 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100504"></script>
+    <script src="../js/admin.js?v=2026100801"></script>
     <script src="../js/admin-clientes.js?v=2026100211"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100207"></script>
@@ -864,63 +864,15 @@
                         <input type="number" id="productStock" name="stock" min="0" step="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
                     </div>
 
-                    <!-- INSUMO(S): Gestor de múltiples insumos -->
+                    <!-- INSUMOS: el producto puede usar varios insumos, cada uno con sus variantes -->
                     <div id="insumosSection" style="display: none; flex-direction: column; gap: 12px;">
-                        <label style="display: block; font-weight: 600; color: #333;">Insumos *</label>
-
-                        <!-- Selector para agregar nuevo insumo -->
-                        <div style="border: 1px solid #ddd; border-radius: 8px; padding: 16px; background: #f9f9f9;">
-                            <!-- Insumo -->
-                            <div style="margin-bottom: 12px;">
-                                <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 6px; color: #666;">📦 Insumo</label>
-                                <select id="addProductInsumoSelect" onchange="cargarVariantesDelInsumo()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                                    <option value="">-- Seleccionar insumo --</option>
-                                </select>
-                            </div>
-
-                            <!-- Variantes (múltiple) -->
-                            <div style="margin-bottom: 12px;">
-                                <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 6px; color: #666;">🎨 Variantes disponibles</label>
-                                <div id="variantesCheckboxContainer" style="border: 1px solid #ddd; border-radius: 6px; padding: 10px; background: white; max-height: 150px; overflow-y: auto;">
-                                    <div style="color: #999; font-size: 13px; padding: 12px; text-align: center;">Selecciona un insumo primero</div>
-                                </div>
-                            </div>
-
-                            <!-- Cantidad y Precio -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                                <div>
-                                    <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 6px; color: #666;">📊 Cantidad requerida</label>
-                                    <input type="number" id="addProductInsumoQuantity" min="1" value="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 6px; color: #666;">💵 Precio costo</label>
-                                    <input type="number" id="addProductInsumoPrecio" min="0" step="0.01" placeholder="Opcional" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                                </div>
-                            </div>
-
-                            <button type="button" class="btn btn-secondary" onclick="agregarInsumoAlProducto()" style="width: 100%; padding: 10px 16px;">+ Agregar Insumo</button>
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #333;">Insumos que usa este producto *</label>
+                            <div style="font-size: 12px; color: #777; margin-top: 2px;">Cada vez que se vende 1 unidad se descuenta el stock de todas las variantes que tildes. Para un combo, agregá un insumo por cada componente.</div>
                         </div>
-
-                        <!-- Lista de insumos agregados -->
-                        <div id="productInsumosLista" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #f9f9f9; max-height: 300px; overflow-y: auto;">
-                            <div style="color: #999; font-size: 13px; text-align: center; padding: 20px;">Sin insumos agregados</div>
-                        </div>
-                    </div>
-
-                    <!-- INSUMO: Selector de Insumo (legacy - mantener oculto) -->
-                    <div id="insumoSection" style="display: none; flex-direction: column; gap: 8px;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Insumo *</label>
-                        <select id="productInsumo" onchange="loadInsumoVariantes()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            <option value="">-- Cargando insumos --</option>
-                        </select>
-                    </div>
-
-                    <!-- INSUMO: Selector de Variante -->
-                    <div id="insumoVarianteSection" style="display: none; flex-direction: column; gap: 8px;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Variante del Insumo <span style="color: #999; font-weight: 400;">(Opcional - si no seleccionas, el cliente verá todas)</span></label>
-                        <select id="productInsumoVariante" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            <option value="">-- Todas las variantes --</option>
-                        </select>
+                        <div id="productInsumosLista"></div>
+                        <button type="button" class="btn btn-secondary" onclick="agregarTarjetaInsumo()" style="width: 100%; padding: 10px 16px;">+ Agregar otro insumo</button>
+                        <div id="productInsumosResumen"></div>
                     </div>
 
                     <!-- Estado -->
