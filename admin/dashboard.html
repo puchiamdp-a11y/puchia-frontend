@@ -864,7 +864,28 @@
                         <input type="number" id="productStock" name="stock" min="0" step="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
                     </div>
 
-                    <!-- INSUMO: Selector de Insumo -->
+                    <!-- INSUMO(S): Gestor de múltiples insumos -->
+                    <div id="insumosSection" style="display: none; flex-direction: column; gap: 12px;">
+                        <label style="display: block; font-weight: 600; color: #333;">Insumos *</label>
+
+                        <!-- Selector para agregar nuevo insumo -->
+                        <div style="display: flex; gap: 8px; align-items: flex-end;">
+                            <div style="flex: 1;">
+                                <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px; color: #666;">Seleccionar insumo</label>
+                                <select id="productInsumoSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                    <option value="">-- Cargando insumos --</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-secondary" onclick="agregarInsumoAlProducto()" style="padding: 10px 16px;">+ Agregar</button>
+                        </div>
+
+                        <!-- Lista de insumos agregados -->
+                        <div id="productInsumosLista" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #f9f9f9; max-height: 300px; overflow-y: auto;">
+                            <div style="color: #999; font-size: 13px; text-align: center; padding: 20px;">Sin insumos agregados</div>
+                        </div>
+                    </div>
+
+                    <!-- INSUMO: Selector de Insumo (legacy - mantener oculto) -->
                     <div id="insumoSection" style="display: none; flex-direction: column; gap: 8px;">
                         <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Insumo *</label>
                         <select id="productInsumo" onchange="loadInsumoVariantes()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
