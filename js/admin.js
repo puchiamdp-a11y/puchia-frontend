@@ -4035,48 +4035,298 @@ duplicarProducto = function(id) {
 
 /* ==================== EXPORTAR/IMPORTAR PRODUCTOS ==================== */
 
-function exportarProductos() {
+function exportarStock() {
   const modal = document.createElement('div');
   modal.className = 'modal show';
   modal.innerHTML = `
-    <div class="modal-responsive">
-      <h2 style="margin-bottom: 20px; color: #7b2d8e;">Exportar Productos</h2>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; border: 1px solid #ddd; border-radius: 8px; transition: all 0.2s;">
-          <input type="radio" name="export-option" value="todos" checked style="cursor: pointer;">
+    <div class="modal-responsive" style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; margin: 20px auto; position: relative;">
+      <button onclick="this.closest('.modal').remove()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">✕</button>
+
+      <h2 style="margin: 0 0 8px; color: #7b2d8e; font-size: 22px;">Exportar Stock</h2>
+      <p style="margin: 0 0 20px; color: #666; font-size: 13px;">Selecciona qué deseas exportar</p>
+
+      <!-- Tipo de Exportación -->
+      <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+        <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 10px; text-transform: uppercase;">¿Qué exportar?</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s; background: white;">
+            <input type="radio" name="export-type" value="productos" checked style="cursor: pointer; width: 18px; height: 18px;">
+            <span style="flex: 1;">
+              <strong style="font-size: 14px;">📦 Solo Productos Simples</strong>
+              <div style="font-size: 12px; color: #999;">Exporta solo los productos de la tienda</div>
+            </span>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s; background: white;">
+            <input type="radio" name="export-type" value="insumos" style="cursor: pointer; width: 18px; height: 18px;">
+            <span style="flex: 1;">
+              <strong style="font-size: 14px;">🧵 Solo Insumos</strong>
+              <div style="font-size: 12px; color: #999;">Exporta solo los insumos y sus variantes</div>
+            </span>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s; background: white;">
+            <input type="radio" name="export-type" value="ambos" style="cursor: pointer; width: 18px; height: 18px;">
+            <span style="flex: 1;">
+              <strong style="font-size: 14px;">📊 Productos + Insumos</strong>
+              <div style="font-size: 12px; color: #999;">Exporta ambos en archivos separados (ZIP)</div>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Opciones según tipo seleccionado -->
+      <div id="export-options-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; text-transform: uppercase;">Opciones</div>
+        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s;">
+          <input type="radio" name="export-option" value="todos" checked style="cursor: pointer; width: 18px; height: 18px;">
           <span style="flex: 1;">
-            <strong>Exportar TODOS los productos</strong>
-            <div style="font-size: 12px; color: #999;">Descarga todos los productos activos</div>
+            <strong style="font-size: 14px;">Todos</strong>
+            <div style="font-size: 12px; color: #999;">Exporta todos los elementos</div>
           </span>
         </label>
 
-        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; border: 1px solid #ddd; border-radius: 8px; transition: all 0.2s;">
-          <input type="radio" name="export-option" value="categoria" style="cursor: pointer;">
+        <label id="categoria-option" style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s;">
+          <input type="radio" name="export-option" value="categoria" style="cursor: pointer; width: 18px; height: 18px;">
           <span style="flex: 1;">
-            <strong>Exportar por CATEGORÍA</strong>
-            <div style="font-size: 12px; color: #999;">Selecciona una categoría</div>
+            <strong style="font-size: 14px;">Por Categoría</strong>
+            <div style="font-size: 12px; color: #999;">Selecciona una categoría específica</div>
           </span>
         </label>
 
-        <div id="categoria-select" style="display: none; margin-left: 28px;">
-          <select id="selectCategoria" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+        <div id="categoria-select" style="display: none; margin-left: 30px; margin-top: -8px;">
+          <select id="selectCategoria" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit;">
             <option value="">-- Selecciona una categoría --</option>
             ${(adminCategories || []).map(c => `<option value="${String(c.nombre).replace(/"/g, '&quot;')}">${String(c.nombre).replace(/</g, '&lt;')}</option>`).join('')}
           </select>
         </div>
 
-        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; border: 1px solid #ddd; border-radius: 8px; transition: all 0.2s;">
-          <input type="radio" name="export-option" value="plantilla" style="cursor: pointer;">
+        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s;">
+          <input type="radio" name="export-option" value="plantilla" style="cursor: pointer; width: 18px; height: 18px;">
           <span style="flex: 1;">
-            <strong>Exportar PLANTILLA VACÍA</strong>
-            <div style="font-size: 12px; color: #999;">Solo encabezados y filas de ejemplo</div>
+            <strong style="font-size: 14px;">Plantilla Vacía</strong>
+            <div style="font-size: 12px; color: #999;">Solo encabezados para completar</div>
           </span>
         </label>
       </div>
 
-      <div style="display: flex; gap: 12px; margin-top: 24px;">
-        <button onclick="this.closest('.modal').remove()" style="flex: 1; padding: 10px; background: #f0f0f0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
-        <button onclick="ejecutarExportacion()" style="flex: 1; padding: 10px; background: #7b2d8e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Descargar Excel</button>
+      <div style="display: flex; gap: 12px; border-top: 1px solid #eee; padding-top: 16px;">
+        <button onclick="this.closest('.modal').remove()" style="flex: 1; padding: 10px 16px; background: #f0f0f0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancelar</button>
+        <button onclick="ejecutarExportacionStock()" style="flex: 1; padding: 10px 16px; background: linear-gradient(135deg, #7b2d8e, #9d4cb8); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">Descargar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Event listeners
+  document.querySelectorAll('input[name="export-type"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const categoriaOption = document.getElementById('categoria-option');
+      const exportType = radio.value;
+
+      // Ocultar opción de categoría para insumos
+      if (exportType === 'insumos' || exportType === 'ambos') {
+        categoriaOption.style.display = 'none';
+        document.querySelector('input[name="export-option"][value="todos"]').checked = true;
+        document.getElementById('categoria-select').style.display = 'none';
+      } else {
+        categoriaOption.style.display = 'flex';
+      }
+    });
+  });
+
+  document.querySelectorAll('input[name="export-option"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const categoriaSelect = document.getElementById('categoria-select');
+      if (radio.value === 'categoria') {
+        categoriaSelect.style.display = 'block';
+      } else {
+        categoriaSelect.style.display = 'none';
+      }
+    });
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
+function ejecutarExportacionStock() {
+  const tipoExport = document.querySelector('input[name="export-type"]:checked').value;
+  const opcion = document.querySelector('input[name="export-option"]:checked').value;
+  const categoria = document.getElementById('selectCategoria')?.value;
+
+  document.querySelector('.modal.show')?.remove();
+
+  if (tipoExport === 'ambos') {
+    // Exportar ambos en un ZIP
+    exportarAmbosExcel(opcion, categoria);
+  } else if (tipoExport === 'insumos') {
+    // Exportar solo insumos
+    if (opcion === 'plantilla') {
+      descargarPlantillaInsumos();
+    } else {
+      exportarInsumosExcel();
+    }
+  } else {
+    // Exportar solo productos
+    ejecutarExportacionProductos(opcion, categoria);
+  }
+}
+
+function ejecutarExportacionProductos(opcion, categoria) {
+  if (opcion === 'plantilla') {
+    descargarPlantillaProductos();
+    return;
+  }
+
+  let productos = [];
+  const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
+  let nombreArchivo = '';
+
+  if (opcion === 'todos') {
+    productos = productosGlobal || [];
+    nombreArchivo = `productos_export_${fecha}.xlsx`;
+  } else if (opcion === 'categoria') {
+    if (!categoria) {
+      puchiaAlert('Selecciona una categoría', 'warning');
+      return;
+    }
+    productos = (productosGlobal || []).filter(p => (p.categorias || []).some(c => c.nombre === categoria));
+    nombreArchivo = `productos_${categoria}_${fecha}.xlsx`;
+  }
+
+  if (!productos.length) {
+    puchiaAlert('No hay productos para exportar', 'warning');
+    return;
+  }
+
+  const COLUMNAS = ['nombre', 'precio', 'stock_cantidad', 'stock_type', 'categorias', 'habilitado', 'descripcion_completa'];
+  const filas = [COLUMNAS];
+
+  productos.forEach(p => {
+    filas.push([
+      p.nombre || '',
+      p.precio || 0,
+      p.stock_cantidad ?? 0,
+      p.stock_type || 'simple',
+      (p.categorias || []).map(c => c.nombre).join(', '),
+      p.habilitado ? 'si' : 'no',
+      p.descripcion_completa || ''
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(filas);
+  ws['!cols'] = [{ wch: 28 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 28 }, { wch: 12 }, { wch: 45 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+  XLSX.writeFile(wb, nombreArchivo);
+}
+
+async function exportarAmbosExcel(opcion, categoria) {
+  try {
+    const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
+
+    // Preparar archivo de productos
+    let productos = [];
+    if (opcion === 'todos') {
+      productos = productosGlobal || [];
+    } else if (opcion === 'categoria' && categoria) {
+      productos = (productosGlobal || []).filter(p => (p.categorias || []).some(c => c.nombre === categoria));
+    }
+
+    const COLUMNAS_PROD = ['nombre', 'precio', 'stock_cantidad', 'stock_type', 'categorias', 'habilitado', 'descripcion_completa'];
+    const filas_prod = [COLUMNAS_PROD];
+
+    productos.forEach(p => {
+      filas_prod.push([
+        p.nombre || '',
+        p.precio || 0,
+        p.stock_cantidad ?? 0,
+        p.stock_type || 'simple',
+        (p.categorias || []).map(c => c.nombre).join(', '),
+        p.habilitado ? 'si' : 'no',
+        p.descripcion_completa || ''
+      ]);
+    });
+
+    // Preparar archivo de insumos
+    const insumos = await insumosActuales();
+    const COLUMNAS_INS = ['Insumo', 'Descripción', 'Tipo de variante', 'Variante', 'Cantidad en stock', 'Cantidad mínima'];
+    const filas_ins = [COLUMNAS_INS];
+
+    insumos.forEach(i => {
+      const vars = i.insumo_variants || [];
+      if (!vars.length) filas_ins.push([i.nombre, i.descripcion || '', i.tipo_variante || '', '', '', '']);
+      vars.forEach(v => filas_ins.push([i.nombre, i.descripcion || '', i.tipo_variante || '', v.nombre || '', v.cantidad_en_stock ?? 0, v.cantidad_minima ?? 0]));
+    });
+
+    // Crear workbook con ambas hojas
+    const ws_prod = XLSX.utils.aoa_to_sheet(filas_prod);
+    ws_prod['!cols'] = [{ wch: 28 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 28 }, { wch: 12 }, { wch: 45 }];
+
+    const ws_ins = XLSX.utils.aoa_to_sheet(filas_ins);
+    ws_ins['!cols'] = [{ wch: 28 }, { wch: 36 }, { wch: 18 }, { wch: 22 }, { wch: 18 }, { wch: 16 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws_prod, 'Productos');
+    XLSX.utils.book_append_sheet(wb, ws_ins, 'Insumos');
+    XLSX.writeFile(wb, `stock_export_${fecha}.xlsx`);
+
+    puchiaAlert('Stock exportado exitosamente', 'success');
+  } catch (error) {
+    console.error('Error exportando stock:', error);
+    puchiaAlert('No se pudo exportar el stock', 'error');
+  }
+}
+
+function exportarProductos() {
+  const modal = document.createElement('div');
+  modal.className = 'modal show';
+  modal.innerHTML = `
+    <div class="modal-responsive" style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 550px; margin: 20px auto; position: relative;">
+      <button onclick="this.closest('.modal').remove()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">✕</button>
+
+      <h2 style="margin: 0 0 24px; color: #7b2d8e; font-size: 22px;">Exportar Productos</h2>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px 14px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s; hover: border-color: #7b2d8e;">
+          <input type="radio" name="export-option" value="todos" checked style="cursor: pointer; width: 18px; height: 18px;">
+          <span style="flex: 1;">
+            <strong style="font-size: 14px;">Exportar TODOS los productos</strong>
+            <div style="font-size: 12px; color: #999; margin-top: 2px;">Descarga todos los productos activos</div>
+          </span>
+        </label>
+
+        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px 14px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s;">
+          <input type="radio" name="export-option" value="categoria" style="cursor: pointer; width: 18px; height: 18px;">
+          <span style="flex: 1;">
+            <strong style="font-size: 14px;">Exportar por CATEGORÍA</strong>
+            <div style="font-size: 12px; color: #999; margin-top: 2px;">Selecciona una categoría</div>
+          </span>
+        </label>
+
+        <div id="categoria-select" style="display: none; margin-left: 30px; margin-top: -8px;">
+          <select id="selectCategoria" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit;">
+            <option value="">-- Selecciona una categoría --</option>
+            ${(adminCategories || []).map(c => `<option value="${String(c.nombre).replace(/"/g, '&quot;')}">${String(c.nombre).replace(/</g, '&lt;')}</option>`).join('')}
+          </select>
+        </div>
+
+        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px 14px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s;">
+          <input type="radio" name="export-option" value="plantilla" style="cursor: pointer; width: 18px; height: 18px;">
+          <span style="flex: 1;">
+            <strong style="font-size: 14px;">Exportar PLANTILLA VACÍA</strong>
+            <div style="font-size: 12px; color: #999; margin-top: 2px;">Solo encabezados y filas de ejemplo</div>
+          </span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+        <button onclick="this.closest('.modal').remove()" style="flex: 1; padding: 10px 16px; background: #f0f0f0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancelar</button>
+        <button onclick="ejecutarExportacion()" style="flex: 1; padding: 10px 16px; background: linear-gradient(135deg, #7b2d8e, #9d4cb8); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">Descargar Excel</button>
       </div>
     </div>
   `;
@@ -4102,10 +4352,15 @@ function exportarProductos() {
 function ejecutarExportacion() {
   const opcion = document.querySelector('input[name="export-option"]:checked').value;
   const categoria = document.getElementById('selectCategoria')?.value;
+  const tipoExportacion = document.querySelector('input[name="export-type"]:checked')?.value || 'productos';
 
-  if (opcion === 'plantilla') {   // misma plantilla que "Descargar plantilla" (con hoja de ayuda)
+  if (opcion === 'plantilla') {
     document.querySelector('.modal.show')?.remove();
-    descargarPlantillaProductos();
+    if (tipoExportacion === 'insumos') {
+      descargarPlantillaInsumos();
+    } else {
+      descargarPlantillaProductos();
+    }
     return;
   }
 
@@ -4118,7 +4373,7 @@ function ejecutarExportacion() {
     nombreArchivo = `productos_export_${fecha}.xlsx`;
   } else if (opcion === 'categoria') {
     if (!categoria) {
-      alert('Selecciona una categoría');
+      puchiaAlert('Selecciona una categoría', 'warning');
       return;
     }
     productos = (productosGlobal || []).filter(p => (p.categorias || []).some(c => c.nombre === categoria));
@@ -4343,7 +4598,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportBtn = document.getElementById('exportProductBtn');
   const importBtn = document.getElementById('importProductBtn');
 
-  if (exportBtn) exportBtn.addEventListener('click', exportarProductos);
+  if (exportBtn) exportBtn.addEventListener('click', exportarStock);
   if (importBtn) importBtn.addEventListener('click', importarProductos);
 });
 
