@@ -760,6 +760,7 @@ const esStockIlimitado = (p) => p && p.stock_type === 'simple' && Number(p.stock
 
 function openNewProductModal() {
   productoActualEnEdicion = null;
+  productInsumosTemp = []; // Inicializar array de insumos vacío
   document.getElementById('modalProductoTitle').textContent = 'Nuevo Producto';
   document.getElementById('formProducto').reset();
   document.getElementById('productHabilitado').checked = true;
@@ -785,18 +786,36 @@ function editProduct(id) {
 
   // Cargar insumos y esperar a que se complete
   loadInsumosForForm().then(() => {
-    // Si es producto tipo insumo, restaurar insumo_id y variante
+    // Si es producto tipo insumo, restaurar insumo(s)
     if (productoActualEnEdicion.stock_type === 'insumo' && productoActualEnEdicion.producto_insumo) {
+      // producto_insumo puede ser un array o un objeto
+      const insumosData = Array.isArray(productoActualEnEdicion.producto_insumo)
+        ? productoActualEnEdicion.producto_insumo
+        : [productoActualEnEdicion.producto_insumo];
 
-      const insumoId = productoActualEnEdicion.producto_insumo.insumo_id;
-      document.getElementById('productInsumo').value = insumoId || '';
+      // Inicializar productInsumosTemp con los insumos existentes
+      productInsumosTemp = insumosData.map(piv => ({
+        insumo_id: piv.insumo_id,
+        insumo_nombre: piv.insumo?.nombre || `Insumo ${piv.insumo_id}`,
+        insumo_variant_id: piv.insumo_variant_id || null,
+        cantidad_requerida: piv.cantidad_requerida || 1
+      }));
 
-      // Cargar variantes del insumo y restaurar selección
-      loadInsumoVariantes().then(() => {
-        if (productoActualEnEdicion.producto_insumo?.insumo_variant_id) {
-          document.getElementById('productInsumoVariante').value = productoActualEnEdicion.producto_insumo.insumo_variant_id;
-        }
-      });
+      console.log('✅ [editProduct] Insumos cargados:', productInsumosTemp);
+      renderizarInsumosLista();
+
+      // Backward compatibility: si hay solo 1 insumo, también cargar en select legacy
+      if (insumosData.length === 1) {
+        const insumoId = insumosData[0].insumo_id;
+        document.getElementById('productInsumo').value = insumoId || '';
+
+        // Cargar variantes del insumo y restaurar selección
+        loadInsumoVariantes().then(() => {
+          if (insumosData[0]?.insumo_variant_id) {
+            document.getElementById('productInsumoVariante').value = insumosData[0].insumo_variant_id;
+          }
+        });
+      }
     }
   });
 
@@ -1089,14 +1108,25 @@ async function saveProduct(e) {
       requestPayload.stock_cantidad = Number(stock);
       requestPayload.tiene_variantes_stock = false;
     } else if (stockType === 'insumo') {
-      const insumoId = document.getElementById('productInsumo')?.value;
-      const insumoVarianteId = document.getElementById('productInsumoVariante')?.value;
-      console.log('📍 [saveProduct] INSUMO - insumoId:', insumoId, 'type:', typeof insumoId);
-      console.log('📍 [saveProduct] INSUMO - insumoVarianteId:', insumoVarianteId, 'type:', typeof insumoVarianteId);
-      requestPayload.insumo_id = Number(insumoId);
-      if (insumoVarianteId) {
-        requestPayload.insumo_variant_id = Number(insumoVarianteId);
+      // Validar que haya al menos 1 insumo
+      if (productInsumosTemp.length === 0) {
+        throw new Error('Debes agregar al menos un insumo');
       }
+
+      console.log('📍 [saveProduct] INSUMO - Total insumos:', productInsumosTemp.length);
+      console.log('📍 [saveProduct] INSUMO - Insumos:', JSON.stringify(productInsumosTemp, null, 2));
+
+      // Enviar array de insumos al backend
+      requestPayload.insumos = productInsumosTemp;
+
+      // Mantener backward compatibility: si hay solo 1 insumo, también enviar insumo_id
+      if (productInsumosTemp.length === 1) {
+        requestPayload.insumo_id = productInsumosTemp[0].insumo_id;
+        if (productInsumosTemp[0].insumo_variant_id) {
+          requestPayload.insumo_variant_id = productInsumosTemp[0].insumo_variant_id;
+        }
+      }
+
       requestPayload.tiene_variantes_stock = false;
       console.log('📍 [saveProduct] INSUMO - requestPayload COMPLETO:', JSON.stringify(requestPayload, null, 2));
     } else if (stockType === 'infinito') {
