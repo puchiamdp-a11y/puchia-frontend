@@ -1476,6 +1476,7 @@ function openNewInsumoModal() {
 
   // IMPORTANTE: Inicializar variantes vacías
   insumoVariantesEdit = [];
+  insumoVariantesOptions = { preciosIguales: true, siempre1Unidad: true }; // Reset opciones
   console.log('📍 [openNewInsumoModal] insumoVariantesEdit inicializado:', insumoVariantesEdit);
 
   // Limpiar y renderizar contenedor
@@ -1522,6 +1523,9 @@ async function editInsumo(id) {
       insumoVariantesEdit = [];
       console.log('📍 [editInsumo] Sin variantes en BD');
     }
+
+    // Reset opciones al editar
+    insumoVariantesOptions = { preciosIguales: true, siempre1Unidad: true };
 
     // Renderizar variantes
     renderInsumoVariants();
@@ -1667,44 +1671,108 @@ function renderInsumoVariants() {
   const validVariants = insumoVariantesEdit.filter(varianteOk);
   const invalidVariants = insumoVariantesEdit.filter(v => !varianteOk(v));
 
-  container.innerHTML = insumoVariantesEdit.map((v, idx) => {
+  // Encabezado con checkboxes de opciones
+  const optionsHeader = `
+    <div style="padding: 12px; background: #f0e6f6; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e0c8f0;">
+      <div style="font-size: 11px; font-weight: 600; color: #666; margin-bottom: 10px; text-transform: uppercase;">⚙️ Opciones para todas las variantes</div>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="preciosIgualesCheck" ${insumoVariantesOptions.preciosIguales ? 'checked' : ''} onchange="togglePreciosIguales()" style="cursor: pointer; width: 16px; height: 16px;">
+          <span style="font-size: 12px; color: #333;">💵 Precios iguales para todas</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="siempre1UnidadCheck" ${insumoVariantesOptions.siempre1Unidad ? 'checked' : ''} onchange="toggleSiempre1Unidad()" style="cursor: pointer; width: 16px; height: 16px;">
+          <span style="font-size: 12px; color: #333;">📦 Siempre 1 unidad</span>
+        </label>
+      </div>
+    </div>
+  `;
+
+  // Calcular grid columns dinámicamente
+  let gridCols = '1fr 100px 100px auto'; // nombre, can total, alerta, botón
+  if (!insumoVariantesOptions.siempre1Unidad) {
+    gridCols = '1fr 80px 80px 80px auto'; // +cantidad requerida
+  }
+  if (!insumoVariantesOptions.preciosIguales) {
+    gridCols = insumoVariantesOptions.siempre1Unidad
+      ? '1fr 100px 100px 80px auto'      // +precio
+      : '1fr 80px 80px 80px 80px auto';  // +cantidad y precio
+  }
+
+  const variantesHTML = insumoVariantesEdit.map((v, idx) => {
     const isValid = varianteOk(v);
     const borderColor = isValid ? '#ddd' : '#ffcccc';
     const bgColor = isValid ? '#fafafa' : '#fff5f5';
     const nombreEsc = String(v.nombre || '').replace(/"/g, '&quot;');
     const sinStock = isValid && v.cantidad_en_stock === 0;
 
+    let fields = `
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <label style="font-size: 11px; font-weight: 600; color: #666;">Nombre</label>
+        <input type="text" placeholder="Ej: Rojo" value="${nombreEsc}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <label style="font-size: 11px; font-weight: 600; color: #666;">Can Total</label>
+        <input type="number" placeholder="0" min="0" step="1" value="${Number.isInteger(v.cantidad_en_stock) ? v.cantidad_en_stock : ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" style="padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;" title="Cantidad disponible en stock">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <label style="font-size: 11px; font-weight: 600; color: #666;">Alerta</label>
+        <input type="number" placeholder="0" min="0" step="1" value="${Number.isInteger(v.cantidad_minima) ? v.cantidad_minima : 0}" onchange="updateInsumoVariant(${idx}, 'cantidad_minima', this.value)" style="padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;" title="Stock mínimo: reponer cuando baje de este valor">
+      </div>
+    `;
+
+    // Agregar campo de cantidad requerida si no es "siempre 1 unidad"
+    if (!insumoVariantesOptions.siempre1Unidad) {
+      fields += `
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 11px; font-weight: 600; color: #666;">Cantidad</label>
+          <input type="number" placeholder="1" min="1" step="1" value="${v.cantidad_requerida || 1}" onchange="updateInsumoVariant(${idx}, 'cantidad_requerida', this.value)" style="padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;" title="Cuántos de este insumo se restan del stock">
+        </div>
+      `;
+    }
+
+    // Agregar campo de precio si no es "precios iguales"
+    if (!insumoVariantesOptions.preciosIguales) {
+      fields += `
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 11px; font-weight: 600; color: #666;">Precio</label>
+          <input type="number" placeholder="0.00" min="0" step="0.01" value="${v.precio || ''}" onchange="updateInsumoVariant(${idx}, 'precio', this.value)" style="padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;" title="Precio para esta variante">
+        </div>
+      `;
+    }
+
     return `
-    <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 4px; padding: 12px; margin-bottom: 8px;">
-      <div style="display: grid; grid-template-columns: 1fr 100px 100px auto; gap: 8px; align-items: flex-start;">
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <label style="font-size: 11px; font-weight: 600; color: #666;">Nombre</label>
-          <input type="text" placeholder="Ej: Rojo" value="${nombreEsc}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
+      <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 4px; padding: 12px; margin-bottom: 8px;">
+        <div style="display: grid; grid-template-columns: ${gridCols}; gap: 8px; align-items: flex-start;">
+          ${fields}
+          <div style="display: flex; flex-direction: column; gap: 4px; justify-content: flex-end;">
+            <div style="height: 20px;"></div>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
+          </div>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <label style="font-size: 11px; font-weight: 600; color: #666;">Can Total</label>
-          <input type="number" placeholder="0" min="0" step="1" value="${Number.isInteger(v.cantidad_en_stock) ? v.cantidad_en_stock : ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" style="padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;" title="Cantidad disponible en stock">
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <label style="font-size: 11px; font-weight: 600; color: #666;">Alerta</label>
-          <input type="number" placeholder="0" min="0" step="1" value="${Number.isInteger(v.cantidad_minima) ? v.cantidad_minima : 0}" onchange="updateInsumoVariant(${idx}, 'cantidad_minima', this.value)" style="padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;" title="Stock mínimo: reponer cuando baje de este valor">
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 4px; justify-content: flex-end;">
-          <div style="height: 20px;"></div>
-          <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
+        <div style="margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px;">
+          ${!isValid ? `<span style="color: #d32f2f;">⚠️ Incompleta</span>` : ''}
+          ${sinStock ? `<span style="color: #b26a00;">sin stock</span>` : ''}
         </div>
       </div>
-      <div style="margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px;">
-        ${!isValid ? `<span style="color: #d32f2f;">⚠️ Incompleta</span>` : ''}
-        ${sinStock ? `<span style="color: #b26a00;">sin stock</span>` : ''}
-      </div>
-    </div>
-  `;
-  }).join('') + `
+    `;
+  }).join('');
+
+  container.innerHTML = optionsHeader + variantesHTML + `
     <div style="font-size: 12px; color: #666; margin-top: 8px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
       📋 ${validVariants.length} variante(s) válida(s)${invalidVariants.length > 0 ? ` | ⚠️ ${invalidVariants.length} incompleta(s)` : ''} · "Mínimo" = cantidad a partir de la cual conviene reponer
     </div>
   `;
+}
+
+function togglePreciosIguales() {
+  insumoVariantesOptions.preciosIguales = document.getElementById('preciosIgualesCheck').checked;
+  renderInsumoVariants();
+}
+
+function toggleSiempre1Unidad() {
+  insumoVariantesOptions.siempre1Unidad = document.getElementById('siempre1UnidadCheck').checked;
+  renderInsumoVariants();
 }
 
 function updateInsumoVariant(idx, field, value) {
@@ -1720,6 +1788,12 @@ function updateInsumoVariant(idx, field, value) {
     }, 0);
   }
 }
+
+// ==================== VARIANTES DE INSUMO - OPCIONES GLOBALES ====================
+let insumoVariantesOptions = {
+  preciosIguales: true,  // Si true: 1 precio para todas. Si false: precio individual por variante
+  siempre1Unidad: true   // Si true: todas las variantes cuentan como 1. Si false: cantidad individual
+};
 
 // ==================== ÓRDENES ====================
 let allOrdersData = [];
