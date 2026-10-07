@@ -1343,13 +1343,29 @@ function renderInsumoVariants() {
     const sinStock = isValid && v.cantidad_en_stock === 0;
 
     return `
-    <div class="flex-layout-responsive" style="background: ${bgColor}; border: 1px solid ${borderColor};">
-      <input type="text" placeholder="Nombre variante *" value="${nombreEsc}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 6px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
-      <input type="number" placeholder="Stock *" min="0" step="1" value="${Number.isInteger(v.cantidad_en_stock) ? v.cantidad_en_stock : ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" class="input-stock-responsive" style="border-color: ${borderColor};" title="Cantidad en stock (0 si está agotada)">
-      <input type="number" placeholder="Mínimo" min="0" step="1" value="${Number.isInteger(v.cantidad_minima) ? v.cantidad_minima : 0}" onchange="updateInsumoVariant(${idx}, 'cantidad_minima', this.value)" class="input-stock-responsive" style="border-color: ${borderColor};" title="Cantidad mínima: por debajo de este número conviene reponer">
-      <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
-      ${!isValid ? `<span style="font-size: 12px; color: #d32f2f; white-space: nowrap;">⚠️ Incompleta</span>` : ''}
-      ${sinStock ? `<span style="font-size: 12px; color: #b26a00; white-space: nowrap;">sin stock</span>` : ''}
+    <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 4px; padding: 12px; margin-bottom: 8px;">
+      <div style="display: grid; grid-template-columns: 1fr 100px 100px auto; gap: 8px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 11px; font-weight: 600; color: #666;">Nombre</label>
+          <input type="text" placeholder="Ej: Rojo" value="${nombreEsc}" onchange="updateInsumoVariant(${idx}, 'nombre', this.value)" style="flex: 1; padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 11px; font-weight: 600; color: #666;">Can Total</label>
+          <input type="number" placeholder="0" min="0" step="1" value="${Number.isInteger(v.cantidad_en_stock) ? v.cantidad_en_stock : ''}" onchange="updateInsumoVariant(${idx}, 'cantidad_en_stock', this.value)" style="padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;" title="Cantidad disponible en stock">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 11px; font-weight: 600; color: #666;">Alerta</label>
+          <input type="number" placeholder="0" min="0" step="1" value="${Number.isInteger(v.cantidad_minima) ? v.cantidad_minima : 0}" onchange="updateInsumoVariant(${idx}, 'cantidad_minima', this.value)" style="padding: 8px; border: 1px solid ${borderColor}; border-radius: 4px; font-size: 13px;" title="Stock mínimo: reponer cuando baje de este valor">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; justify-content: flex-end;">
+          <div style="height: 20px;"></div>
+          <button type="button" class="btn btn-sm btn-danger" onclick="removeInsumoVariant(${idx})" style="padding: 6px 12px;">×</button>
+        </div>
+      </div>
+      <div style="margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px;">
+        ${!isValid ? `<span style="color: #d32f2f;">⚠️ Incompleta</span>` : ''}
+        ${sinStock ? `<span style="color: #b26a00;">sin stock</span>` : ''}
+      </div>
     </div>
   `;
   }).join('') + `
