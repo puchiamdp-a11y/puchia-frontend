@@ -463,9 +463,9 @@ function renderHomeProducts(config) {
           <div class="product-image" style="cursor: pointer;">${typeof productImageHTML === 'function' ? productImageHTML(product) : escapeHomeHTML(product.icon || '📦')}</div>
           <div class="product-info">
             <div class="product-name" style="cursor: pointer;">${escapeHomeHTML(product.name)}</div>
-            <div class="product-price">${formatHomePrice(product.price)}</div>
+            <div class="product-price">${(typeof precioProducto === 'function' ? precioProducto(product) : formatHomePrice(product.price))}</div>
             <button class="product-btn" onclick="openProductDetail(${product.id})">
-              Agregar al Carrito${window.ICONO_CARRITO || ''}
+              ${etiquetaAgregar(product)}
             </button>
           </div>
         </div>

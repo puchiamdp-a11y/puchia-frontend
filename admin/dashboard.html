@@ -80,6 +80,7 @@
                     <ul class="submenu" id="stock-submenu">
                         <li class="submenu-item"><a href="#" data-page="productos">Productos Simples</a></li>
                         <li class="submenu-item"><a href="#" data-page="insumos">Insumos</a></li>
+                        <li class="submenu-item"><a href="#" data-page="materiales">Materiales</a></li>
                     </ul>
                 </li>
                 <li><a href="#" data-page="categorias">📁 Categorías</a></li>
@@ -263,6 +264,27 @@
                             <tr>
                                 <td colspan="5" style="text-align: center; color: #999; padding: 20px;">Cargando insumos...</td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MATERIALES PAGE -->
+            <div id="materiales-page" class="page" style="display: none;">
+                <h1 class="page-title">Materiales</h1>
+                <div style="font-size: 13px; color: #777; margin-bottom: 16px;">Resmas, siliconas, cintas, bolsas y todo lo que se usa en el taller. Se cuentan a mano: las ventas no los descuentan. Hacé click en el título de una columna para ordenar de la A a la Z.</div>
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+                    <button class="btn btn-primary" onclick="abrirModalMaterial()">+ Nuevo Material</button>
+                    <input type="text" id="materialesBusqueda" placeholder="🔍 Buscar material..." oninput="filtrarMateriales()" style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit;">
+                    <select id="materialesFiltroTipo" onchange="filtrarMateriales()" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"><option value="">Todos los tipos</option></select>
+                    <select id="materialesFiltroProveedor" onchange="filtrarMateriales()" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"><option value="">Todos los proveedores</option></select>
+                </div>
+                <div id="materialesTotal" style="font-size: 12px; color: #888; margin-bottom: 8px;"></div>
+                <div class="table-container">
+                    <table>
+                        <thead id="materiales-head"></thead>
+                        <tbody id="materiales-list">
+                            <tr><td colspan="5" style="text-align: center; color: #999; padding: 20px;">Cargando materiales...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -573,12 +595,15 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100802"></script>
+    <script src="../js/admin.js?v=2026100806"></script>
     <script src="../js/admin-clientes.js?v=2026100211"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100207"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>
+    <script src="../js/admin-opciones.js?v=2026100801"></script>
+    <script src="../js/admin-combos.js?v=2026100801"></script>
     <script src="../js/admin-alertas.js?v=2026100301"></script>
+    <script src="../js/admin-materiales.js?v=2026100801"></script>
     <script src="../js/admin-ordenes-io.js?v=2026100202"></script>
     <script src="../js/admin-excel-extra.js?v=2026100202"></script>
     <script src="../js/admin-cliente-buscador.js?v=2026100201"></script>
@@ -855,6 +880,14 @@
                                 <input type="radio" name="stockType" value="infinito" onchange="toggleProductTypeFields()">
                                 Infinito
                             </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
+                                <input type="radio" name="stockType" value="opciones" onchange="toggleProductTypeFields()">
+                                Con opciones
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
+                                <input type="radio" name="stockType" value="combo" onchange="toggleProductTypeFields()">
+                                Combo
+                            </label>
                         </div>
                     </div>
 
@@ -873,6 +906,45 @@
                         <div id="productInsumosLista"></div>
                         <button type="button" class="btn btn-secondary" onclick="agregarTarjetaInsumo()" style="width: 100%; padding: 10px 16px;">+ Agregar otro insumo</button>
                         <div id="productInsumosResumen"></div>
+                    </div>
+
+                    <!-- CON OPCIONES: el cliente elige tamaño, color, etc. y cada opción tiene su precio y su descuento de stock -->
+                    <div id="opcionesSection" style="display: none; flex-direction: column; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #333;">Opciones que elige el cliente *</label>
+                            <div style="font-size: 12px; color: #777; margin-top: 2px;">Cada opción tiene su precio (si lo dejás vacío se usa el precio base de arriba) y descuenta el stock de los insumos que indiques. El cliente puede pedir varias opciones a la vez.</div>
+                        </div>
+                        <div id="productOpcionesLista"></div>
+                        <button type="button" class="btn btn-secondary" onclick="agregarOpcionVacia()" style="width: 100%; padding: 10px 16px;">+ Agregar opción</button>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px; background: #f6eefb; border-radius: 8px;">
+                            <span style="font-size: 13px; font-weight: 600; color: #5c1a52;">Crear una opción por cada variante de:</span>
+                            <select id="generarOpcionesInsumo" style="flex: 1; min-width: 160px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;"></select>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="generarOpcionesDesdeInsumo()">Crear</button>
+                        </div>
+                    </div>
+
+                    <!-- COMBO: lleva otros productos; el precio es el de arriba y el stock sale de cada producto que lleva -->
+                    <div id="comboSection" style="display: none; flex-direction: column; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #333;">Qué lleva el combo *</label>
+                            <div style="font-size: 12px; color: #777; margin-top: 2px;">El precio del combo es el de arriba (fijo). Por cada producto indicá cuántas unidades lleva (mínimo y máximo por combo; iguales = cantidad fija). Si el producto tiene opciones, el cliente reparte la cantidad entre ellas, salvo que fijes una. El combo se agota cuando no alcanza el stock de alguna parte.</div>
+                        </div>
+                        <div id="comboPartesLista"></div>
+                        <button type="button" class="btn btn-secondary" onclick="agregarParteCombo()" style="width: 100%; padding: 10px 16px;">+ Agregar producto al combo</button>
+                    </div>
+
+                    <!-- CANTIDAD POR COMPRA (opcional) -->
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Cantidad por compra <span style="color: #999; font-weight: 400;">(Opcional)</span></label>
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 400;">Mínimo
+                                <input type="number" id="productCompraMinima" min="1" step="1" placeholder="sin mínimo" style="width: 120px; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 400;">Máximo
+                                <input type="number" id="productCompraMaxima" min="1" step="1" placeholder="sin máximo" style="width: 120px; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </label>
+                        </div>
+                        <div style="font-size: 12px; color: #777; margin-top: 4px;">El cliente puede comprar cualquier cantidad dentro de ese rango, sumando todas sus opciones. El máximo nunca supera el stock disponible. Dejalo vacío para no limitar.</div>
                     </div>
 
                     <!-- Estado -->
@@ -1304,6 +1376,38 @@
     </div>
 
     <!-- MODAL AGREGAR/EDITAR INSUMO -->
+    <!-- MODAL MATERIAL -->
+    <div class="modal" id="modalMaterial" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
+        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; margin: 20px auto; position: relative;">
+            <button class="modal-close" type="button" onclick="cerrarModalMaterial()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
+            <h2 id="materialTitulo" style="font-size: 20px; margin: 0 0 24px;">Nuevo material</h2>
+            <form id="formMaterial" onsubmit="guardarMaterial(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="materialId" />
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Nombre *</label>
+                    <input type="text" id="materialNombre" placeholder="Ej: Resma A4" required style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Tipo <span style="font-weight: 400; color: #999;">(opcional)</span></label>
+                    <input type="text" id="materialTipo" list="materialesSugerencias" placeholder="Ej: Papel" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Proveedor <span style="font-weight: 400; color: #999;">(opcional)</span></label>
+                    <input type="text" id="materialProveedor" list="materialesSugerencias" placeholder="Ej: Papelera Sur" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                </div>
+                <datalist id="materialesSugerencias"></datalist>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Cantidad</label>
+                    <input type="number" id="materialCantidad" min="0" step="1" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 160px; font-size: 14px;" />
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; border-top: 1px solid #eee; padding-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalMaterial()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="modal" id="modalInsumo" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
         <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; margin: 20px auto; position: relative;">
             <button class="modal-close" onclick="document.getElementById('modalInsumo').style.display = 'none';" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
@@ -1318,8 +1422,24 @@
                     <input type="text" id="insumoNombre" placeholder="Ej: Tela Premium" required style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
                 </div>
 
+                <!-- SIN VARIANTES (un solo stock) -->
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer;">
+                    <input type="checkbox" id="insumoSinVariantes" onchange="toggleInsumoSinVariantes()" style="width: 16px; height: 16px;">
+                    Este insumo no tiene variantes (se cuenta un solo stock)
+                </label>
+                <div id="insumoSinVariantesCampos" style="display: none; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 13px; font-weight: 600; color: #555;">Cantidad en stock</label>
+                        <input type="number" id="insumoStockUnico" min="0" step="1" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 140px; font-size: 14px;" />
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 13px; font-weight: 600; color: #555;">Alerta (mínimo)</label>
+                        <input type="number" id="insumoMinimaUnica" min="0" step="1" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 140px; font-size: 14px;" title="Stock mínimo: reponer cuando baje de este valor" />
+                    </div>
+                </div>
+
                 <!-- TIPO DE VARIANTE -->
-                <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div id="insumoTipoVarianteWrap" style="display: flex; flex-direction: column; gap: 4px;">
                     <label style="font-size: 13px; font-weight: 600; color: #555;">Tipo de Variante</label>
                     <select id="insumoTipoVariante" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;">
                         <option value="Color">Color</option>
@@ -1330,7 +1450,7 @@
                 </div>
 
                 <!-- VARIANTES -->
-                <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div id="insumoVariantesWrap" style="display: flex; flex-direction: column; gap: 8px;">
                     <label style="font-size: 13px; font-weight: 600; color: #555;">Variantes</label>
                     <div id="insumoVariantesContainer" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #f9f9f9; max-height: 250px; overflow-y: auto;">
                         <!-- Se llenará dinámicamente -->

@@ -94,14 +94,14 @@ function renderCategoryProducts(categoryId) {
                 <div class="product-name-wrapper" style="cursor: pointer;">
                     ${product.name}
                 </div>
-                <div class="product-price">${formatCurrency(product.price)}</div>
+                <div class="product-price">${precioProducto(product)}</div>
                 <div class="product-quantity">
                     <button class="qty-decrease">−</button>
                     <input type="number" class="qty-input" value="1" min="1">
                     <button class="qty-increase">+</button>
                 </div>
                 <button class="product-btn btn-add-to-cart">
-                    Agregar al Carrito${window.ICONO_CARRITO || ''}
+                    ${etiquetaAgregar(product)}
                 </button>
                 <button class="product-btn-secondary btn-view-details" style="margin-top: 8px;">
                     Ver Detalle
@@ -134,6 +134,7 @@ function renderCategoryProducts(categoryId) {
             });
 
             addBtn?.addEventListener('click', () => {
+                if (product.tiene_opciones) { addToCart(product); return; }
                 const qty = parseInt(qtyInput.value) || 1;
                 for (let i = 0; i < qty; i++) {
                     addToCart(product);

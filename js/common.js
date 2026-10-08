@@ -226,9 +226,16 @@ async function apiPost(endpoint, data) {
     }
 }
 
+// Cada línea del carrito es producto + opción (key). Los carritos viejos, sin key, son líneas sin opción.
+const claveLinea = (productoId, opcionId) => opcionId ? `${productoId}:${opcionId}` : String(productoId);
+
 function getCart() {
     const saved = localStorage.getItem('puchia_cart');
-    return saved ? JSON.parse(saved) : [];
+    let cart;
+    try { cart = saved ? JSON.parse(saved) : []; } catch { cart = []; }
+    if (!Array.isArray(cart)) return [];
+    cart.forEach(item => { if (!item.key) item.key = claveLinea(item.id, item.opcion_id); });
+    return cart;
 }
 
 function saveCart(cart) {
@@ -280,14 +287,15 @@ function addToCartForced(productId) {
         showToast('Producto no encontrado', 'error');
         return;
     }
+    if (product.tiene_opciones || product.es_combo) { abrirDetalleParaOpciones(product); return; }
 
     let cart = getCart();
-    const existingItem = cart.find(item => item.id === product.id);
+    const existingItem = cart.find(item => item.key === claveLinea(product.id));
 
     if (existingItem) {
         existingItem.qty++;
     } else {
-        cart.push({ ...product, qty: 1 });
+        cart.push({ ...product, key: claveLinea(product.id), qty: 1 });
     }
 
     saveCart(cart);
@@ -296,7 +304,30 @@ function addToCartForced(productId) {
     showToast(`✅ ${product.name} agregado al carrito`, 'success');
 }
 
+// Un producto con opciones no se agrega "a ciegas": hay que elegir cuántas de cada una
+function abrirDetalleParaOpciones(product) {
+    showToast(product.es_combo ? `Armá tu ${product.name}` : `Elegí las opciones de ${product.name}`, 'info');
+    if (typeof window.openProductDetail === 'function') window.openProductDetail(product.id);
+}
+
+// Texto del botón de las tarjetas y precio ("Desde $X" cuando las opciones tienen precios distintos)
+function etiquetaAgregar(product) {
+    return product && product.es_combo ? 'Armar combo' : product && product.tiene_opciones ? 'Elegir opciones' : `Agregar al Carrito${window.ICONO_CARRITO || ''}`;
+}
+
+function precioProducto(product) {
+    const lista = (product.opciones || []).filter(o => o.disponibles > 0);
+    if (!product.tiene_opciones || lista.length === 0) return formatCurrency(product.price);
+    const precios = lista.map(o => (o.precio === null || o.precio === undefined ? product.price : o.precio));
+    const min = Math.min(...precios);
+    return Math.max(...precios) > min ? `Desde ${formatCurrency(min)}` : formatCurrency(min);
+}
+
 function addToCart(product) {
+    if (product && (product.tiene_opciones || product.es_combo)) {
+        abrirDetalleParaOpciones(product);
+        return null;
+    }
     // Validar stock disponible
     if (!product.stock_cantidad || product.stock_cantidad <= 0) {
         showPuchiaModal(
@@ -308,10 +339,11 @@ function addToCart(product) {
         );
         return null;
     }
-    
+
     let cart = getCart();
-    const existingItem = cart.find(item => item.id === product.id);
-    
+    const key = claveLinea(product.id);
+    const existingItem = cart.find(item => item.key === key);
+
     // Validar que no se agregue más cantidad que stock disponible
     const cantidadActual = existingItem ? existingItem.qty : 0;
     if (cantidadActual + 1 > product.stock_cantidad) {
@@ -324,35 +356,69 @@ function addToCart(product) {
         );
         return cart;
     }
-    
+
     if (existingItem) {
         existingItem.qty++;
     } else {
-        cart.push({ ...product, qty: 1 });
+        cart.push({ ...product, key, qty: 1 });
     }
-    
+
     saveCart(cart);
     updateCartCount();
     renderCartSidebar();
     return cart;
 }
 
-function removeFromCart(productId) {
+/** Agrega un combo armado al carrito: cada combo armado es su propia línea (detalle = [{ componente_id, producto, cantidad, selecciones? }]). */
+function addComboToCart(product, detalle, texto) {
+    const cart = getCart();
+    const key = `combo:${product.id}:${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    cart.push({ ...product, key, qty: 1, price: product.price, combo_detalle: detalle, opcion_nombre: texto });
+    saveCart(cart);
+    updateCartCount();
+    renderCartSidebar();
+}
+
+/** Agrega al carrito una línea de un producto con opciones (opcion = { id, nombre, precio, disponibles }). */
+function addOpcionToCart(product, opcion, cantidad) {
+    const cart = getCart();
+    const key = claveLinea(product.id, opcion.id);
+    const precio = opcion.precio === null || opcion.precio === undefined ? product.price : opcion.precio;
+    const existente = cart.find(i => i.key === key);
+    if (existente) {
+        existente.qty += cantidad;
+        existente.price = precio;
+        existente.tope = opcion.disponibles;
+    } else {
+        cart.push({ ...product, key, qty: cantidad, price: precio, opcion_id: opcion.id, opcion_nombre: opcion.nombre, tope: opcion.disponibles });
+    }
+    saveCart(cart);
+    updateCartCount();
+    renderCartSidebar();
+}
+
+function removeFromCart(key) {
     let cart = getCart();
-    cart = cart.filter(item => item.id !== productId);
+    cart = cart.filter(item => item.key !== String(key));
     saveCart(cart);
     updateCartCount();
     renderCartSidebar();
     return cart;
 }
 
-function updateCartQty(productId, qty) {
+function topeDeLinea(item) {
+    // Líneas con opción: lo que quedaba al agregarlas; el servidor vuelve a validar (incluidos insumos compartidos) al confirmar
+    const tope = item.opcion_id ? Number(item.tope) : Number(item.stock_cantidad);
+    return tope > 0 && tope < 10000 ? tope : Infinity;
+}
+
+function updateCartQty(key, qty) {
     let cart = getCart();
-    const item = cart.find(item => item.id === productId);
+    const item = cart.find(item => item.key === String(key));
     if (item) {
         let nueva = Math.max(1, parseInt(qty) || 1);
-        const tope = Number(item.stock_cantidad);
-        if (tope > 0 && nueva > tope) {
+        const tope = topeDeLinea(item);
+        if (nueva > tope) {
             nueva = tope;
             showToast(`Solo hay ${tope} disponible(s) de ${item.name}`, 'error');
         }
@@ -421,12 +487,13 @@ function renderCartSidebar() {
                 <div class="cart-item-icon">${item.icon || '🎁'}</div>
                 <div class="cart-item-info">
                     <div class="cart-item-name" style="cursor: pointer; color: #9b2d7d; font-weight: 600;" onclick="openProductFromCart(${item.id})">${item.name}</div>
+                    ${item.opcion_nombre ? `<div class="cart-item-option" style="font-size:13px;color:#666;">${String(item.opcion_nombre).replace(/</g, '&lt;')}</div>` : ''}
                     <div class="cart-item-price">${formatCurrency(item.price)}</div>
                     <div class="cart-item-qty">
-                        <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+                        <button class="qty-btn" onclick="changeQty('${item.key}', -1)">−</button>
                         <span style="min-width: 30px; text-align: center; font-weight: 600;">${item.qty}</span>
-                        <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
-                        <button class="remove-item" onclick="removeItem(${item.id})">🗑️</button>
+                        <button class="qty-btn" onclick="changeQty('${item.key}', 1)">+</button>
+                        <button class="remove-item" onclick="removeItem('${item.key}')">🗑️</button>
                     </div>
                 </div>
             </div>
@@ -439,12 +506,27 @@ function renderCartSidebar() {
     }
 }
 
-function changeQty(productId, delta) {
+function changeQty(key, delta) {
     let cart = getCart();
-    const item = cart.find(i => i.id === productId);
+    const item = cart.find(i => i.key === String(key));
+    if (item && item.combo_detalle && delta > 0 && typeof consultarDisponibilidad === 'function') {
+        // Otro combo igual: se consulta si alcanza con lo que ya hay en el resto del carrito
+        const resto = carritoParaServidor(cart.filter(l => l.key !== item.key).concat([{ ...item, qty: item.qty }]));
+        consultarDisponibilidad(item.id, resto).then(info => {
+            if (info && info.disponibles < 1) { showToast(`No hay stock para otro "${item.name}" igual`, 'error'); return; }
+            aplicarCambioQty(item.key, delta);
+        }).catch(() => aplicarCambioQty(item.key, delta));
+        return;
+    }
+    aplicarCambioQty(key, delta);
+}
+
+function aplicarCambioQty(key, delta) {
+    let cart = getCart();
+    const item = cart.find(i => i.key === String(key));
     if (item) {
-        const tope = Number(item.stock_cantidad);
-        if (delta > 0 && tope > 0 && item.qty + delta > tope) {
+        const tope = topeDeLinea(item);
+        if (delta > 0 && item.qty + delta > tope) {
             showToast(`Solo hay ${tope} disponible(s) de ${item.name}`, 'error');
             return;
         }
@@ -456,8 +538,8 @@ function changeQty(productId, delta) {
     }
 }
 
-function removeItem(productId) {
-    removeFromCart(productId);
+function removeItem(key) {
+    removeFromCart(key);
     showToast('Producto removido del carrito');
 }
 
