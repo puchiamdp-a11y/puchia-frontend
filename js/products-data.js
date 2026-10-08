@@ -73,6 +73,12 @@ async function _loadProductsFromAPI() {
           stock: effectiveStock,
           stock_type: p.stock_type,
           producto_insumo: p.producto_insumo,
+          // Opciones (color, tamaño, modelo…): el cliente elige cuántas de cada una; cada una trae su precio y cuántas quedan
+          tiene_opciones: p.tiene_opciones === true,
+          opciones: (p.opciones || []).map(o => ({ id: o.id, nombre: o.nombre, precio: o.precio === null || o.precio === undefined ? null : Number(o.precio), disponibles: Number(o.disponibles) || 0 })),
+          compra_minima: p.compra_minima || null,
+          compra_maxima: p.compra_maxima || null,
+          controla_stock: p.controla_stock !== false,
           habilitado: p.habilitado !== false,
           media: mediaList,
           portada: portadaItem ? portadaItem.url : null

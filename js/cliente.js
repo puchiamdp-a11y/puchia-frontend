@@ -110,13 +110,13 @@ function loadAndRenderProducts() {
                     ${product.name}
                 </div>
                 <div class="product-price" style="font-size: 20px; font-weight: 700; color: var(--purple); margin-bottom: 16px;">
-                    ${formatCurrency(product.price)}
+                    ${precioProducto(product)}
                 </div>
                 <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
                     ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                 </div>
                 <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
-                    ${product.stock_cantidad > 0 ? `Agregar al Carrito${window.ICONO_CARRITO || ''}` : 'Agotado'}
+                    ${product.stock_cantidad > 0 ? `${etiquetaAgregar(product)}` : 'Agotado'}
                 </button>
             </div>
         </div>`;
@@ -132,8 +132,7 @@ function loadAndRenderProducts() {
             const addBtn = card.querySelector('.btn-add-to-cart');
 
             addBtn?.addEventListener('click', () => {
-                addToCart(product);
-                showToast(`${product.name} agregado al carrito`, 'success');
+                if (addToCart(product)) showToast(`${product.name} agregado al carrito`, 'success');
             });
 
             card.querySelector('.product-image-wrapper')?.addEventListener('click', () => openProductDetail(productId));
@@ -175,13 +174,13 @@ function loadAndRenderPromos() {
                     ${product.name}
                 </div>
                 <div class="product-price" style="font-size: 20px; font-weight: 700; color: var(--purple); margin-bottom: 16px;">
-                    ${formatCurrency(product.price)}
+                    ${precioProducto(product)}
                 </div>
                 <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
                     ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                 </div>
                 <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
-                    ${product.stock_cantidad > 0 ? `Agregar al Carrito${window.ICONO_CARRITO || ''}` : 'Agotado'}
+                    ${product.stock_cantidad > 0 ? `${etiquetaAgregar(product)}` : 'Agotado'}
                 </button>
             </div>
         </div>`;
@@ -197,8 +196,7 @@ function loadAndRenderPromos() {
             const addBtn = card.querySelector('.btn-add-to-cart');
 
             addBtn?.addEventListener('click', () => {
-                addToCart(product);
-                showToast(`${product.name} agregado al carrito`, 'success');
+                if (addToCart(product)) showToast(`${product.name} agregado al carrito`, 'success');
             });
 
             card.querySelector('.product-image-wrapper')?.addEventListener('click', () => openProductDetail(productId));
@@ -250,13 +248,13 @@ function renderProductsChunked(products, gridId = 'productsGrid') {
                         ${product.name}
                     </div>
                     <div class="product-price" style="font-size: 20px; font-weight: 700; color: var(--purple); margin-bottom: 16px;">
-                        ${formatCurrency(product.price)}
+                        ${precioProducto(product)}
                     </div>
                     <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
                         ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                     </div>
                     <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
-                        ${product.stock_cantidad > 0 ? `Agregar al Carrito${window.ICONO_CARRITO || ''}` : 'Agotado'}
+                        ${product.stock_cantidad > 0 ? `${etiquetaAgregar(product)}` : 'Agotado'}
                     </button>
                 </div>
             </div>`;
@@ -314,13 +312,13 @@ function renderPromosChunked(promos) {
                         ${product.name}
                     </div>
                     <div class="product-price" style="font-size: 20px; font-weight: 700; color: var(--purple); margin-bottom: 16px;">
-                        ${formatCurrency(product.price)}
+                        ${precioProducto(product)}
                     </div>
                     <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
                         ${product.stock_cantidad >= 10000 ? '<strong>Disponible</strong>' : `Stock: <strong>${product.stock_cantidad || 0} disponible${product.stock_cantidad === 1 ? '' : 's'}</strong>`}
                     </div>
                     <button class="product-btn btn-add-to-cart" style="width: 100%; padding: 12px; background: ${product.stock_cantidad > 0 ? 'var(--purple)' : '#ccc'}; color: white; border: none; border-radius: 8px; cursor: ${product.stock_cantidad > 0 ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.3s ease;" ${product.stock_cantidad > 0 ? '' : 'disabled'}>
-                        ${product.stock_cantidad > 0 ? `Agregar al Carrito${window.ICONO_CARRITO || ''}` : 'Agotado'}
+                        ${product.stock_cantidad > 0 ? `${etiquetaAgregar(product)}` : 'Agotado'}
                     </button>
                 </div>
             </div>`;
@@ -347,8 +345,7 @@ function attachProductListeners(grid, products) {
 
         const addBtn = card.querySelector('.btn-add-to-cart');
         addBtn?.addEventListener('click', () => {
-            addToCart(product);
-            showToast(`${product.name} agregado al carrito`, 'success');
+            if (addToCart(product)) showToast(`${product.name} agregado al carrito`, 'success');
         });
 
         card.querySelector('.product-image-wrapper')?.addEventListener('click', () => openProductDetail(productId));
@@ -469,7 +466,7 @@ async function submitOrder(e) {
         date: today,
         items: cart.map(item => ({
             id: item.id,
-            name: item.name,
+            name: item.opcion_nombre ? `${item.name} (${item.opcion_nombre})` : item.name,
             qty: item.qty,
             price: item.price
         }))
@@ -494,10 +491,8 @@ async function submitOrder(e) {
             cliente_email:    email,
             cliente_whatsapp: phone,
             notas: notes,
-            items: cart.map(item => ({
-                producto_id:   item.id,
-                cantidad:      item.qty
-            }))
+            // Productos con opciones viajan como selecciones (opción + cantidad); el precio lo calcula siempre el servidor
+            items: carritoParaServidor(cart)
         };
 
         console.log('📍 Payload a enviar:', JSON.stringify(backendPayload, null, 2));
@@ -720,7 +715,7 @@ async function openProductDetail(productId) {
 
               <!-- PRECIO GRANDE -->
               <p class="detail-price">
-                ${formatCurrency(product.price)}
+                ${precioProducto(product)}
               </p>
 
               <!-- TÍTULO -->
@@ -746,7 +741,7 @@ async function openProductDetail(productId) {
 
               <!-- BOTÓN AGREGAR AL CARRITO -->
               <button class="btn-add-cart modal-add-cart">
-                Agregar al Carrito${window.ICONO_CARRITO || ''}
+                ${etiquetaAgregar(product)}
               </button>
 
               <!-- ESPECIFICACIONES -->
@@ -850,6 +845,10 @@ async function openProductDetail(productId) {
 
       modal.querySelector('.modal-overlay')?.addEventListener('click', closeProductDetail);
       modal.querySelector('.modal-box-close')?.addEventListener('click', closeProductDetail);
+      if (product.tiene_opciones && typeof montarSelectorOpciones === 'function') {
+        // El selector reemplaza la cantidad única y el botón de agregar (más abajo se ignora el flujo clásico)
+        montarSelectorOpciones(modal, product);
+      } else
       modal.querySelector('.modal-add-cart')?.addEventListener('click', () => {
         const qty = parseInt(qtyInput.value) || 1;
 

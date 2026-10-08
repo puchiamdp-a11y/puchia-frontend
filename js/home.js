@@ -52,9 +52,9 @@ function loadAndRenderProducts() {
                 <div class="product-image" style="cursor: pointer;">${productImageHTML(product)}</div>
                 <div class="product-info">
                     <div class="product-name" style="cursor: pointer;">${product.name}</div>
-                    <div class="product-price">${formatCurrency(product.price)}</div>
+                    <div class="product-price">${precioProducto(product)}</div>
                     <button class="product-btn" onclick="openProductDetail(${product.id})">
-                        Agregar al Carrito${window.ICONO_CARRITO || ''}
+                        ${etiquetaAgregar(product)}
                     </button>
                 </div>
             </div>
@@ -226,7 +226,7 @@ async function openProductDetail(productId) {
             <div class="detail-info">
               <h2>${product.name}</h2>
               <p class="detail-category">Categoría: ${product.category}</p>
-              <p class="detail-price">${formatCurrency(product.price)}</p>
+              <p class="detail-price">${precioProducto(product)}</p>
 
               <div class="detail-quantity">
                 <button class="qty-decrease">−</button>
@@ -241,7 +241,7 @@ async function openProductDetail(productId) {
 
             <div class="detail-actions">
               <button class="btn-add-cart modal-add-cart">
-                Agregar al Carrito${window.ICONO_CARRITO || ''}
+                ${etiquetaAgregar(product)}
               </button>
             </div>
           </div>
@@ -270,6 +270,10 @@ async function openProductDetail(productId) {
 
       modal.querySelector('.modal-overlay')?.addEventListener('click', closeProductDetail);
       modal.querySelector('.modal-box-close')?.addEventListener('click', closeProductDetail);
+      if (product.tiene_opciones && typeof montarSelectorOpciones === 'function') {
+        // El selector reemplaza la cantidad única y el botón de agregar (más abajo se ignora el flujo clásico)
+        montarSelectorOpciones(modal, product);
+      } else
       modal.querySelector('.modal-add-cart')?.addEventListener('click', () => {
         const qty = parseInt(qtyInput.value) || 1;
         for (let i = 0; i < qty; i++) {

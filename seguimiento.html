@@ -386,7 +386,7 @@
         </div>
     </div>
 
-    <script src="js/common.js?v=2026100506"></script>
+    <script src="js/common.js?v=2026100801"></script>
     <script>
         // Configuración
         const urlParams = new URLSearchParams(window.location.search);
@@ -471,7 +471,7 @@
                     ${orden.items.map(item => `
                         <div class="item">
                             <div class="item-detail">
-                                <div class="item-name">${item.producto?.nombre || 'Producto'}</div>
+                                <div class="item-name">${(typeof item.producto === 'string' ? item.producto : item.producto?.nombre) || 'Producto'}${item.opcion ? ` <span style="font-weight:400;color:#666;">(${String(item.opcion).replace(/</g, '&lt;')})</span>` : ''}</div>
                                 <div class="item-specs">Cantidad: ${item.cantidad} × $${parseFloat(item.precio_unitario).toFixed(2)}</div>
                             </div>
                             <div class="item-subtotal">$${parseFloat(item.subtotal || 0).toFixed(2)}</div>
