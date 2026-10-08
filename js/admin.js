@@ -1019,7 +1019,7 @@ function renderizarInsumosLista() {
       cuerpo = `
         <div style="display:flex;flex-wrap:wrap;gap:4px 16px;padding:10px 12px;margin:10px 0;background:#f6eefb;border-radius:8px;">
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;color:#5c1a52;">
-            <input type="checkbox" ${t.preciosIguales ? 'checked' : ''} onchange="cambiarOpcionTarjeta(${t.uid}, 'preciosIguales', this.checked)" style="width:16px;height:16px;cursor:pointer;"> Precios iguales
+            <input type="checkbox" ${t.preciosIguales ? 'checked' : ''} onchange="cambiarOpcionTarjeta(${t.uid}, 'preciosIguales', this.checked)" style="width:16px;height:16px;cursor:pointer;"> Costos iguales
           </label>
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;color:#5c1a52;">
             <input type="checkbox" ${t.siempre1Unidad ? 'checked' : ''} onchange="cambiarOpcionTarjeta(${t.uid}, 'siempre1Unidad', this.checked)" style="width:16px;height:16px;cursor:pointer;"> Siempre 1 unidad
@@ -1035,13 +1035,13 @@ function renderizarInsumosLista() {
             <input type="checkbox" ${cantSel === variantes.length ? 'checked' : ''} onchange="seleccionarTodasTarjeta(${t.uid}, this.checked)" title="Tildar / destildar todas" style="width:16px;height:16px;cursor:pointer;">
             <span>${etiqueta}</span><span>Stock</span>
             ${!t.siempre1Unidad ? '<span>Cantidad</span>' : ''}
-            ${!t.preciosIguales ? '<span>Precio</span>' : ''}
+            ${!t.preciosIguales ? '<span>Costo</span>' : ''}
           </div>
           ${filas}
         </div>`}
         ${t.preciosIguales && variantes.length ? `
         <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
-          <span style="font-size:12px;font-weight:600;color:#666;">Precio (opcional), igual para todas:</span>
+          <span style="font-size:12px;font-weight:600;color:#666;">Costo (opcional), igual para todas:</span>
           <input type="number" min="0" step="0.01" value="${t.precioComun ?? ''}" placeholder="$" oninput="editarPrecioComunTarjeta(${t.uid}, this.value)" style="width:110px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
         </div>` : ''}`;
     }
@@ -1119,7 +1119,7 @@ function construirInsumosParaGuardar() {
       const crudo = t.preciosIguales ? t.precioComun : f.precio;
       const precio = crudo === '' || crudo === null || crudo === undefined ? null : Number(crudo);
       if (precio !== null && (!Number.isFinite(precio) || precio < 0)) {
-        return { error: `El precio de "${nombre}" no puede ser negativo.` };
+        return { error: `El costo de "${nombre}" no puede ser negativo.` };
       }
       insumos.push({ insumo_id: insumo.id, insumo_variant_id: Number(id), cantidad_requerida: cantidad, precio_costo: precio });
     }
