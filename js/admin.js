@@ -492,7 +492,7 @@ function renderProductos(lista) {
     const categoria = p.categorias?.[0]?.nombre || 'Sin categoría';
     const catKey = categoria.toLowerCase().replace(/ñ/g, 'n').replace(/\s+/g,'');
     const emoji = ICONOS_CAT[catKey] || '📦';
-    const stockVal = esStockIlimitado(p) ? '∞' : (p.stock_type === 'simple' ? p.stock_cantidad : 'Insumo');
+    const stockVal = p.tiene_opciones ? `Opciones (${p.stock_disponible >= UMBRAL_STOCK_ILIMITADO ? '∞' : p.stock_disponible})` : (esStockIlimitado(p) ? '∞' : (p.stock_type === 'simple' ? p.stock_cantidad : 'Insumo'));
     const precio = Number(p.precio).toLocaleString('es-AR', {minimumFractionDigits: 2});
 
     const portada = p.media?.find(m => m.es_portada) || p.media?.[0] || null;
@@ -747,13 +747,15 @@ function duplicarProducto(id) {
   document.getElementById('productStock').value = original.stock_cantidad || 0;
   populateProductCategoryDropdown();
   document.getElementById('productCategoria').value = original.categorias?.[0]?.id || '';
-  const st = document.querySelector(`input[name="stockType"][value="${esStockIlimitado(original) ? 'infinito' : (original.stock_type || 'simple')}"]`);
+  const st = document.querySelector(`input[name="stockType"][value="${tipoFormularioDe(original)}"]`);
   if (st) st.checked = true;
   document.getElementById('productHabilitado').checked = original.habilitado !== false;
   cargarLimitesCompraEnFormulario(original);
   productInsumosTemp = [];
+  resetearOpciones();
   loadInsumosForForm().then(() => {
     if (original.stock_type === 'insumo') cargarInsumosDeProducto(original);
+    if (original.tiene_opciones) cargarOpcionesDeProducto(original, { duplicar: true });
   });
   toggleProductTypeFields(true);
   document.getElementById('modalProducto').style.display = 'flex';
@@ -771,6 +773,9 @@ const UMBRAL_STOCK_ILIMITADO = 10000;
 // Un producto es "infinito" si no controla stock (controla_stock = false) o, en productos viejos, si tiene el stock altísimo de antes.
 const esStockIlimitado = (p) => p && (p.controla_stock === false || (p.stock_type === 'simple' && Number(p.stock_cantidad) >= UMBRAL_STOCK_ILIMITADO));
 
+// Qué tipo de producto se marca en el formulario al abrir uno existente
+const tipoFormularioDe = (p) => (p.tiene_opciones ? 'opciones' : (esStockIlimitado(p) ? 'infinito' : (p.stock_type || 'simple')));
+
 // Cantidad mínima/máxima de compra: se cargan en el formulario del producto
 function cargarLimitesCompraEnFormulario(p) {
   const min = document.getElementById('productCompraMinima');
@@ -782,6 +787,7 @@ function cargarLimitesCompraEnFormulario(p) {
 function openNewProductModal() {
   productoActualEnEdicion = null;
   productInsumosTemp = [];
+  resetearOpciones();
   document.getElementById('modalProductoTitle').textContent = 'Nuevo Producto';
   document.getElementById('formProducto').reset();
   document.getElementById('productHabilitado').checked = true;
@@ -802,15 +808,19 @@ function editProduct(id) {
   document.getElementById('productStock').value = productoActualEnEdicion.stock_cantidad || 0;
   populateProductCategoryDropdown();
   document.getElementById('productCategoria').value = productoActualEnEdicion.categorias?.[0]?.id || '';
-  document.querySelector(`input[name="stockType"][value="${esStockIlimitado(productoActualEnEdicion) ? 'infinito' : productoActualEnEdicion.stock_type}"]`).checked = true;
+  document.querySelector(`input[name="stockType"][value="${tipoFormularioDe(productoActualEnEdicion)}"]`).checked = true;
   document.getElementById('productHabilitado').checked = productoActualEnEdicion.habilitado !== false;
   cargarLimitesCompraEnFormulario(productoActualEnEdicion);
 
   // Cargar el catálogo de insumos y armar las tarjetas con lo que ya tiene el producto
   productInsumosTemp = [];
+  resetearOpciones();
   loadInsumosForForm().then(() => {
     if (productoActualEnEdicion && productoActualEnEdicion.stock_type === 'insumo') {
       cargarInsumosDeProducto(productoActualEnEdicion);
+    }
+    if (productoActualEnEdicion && productoActualEnEdicion.tiene_opciones) {
+      cargarOpcionesDeProducto(productoActualEnEdicion);
     }
   });
 
@@ -838,8 +848,13 @@ function toggleProductTypeFields(isEditing = false) {
 
   document.getElementById('simpleStockSection').style.display = 'none';
   document.getElementById('insumosSection').style.display = 'none';
+  document.getElementById('opcionesSection').style.display = 'none';
 
-  if (stockType === 'simple') {
+  if (stockType === 'opciones') {
+    document.getElementById('opcionesSection').style.display = 'flex';
+    if (insumosCatalogo.length === 0) loadInsumosForForm();
+    if (productOpcionesTemp.length === 0) agregarOpcionVacia(); else renderizarOpciones();
+  } else if (stockType === 'simple') {
     document.getElementById('simpleStockSection').style.display = 'flex';
   } else if (stockType === 'insumo') {
     document.getElementById('insumosSection').style.display = 'flex';
@@ -879,6 +894,7 @@ async function loadInsumosForForm() {
     console.error('❌ [loadInsumosForForm] Error cargando insumos:', error);
   }
   renderizarInsumosLista();
+  if (typeof renderizarOpciones === 'function') renderizarOpciones();
 }
 
 /** Arma las tarjetas a partir de los vínculos guardados de un producto (editar / duplicar) */
@@ -1192,6 +1208,15 @@ async function saveProduct(e) {
     }
     insumosParaGuardar = resultado.insumos;
   }
+  let opcionesParaGuardar = null;
+  if (stockType === 'opciones') {
+    const resultado = construirOpcionesParaGuardar();
+    if (resultado.error) {
+      puchiaAlert(resultado.error, 'warning');
+      return;
+    }
+    opcionesParaGuardar = resultado.opciones;
+  }
   // Si es 'infinito' no necesita validación de stock
 
   // Cantidad mínima/máxima por compra (opcionales)
@@ -1243,11 +1268,12 @@ async function saveProduct(e) {
       nombre,
       descripcion: descripcionAEnviar,
       precio: Number(precio),
-      stock_type: stockType === 'infinito' ? 'simple' : stockType,
+      stock_type: (stockType === 'infinito' || stockType === 'opciones') ? 'simple' : stockType,
       categorias: [Number(categoriaId)],
       habilitado,
-      // 'infinito' = producto sin límite de stock: no descuenta ni genera alertas
-      controla_stock: stockType !== 'infinito',
+      // 'infinito' y 'con opciones' no tienen stock propio: no descuentan ni generan alertas de producto agotado
+      // (con opciones, lo que se agota son las variantes de insumo que descuentan sus opciones)
+      controla_stock: stockType !== 'infinito' && stockType !== 'opciones',
       compra_minima: compraMin,
       compra_maxima: compraMax
     };
@@ -1261,8 +1287,15 @@ async function saveProduct(e) {
     } else if (stockType === 'insumo') {
       requestPayload.insumos = insumosParaGuardar;
       requestPayload.tiene_variantes_stock = false;
+    } else if (stockType === 'opciones') {
+      requestPayload.opciones = opcionesParaGuardar;
+      requestPayload.tiene_variantes_stock = false;
     } else if (stockType === 'infinito') {
       requestPayload.tiene_variantes_stock = false;
+    }
+    // Si el producto tenía opciones y se pasó a otro tipo, se borran sus opciones
+    if (stockType !== 'opciones' && productoActualEnEdicion && productoActualEnEdicion.tiene_opciones) {
+      requestPayload.opciones = [];
     }
 
     console.log('📍 [saveProduct] Enviando petición:', method, url);
@@ -2243,7 +2276,7 @@ async function cargarClientesEnDropdown() {
 
 async function cargarProductosParaOrden() {
   try {
-    const response = await fetch(`${API_BASE_URL}/productos`);
+    const response = await fetch(`${API_BASE_URL}/productos?limite=1000`);
     const data = await response.json();
     ordenManualProductos = (data.data || []).filter(p => p.habilitado);
   } catch (error) {
@@ -2420,22 +2453,71 @@ function agregarProductoRow() {
   });
 }
 
-function actualizarFilaProducto(rowId) {
+// Lo que hay en una fila del pedido manual: producto sin opciones (cantidad y precio) o con opciones (cantidad por opción)
+function datosFilaOrden(rowId) {
   const select = document.getElementById(`productoSelect_${rowId}`);
   const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
-  const precioCell = document.getElementById(`precioCell_${rowId}`);
-  const subtotalCell = document.getElementById(`subtotalCell_${rowId}`);
-  if (!select || !cantidadInput) return;
-
+  if (!select || !cantidadInput || !select.value) return null;
+  const productoId = parseInt(select.value);
+  const panel = document.getElementById(`opcionesPanel_${rowId}`);
+  if (panel) {
+    const selecciones = [];
+    let subtotal = 0, cantidad = 0;
+    panel.querySelectorAll('input[data-opcion-id]').forEach(inp => {
+      const c = parseInt(inp.value) || 0;
+      if (c > 0) {
+        selecciones.push({ opcion_id: Number(inp.dataset.opcionId), cantidad: c });
+        subtotal += Number(inp.dataset.precio) * c;
+        cantidad += c;
+      }
+    });
+    return { productoId, conOpciones: true, selecciones, cantidad, subtotal, precio: null };
+  }
   const selectedOption = select.options[select.selectedIndex];
   const precio = selectedOption ? parseFloat(selectedOption.dataset.precio || 0) : 0;
   const cantidad = parseInt(cantidadInput.value) || 0;
-  const subtotal = precio * cantidad;
+  return { productoId, conOpciones: false, cantidad, subtotal: precio * cantidad, precio };
+}
 
-  precioCell.textContent = `$${precio.toFixed(2)}`;
-  subtotalCell.textContent = `$${subtotal.toFixed(2)}`;
+function actualizarFilaProducto(rowId) {
+  const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
+  const precioCell = document.getElementById(`precioCell_${rowId}`);
+  const subtotalCell = document.getElementById(`subtotalCell_${rowId}`);
+  if (!cantidadInput) return;
+
+  const datos = datosFilaOrden(rowId) || { conOpciones: false, cantidad: 0, subtotal: 0, precio: 0 };
+  if (datos.conOpciones) {
+    cantidadInput.value = datos.cantidad;
+    cantidadInput.readOnly = true;
+    precioCell.textContent = 'según opción';
+  } else {
+    cantidadInput.readOnly = false;
+    precioCell.textContent = `$${(datos.precio || 0).toFixed(2)}`;
+  }
+  subtotalCell.textContent = `$${datos.subtotal.toFixed(2)}`;
 
   actualizarTotalOrden();
+}
+
+// Panel de opciones de una fila del pedido manual: cantidad por opción, con su precio y lo que hay disponible
+function mostrarOpcionesFila(rowId, producto) {
+  const contenedor = document.getElementById(`variantesContainer_${rowId}`);
+  const opciones = producto.opciones || [];
+  if (!opciones.length) {
+    contenedor.innerHTML = '<div style="font-size:12px;color:#c5221f;">Este producto no tiene opciones disponibles por falta de stock.</div>';
+    contenedor.style.display = 'block';
+    return;
+  }
+  contenedor.innerHTML = `<div id="opcionesPanel_${rowId}">` + opciones.map(o => {
+    const precio = o.precio !== null && o.precio !== undefined ? Number(o.precio) : Number(producto.precio);
+    const tope = o.disponibles >= UMBRAL_STOCK_ILIMITADO ? '' : `max="${o.disponibles}"`;
+    const nota = o.disponibles >= UMBRAL_STOCK_ILIMITADO ? '' : ` · ${o.disponibles} disponibles`;
+    return `<label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:4px;">
+      <input type="number" min="0" ${tope} step="1" value="0" data-opcion-id="${o.id}" data-precio="${precio}" oninput="actualizarFilaProducto(${rowId})" style="width:70px;padding:5px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:right;">
+      <span><strong>${escInsumo(o.nombre)}</strong> · $${precio.toFixed(2)}${nota}</span>
+    </label>`;
+  }).join('') + '</div>';
+  contenedor.style.display = 'block';
 }
 
 // Cache global para insumos (para evitar múltiples fetches del mismo insumo)
@@ -2478,6 +2560,16 @@ async function actualizarVariantesProducto(rowId) {
 
   const productoId = parseInt(select.value);
   console.log(`📦 [actualizarVariantesProducto] Buscando producto ID: ${productoId}`);
+
+  // Producto con opciones: se elige la cantidad de cada opción (cada una con su precio)
+  const productoConOpciones = ordenManualProductos.find(p => p.id === productoId && p.tiene_opciones);
+  if (productoConOpciones) {
+    mostrarOpcionesFila(rowId, productoConOpciones);
+    actualizarFilaProducto(rowId);
+    return;
+  }
+  const panelAnterior = document.getElementById(`opcionesPanel_${rowId}`);
+  if (panelAnterior) { variantesContainer.innerHTML = ''; variantesContainer.style.display = 'none'; actualizarFilaProducto(rowId); }
 
   try {
     const url = `${API_BASE_URL}/productos/${productoId}`;
@@ -2572,14 +2664,8 @@ function actualizarTotalOrden() {
   // PASO 1: Calcular total sumando todos los productos × cantidades
   tbody.querySelectorAll('tr').forEach(row => {
     const rowId = row.id.replace('ordenRow_', '');
-    const select = document.getElementById(`productoSelect_${rowId}`);
-    const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
-    if (!select || !cantidadInput) return;
-
-    const selectedOption = select.options[select.selectedIndex];
-    const precio = selectedOption ? parseFloat(selectedOption.dataset.precio || 0) : 0;
-    const cantidad = parseInt(cantidadInput.value) || 0;
-    total += precio * cantidad;
+    const datos = datosFilaOrden(rowId);
+    if (datos) total += datos.subtotal;
   });
 
   // PASO 2: Mostrar total
@@ -2646,11 +2732,23 @@ async function guardarOrden(e) {
   const tbody = document.getElementById('ordenItemsTable');
   const items = [];
 
+  let productoConOpcionesSinElegir = null;
   tbody.querySelectorAll('tr').forEach(row => {
     const rowId = row.id.replace('ordenRow_', '');
     const select = document.getElementById(`productoSelect_${rowId}`);
     const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
     if (!select || !cantidadInput) return;
+
+    const datosFila = datosFilaOrden(rowId);
+    if (datosFila && datosFila.conOpciones) {
+      // Producto con opciones: se manda la cantidad de cada opción elegida
+      if (datosFila.selecciones.length === 0) {
+        productoConOpcionesSinElegir = productoConOpcionesSinElegir || select.options[select.selectedIndex].textContent.split(' - ')[0];
+      } else {
+        items.push({ producto_id: datosFila.productoId, selecciones: datosFila.selecciones });
+      }
+      return;
+    }
 
     const productoId = select.value;
     const cantidad = parseInt(cantidadInput.value);
@@ -2671,6 +2769,10 @@ async function guardarOrden(e) {
     }
   });
 
+  if (productoConOpcionesSinElegir) {
+    puchiaAlert(`Elegí la cantidad de al menos una opción de "${productoConOpcionesSinElegir}" o quitá esa fila`, 'warning');
+    return;
+  }
   if (items.length === 0) {
     puchiaAlert('Agrega al menos 1 producto con cantidad válida', 'warning');
     return;
@@ -2858,7 +2960,7 @@ async function descargarTicket() {
                 const subtotal = precio * cantidad;
                 return `
                   <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 14px;">
-                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${item.producto?.nombre || 'Producto sin nombre'}</div>
+                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${item.producto?.nombre || 'Producto sin nombre'}${item.atributos_json?.opcion ? ` <span style="color:#7f1f6e;font-weight:500;">(${escInsumo(item.atributos_json.opcion)})</span>` : ''}</div>
                     <div style="display: flex; justify-content: space-between; color: #666; font-size: 12px;">
                       <span>Cant: ${cantidad} × $${precio.toFixed(2)}</span>
                       <span style="color: #333; font-weight: 700;">$${subtotal.toFixed(2)}</span>
@@ -2987,6 +3089,7 @@ function copiarLinkSeguimiento() {
 // ==================== EDITAR ORDEN ====================
 let ordenEditandoId = null;
 let ordenEditandoData = null;
+let ordenEditandoItemsCambiaron = false;   // true cuando se agregó o quitó algún producto: al guardar se manda la lista completa
 
 async function abrirEditarOrden(id) {
   try {
@@ -3028,6 +3131,7 @@ async function abrirEditarOrden(id) {
 
     ordenEditandoId = orden.id;
     ordenEditandoData = orden;
+    ordenEditandoItemsCambiaron = false;
 
     // Verificar elementos del modal
     const editSenaInput = document.getElementById('editSena');
@@ -3098,6 +3202,7 @@ function cerrarEditarOrden() {
   document.getElementById('modalEditarOrden').style.display = 'none';
   ordenEditandoId = null;
   ordenEditandoData = null;
+  ordenEditandoItemsCambiaron = false;
 }
 
 function mostrarProductosEditarOrden(orden) {
@@ -3110,9 +3215,11 @@ function mostrarProductosEditarOrden(orden) {
   }
 
   productosLista.innerHTML = orden.items.map((item, index) => {
-    const variantesText = item.variantes_seleccionadas && Object.keys(item.variantes_seleccionadas).length > 0
-      ? Object.entries(item.variantes_seleccionadas).map(([tipo, valor]) => `${tipo}: ${valor}`).join(' | ')
-      : '';
+    const variantesText = item.atributos_json && item.atributos_json.opcion
+      ? String(item.atributos_json.opcion)
+      : (item.variantes_seleccionadas && Object.keys(item.variantes_seleccionadas).length > 0
+        ? Object.entries(item.variantes_seleccionadas).map(([tipo, valor]) => `${tipo}: ${valor}`).join(' | ')
+        : '');
 
     const itemId = item.id !== null && item.id !== undefined ? item.id : `temp-${index}`;
 
@@ -3139,6 +3246,7 @@ function eliminarProductoEditarOrden(itemId) {
   } else {
     ordenEditandoData.items = ordenEditandoData.items.filter(item => item.id !== parseInt(itemId));
   }
+  ordenEditandoItemsCambiaron = true;
 
   mostrarProductosEditarOrden(ordenEditandoData);
   recalcularTotalesEditarOrden();
@@ -3175,6 +3283,7 @@ function abrirModalAgregarProductoEdicion() {
   document.getElementById('modalAgregarProductoEdicion').style.display = 'flex';
   document.getElementById('selectProductoEdicion').value = '';
   document.getElementById('cantidadProductoEdicion').value = '1';
+  document.getElementById('cantidadProductoEdicion').disabled = false;
   document.getElementById('variantesEdicionContainer').style.display = 'none';
   document.getElementById('variantesEdicionList').innerHTML = '';
 }
@@ -3192,7 +3301,7 @@ async function cargarProductosSelectEdicion() {
   try {
     // Si no hay productos cargados, cargarlos del API
     if (!ordenManualProductos || ordenManualProductos.length === 0) {
-      const response = await fetch(`${API_BASE_URL}/productos`, {
+      const response = await fetch(`${API_BASE_URL}/productos?limite=1000`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}` }
       });
       const data = await response.json();
@@ -3220,31 +3329,37 @@ async function cargarProductosSelectEdicion() {
 
 async function manejarCambioProductoEdicion() {
   const select = document.getElementById('selectProductoEdicion');
-  const productoId = select.value;
-
-  console.log('🎯 [manejarCambioProductoEdicion] Producto seleccionado:', productoId);
+  const productoId = parseInt(select.value);
+  const contenedor = document.getElementById('variantesEdicionContainer');
+  const lista = document.getElementById('variantesEdicionList');
 
   if (!productoId) {
-    console.log('ℹ️ [manejarCambioProductoEdicion] Sin producto seleccionado, ocultando variantes');
-    document.getElementById('variantesEdicionContainer').style.display = 'none';
+    contenedor.style.display = 'none';
     return;
   }
 
-  const selectedOption = select.options[select.selectedIndex];
-  const insumoId = selectedOption?.dataset.insumoId;
-  const tieneInsumo = insumoId && insumoId !== '';
-
-  console.log('🔑 [manejarCambioProductoEdicion] insumoId:', insumoId, '| tieneInsumo:', tieneInsumo);
-  console.log('📊 [manejarCambioProductoEdicion] selectedOption.dataset:', selectedOption?.dataset);
-
-  if (tieneInsumo) {
-    console.log('📦 [manejarCambioProductoEdicion] Producto tiene insumo, cargando variantes...');
-    await cargarVariantesProductoEdicion(productoId);
-    document.getElementById('variantesEdicionContainer').style.display = 'block';
-  } else {
-    console.log('ℹ️ [manejarCambioProductoEdicion] Producto sin insumo, ocultando variantes');
-    document.getElementById('variantesEdicionContainer').style.display = 'none';
+  // Producto con opciones: se elige la cantidad de cada opción (cada una con su precio)
+  const producto = (ordenManualProductos || []).find(p => p.id === productoId);
+  if (producto && producto.tiene_opciones) {
+    const opciones = producto.opciones || [];
+    lista.innerHTML = opciones.length
+      ? '<div id="opcionesPanelEdicion">' + opciones.map(o => {
+        const precio = o.precio !== null && o.precio !== undefined ? Number(o.precio) : Number(producto.precio);
+        const tope = o.disponibles >= UMBRAL_STOCK_ILIMITADO ? '' : `max="${o.disponibles}"`;
+        const nota = o.disponibles >= UMBRAL_STOCK_ILIMITADO ? '' : ` · ${o.disponibles} disponibles`;
+        return `<label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:4px;">
+          <input type="number" min="0" ${tope} step="1" value="0" data-opcion-id="${o.id}" data-opcion-nombre="${escInsumo(o.nombre)}" data-precio="${precio}" style="width:70px;padding:5px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:right;">
+          <span><strong>${escInsumo(o.nombre)}</strong> · $${precio.toFixed(2)}${nota}</span>
+        </label>`;
+      }).join('') + '</div>'
+      : '<div style="font-size:12px;color:#c5221f;">Este producto no tiene opciones disponibles por falta de stock.</div>';
+    contenedor.style.display = 'block';
+    document.getElementById('cantidadProductoEdicion').disabled = true;   // la cantidad es la suma de las opciones
+    return;
   }
+  document.getElementById('cantidadProductoEdicion').disabled = false;
+  lista.innerHTML = '';
+  contenedor.style.display = 'none';
 }
 
 async function cargarVariantesProductoEdicion(productoId) {
@@ -3339,73 +3454,74 @@ async function cargarVariantesProductoEdicion(productoId) {
 
 async function confirmAgregarProductoEdicion() {
   const select = document.getElementById('selectProductoEdicion');
-  const cantidad = parseInt(document.getElementById('cantidadProductoEdicion').value) || 1;
-  const productoId = select.value;
+  const productoId = parseInt(select.value);
 
   if (!productoId) {
     puchiaAlert('Por favor selecciona un producto', 'warning');
     return;
   }
 
-  if (cantidad <= 0) {
-    puchiaAlert('La cantidad debe ser mayor a 0', 'warning');
-    return;
-  }
-
   const selectedOption = select.options[select.selectedIndex];
-  const tieneInsumo = selectedOption?.dataset.insumoId && selectedOption.dataset.insumoId !== '';
+  const nombre = selectedOption.textContent.split(' - ')[0];
+  const producto = (ordenManualProductos || []).find(p => p.id === productoId);
+  if (!ordenEditandoData.items) ordenEditandoData.items = [];
 
-  // Capturar variantes seleccionadas
-  const variantesSeleccionadas = {};
-  if (tieneInsumo) {
-    const selectores = document.querySelectorAll('.varianteSelect');
-    if (selectores.length === 0) {
-      puchiaAlert('Este producto requiere variantes', 'warning');
-      return;
-    }
-
-    // Recolectar valores de variantes seleccionadas
-    let todasVariantesSeleccionadas = true;
-    selectores.forEach(selector => {
-      const valor = selector.value;
-      const tipo = selector.dataset.varianteTipo;
-
-      if (!valor) {
-        todasVariantesSeleccionadas = false;
-      } else {
-        variantesSeleccionadas[tipo] = valor;
+  if (producto && producto.tiene_opciones) {
+    // Una fila del pedido por cada opción con cantidad (igual que las guarda el servidor)
+    const nuevos = [];
+    document.querySelectorAll('#opcionesPanelEdicion input[data-opcion-id]').forEach(inp => {
+      const c = parseInt(inp.value) || 0;
+      if (c > 0) {
+        nuevos.push({
+          id: null,
+          producto_id: productoId,
+          cantidad: c,
+          precio_unitario: Number(inp.dataset.precio),
+          atributos_json: { opcion_id: Number(inp.dataset.opcionId), opcion: inp.dataset.opcionNombre },
+          producto: { id: productoId, nombre, precio: Number(producto.precio) }
+        });
       }
     });
-
-    if (!todasVariantesSeleccionadas) {
-      puchiaAlert('Por favor selecciona todos los valores de variantes', 'warning');
+    if (nuevos.length === 0) {
+      puchiaAlert('Elegí la cantidad de al menos una opción', 'warning');
       return;
     }
-  }
-
-  // Agregar producto a la orden
-  const nuevoItem = {
-    id: null,
-    producto_id: parseInt(productoId),
-    cantidad: cantidad,
-    precio_unitario: parseFloat(selectedOption.dataset.precio),
-    variantes_seleccionadas: variantesSeleccionadas,
-    producto: {
-      id: parseInt(productoId),
-      nombre: selectedOption.textContent.split(' - ')[0],
-      precio: parseFloat(selectedOption.dataset.precio)
+    ordenEditandoData.items.push(...nuevos);
+  } else {
+    const cantidad = parseInt(document.getElementById('cantidadProductoEdicion').value) || 0;
+    if (cantidad <= 0) {
+      puchiaAlert('La cantidad debe ser mayor a 0', 'warning');
+      return;
     }
-  };
-
-  if (!ordenEditandoData.items) {
-    ordenEditandoData.items = [];
+    ordenEditandoData.items.push({
+      id: null,
+      producto_id: productoId,
+      cantidad,
+      precio_unitario: parseFloat(selectedOption.dataset.precio),
+      producto: { id: productoId, nombre, precio: parseFloat(selectedOption.dataset.precio) }
+    });
   }
 
-  ordenEditandoData.items.push(nuevoItem);
+  ordenEditandoItemsCambiaron = true;
   mostrarProductosEditarOrden(ordenEditandoData);
   recalcularTotalesEditarOrden();
   cerrarModalAgregarProductoEdicion();
   puchiaAlert('Producto agregado', 'success');
+}
+
+// Convierte las filas del pedido en lo que espera el servidor: las filas con opción se agrupan como selecciones del producto
+function itemsParaServidor(filas) {
+  const porProducto = new Map();
+  for (const f of filas) {
+    const e = porProducto.get(f.producto_id) || { producto_id: f.producto_id, cantidad: 0, selecciones: [] };
+    const opcionId = f.atributos_json && f.atributos_json.opcion_id;
+    if (opcionId) e.selecciones.push({ opcion_id: Number(opcionId), cantidad: Number(f.cantidad) });
+    else e.cantidad += Number(f.cantidad);
+    porProducto.set(f.producto_id, e);
+  }
+  return [...porProducto.values()].map(e => (e.selecciones.length
+    ? { producto_id: e.producto_id, selecciones: e.selecciones }
+    : { producto_id: e.producto_id, cantidad: e.cantidad }));
 }
 
 async function guardarEditarOrden() {
@@ -3428,32 +3544,28 @@ async function guardarEditarOrden() {
   try {
     const token = localStorage.getItem('puchia_admin_token');
 
-    // Primero, actualizar items si hay cambios reales (solo si variantes fueron seleccionadas)
-    if (ordenEditandoData && ordenEditandoData.items) {
-      const itemsParaGuardar = ordenEditandoData.items
-        .filter(item => item.producto_id && item.variantes_seleccionadas && Object.keys(item.variantes_seleccionadas).length > 0)
-        .map(item => ({
-          producto_id: item.producto_id,
-          cantidad: item.cantidad,
-          variantes_seleccionadas: item.variantes_seleccionadas || {}
-        }));
-
-      if (itemsParaGuardar.length > 0) {
-        const itemsResponse = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}/items`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ items: itemsParaGuardar })
-        });
-
-        if (!itemsResponse.ok) {
-          const errorData = await itemsResponse.json();
-          puchiaAlert('Error actualizando productos: ' + (errorData.error || 'desconocido'), 'error');
-          return;
-        }
+    // Primero, si se agregó o quitó algún producto, se manda la lista completa de productos del pedido
+    // (el servidor ajusta el stock; lo que ya estaba conserva su precio y lo agregado se cobra al precio de hoy)
+    if (ordenEditandoItemsCambiaron && ordenEditandoData && ordenEditandoData.items) {
+      if (ordenEditandoData.items.length === 0) {
+        puchiaAlert('El pedido no puede quedar sin productos', 'warning');
+        return;
       }
+      const itemsResponse = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}/items`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ items: itemsParaServidor(ordenEditandoData.items) })
+      });
+
+      if (!itemsResponse.ok) {
+        const errorData = await itemsResponse.json().catch(() => ({}));
+        puchiaAlert('Error actualizando productos: ' + (errorData.error || errorData.message || 'desconocido'), 'error');
+        return;
+      }
+      ordenEditandoItemsCambiaron = false;
     }
 
     // Luego, actualizar detalles de la orden
@@ -3591,7 +3703,7 @@ async function viewOrder(id) {
         const cantidad = item.cantidad || 0;
         return `
           <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 14px 12px; font-size: 15px; font-weight: 600; color: #222;">${item.producto?.nombre || item.nombre || 'Producto'}</td>
+            <td style="padding: 14px 12px; font-size: 15px; font-weight: 600; color: #222;">${item.producto?.nombre || item.nombre || 'Producto'}${item.atributos_json?.opcion ? `<div style="font-size: 13px; font-weight: 500; color: #7f1f6e;">${escInsumo(item.atributos_json.opcion)}</div>` : ''}</td>
             <td style="text-align: center; padding: 14px 12px; font-size: 15px; font-weight: 700; color:#7f1f6e;">× ${cantidad}</td>
             <td style="text-align: right; padding: 14px 12px; font-size: 14px; color:#555;">$${precio.toFixed(2)}</td>
             <td style="text-align: right; padding: 14px 12px; font-size: 15px; font-weight: 700; color:#222;">$${(precio * cantidad).toFixed(2)}</td>
