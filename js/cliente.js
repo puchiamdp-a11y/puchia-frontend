@@ -845,7 +845,9 @@ async function openProductDetail(productId) {
 
       modal.querySelector('.modal-overlay')?.addEventListener('click', closeProductDetail);
       modal.querySelector('.modal-box-close')?.addEventListener('click', closeProductDetail);
-      if (product.tiene_opciones && typeof montarSelectorOpciones === 'function') {
+      if (product.es_combo && typeof montarSelectorCombo === 'function') {
+        montarSelectorCombo(modal, product);
+      } else if (product.tiene_opciones && typeof montarSelectorOpciones === 'function') {
         // El selector reemplaza la cantidad única y el botón de agregar (más abajo se ignora el flujo clásico)
         montarSelectorOpciones(modal, product);
       } else

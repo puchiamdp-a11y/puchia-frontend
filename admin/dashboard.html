@@ -595,12 +595,13 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100805"></script>
+    <script src="../js/admin.js?v=2026100806"></script>
     <script src="../js/admin-clientes.js?v=2026100211"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100207"></script>
     <script src="../js/admin-caja-reportes.js?v=2026100203"></script>
     <script src="../js/admin-opciones.js?v=2026100801"></script>
+    <script src="../js/admin-combos.js?v=2026100801"></script>
     <script src="../js/admin-alertas.js?v=2026100301"></script>
     <script src="../js/admin-materiales.js?v=2026100801"></script>
     <script src="../js/admin-ordenes-io.js?v=2026100202"></script>
@@ -883,6 +884,10 @@
                                 <input type="radio" name="stockType" value="opciones" onchange="toggleProductTypeFields()">
                                 Con opciones
                             </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
+                                <input type="radio" name="stockType" value="combo" onchange="toggleProductTypeFields()">
+                                Combo
+                            </label>
                         </div>
                     </div>
 
@@ -916,6 +921,16 @@
                             <select id="generarOpcionesInsumo" style="flex: 1; min-width: 160px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;"></select>
                             <button type="button" class="btn btn-sm btn-secondary" onclick="generarOpcionesDesdeInsumo()">Crear</button>
                         </div>
+                    </div>
+
+                    <!-- COMBO: lleva otros productos; el precio es el de arriba y el stock sale de cada producto que lleva -->
+                    <div id="comboSection" style="display: none; flex-direction: column; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #333;">Qué lleva el combo *</label>
+                            <div style="font-size: 12px; color: #777; margin-top: 2px;">El precio del combo es el de arriba (fijo). Por cada producto indicá cuántas unidades lleva (mínimo y máximo por combo; iguales = cantidad fija). Si el producto tiene opciones, el cliente reparte la cantidad entre ellas, salvo que fijes una. El combo se agota cuando no alcanza el stock de alguna parte.</div>
+                        </div>
+                        <div id="comboPartesLista"></div>
+                        <button type="button" class="btn btn-secondary" onclick="agregarParteCombo()" style="width: 100%; padding: 10px 16px;">+ Agregar producto al combo</button>
                     </div>
 
                     <!-- CANTIDAD POR COMPRA (opcional) -->

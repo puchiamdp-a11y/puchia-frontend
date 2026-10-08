@@ -492,7 +492,7 @@ function renderProductos(lista) {
     const categoria = p.categorias?.[0]?.nombre || 'Sin categoría';
     const catKey = categoria.toLowerCase().replace(/ñ/g, 'n').replace(/\s+/g,'');
     const emoji = ICONOS_CAT[catKey] || '📦';
-    const stockVal = p.tiene_opciones ? `Opciones (${p.stock_disponible >= UMBRAL_STOCK_ILIMITADO ? '∞' : p.stock_disponible})` : (esStockIlimitado(p) ? '∞' : (p.stock_type === 'simple' ? p.stock_cantidad : 'Insumo'));
+    const stockVal = p.es_combo ? `Combo (${p.stock_disponible >= UMBRAL_STOCK_ILIMITADO ? '∞' : (p.stock_disponible ?? 0)})` : p.tiene_opciones ? `Opciones (${p.stock_disponible >= UMBRAL_STOCK_ILIMITADO ? '∞' : p.stock_disponible})` : (esStockIlimitado(p) ? '∞' : (p.stock_type === 'simple' ? p.stock_cantidad : 'Insumo'));
     const precio = Number(p.precio).toLocaleString('es-AR', {minimumFractionDigits: 2});
 
     const portada = p.media?.find(m => m.es_portada) || p.media?.[0] || null;
@@ -753,10 +753,12 @@ function duplicarProducto(id) {
   cargarLimitesCompraEnFormulario(original);
   productInsumosTemp = [];
   resetearOpciones();
+  resetearCombo();
   loadInsumosForForm().then(() => {
     if (original.stock_type === 'insumo') cargarInsumosDeProducto(original);
     if (original.tiene_opciones) cargarOpcionesDeProducto(original, { duplicar: true });
   });
+  if (original.es_combo) cargarComponentesDeCombo(original, { duplicar: true });
   toggleProductTypeFields(true);
   document.getElementById('modalProducto').style.display = 'flex';
   initMediaSection(null);
@@ -774,7 +776,7 @@ const UMBRAL_STOCK_ILIMITADO = 10000;
 const esStockIlimitado = (p) => p && (p.controla_stock === false || (p.stock_type === 'simple' && Number(p.stock_cantidad) >= UMBRAL_STOCK_ILIMITADO));
 
 // Qué tipo de producto se marca en el formulario al abrir uno existente
-const tipoFormularioDe = (p) => (p.tiene_opciones ? 'opciones' : (esStockIlimitado(p) ? 'infinito' : (p.stock_type || 'simple')));
+const tipoFormularioDe = (p) => (p.es_combo ? 'combo' : p.tiene_opciones ? 'opciones' : (esStockIlimitado(p) ? 'infinito' : (p.stock_type || 'simple')));
 
 // Cantidad mínima/máxima de compra: se cargan en el formulario del producto
 function cargarLimitesCompraEnFormulario(p) {
@@ -788,6 +790,7 @@ function openNewProductModal() {
   productoActualEnEdicion = null;
   productInsumosTemp = [];
   resetearOpciones();
+  resetearCombo();
   document.getElementById('modalProductoTitle').textContent = 'Nuevo Producto';
   document.getElementById('formProducto').reset();
   document.getElementById('productHabilitado').checked = true;
@@ -815,6 +818,8 @@ function editProduct(id) {
   // Cargar el catálogo de insumos y armar las tarjetas con lo que ya tiene el producto
   productInsumosTemp = [];
   resetearOpciones();
+  resetearCombo();
+  if (productoActualEnEdicion.es_combo) cargarComponentesDeCombo(productoActualEnEdicion);
   loadInsumosForForm().then(() => {
     if (productoActualEnEdicion && productoActualEnEdicion.stock_type === 'insumo') {
       cargarInsumosDeProducto(productoActualEnEdicion);
@@ -849,8 +854,12 @@ function toggleProductTypeFields(isEditing = false) {
   document.getElementById('simpleStockSection').style.display = 'none';
   document.getElementById('insumosSection').style.display = 'none';
   document.getElementById('opcionesSection').style.display = 'none';
+  document.getElementById('comboSection').style.display = 'none';
 
-  if (stockType === 'opciones') {
+  if (stockType === 'combo') {
+    document.getElementById('comboSection').style.display = 'flex';
+    if (comboPartesTemp.length === 0) agregarParteCombo(); else renderizarCombo();
+  } else if (stockType === 'opciones') {
     document.getElementById('opcionesSection').style.display = 'flex';
     if (insumosCatalogo.length === 0) loadInsumosForForm();
     if (productOpcionesTemp.length === 0) agregarOpcionVacia(); else renderizarOpciones();
@@ -1217,6 +1226,15 @@ async function saveProduct(e) {
     }
     opcionesParaGuardar = resultado.opciones;
   }
+  let componentesParaGuardar = null;
+  if (stockType === 'combo') {
+    const resultado = construirComponentesParaGuardar();
+    if (resultado.error) {
+      puchiaAlert(resultado.error, 'warning');
+      return;
+    }
+    componentesParaGuardar = resultado.componentes;
+  }
   // Si es 'infinito' no necesita validación de stock
 
   // Cantidad mínima/máxima por compra (opcionales)
@@ -1268,12 +1286,13 @@ async function saveProduct(e) {
       nombre,
       descripcion: descripcionAEnviar,
       precio: Number(precio),
-      stock_type: (stockType === 'infinito' || stockType === 'opciones') ? 'simple' : stockType,
+      stock_type: (stockType === 'infinito' || stockType === 'opciones' || stockType === 'combo') ? 'simple' : stockType,
       categorias: [Number(categoriaId)],
       habilitado,
       // 'infinito' y 'con opciones' no tienen stock propio: no descuentan ni generan alertas de producto agotado
       // (con opciones, lo que se agota son las variantes de insumo que descuentan sus opciones)
-      controla_stock: stockType !== 'infinito' && stockType !== 'opciones',
+      controla_stock: stockType !== 'infinito' && stockType !== 'opciones' && stockType !== 'combo',
+      es_combo: stockType === 'combo',
       compra_minima: compraMin,
       compra_maxima: compraMax
     };
@@ -1289,6 +1308,9 @@ async function saveProduct(e) {
       requestPayload.tiene_variantes_stock = false;
     } else if (stockType === 'opciones') {
       requestPayload.opciones = opcionesParaGuardar;
+      requestPayload.tiene_variantes_stock = false;
+    } else if (stockType === 'combo') {
+      requestPayload.componentes = componentesParaGuardar;
       requestPayload.tiene_variantes_stock = false;
     } else if (stockType === 'infinito') {
       requestPayload.tiene_variantes_stock = false;
@@ -2459,6 +2481,12 @@ function datosFilaOrden(rowId) {
   const cantidadInput = document.getElementById(`cantidadInput_${rowId}`);
   if (!select || !cantidadInput || !select.value) return null;
   const productoId = parseInt(select.value);
+  if (document.getElementById(`comboPanel_${rowId}`)) {
+    const opt = select.options[select.selectedIndex];
+    const precio = opt ? parseFloat(opt.dataset.precio || 0) : 0;
+    const copias = parseInt(cantidadInput.value) || 0;
+    return { productoId, esCombo: true, conOpciones: false, cantidad: copias, subtotal: precio * copias, precio };
+  }
   const panel = document.getElementById(`opcionesPanel_${rowId}`);
   if (panel) {
     const selecciones = [];
@@ -2560,6 +2588,16 @@ async function actualizarVariantesProducto(rowId) {
 
   const productoId = parseInt(select.value);
   console.log(`📦 [actualizarVariantesProducto] Buscando producto ID: ${productoId}`);
+
+  // Combo: se arma qué lleva (cantidad por parte y por opción); el precio es el del combo
+  const comboElegido = ordenManualProductos.find(p => p.id === productoId && p.es_combo);
+  if (comboElegido) {
+    variantesContainer.innerHTML = htmlPanelCombo(comboElegido, `comboPanel_${rowId}`, '');
+    variantesContainer.style.display = 'block';
+    actualizarFilaProducto(rowId);
+    return;
+  }
+  if (document.getElementById(`comboPanel_${rowId}`)) { variantesContainer.innerHTML = ''; variantesContainer.style.display = 'none'; actualizarFilaProducto(rowId); }
 
   // Producto con opciones: se elige la cantidad de cada opción (cada una con su precio)
   const productoConOpciones = ordenManualProductos.find(p => p.id === productoId && p.tiene_opciones);
@@ -2733,6 +2771,7 @@ async function guardarOrden(e) {
   const items = [];
 
   let productoConOpcionesSinElegir = null;
+  let errorCombo = null;
   tbody.querySelectorAll('tr').forEach(row => {
     const rowId = row.id.replace('ordenRow_', '');
     const select = document.getElementById(`productoSelect_${rowId}`);
@@ -2740,6 +2779,12 @@ async function guardarOrden(e) {
     if (!select || !cantidadInput) return;
 
     const datosFila = datosFilaOrden(rowId);
+    if (datosFila && datosFila.esCombo) {
+      const armado = leerPanelCombo(document.getElementById(`comboPanel_${rowId}`));
+      if (armado.error) { errorCombo = errorCombo || `${select.options[select.selectedIndex].textContent.split(' - ')[0]}: ${armado.error}`; return; }
+      if (datosFila.cantidad > 0) items.push({ producto_id: datosFila.productoId, cantidad: datosFila.cantidad, componentes: armado.componentes });
+      return;
+    }
     if (datosFila && datosFila.conOpciones) {
       // Producto con opciones: se manda la cantidad de cada opción elegida
       if (datosFila.selecciones.length === 0) {
@@ -2769,6 +2814,10 @@ async function guardarOrden(e) {
     }
   });
 
+  if (errorCombo) {
+    puchiaAlert(errorCombo, 'warning');
+    return;
+  }
   if (productoConOpcionesSinElegir) {
     puchiaAlert(`Elegí la cantidad de al menos una opción de "${productoConOpcionesSinElegir}" o quitá esa fila`, 'warning');
     return;
@@ -3338,8 +3387,15 @@ async function manejarCambioProductoEdicion() {
     return;
   }
 
-  // Producto con opciones: se elige la cantidad de cada opción (cada una con su precio)
+  // Combo: se arma qué lleva; la cantidad del campo de abajo son las copias del combo
   const producto = (ordenManualProductos || []).find(p => p.id === productoId);
+  if (producto && producto.es_combo) {
+    lista.innerHTML = htmlPanelCombo(producto, 'comboPanelEdicion', '');
+    contenedor.style.display = 'block';
+    document.getElementById('cantidadProductoEdicion').disabled = false;
+    return;
+  }
+  // Producto con opciones: se elige la cantidad de cada opción (cada una con su precio)
   if (producto && producto.tiene_opciones) {
     const opciones = producto.opciones || [];
     lista.innerHTML = opciones.length
@@ -3466,7 +3522,20 @@ async function confirmAgregarProductoEdicion() {
   const producto = (ordenManualProductos || []).find(p => p.id === productoId);
   if (!ordenEditandoData.items) ordenEditandoData.items = [];
 
-  if (producto && producto.tiene_opciones) {
+  if (producto && producto.es_combo) {
+    const armado = leerPanelCombo(document.getElementById('comboPanelEdicion'));
+    if (armado.error) { puchiaAlert(armado.error, 'warning'); return; }
+    const copias = parseInt(document.getElementById('cantidadProductoEdicion').value) || 0;
+    if (copias <= 0) { puchiaAlert('La cantidad debe ser mayor a 0', 'warning'); return; }
+    ordenEditandoData.items.push({
+      id: null,
+      producto_id: productoId,
+      cantidad: copias,
+      precio_unitario: Number(producto.precio),
+      atributos_json: { combo: true, opcion: armado.texto, componentes: armado.detalle },
+      producto: { id: productoId, nombre, precio: Number(producto.precio) }
+    });
+  } else if (producto && producto.tiene_opciones) {
     // Una fila del pedido por cada opción con cantidad (igual que las guarda el servidor)
     const nuevos = [];
     document.querySelectorAll('#opcionesPanelEdicion input[data-opcion-id]').forEach(inp => {
@@ -3512,16 +3581,29 @@ async function confirmAgregarProductoEdicion() {
 // Convierte las filas del pedido en lo que espera el servidor: las filas con opción se agrupan como selecciones del producto
 function itemsParaServidor(filas) {
   const porProducto = new Map();
+  const combos = [];
   for (const f of filas) {
+    const a = f.atributos_json;
+    // Un combo viaja con lo que se eligió de cada parte (nunca se une con otras filas)
+    if (a && a.combo === true && Array.isArray(a.componentes)) {
+      combos.push({
+        producto_id: f.producto_id,
+        cantidad: Number(f.cantidad),
+        componentes: a.componentes.map(c => (c.selecciones
+          ? { componente_id: c.componente_id, selecciones: c.selecciones.map(x => ({ opcion_id: x.opcion_id, cantidad: x.cantidad })) }
+          : { componente_id: c.componente_id, cantidad: c.cantidad }))
+      });
+      continue;
+    }
     const e = porProducto.get(f.producto_id) || { producto_id: f.producto_id, cantidad: 0, selecciones: [] };
     const opcionId = f.atributos_json && f.atributos_json.opcion_id;
     if (opcionId) e.selecciones.push({ opcion_id: Number(opcionId), cantidad: Number(f.cantidad) });
     else e.cantidad += Number(f.cantidad);
     porProducto.set(f.producto_id, e);
   }
-  return [...porProducto.values()].map(e => (e.selecciones.length
+  return [...[...porProducto.values()].map(e => (e.selecciones.length
     ? { producto_id: e.producto_id, selecciones: e.selecciones }
-    : { producto_id: e.producto_id, cantidad: e.cantidad }));
+    : { producto_id: e.producto_id, cantidad: e.cantidad })), ...combos];
 }
 
 async function guardarEditarOrden() {

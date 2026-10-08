@@ -76,6 +76,9 @@ async function _loadProductsFromAPI() {
           // Opciones (color, tamaño, modelo…): el cliente elige cuántas de cada una; cada una trae su precio y cuántas quedan
           tiene_opciones: p.tiene_opciones === true,
           opciones: (p.opciones || []).map(o => ({ id: o.id, nombre: o.nombre, precio: o.precio === null || o.precio === undefined ? null : Number(o.precio), disponibles: Number(o.disponibles) || 0 })),
+          es_combo: p.es_combo === true,
+          // Combo: lo que lleva cada parte, con cuántas unidades se pueden elegir y qué opciones quedan
+          combo: p.combo ? { componentes: (p.combo.componentes || []).map(c => ({ componente_id: c.componente_id, producto_id: c.producto_id, producto: c.producto, cantidad_min: c.cantidad_min, cantidad_max: c.cantidad_max, disponibles: c.disponibles, opciones: c.opciones || [] })) } : null,
           compra_minima: p.compra_minima || null,
           compra_maxima: p.compra_maxima || null,
           controla_stock: p.controla_stock !== false,

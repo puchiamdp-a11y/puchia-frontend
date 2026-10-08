@@ -287,7 +287,7 @@ function addToCartForced(productId) {
         showToast('Producto no encontrado', 'error');
         return;
     }
-    if (product.tiene_opciones) { abrirDetalleParaOpciones(product); return; }
+    if (product.tiene_opciones || product.es_combo) { abrirDetalleParaOpciones(product); return; }
 
     let cart = getCart();
     const existingItem = cart.find(item => item.key === claveLinea(product.id));
@@ -306,13 +306,13 @@ function addToCartForced(productId) {
 
 // Un producto con opciones no se agrega "a ciegas": hay que elegir cuántas de cada una
 function abrirDetalleParaOpciones(product) {
-    showToast(`Elegí las opciones de ${product.name}`, 'info');
+    showToast(product.es_combo ? `Armá tu ${product.name}` : `Elegí las opciones de ${product.name}`, 'info');
     if (typeof window.openProductDetail === 'function') window.openProductDetail(product.id);
 }
 
 // Texto del botón de las tarjetas y precio ("Desde $X" cuando las opciones tienen precios distintos)
 function etiquetaAgregar(product) {
-    return product && product.tiene_opciones ? 'Elegir opciones' : `Agregar al Carrito${window.ICONO_CARRITO || ''}`;
+    return product && product.es_combo ? 'Armar combo' : product && product.tiene_opciones ? 'Elegir opciones' : `Agregar al Carrito${window.ICONO_CARRITO || ''}`;
 }
 
 function precioProducto(product) {
@@ -324,7 +324,7 @@ function precioProducto(product) {
 }
 
 function addToCart(product) {
-    if (product && product.tiene_opciones) {
+    if (product && (product.tiene_opciones || product.es_combo)) {
         abrirDetalleParaOpciones(product);
         return null;
     }
@@ -367,6 +367,16 @@ function addToCart(product) {
     updateCartCount();
     renderCartSidebar();
     return cart;
+}
+
+/** Agrega un combo armado al carrito: cada combo armado es su propia línea (detalle = [{ componente_id, producto, cantidad, selecciones? }]). */
+function addComboToCart(product, detalle, texto) {
+    const cart = getCart();
+    const key = `combo:${product.id}:${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    cart.push({ ...product, key, qty: 1, price: product.price, combo_detalle: detalle, opcion_nombre: texto });
+    saveCart(cart);
+    updateCartCount();
+    renderCartSidebar();
 }
 
 /** Agrega al carrito una línea de un producto con opciones (opcion = { id, nombre, precio, disponibles }). */
@@ -497,6 +507,21 @@ function renderCartSidebar() {
 }
 
 function changeQty(key, delta) {
+    let cart = getCart();
+    const item = cart.find(i => i.key === String(key));
+    if (item && item.combo_detalle && delta > 0 && typeof consultarDisponibilidad === 'function') {
+        // Otro combo igual: se consulta si alcanza con lo que ya hay en el resto del carrito
+        const resto = carritoParaServidor(cart.filter(l => l.key !== item.key).concat([{ ...item, qty: item.qty }]));
+        consultarDisponibilidad(item.id, resto).then(info => {
+            if (info && info.disponibles < 1) { showToast(`No hay stock para otro "${item.name}" igual`, 'error'); return; }
+            aplicarCambioQty(item.key, delta);
+        }).catch(() => aplicarCambioQty(item.key, delta));
+        return;
+    }
+    aplicarCambioQty(key, delta);
+}
+
+function aplicarCambioQty(key, delta) {
     let cart = getCart();
     const item = cart.find(i => i.key === String(key));
     if (item) {
