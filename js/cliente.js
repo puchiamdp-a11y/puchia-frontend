@@ -808,6 +808,8 @@ async function openProductDetail(productId) {
             .then(data => {
               if (data.success && data.data) {
                 const insumo = data.data;
+                // Un insumo sin variantes guarda su stock en una variante oculta: no hay nada que elegir
+                if (insumo.sin_variantes) return;
                 const variants = insumo.insumo_variants || [];
                 const tipoVariante = insumo.tipo_variante || 'Variante';
 

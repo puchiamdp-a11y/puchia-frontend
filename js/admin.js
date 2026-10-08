@@ -253,6 +253,8 @@ function setupEventListeners() {
           loadInsumos();
         } else if (page === 'calendario') {
           initCalendario();
+        } else if (page === 'materiales') {
+          if (typeof cargarMateriales === 'function') cargarMateriales();
         } else if (page === 'alertas') {
           if (typeof cargarAlertas === 'function') cargarAlertas();
         } else if (page === 'settings') {
@@ -448,7 +450,8 @@ let productosFiltroTexto = '';
 async function loadProducts() {
   try {
     const token = localStorage.getItem('puchia_admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/productos`, {
+    // El servidor devuelve de a 100 por defecto: sin pedir más, a partir del producto 101 el panel dejaba de mostrarlos
+    const response = await fetch(`${API_BASE_URL}/admin/productos?limite=1000`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -747,6 +750,7 @@ function duplicarProducto(id) {
   const st = document.querySelector(`input[name="stockType"][value="${esStockIlimitado(original) ? 'infinito' : (original.stock_type || 'simple')}"]`);
   if (st) st.checked = true;
   document.getElementById('productHabilitado').checked = original.habilitado !== false;
+  cargarLimitesCompraEnFormulario(original);
   productInsumosTemp = [];
   loadInsumosForForm().then(() => {
     if (original.stock_type === 'insumo') cargarInsumosDeProducto(original);
@@ -764,7 +768,16 @@ function duplicarProducto(id) {
 // así que se guarda como producto simple con un stock tan alto que nunca se agota. Desde este número se muestra como ∞.
 const STOCK_ILIMITADO = 99999;
 const UMBRAL_STOCK_ILIMITADO = 10000;
-const esStockIlimitado = (p) => p && p.stock_type === 'simple' && Number(p.stock_cantidad) >= UMBRAL_STOCK_ILIMITADO;
+// Un producto es "infinito" si no controla stock (controla_stock = false) o, en productos viejos, si tiene el stock altísimo de antes.
+const esStockIlimitado = (p) => p && (p.controla_stock === false || (p.stock_type === 'simple' && Number(p.stock_cantidad) >= UMBRAL_STOCK_ILIMITADO));
+
+// Cantidad mínima/máxima de compra: se cargan en el formulario del producto
+function cargarLimitesCompraEnFormulario(p) {
+  const min = document.getElementById('productCompraMinima');
+  const max = document.getElementById('productCompraMaxima');
+  if (min) min.value = p && p.compra_minima ? p.compra_minima : '';
+  if (max) max.value = p && p.compra_maxima ? p.compra_maxima : '';
+}
 
 function openNewProductModal() {
   productoActualEnEdicion = null;
@@ -791,6 +804,7 @@ function editProduct(id) {
   document.getElementById('productCategoria').value = productoActualEnEdicion.categorias?.[0]?.id || '';
   document.querySelector(`input[name="stockType"][value="${esStockIlimitado(productoActualEnEdicion) ? 'infinito' : productoActualEnEdicion.stock_type}"]`).checked = true;
   document.getElementById('productHabilitado').checked = productoActualEnEdicion.habilitado !== false;
+  cargarLimitesCompraEnFormulario(productoActualEnEdicion);
 
   // Cargar el catálogo de insumos y armar las tarjetas con lo que ya tiene el producto
   productInsumosTemp = [];
@@ -994,7 +1008,22 @@ function renderizarInsumosLista() {
     ).join('');
 
     let cuerpo = '';
-    if (insumo) {
+    if (insumo && insumo.sin_variantes) {
+      // Insumo sin variantes: la variante única es invisible; solo se indica cuántas unidades se descuentan por venta
+      const unica = (insumo.insumo_variants || [])[0];
+      if (unica) {
+        if (!t.sel[unica.id]) t.sel[unica.id] = { cantidad: 1, precio: null };
+        t.siempre1Unidad = false;   // la cantidad se lee del campo
+        cuerpo = `
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;margin:10px 0;background:#f6eefb;border-radius:8px;font-size:13px;">
+            <span>Stock disponible: <b>${Number(unica.cantidad_en_stock) || 0}</b></span>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:600;color:#5c1a52;">Se descuentan
+              <input type="number" min="1" step="1" value="${t.sel[unica.id].cantidad || 1}" oninput="editarCampoVarianteTarjeta(${t.uid}, ${unica.id}, 'cantidad', this.value)" style="width:80px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+              por cada unidad vendida
+            </label>
+          </div>`;
+      }
+    } else if (insumo) {
       const variantes = insumo.insumo_variants || [];
       const etiqueta = escInsumo(insumo.tipo_variante || 'Variante');
       const columnas = ['28px', 'minmax(0,1fr)', '84px'];
@@ -1165,6 +1194,22 @@ async function saveProduct(e) {
   }
   // Si es 'infinito' no necesita validación de stock
 
+  // Cantidad mínima/máxima por compra (opcionales)
+  const leerLimite = (id) => {
+    const v = (document.getElementById(id)?.value ?? '').trim();
+    return v === '' ? null : Number(v);
+  };
+  const compraMin = leerLimite('productCompraMinima');
+  const compraMax = leerLimite('productCompraMaxima');
+  if ([compraMin, compraMax].some(v => v !== null && (!Number.isInteger(v) || v < 1))) {
+    puchiaAlert('La cantidad mínima y máxima de compra deben ser números enteros mayores a 0', 'warning');
+    return;
+  }
+  if (compraMin !== null && compraMax !== null && compraMin > compraMax) {
+    puchiaAlert('La cantidad mínima de compra no puede ser mayor que la máxima', 'warning');
+    return;
+  }
+
   // Asegurar que quillEditor está inicializado
   if (!quillEditor) {
     initQuillEditor();
@@ -1200,7 +1245,11 @@ async function saveProduct(e) {
       precio: Number(precio),
       stock_type: stockType === 'infinito' ? 'simple' : stockType,
       categorias: [Number(categoriaId)],
-      habilitado
+      habilitado,
+      // 'infinito' = producto sin límite de stock: no descuenta ni genera alertas
+      controla_stock: stockType !== 'infinito',
+      compra_minima: compraMin,
+      compra_maxima: compraMax
     };
     console.log('DEBUG saveProduct - requestPayload:', requestPayload);
 
@@ -1213,7 +1262,6 @@ async function saveProduct(e) {
       requestPayload.insumos = insumosParaGuardar;
       requestPayload.tiene_variantes_stock = false;
     } else if (stockType === 'infinito') {
-      requestPayload.stock_cantidad = STOCK_ILIMITADO;
       requestPayload.tiene_variantes_stock = false;
     }
 
@@ -1320,7 +1368,9 @@ function renderInsumos(lista) {
       <td>${i.id}</td>
       <td><strong>${i.nombre}</strong></td>
       <td>${descripcion}</td>
-      <td><span style="background:#e8f5e9;color:#2e7d32;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">${variantes} variantes</span></td>
+      <td>${i.sin_variantes
+        ? `<span style="background:#e3f2fd;color:#1565c0;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">Sin variantes · stock ${Number(i.insumo_variants?.[0]?.cantidad_en_stock) || 0}</span>`
+        : `<span style="background:#e8f5e9;color:#2e7d32;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">${variantes} variantes</span>`}</td>
       <td class="acciones-cell">
         <button class="btn btn-sm btn-secondary" onclick="editInsumo(${i.id})">Editar</button>
         <button class="btn btn-sm btn-danger" onclick="deleteInsumo(${i.id})">Eliminar</button>
@@ -1343,6 +1393,17 @@ function aplyInsumoFilters() {
   renderInsumos(lista);
 }
 
+// "Sin variantes": se oculta el tipo y la lista de variantes y se pide un solo stock
+function toggleInsumoSinVariantes() {
+  const sin = document.getElementById('insumoSinVariantes')?.checked;
+  const campos = document.getElementById('insumoSinVariantesCampos');
+  if (campos) campos.style.display = sin ? 'flex' : 'none';
+  const tipo = document.getElementById('insumoTipoVarianteWrap');
+  if (tipo) tipo.style.display = sin ? 'none' : 'flex';
+  const vars = document.getElementById('insumoVariantesWrap');
+  if (vars) vars.style.display = sin ? 'none' : 'flex';
+}
+
 function openNewInsumoModal() {
   const modal = document.getElementById('modalInsumo');
   if (!modal) {
@@ -1355,6 +1416,9 @@ function openNewInsumoModal() {
   document.getElementById('insumoTitle').textContent = 'Nuevo Insumo';
   document.getElementById('formInsumo').reset();
   document.getElementById('insumoId').value = '';
+  const chkSin = document.getElementById('insumoSinVariantes');
+  if (chkSin) { chkSin.checked = false; chkSin.disabled = false; }
+  toggleInsumoSinVariantes();
 
   // IMPORTANTE: Inicializar variantes vacías
   insumoVariantesEdit = [];
@@ -1390,6 +1454,13 @@ async function editInsumo(id) {
     document.getElementById('insumoId').value = insumo.id;
     document.getElementById('insumoNombre').value = insumo.nombre;
     document.getElementById('insumoTipoVariante').value = insumo.tipo_variante || 'Color';
+    // Si el insumo tiene o no variantes se decide al crearlo y no se puede cambiar después
+    const chkSin = document.getElementById('insumoSinVariantes');
+    if (chkSin) { chkSin.checked = Boolean(insumo.sin_variantes); chkSin.disabled = true; }
+    const unica = insumo.sin_variantes ? (insumo.insumo_variants || [])[0] : null;
+    document.getElementById('insumoStockUnico').value = unica ? (unica.cantidad_en_stock || 0) : 0;
+    document.getElementById('insumoMinimaUnica').value = unica ? (unica.cantidad_minima || 0) : 0;
+    toggleInsumoSinVariantes();
 
     // IMPORTANTE: Cargar variantes en variable global
     if (Array.isArray(insumo.insumo_variants)) {
@@ -1439,6 +1510,35 @@ async function saveInsumo(e) {
       return;
     }
 
+    const token = localStorage.getItem('puchia_admin_token');
+    const url = id ? `${API_BASE_URL}/insumos/${id}` : `${API_BASE_URL}/insumos`;
+    const method = id ? 'PUT' : 'POST';
+
+    // Insumo sin variantes: un solo stock y un solo mínimo
+    if (document.getElementById('insumoSinVariantes')?.checked) {
+      const stock = Number(document.getElementById('insumoStockUnico').value);
+      const minima = Number(document.getElementById('insumoMinimaUnica').value);
+      if (!Number.isInteger(stock) || stock < 0 || !Number.isInteger(minima) || minima < 0) {
+        puchiaAlert('El stock y el mínimo deben ser números enteros, 0 o más', 'error');
+        return;
+      }
+      const respuestaSin = await fetch(url, {
+        method,
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, sin_variantes: true, cantidad_en_stock: stock, cantidad_minima: minima })
+      });
+      const datosSin = await respuestaSin.json();
+      if (datosSin.success) {
+        puchiaAlert(id ? 'Insumo actualizado' : 'Insumo creado', 'success');
+        document.getElementById('modalInsumo').style.display = 'none';
+        insumoVariantesEdit = [];
+        loadInsumos();
+      } else {
+        puchiaAlert(datosSin.message || datosSin.error || 'Error guardando insumo', 'error');
+      }
+      return;
+    }
+
     // El stock 0 es válido: la variante queda "sin stock" pero no se borra
     const stockOk = (v) => Number.isInteger(v.cantidad_en_stock) && v.cantidad_en_stock >= 0;
     const variantesValidas = insumoVariantesEdit.filter(v => v.nombre && v.nombre.trim() && stockOk(v));
@@ -1450,10 +1550,6 @@ async function saveInsumo(e) {
       puchiaAlert(`No se pueden guardar ${invalidas} variante(s) sin nombre o sin stock. Cada variante necesita un nombre y una cantidad (0 si está agotada)`, 'error');
       return;
     }
-
-    const token = localStorage.getItem('puchia_admin_token');
-    const url = id ? `${API_BASE_URL}/insumos/${id}` : `${API_BASE_URL}/insumos`;
-    const method = id ? 'PUT' : 'POST';
 
     const payload = {
       nombre,
