@@ -3524,12 +3524,20 @@ async function guardarEditarOrden() {
   const notas = document.getElementById('editNotas')?.value || '';
   const total = parseFloat(document.getElementById('editTotal').textContent.replace('$', ''));
 
-  if (!sena || sena < 0 || sena > total) {
-    puchiaAlert('Seña inválida', 'warning');
+  // La seña puede ser 0 (pedido sin seña todavía), pero no vacía, negativa ni mayor que el total
+  if (Number.isNaN(sena) || sena < 0) {
+    puchiaAlert('Ingresá la seña (puede ser 0). El pedido no se guardó.', 'warning');
+    return;
+  }
+  if (sena > total) {
+    puchiaAlert(`La seña ($${sena.toFixed(2)}) es mayor que el total del pedido ($${total.toFixed(2)}). Bajá la seña para poder guardar: el pedido no se guardó.`, 'warning');
     return;
   }
 
-  const btn = event.target;
+  // El botón no depende del evento global (si la función se llama desde código, "event" no existe)
+  const btn = (typeof event !== 'undefined' && event && event.target && event.target.tagName === 'BUTTON')
+    ? event.target
+    : document.querySelector('#modalEditarOrden button[onclick="guardarEditarOrden()"]');
   btn.disabled = true;
   btn.textContent = 'Guardando...';
 
@@ -3540,7 +3548,7 @@ async function guardarEditarOrden() {
     // (el servidor ajusta el stock; lo que ya estaba conserva su precio y lo agregado se cobra al precio de hoy)
     if (ordenEditandoItemsCambiaron && ordenEditandoData && ordenEditandoData.items) {
       if (ordenEditandoData.items.length === 0) {
-        puchiaAlert('El pedido no puede quedar sin productos', 'warning');
+        puchiaAlert('El pedido no puede quedar sin productos. No se guardó.', 'warning');
         return;
       }
       const itemsResponse = await fetch(`${API_BASE_URL}/admin/ordenes/${ordenEditandoId}/items`, {
