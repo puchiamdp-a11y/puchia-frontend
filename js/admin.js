@@ -3201,7 +3201,8 @@ async function abrirEditarOrden(id) {
     }
 
     // Llenar modal con datos
-    editSenaInput.value = orden.sena || (orden.total / 2);
+    // Se muestra la seña REAL del pedido (si no tiene seña, 0); antes se rellenaba con la mitad del total
+    editSenaInput.value = Number(orden.sena) || 0;
     editFechaEntregaInput.value = orden.fecha_entrega ? orden.fecha_entrega.split('T')[0] : '';
     editTotalDiv.textContent = `$${parseFloat(orden.total).toFixed(2)}`;
     editOrdenCodeP.textContent = orden.id_unico;
@@ -3557,7 +3558,8 @@ async function guardarEditarOrden() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ items: itemsParaServidor(ordenEditandoData.items) })
+        // La seña va junto con los productos: el servidor la valida contra el total NUEVO
+        body: JSON.stringify({ items: itemsParaServidor(ordenEditandoData.items), sena })
       });
 
       if (!itemsResponse.ok) {
