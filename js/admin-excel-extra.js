@@ -274,3 +274,66 @@ async function ejecutarImportacionInsumos() {
     mostrarErroresImportacionCaja(['Error de conexión. No se guardó nada.']);
   }
 }
+
+
+// =====================================================================
+// TODO EL STOCK en un solo Excel: una hoja por sección
+// (Productos, Opciones, Combos, Insumos y Materiales)
+// =====================================================================
+function etiquetaTipoProducto(p) {
+  if (p.es_combo) return 'Combo';
+  if (p.tiene_opciones) return 'Con opciones';
+  if (p.controla_stock === false || (p.stock_type === 'simple' && Number(p.stock_cantidad) >= 10000)) return 'Infinito';
+  return p.stock_type === 'insumo' ? 'Insumo' : 'Simple';
+}
+
+async function exportarTodoElStock() {
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const [resProd, insumos, resMat] = await Promise.all([
+      fetch(`${API_BASE_URL}/admin/productos?limite=1000`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+      insumosActuales(),
+      fetch(`${API_BASE_URL}/admin/materiales`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
+    ]);
+    const productos = resProd.data || [];
+    const materiales = resMat.data || [];
+    const disp = (n) => (Number(n) >= 10000 ? 'Sin límite' : (n ?? 0));
+
+    const hojaProductos = [['Producto', 'Tipo', 'Precio', 'Disponibles', 'Categorías', 'Habilitado', 'Compra mínima', 'Compra máxima']];
+    const hojaOpciones = [['Producto', 'Opción', 'Precio', 'Se vende', 'Disponibles']];
+    const hojaCombos = [['Combo', 'Producto que lleva', 'Cantidad mínima', 'Cantidad máxima']];
+    productos.forEach(p => {
+      hojaProductos.push([p.nombre || '', etiquetaTipoProducto(p), Number(p.precio) || 0, p.es_combo ? disp(p.stock_disponible) : disp(p.stock_disponible ?? p.stock_cantidad),
+        (p.categorias || []).map(c => c.nombre).join(', '), p.habilitado ? 'Sí' : 'No', p.compra_minima || '', p.compra_maxima || '']);
+      (p.opciones || []).forEach(o => hojaOpciones.push([p.nombre || '', o.nombre || '', o.precio === null || o.precio === undefined ? (Number(p.precio) || 0) : Number(o.precio), o.activa === false ? 'No' : 'Sí', disp(o.disponibles)]));
+      if (p.es_combo && p.combo) (p.combo.componentes || []).forEach(c => hojaCombos.push([p.nombre || '', c.producto || '', c.cantidad_min ?? '', c.cantidad_max ?? '']));
+    });
+
+    const hojaInsumos = [INSUMOS_COLUMNAS_EXCEL];
+    insumos.forEach(i => {
+      const vars = i.insumo_variants || [];
+      if (!vars.length) hojaInsumos.push([i.nombre, i.descripcion || '', i.tipo_variante || '', '', '', '']);
+      vars.forEach(v => hojaInsumos.push([i.nombre, i.descripcion || '', i.tipo_variante || '', v.nombre || '', v.cantidad_en_stock ?? 0, v.cantidad_minima ?? 0]));
+    });
+
+    const hojaMateriales = [['Nombre', 'Tipo', 'Proveedor', 'Cantidad']];
+    materiales.forEach(m => hojaMateriales.push([m.nombre || '', m.tipo || '', m.proveedor || '', m.cantidad ?? 0]));
+
+    const wb = XLSX.utils.book_new();
+    const agregar = (nombre, filas, anchos) => {
+      const ws = XLSX.utils.aoa_to_sheet(filas);
+      ws['!cols'] = anchos.map(wch => ({ wch }));
+      XLSX.utils.book_append_sheet(wb, ws, nombre);
+    };
+    agregar('Productos', hojaProductos, [30, 14, 12, 14, 28, 12, 14, 14]);
+    agregar('Opciones', hojaOpciones, [30, 28, 12, 10, 14]);
+    agregar('Combos', hojaCombos, [30, 30, 16, 16]);
+    agregar('Insumos', hojaInsumos, [28, 36, 18, 22, 18, 16]);
+    agregar('Materiales', hojaMateriales, [28, 18, 22, 12]);
+    descargarArchivoExcel(wb, `stock_completo_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    puchiaAlert('Stock exportado: una hoja por sección (Productos, Opciones, Combos, Insumos y Materiales)', 'success');
+  } catch (error) {
+    console.error('Error exportando todo el stock:', error);
+    puchiaAlert('No se pudo exportar el stock', 'error');
+  }
+}

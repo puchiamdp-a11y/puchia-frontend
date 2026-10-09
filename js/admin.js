@@ -4485,10 +4485,18 @@ function exportarStock() {
         <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 10px; text-transform: uppercase;">¿Qué exportar?</div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s; background: white;">
-            <input type="radio" name="export-type" value="productos" checked style="cursor: pointer; width: 18px; height: 18px;">
+            <input type="radio" name="export-type" value="todo" checked style="cursor: pointer; width: 18px; height: 18px;">
             <span style="flex: 1;">
-              <strong style="font-size: 14px;">📦 Solo Productos Simples</strong>
-              <div style="font-size: 12px; color: #999;">Exporta solo los productos de la tienda</div>
+              <strong style="font-size: 14px;">🗂️ Todo el stock</strong>
+              <div style="font-size: 12px; color: #999;">Un solo Excel con una hoja por sección: Productos, Opciones, Combos, Insumos y Materiales</div>
+            </span>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; transition: all 0.2s; background: white;">
+            <input type="radio" name="export-type" value="productos" style="cursor: pointer; width: 18px; height: 18px;">
+            <span style="flex: 1;">
+              <strong style="font-size: 14px;">📦 Solo Productos</strong>
+              <div style="font-size: 12px; color: #999;">Exporta solo los productos de la tienda (para importar de nuevo)</div>
             </span>
           </label>
 
@@ -4553,15 +4561,18 @@ function exportarStock() {
   `;
 
   document.body.appendChild(modal);
+  document.getElementById('export-options-container').style.display = 'none';   // "Todo el stock" viene marcado
 
   // Event listeners
   document.querySelectorAll('input[name="export-type"]').forEach(radio => {
     radio.addEventListener('change', () => {
       const categoriaOption = document.getElementById('categoria-option');
       const exportType = radio.value;
+      // "Todo el stock" no tiene opciones: baja todo tal cual está
+      document.getElementById('export-options-container').style.display = exportType === 'todo' ? 'none' : 'flex';
 
       // Ocultar opción de categoría para insumos
-      if (exportType === 'insumos' || exportType === 'ambos') {
+      if (exportType === 'insumos' || exportType === 'ambos' || exportType === 'todo') {
         categoriaOption.style.display = 'none';
         document.querySelector('input[name="export-option"][value="todos"]').checked = true;
         document.getElementById('categoria-select').style.display = 'none';
@@ -4594,7 +4605,9 @@ function ejecutarExportacionStock() {
 
   document.querySelector('.modal.show')?.remove();
 
-  if (tipoExport === 'ambos') {
+  if (tipoExport === 'todo') {
+    exportarTodoElStock();
+  } else if (tipoExport === 'ambos') {
     // Exportar ambos en un ZIP
     exportarAmbosExcel(opcion, categoria);
   } else if (tipoExport === 'insumos') {
