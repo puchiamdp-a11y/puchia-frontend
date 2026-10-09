@@ -86,37 +86,66 @@ async function montarSelectorOpciones(modal, product) {
     const reglas = [];
     if (minimo) reglas.push(`Mínimo ${minimo} en total`);
     if (maximo) reglas.push(`Máximo ${maximo} en total`);
+    const textoDisp = (o) => (o.disponibles >= 10000 ? 'disponible' : `${o.disponibles} disponible${o.disponibles === 1 ? '' : 's'}`);
     panel.innerHTML = `
-        <div style="margin-bottom:8px;font-weight:600;">Elegí cuántas querés de cada una:</div>
-        ${reglas.length ? `<div class="opciones-reglas" style="font-size:13px;color:#666;margin-bottom:8px;">${reglas.join(' · ')}${yaEnCarrito ? ` (ya tenés ${yaEnCarrito} en el carrito)` : ''}</div>` : ''}
-        <div class="opciones-lista">
-        ${opciones.map(o => `
-            <div class="opcion-fila" data-opcion-id="${o.id}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eee;">
-                <div style="flex:1;min-width:0;">
-                    <div class="opcion-nombre-tienda" style="font-weight:600;">${escOpc(o.nombre)}</div>
-                    <div style="font-size:12px;color:#666;"><span class="opcion-precio-tienda">${formatCurrency(precioDe(o))}</span> · <span class="opcion-disponibles">${o.disponibles >= 10000 ? 'Disponible' : `${o.disponibles} disponible${o.disponibles === 1 ? '' : 's'}`}</span></div>
-                </div>
-                <button type="button" class="opcion-menos qty-button-responsive" aria-label="Menos">−</button>
-                <input type="number" class="opcion-cant" value="0" min="0" ${o.disponibles < 10000 ? `max="${o.disponibles}"` : ''} style="width:56px;text-align:center;">
-                <button type="button" class="opcion-mas qty-button-responsive" aria-label="Más">+</button>
-            </div>`).join('')}
-        </div>
+        <label class="opciones-etiqueta" style="display:block;margin-bottom:6px;font-weight:600;">Elegí una opción</label>
+        <select class="opcion-select" style="width:100%;padding:12px 14px;border:1.5px solid #d8dde3;border-radius:10px;background:#fff;font-family:inherit;font-size:14px;cursor:pointer;"></select>
+        ${reglas.length ? `<div class="opciones-reglas" style="font-size:13px;color:#666;margin-top:6px;">${reglas.join(' · ')}${yaEnCarrito ? ` (ya tenés ${yaEnCarrito} en el carrito)` : ''}</div>` : ''}
+        <div class="opciones-lista"></div>
         <div class="opciones-total" style="margin-top:10px;font-weight:700;"></div>
         <div class="opciones-error" style="color:#b00;font-size:13px;min-height:18px;"></div>`;
 
+    const selectEl = panel.querySelector('.opcion-select');
+    const listaEl = panel.querySelector('.opciones-lista');
     const totalEl = panel.querySelector('.opciones-total');
     const errorEl = panel.querySelector('.opciones-error');
-    const filas = [...panel.querySelectorAll('.opcion-fila')].map(el => ({
-        el, opcion: opciones.find(o => o.id === Number(el.dataset.opcionId)), input: el.querySelector('.opcion-cant')
-    }));
+    const elegidas = new Map();   // opcion_id -> cantidad (en el orden en que se eligieron)
+
+    function pintarSelect() {
+        const libres = opciones.filter(o => !elegidas.has(o.id));
+        selectEl.innerHTML = `<option value="">${libres.length ? 'Elegí una opción…' : 'Ya elegiste todas las opciones'}</option>` +
+            libres.map(o => `<option value="${o.id}">${escOpc(o.nombre)} — ${formatCurrency(precioDe(o))} · ${textoDisp(o)}</option>`).join('');
+        selectEl.disabled = libres.length === 0;
+    }
+
+    function pintarFilas() {
+        listaEl.innerHTML = [...elegidas.keys()].map(id => {
+            const o = opciones.find(x => x.id === id);
+            return `
+            <div class="opcion-fila" data-opcion-id="${o.id}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eee;">
+                <div style="flex:1;min-width:0;">
+                    <div class="opcion-nombre-tienda" style="font-weight:600;">${escOpc(o.nombre)}</div>
+                    <div style="font-size:12px;color:#666;"><span class="opcion-precio-tienda">${formatCurrency(precioDe(o))}</span> · <span class="opcion-disponibles">${textoDisp(o)}</span></div>
+                </div>
+                <button type="button" class="opcion-menos qty-button-responsive" aria-label="Menos">−</button>
+                <input type="number" class="opcion-cant" value="${elegidas.get(id)}" min="1" ${o.disponibles < 10000 ? `max="${o.disponibles}"` : ''} style="width:56px;text-align:center;">
+                <button type="button" class="opcion-mas qty-button-responsive" aria-label="Más">+</button>
+                <button type="button" class="opcion-quitar" aria-label="Quitar" title="Quitar" style="background:none;border:0;color:#999;font-size:18px;cursor:pointer;">✕</button>
+            </div>`;
+        }).join('');
+        listaEl.querySelectorAll('.opcion-fila').forEach(el => {
+            const id = Number(el.dataset.opcionId);
+            const input = el.querySelector('.opcion-cant');
+            el.querySelector('.opcion-menos').addEventListener('click', () => { input.value = Math.max(1, (Number(input.value) || 1) - 1); actualizar(); });
+            el.querySelector('.opcion-mas').addEventListener('click', () => { input.value = (Number(input.value) || 0) + 1; actualizar(); });
+            el.querySelector('.opcion-quitar').addEventListener('click', () => { elegidas.delete(id); pintarSelect(); pintarFilas(); actualizar(); });
+            input.addEventListener('input', actualizar);
+        });
+    }
 
     function leerSelecciones() {
-        return filas.map(f => {
-            let n = Math.max(0, Math.floor(Number(f.input.value) || 0));
-            if (n > f.opcion.disponibles) n = f.opcion.disponibles;
-            if (String(n) !== f.input.value) f.input.value = n;
-            return { opcion: f.opcion, cantidad: n };
-        }).filter(s => s.cantidad > 0);
+        const sel = [];
+        listaEl.querySelectorAll('.opcion-fila').forEach(el => {
+            const id = Number(el.dataset.opcionId);
+            const opcion = opciones.find(o => o.id === id);
+            const input = el.querySelector('.opcion-cant');
+            let n = Math.max(0, Math.floor(Number(input.value) || 0));
+            if (n > opcion.disponibles) n = opcion.disponibles;
+            if (input.value !== '' && String(n) !== input.value) input.value = n;
+            elegidas.set(id, n);
+            if (n > 0) sel.push({ opcion, cantidad: n });
+        });
+        return sel;
     }
 
     function actualizar() {
@@ -133,11 +162,13 @@ async function montarSelectorOpciones(modal, product) {
         return sel;
     }
 
-    filas.forEach(f => {
-        f.el.querySelector('.opcion-menos').addEventListener('click', () => { f.input.value = Math.max(0, (Number(f.input.value) || 0) - 1); actualizar(); });
-        f.el.querySelector('.opcion-mas').addEventListener('click', () => { f.input.value = (Number(f.input.value) || 0) + 1; actualizar(); });
-        f.input.addEventListener('input', actualizar);
+    selectEl.addEventListener('change', () => {
+        const id = Number(selectEl.value);
+        if (!id) return;
+        elegidas.set(id, 1);
+        pintarSelect(); pintarFilas(); actualizar();
     });
+    pintarSelect();
     actualizar();
 
     boton.addEventListener('click', () => {
