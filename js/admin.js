@@ -1452,7 +1452,7 @@ function aplyInsumoFilters() {
 function toggleInsumoSinVariantes() {
   const sin = document.getElementById('insumoSinVariantes')?.checked;
   const campos = document.getElementById('insumoSinVariantesCampos');
-  if (campos) campos.style.display = sin ? 'flex' : 'none';
+  if (campos) campos.style.display = sin ? 'grid' : 'none';
   const tipo = document.getElementById('insumoTipoVarianteWrap');
   if (tipo) tipo.style.display = sin ? 'none' : 'flex';
   const vars = document.getElementById('insumoVariantesWrap');
@@ -2208,7 +2208,7 @@ function exportarOrdenesToExcel() {
   try {
     // Preparar datos para Excel
     const excelData = filteredOrdersData.map(orden => {
-      const restoPagar = parseFloat(orden.resto_a_pagar) || (parseFloat(orden.total) - (parseFloat(orden.sena) || parseFloat(orden.total) / 2));
+      const restoPagar = (orden.resto_a_pagar !== null && orden.resto_a_pagar !== undefined ? parseFloat(orden.resto_a_pagar) : (parseFloat(orden.total) - (parseFloat(orden.sena) || 0)));
       const fechaCompra = formatDateLong(getOrderCreatedDate(orden));
       const fechaEntrega = formatDateLong(orden.fecha_entrega);
       const shortId = formatShortOrderId(orden);
@@ -2278,6 +2278,7 @@ async function abrirModalCrearOrden() {
   document.getElementById('selectCliente').disabled = false;
   document.getElementById('ordenItemsTable').innerHTML = '';
   document.getElementById('ordenTotal').textContent = '$0.00';
+  delete document.getElementById('ordenSena').dataset.manual;
   ordenManualRowCounter = 0;
 
   await cargarClientesEnDropdown();
@@ -2709,11 +2710,11 @@ function actualizarTotalOrden() {
   // PASO 2: Mostrar total
   document.getElementById('ordenTotal').textContent = `$${total.toFixed(2)}`;
 
-  // PASO 3: Calcular SEÑA = TOTAL * 0.5 AUTOMÁTICAMENTE (SIEMPRE)
-  const senaPorDefecto = (total / 2).toFixed(2);
+  // PASO 3: La seña se sugiere como el 50% del total, pero solo hasta que se escribe una a mano:
+  // desde ahí se respeta lo que se puso (aunque sea 0) y se compara con el total nuevo
   const inputSena = document.getElementById('ordenSena');
-  if (inputSena) {
-    inputSena.value = senaPorDefecto;
+  if (inputSena && inputSena.dataset.manual !== '1') {
+    inputSena.value = (total / 2).toFixed(2);
   }
 
   // PASO 4: Actualizar RESTO = TOTAL - SEÑA
@@ -2736,7 +2737,17 @@ async function guardarOrden(e) {
   const nuevoClienteForm = document.getElementById('nuevoClienteForm');
   const notas = document.getElementById('ordenNotas').value.trim();
   const fechaEntrega = document.getElementById('ordenFechaEntrega').value;
-  const sena = parseFloat(document.getElementById('ordenSena').value) || 0;
+  const sena = parseFloat(document.getElementById('ordenSena').value);
+  const totalOrden = parseFloat(document.getElementById('ordenTotal').textContent.replace('$', '')) || 0;
+
+  if (Number.isNaN(sena) || sena < 0) {
+    puchiaAlert('Ingresá la seña (puede ser 0). El pedido no se guardó.', 'warning');
+    return;
+  }
+  if (sena > totalOrden) {
+    puchiaAlert(`La seña ($${sena.toFixed(2)}) es mayor que el total del pedido ($${totalOrden.toFixed(2)}). Bajala para poder guardar: el pedido no se guardó.`, 'warning');
+    return;
+  }
 
   const esNuevoCliente = nuevoClienteForm.style.display !== 'none';
   let clienteId = selectCliente.value;
@@ -2874,7 +2885,7 @@ async function guardarOrden(e) {
         items,
         notas: notas || null,
         fecha_entrega: fechaEntrega || null,
-        sena: sena || null
+        sena
       })
     });
 
@@ -2935,7 +2946,7 @@ async function descargarTicket() {
 
   try {
     const total = parseFloat(orden.total) || 0;
-    const sena = parseFloat(orden.sena) || (total / 2);
+    const sena = parseFloat(orden.sena) || 0;
     const restoPagar = total - sena;
 
     // Crear HTML del ticket
@@ -3691,7 +3702,7 @@ async function viewOrder(id) {
       ordenActualData = orden; // Guardar datos completos para descargar ticket
 
       const total = parseFloat(orden.total) || 0;
-      const sena = parseFloat(orden.sena) || (total / 2);
+      const sena = parseFloat(orden.sena) || 0;
       const restoPagar = total - sena;
       const fechaCompra = formatDateLong(getOrderCreatedDate(orden));
       const fechaEntrega = formatDateLong(orden.fecha_entrega) !== '—' ? formatDateLong(orden.fecha_entrega) : 'No especificada';
