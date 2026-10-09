@@ -763,7 +763,7 @@
   order: 3;
   margin: 0;
   color: var(--pd-brand);
-  font-size: 1.9rem;
+  font-size: 1.4rem;
   font-weight: 700;
   line-height: 1.1;
 }
@@ -1057,7 +1057,7 @@
   }
 
   .product-detail-modal .detail-price {
-    font-size: 1.7rem;
+    font-size: 1.25rem;
   }
 
   .product-detail-modal .detail-actions {
@@ -1530,4 +1530,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Opciones de un producto y armado de combo: van después del precio y antes de la descripción
+   (orden: título, precio, opciones, botón, descripción). */
+.product-detail-modal .opciones-selector,
+.product-detail-modal .combo-armado {
+  order: 5;
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+.product-detail-modal .modal-content-wrapper:has(.opciones-selector, .combo-armado) > .btn-add-cart {
+  grid-column: 1 / -1;
+}
+.product-detail-modal .opcion-menos,
+.product-detail-modal .opcion-mas {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  padding: 0;
+  border: 1.5px solid var(--pd-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--pd-brand);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
 }
