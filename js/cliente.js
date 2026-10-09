@@ -395,7 +395,7 @@ async function submitOrder(e) {
 
     // 🔍 VALIDACIONES EN CLIENTE
     console.log('🔍 Validando formulario...');
-    if (!name || !email || !phone || !dni || !province || !address) {
+    if (!name || !phone || !dni || !province || !address) {
         console.log('❌ Campos vacíos detectados');
         showToast('❌ Completa todos los campos obligatorios', 'error');
         if (confirmBtn) {
@@ -406,9 +406,9 @@ async function submitOrder(e) {
         return;
     }
 
-    // Validar email
+    // El email es opcional: solo se valida el formato si lo escribieron
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (email && !emailRegex.test(email)) {
         console.log('❌ Email inválido:', email);
         showToast('❌ Email inválido', 'error');
         if (confirmBtn) {
@@ -488,7 +488,7 @@ async function submitOrder(e) {
         // Preparar payload para endpoint transaccional
         const backendPayload = {
             cliente_nombre:   name,
-            cliente_email:    email,
+            cliente_email:    email || undefined,
             cliente_whatsapp: phone,
             notas: notes,
             // Productos con opciones viajan como selecciones (opción + cantidad); el precio lo calcula siempre el servidor

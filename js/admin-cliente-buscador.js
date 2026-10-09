@@ -142,10 +142,11 @@ function clienteBuscadorSync() {
   if (deshabilitado) { CB.input.value = ''; CB.input.placeholder = 'Estás cargando un cliente nuevo (abajo)'; cbCerrar(); }
   else CB.input.placeholder = '🔍 Buscar cliente por nombre, código, WhatsApp, email o DNI...';
 
+  if (CB.editando && CB.editando !== id) clienteBuscadorCerrarEditor();
   if (id && !deshabilitado) {
     const op = [...CB.select.options].find(o => o.value === id);
     const d = CB.detalle.get(id);
-    CB.chip.innerHTML = `<span class="cb-ok">✓</span> <strong>${cbEsc(op ? op.textContent : id)}</strong>${d && (d.whatsapp || d.ciudad) ? ` <span class="cb-extra">${[d.whatsapp, d.ciudad].filter(Boolean).map(cbEsc).join(' · ')}</span>` : ''} <button type="button" class="cb-cambiar" onclick="clienteBuscadorLimpiar()">Cambiar</button>`;
+    CB.chip.innerHTML = `<span class="cb-ok">✓</span> <strong>${cbEsc(op ? op.textContent : id)}</strong>${d && (d.whatsapp || d.ciudad) ? ` <span class="cb-extra">${[d.whatsapp, d.ciudad].filter(Boolean).map(cbEsc).join(' · ')}</span>` : ''} <button type="button" class="cb-cambiar" onclick="clienteBuscadorEditar()" title="Completar o corregir los datos de este cliente sin salir del pedido">✏️ Editar datos</button> <button type="button" class="cb-cambiar" onclick="clienteBuscadorLimpiar()">Cambiar</button>`;
     CB.chip.style.display = 'flex';
     CB.input.style.display = 'none';
   } else {
@@ -164,6 +165,81 @@ function clienteBuscadorNuevo() {
   if (q && !/^\d+$/.test(q)) { const n = document.getElementById('nuevoClienteNombre'); if (n && !n.value) n.value = q; }
   else if (q) { const w = document.getElementById('nuevoClienteWhatsapp'); if (w && !w.value) w.value = q; }
   document.getElementById('nuevoClienteNombre')?.focus();
+}
+
+// ===== Editar los datos del cliente elegido, sin salir del pedido (los productos cargados no se tocan) =====
+const CB_CAMPOS = [
+  ['nombre', 'Nombre *', 'text'], ['whatsapp', 'WhatsApp', 'text'], ['email', 'Email', 'email'], ['dni', 'DNI', 'text'],
+  ['direccion', 'Dirección', 'text'], ['codigo_postal', 'Código postal', 'text'], ['ciudad', 'Localidad', 'text'], ['provincia', 'Provincia', 'text']
+];
+
+async function clienteBuscadorEditar() {
+  const id = CB.select && CB.select.value;
+  if (!id) return;
+  if (document.getElementById('cbEditar')) { clienteBuscadorCerrarEditor(); return; }   // segundo clic = cerrar
+  let c = CB.detalle.get(id) || {};
+  try {                                                                       // datos frescos de la base
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/${id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}` } });
+    const j = await res.json();
+    if (j && j.success && j.data) c = j.data;
+  } catch (e) { /* se usan los datos que ya había */ }
+  const panel = document.createElement('div');
+  panel.id = 'cbEditar';
+  panel.className = 'cb-editar';
+  panel.innerHTML = `
+    <div class="cb-editar-titulo">Datos de ${cbEsc(c.nombre || 'este cliente')} <span>(se guardan en tu base de clientes; el pedido y sus productos no cambian)</span></div>
+    <div class="cb-editar-grid">${CB_CAMPOS.map(([k, et, tipo]) => `
+      <label>${et}<input type="${tipo}" id="cbEd_${k}" value="${cbEsc(c[k] ?? '')}" autocomplete="off"></label>`).join('')}
+    </div>
+    <div id="cbEditarMsg" class="cb-editar-msg"></div>
+    <div class="cb-editar-botones">
+      <button type="button" class="btn btn-secondary" onclick="clienteBuscadorCerrarEditor()">Cerrar</button>
+      <button type="button" class="btn btn-primary" id="cbEditarGuardar" onclick="clienteBuscadorGuardarEdicion()">✓ Guardar datos</button>
+    </div>`;
+  CB.chip.parentNode.insertAdjacentElement('afterend', panel);
+  CB.editando = id;
+  document.getElementById('cbEd_nombre')?.focus();
+}
+
+function clienteBuscadorCerrarEditor() {
+  document.getElementById('cbEditar')?.remove();
+  CB.editando = null;
+}
+
+async function clienteBuscadorGuardarEdicion() {
+  const id = CB.editando;
+  const msg = document.getElementById('cbEditarMsg');
+  const btn = document.getElementById('cbEditarGuardar');
+  if (!id || !msg) return;
+  const val = (k) => (document.getElementById('cbEd_' + k)?.value ?? '').trim();
+  if (!val('nombre')) { msg.style.color = '#c5221f'; msg.textContent = 'El nombre no puede quedar vacío.'; return; }
+  const cuerpo = {};
+  CB_CAMPOS.forEach(([k]) => { cuerpo[k] = val(k); });
+  btn.disabled = true; msg.style.color = '#666'; msg.textContent = 'Guardando…';
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/${id}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('puchia_admin_token')}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(cuerpo)
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.success) {
+      msg.style.color = '#c5221f';
+      msg.textContent = (j.error || j.message || 'No se pudieron guardar los datos') + '. Corregilo y volvé a guardar.';
+      return;
+    }
+    const nuevo = j.data || { id: Number(id), ...cuerpo };
+    CB.detalle.set(String(id), { ...(CB.detalle.get(String(id)) || {}), ...nuevo });
+    const op = [...CB.select.options].find(o => o.value === String(id));
+    if (op) op.textContent = `${nuevo.codigo_cliente || (CB.detalle.get(String(id)) || {}).codigo_cliente || ''} - ${nuevo.nombre}`;
+    clienteBuscadorCerrarEditor();
+    clienteBuscadorSync();
+    if (typeof showToast === 'function') showToast('Datos del cliente guardados', 'success');
+  } catch (e) {
+    msg.style.color = '#c5221f'; msg.textContent = 'No hubo conexión con el servidor. Volvé a intentar.';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', clienteBuscadorInit);

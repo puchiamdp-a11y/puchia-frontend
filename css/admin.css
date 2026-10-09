@@ -1094,3 +1094,14 @@ a.menu-compartir-item:hover { background: #f3e5f5; }
 .alertas-ocultas-head { margin: 18px 0 10px; }
 .alertas-badge { background: #d93025; color: #fff; border-radius: 10px; font-size: 11px; font-weight: 700; padding: 1px 7px; margin-left: 8px; }
 @media (max-width: 600px) { .alerta-card { padding: 12px; gap: 10px; } }
+
+/* Editar datos del cliente dentro del pedido manual */
+.cb-editar { margin-top: 8px; padding: 12px; border: 1px solid #e0d0ea; background: #fbf8fd; border-radius: 8px; }
+.cb-editar-titulo { font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+.cb-editar-titulo span { font-weight: 400; font-size: 12px; color: #777; }
+.cb-editar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cb-editar-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: #555; min-width: 0; }
+.cb-editar-grid input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-weight: 400; min-width: 0; }
+.cb-editar-msg { min-height: 18px; margin-top: 8px; font-size: 13px; }
+.cb-editar-botones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+@media (max-width: 560px) { .cb-editar-grid { grid-template-columns: 1fr; } }
