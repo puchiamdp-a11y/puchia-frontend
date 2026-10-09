@@ -6,7 +6,7 @@
     <title>Puchia Admin - Resumen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/admin.css?v=2026100901">
+    <link rel="stylesheet" href="../css/admin.css?v=2026100903">
     <link rel="stylesheet" href="../css/admin-responsive.css?v=2026090721">
     <link rel="stylesheet" href="../css/admin-clientes-responsive.css?v=2026090721">
     <!-- Quill.js CDN -->
@@ -595,7 +595,7 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100902"></script>
+    <script src="../js/admin.js?v=2026100903"></script>
     <script src="../js/admin-clientes.js?v=2026100211"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100207"></script>
@@ -833,70 +833,59 @@
         </div>
     </div>
 
-    <!-- MODAL CREAR/EDITAR PRODUCTO - VERSIÓN SIMPLIFICADA SIN TABS -->
+    <!-- MODAL CREAR/EDITAR PRODUCTO: ancho, con secciones (datos, tipo y stock, reglas de compra, descripción, fotos) -->
     <div class="modal" id="modalProducto" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
-        <div style="background: white; border-radius: 16px; width: 100%; max-width: 600px; position: relative; margin: 20px;">
-            <div style="padding: 32px 32px 0; position: relative;">
-                <button type="button" id="closeProductModal" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
-                <h2 id="modalProductoTitle" style="font-size: 20px; margin: 0 0 24px;">Nuevo Producto</h2>
+        <div class="pm-box">
+            <div class="pm-header">
+                <h2 id="modalProductoTitle">Nuevo Producto</h2>
+                <button type="button" id="closeProductModal" class="pm-cerrar" aria-label="Cerrar">×</button>
             </div>
 
-            <form id="formProducto" style="display: flex; flex-direction: column; max-height: 85vh; overflow-y: auto;">
-                <div style="padding: 0 32px; display: flex; flex-direction: column; gap: 16px;">
+            <form id="formProducto" class="pm-form">
+                <div class="pm-body">
 
-                    <!-- Nombre -->
-                    <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Nombre *</label>
-                        <input type="text" id="productNombre" name="nombre" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                    </div>
-
-                    <!-- Precio -->
-                    <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Precio *</label>
-                        <input type="number" id="productPrecio" name="precio" required step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                    </div>
-
-                    <!-- Categoría -->
-                    <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Categoría *</label>
-                        <select id="productCategoria" name="categoria" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            <option value="">-- Cargando categorías --</option>
-                        </select>
-                    </div>
-
-                    <!-- Tipo de Stock -->
-                    <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Tipo de Producto</label>
-                        <div style="display: flex; gap: 16px;">
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
-                                <input type="radio" name="stockType" value="simple" checked onchange="toggleProductTypeFields()">
-                                Producto simple
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
-                                <input type="radio" name="stockType" value="insumo" onchange="toggleProductTypeFields()">
-                                Insumo
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
-                                <input type="radio" name="stockType" value="infinito" onchange="toggleProductTypeFields()">
-                                Infinito
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
-                                <input type="radio" name="stockType" value="opciones" onchange="toggleProductTypeFields()">
-                                Con opciones
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
-                                <input type="radio" name="stockType" value="combo" onchange="toggleProductTypeFields()">
-                                Combo
+                    <!-- 1. DATOS BÁSICOS -->
+                    <section class="pm-seccion">
+                        <div class="pm-seccion-titulo"><span class="pm-num">1</span><div><h3>Datos básicos</h3><p>Lo que ve el cliente en la tienda.</p></div></div>
+                        <div class="pm-grid">
+                            <div class="pm-campo pm-span-2">
+                                <label for="productNombre">Nombre *</label>
+                                <input type="text" id="productNombre" name="nombre" required>
+                            </div>
+                            <div class="pm-campo">
+                                <label for="productPrecio">Precio *</label>
+                                <input type="number" id="productPrecio" name="precio" required step="0.01" min="0">
+                            </div>
+                            <div class="pm-campo">
+                                <label for="productCategoria">Categoría *</label>
+                                <select id="productCategoria" name="categoria" required>
+                                    <option value="">-- Cargando categorías --</option>
+                                </select>
+                            </div>
+                            <label class="pm-check pm-span-2" for="productHabilitado">
+                                <input type="checkbox" id="productHabilitado" name="habilitado" checked>
+                                <span><strong>Producto habilitado</strong><small>Si lo desmarcás, deja de mostrarse en la tienda.</small></span>
                             </label>
                         </div>
-                    </div>
+                    </section>
 
+                    <!-- 2. TIPO Y STOCK -->
+                    <section class="pm-seccion">
+                        <div class="pm-seccion-titulo"><span class="pm-num">2</span><div><h3>Tipo de producto y stock</h3><p>Cómo se cuenta lo que queda para vender.</p></div></div>
+                        <div class="pm-tipos">
+                            <label class="pm-tipo"><input type="radio" name="stockType" value="simple" checked onchange="toggleProductTypeFields()"><span><strong>Simple</strong><small>Un stock propio</small></span></label>
+                            <label class="pm-tipo"><input type="radio" name="stockType" value="insumo" onchange="toggleProductTypeFields()"><span><strong>Insumo</strong><small>Descuenta de insumos</small></span></label>
+                            <label class="pm-tipo"><input type="radio" name="stockType" value="opciones" onchange="toggleProductTypeFields()"><span><strong>Con opciones</strong><small>Color, tamaño, modelo…</small></span></label>
+                            <label class="pm-tipo"><input type="radio" name="stockType" value="combo" onchange="toggleProductTypeFields()"><span><strong>Combo</strong><small>Lleva otros productos</small></span></label>
+                            <label class="pm-tipo"><input type="radio" name="stockType" value="infinito" onchange="toggleProductTypeFields()"><span><strong>Infinito</strong><small>Sin control de stock</small></span></label>
+                        </div>
+
+                        <div class="pm-stock">
                     <!-- SIMPLE: Stock Cantidad -->
                     <div id="simpleStockSection" style="display: flex; flex-direction: column; gap: 8px;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Stock Cantidad *</label>
-                        <input type="number" id="productStock" name="stock" min="0" step="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                        <label for="productStock" style="font-weight: 600; color: #333;">Stock Cantidad *</label>
+                        <input type="number" id="productStock" name="stock" min="0" step="1" style="max-width: 220px;">
                     </div>
-
                     <!-- INSUMOS: el producto puede usar varios insumos, cada uno con sus variantes -->
                     <div id="insumosSection" style="display: none; flex-direction: column; gap: 12px;">
                         <div>
@@ -907,7 +896,6 @@
                         <button type="button" class="btn btn-secondary" onclick="agregarTarjetaInsumo()" style="width: 100%; padding: 10px 16px;">+ Agregar otro insumo</button>
                         <div id="productInsumosResumen"></div>
                     </div>
-
                     <!-- CON OPCIONES: el cliente elige tamaño, color, etc. y cada opción tiene su precio y su descuento de stock -->
                     <div id="opcionesSection" style="display: none; flex-direction: column; gap: 12px;">
                         <div>
@@ -922,7 +910,6 @@
                             <button type="button" class="btn btn-sm btn-secondary" onclick="generarOpcionesDesdeInsumo()">Crear</button>
                         </div>
                     </div>
-
                     <!-- COMBO: lleva otros productos; el precio es el de arriba y el stock sale de cada producto que lleva -->
                     <div id="comboSection" style="display: none; flex-direction: column; gap: 12px;">
                         <div>
@@ -932,37 +919,34 @@
                         <div id="comboPartesLista"></div>
                         <button type="button" class="btn btn-secondary" onclick="agregarParteCombo()" style="width: 100%; padding: 10px 16px;">+ Agregar producto al combo</button>
                     </div>
-
-                    <!-- CANTIDAD POR COMPRA (opcional) -->
-                    <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Cantidad por compra <span style="color: #999; font-weight: 400;">(Opcional)</span></label>
-                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 400;">Mínimo
-                                <input type="number" id="productCompraMinima" min="1" step="1" placeholder="sin mínimo" style="width: 120px; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 400;">Máximo
-                                <input type="number" id="productCompraMaxima" min="1" step="1" placeholder="sin máximo" style="width: 120px; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            </label>
                         </div>
-                        <div style="font-size: 12px; color: #777; margin-top: 4px;">El cliente puede comprar cualquier cantidad dentro de ese rango, sumando todas sus opciones. El máximo nunca supera el stock disponible. Dejalo vacío para no limitar.</div>
-                    </div>
+                    </section>
 
-                    <!-- Estado -->
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="productHabilitado" name="habilitado" checked style="width: 18px; height: 18px;">
-                        <label for="productHabilitado" style="font-weight: 400;">Producto habilitado</label>
-                    </div>
+                    <!-- 3. REGLAS DE COMPRA -->
+                    <section class="pm-seccion">
+                        <div class="pm-seccion-titulo"><span class="pm-num">3</span><div><h3>Reglas de compra <em>(opcional)</em></h3><p>Cuántas unidades puede llevar un cliente por compra.</p></div></div>
+                        <div class="pm-grid">
+                            <div class="pm-campo">
+                                <label for="productCompraMinima">Mínimo</label>
+                                <input type="number" id="productCompraMinima" min="1" step="1" placeholder="sin mínimo">
+                            </div>
+                            <div class="pm-campo">
+                                <label for="productCompraMaxima">Máximo</label>
+                                <input type="number" id="productCompraMaxima" min="1" step="1" placeholder="sin máximo">
+                            </div>
+                            <p class="pm-ayuda pm-span-2">El cliente puede comprar cualquier cantidad dentro de ese rango, sumando todas sus opciones. El máximo nunca supera el stock disponible. Dejalo vacío para no limitar.</p>
+                        </div>
+                    </section>
 
-                    <!-- DESCRIPCIÓN COMPLETA -->
-                    <div style="margin-top: 8px; padding-top: 16px; border-top: 1px solid #eee;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Descripción Completa <span style="color: #999; font-weight: 400;">(Opcional)</span></label>
-                        <div id="descripcion-editor" name="descripcion_completa" style="height: 250px; border: 1px solid #ddd; border-radius: 8px; background: white;"></div>
-                    </div>
+                    <!-- 4. DESCRIPCIÓN -->
+                    <section class="pm-seccion">
+                        <div class="pm-seccion-titulo"><span class="pm-num">4</span><div><h3>Descripción <em>(opcional)</em></h3><p>El texto largo que aparece en la página del producto.</p></div></div>
+                        <div id="descripcion-editor" name="descripcion_completa" style="height: 220px; border: 1px solid #ddd; border-radius: 8px; background: white;"></div>
+                    </section>
 
-                    <!-- GALERÍA -->
-                    <div style="margin-top: 8px; padding-top: 16px; border-top: 1px solid #eee;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">Galería de Fotos y Videos</label>
-
+                    <!-- 5. FOTOS Y VIDEOS -->
+                    <section class="pm-seccion">
+                        <div class="pm-seccion-titulo"><span class="pm-num">5</span><div><h3>Fotos y videos</h3><p>La primera es la portada; podés cambiarla en la galería.</p></div></div>
                         <!-- Drop zone -->
                         <div id="mediaDropZone"
                             style="border: 2px dashed #9d4cb8; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; background: #faf5ff; transition: background 0.2s; margin-bottom: 10px;"
@@ -987,12 +971,12 @@
 
                         <!-- Galería de thumbnails -->
                         <div id="mediaGallery" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                    </div>
+                    </section>
 
                 </div>
 
-                <!-- Botones -->
-                <div style="display: flex; gap: 12px; justify-content: flex-end; padding: 24px 32px; margin-top: 16px; border-top: 1px solid #eee; background: #f9f9f9;">
+                <!-- Botones (siempre visibles al pie) -->
+                <div class="pm-pie">
                     <button type="button" class="btn btn-secondary" id="cancelProductBtn">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Producto</button>
                 </div>
@@ -1119,8 +1103,8 @@
 
                             <!-- SEÑA (editable) -->
                             <div>
-                                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">SEÑA (50%)</label>
-                                <input type="number" id="ordenSena" min="0" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; color: #333;" oninput="actualizarRestoAPagar()">
+                                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">SEÑA</label>
+                                <input type="number" id="ordenSena" min="0" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; color: #333;" oninput="this.dataset.manual='1';actualizarRestoAPagar()">
                             </div>
 
                             <!-- RESTO A PAGAR (solo lectura) -->
@@ -1409,57 +1393,68 @@
     </div>
 
     <div class="modal" id="modalInsumo" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0;">
-        <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; margin: 20px auto; position: relative;">
-            <button class="modal-close" onclick="document.getElementById('modalInsumo').style.display = 'none';" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">✕</button>
-            <h2 id="insumoTitle" style="font-size: 20px; margin: 0 0 24px;">Nuevo Insumo</h2>
+        <div class="pm-box pm-box-insumo">
+            <div class="pm-header">
+                <h2 id="insumoTitle">Nuevo Insumo</h2>
+                <button type="button" class="pm-cerrar" aria-label="Cerrar" onclick="document.getElementById('modalInsumo').style.display = 'none';">×</button>
+            </div>
 
-            <form id="formInsumo" style="display: flex; flex-direction: column; gap: 16px;">
+            <form id="formInsumo" class="pm-form">
                 <input type="hidden" id="insumoId" />
+                <div class="pm-body">
 
-                <!-- NOMBRE -->
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 13px; font-weight: 600; color: #555;">Nombre *</label>
-                    <input type="text" id="insumoNombre" placeholder="Ej: Tela Premium" required style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;" />
+                    <!-- 1. DATOS -->
+                    <section class="pm-seccion">
+                        <div class="pm-seccion-titulo"><span class="pm-num">1</span><div><h3>Datos del insumo</h3><p>El material base con el que se arman los productos.</p></div></div>
+                        <div class="pm-grid">
+                            <div class="pm-campo pm-span-2">
+                                <label for="insumoNombre">Nombre *</label>
+                                <input type="text" id="insumoNombre" placeholder="Ej: Tela Premium" required />
+                            </div>
+                            <label class="pm-check pm-span-2" for="insumoSinVariantes">
+                                <input type="checkbox" id="insumoSinVariantes" onchange="toggleInsumoSinVariantes()">
+                                <span><strong>Este insumo no tiene variantes</strong><small>Se cuenta un solo stock (por ejemplo, lápices todos iguales).</small></span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <!-- 2. STOCK (sin variantes) o VARIANTES -->
+                    <section class="pm-seccion">
+                        <div class="pm-seccion-titulo"><span class="pm-num">2</span><div><h3>Stock</h3><p>Cuánto hay y cuándo avisar que hay que reponer.</p></div></div>
+
+                        <div id="insumoSinVariantesCampos" class="pm-grid" style="display: none;">
+                            <div class="pm-campo">
+                                <label for="insumoStockUnico">Cantidad en stock</label>
+                                <input type="number" id="insumoStockUnico" min="0" step="1" value="0" />
+                            </div>
+                            <div class="pm-campo">
+                                <label for="insumoMinimaUnica">Alerta (mínimo)</label>
+                                <input type="number" id="insumoMinimaUnica" min="0" step="1" value="0" title="Stock mínimo: reponer cuando baje de este valor" />
+                            </div>
+                        </div>
+
+                        <div id="insumoTipoVarianteWrap" class="pm-campo" style="max-width: 280px;">
+                            <label for="insumoTipoVariante">Tipo de variante</label>
+                            <select id="insumoTipoVariante">
+                                <option value="Color">Color</option>
+                                <option value="Tamaño">Tamaño</option>
+                                <option value="Capacidad">Capacidad</option>
+                                <option value="Medidas">Medidas</option>
+                            </select>
+                        </div>
+
+                        <div id="insumoVariantesWrap" style="display: flex; flex-direction: column; gap: 8px;">
+                            <label style="font-size: 13px; font-weight: 600; color: #555;">Variantes</label>
+                            <div id="insumoVariantesContainer" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #f9f9f9; max-height: 340px; overflow-y: auto;">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                            <button type="button" class="btn btn-secondary" onclick="addInsumoVariant()" style="font-size: 13px;">+ Agregar Variante</button>
+                        </div>
+                    </section>
+
                 </div>
 
-                <!-- SIN VARIANTES (un solo stock) -->
-                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer;">
-                    <input type="checkbox" id="insumoSinVariantes" onchange="toggleInsumoSinVariantes()" style="width: 16px; height: 16px;">
-                    Este insumo no tiene variantes (se cuenta un solo stock)
-                </label>
-                <div id="insumoSinVariantesCampos" style="display: none; gap: 12px; flex-wrap: wrap;">
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-size: 13px; font-weight: 600; color: #555;">Cantidad en stock</label>
-                        <input type="number" id="insumoStockUnico" min="0" step="1" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 140px; font-size: 14px;" />
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-size: 13px; font-weight: 600; color: #555;">Alerta (mínimo)</label>
-                        <input type="number" id="insumoMinimaUnica" min="0" step="1" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 140px; font-size: 14px;" title="Stock mínimo: reponer cuando baje de este valor" />
-                    </div>
-                </div>
-
-                <!-- TIPO DE VARIANTE -->
-                <div id="insumoTipoVarianteWrap" style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 13px; font-weight: 600; color: #555;">Tipo de Variante</label>
-                    <select id="insumoTipoVariante" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px;">
-                        <option value="Color">Color</option>
-                        <option value="Tamaño">Tamaño</option>
-                        <option value="Capacidad">Capacidad</option>
-                        <option value="Medidas">Medidas</option>
-                    </select>
-                </div>
-
-                <!-- VARIANTES -->
-                <div id="insumoVariantesWrap" style="display: flex; flex-direction: column; gap: 8px;">
-                    <label style="font-size: 13px; font-weight: 600; color: #555;">Variantes</label>
-                    <div id="insumoVariantesContainer" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #f9f9f9; max-height: 250px; overflow-y: auto;">
-                        <!-- Se llenará dinámicamente -->
-                    </div>
-                    <button type="button" class="btn btn-secondary" onclick="addInsumoVariant()" style="font-size: 13px;">+ Agregar Variante</button>
-                </div>
-
-                <!-- BOTONES -->
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #eee; padding-top: 16px;">
+                <div class="pm-pie">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalInsumo').style.display = 'none';">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Insumo</button>
                 </div>
