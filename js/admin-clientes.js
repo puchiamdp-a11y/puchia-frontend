@@ -8,7 +8,7 @@ const SORT_KEY = 'puchia_admin_clientes_sort';
 let sortState = (() => {
   try {
     const raw = sessionStorage.getItem(SORT_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) { const g = JSON.parse(raw); if (g.field === 'creado_en') g.field = 'created_at'; return g; }
   } catch (_) {}
   return { field: null, dir: 'asc' };
 })();
@@ -82,22 +82,8 @@ function sortBy(field) {
     sortState = { field, dir: 'asc' };
   }
   try { sessionStorage.setItem(SORT_KEY, JSON.stringify(sortState)); } catch (_) {}
-  renderClientes();
-}
-
-function aplicarSort(data) {
-  if (!sortState.field) return data;
-  const { field, dir } = sortState;
-  const mul = dir === 'asc' ? 1 : -1;
-  return [...data].sort((a, b) => {
-    let va = a[field], vb = b[field];
-    if (va == null) va = '';
-    if (vb == null) vb = '';
-    if (field === 'created_at') return (new Date(va) - new Date(vb)) * mul;
-    if (typeof va === 'boolean' || typeof vb === 'boolean') return ((va === vb) ? 0 : (va ? 1 : -1)) * mul;
-    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * mul;
-    return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base', numeric: true }) * mul;
-  });
+  paginaActual = 1;
+  listarClientes();
 }
 
 function actualizarIndicadoresSort() {
@@ -128,6 +114,8 @@ async function listarClientes() {
   const tipoCliente = document.getElementById('filtroTipoCliente')?.value;
 
   let url = `${API_BASE_URL}/admin/clientes?pagina=${paginaActual}&limite=${LIMITE}`;
+  // El orden lo hace el servidor sobre TODA la lista (si se ordenara acá, solo se reordenaría la página visible)
+  if (sortState.field) url += `&orden=${encodeURIComponent(sortState.field)}&dir=${sortState.dir}`;
   if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`;
   if (activo !== '') url += `&activo=${activo}`;
   if (tipoCliente) url += `&tipo_cliente=${tipoCliente}`;
@@ -165,8 +153,7 @@ function renderClientes() {
     return;
   }
 
-  const data = aplicarSort(clientesActuales);
-  tbody.innerHTML = data.map(c => `
+  tbody.innerHTML = clientesActuales.map(c => `
     <tr>
       <td><span class="${getCodigoBadgeClass(c.codigo_cliente)}">${c.codigo_cliente}</span></td>
       <td><a href="#" class="cliente-link" onclick="verCliente(${c.id}); return false;" title="Ver perfil"><strong>${cEsc(c.nombre)}</strong></a></td>
