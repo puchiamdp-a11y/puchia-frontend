@@ -405,7 +405,15 @@ function renderPreviewScrollingText(config) {
   if (config.background_color) styles.push(`background-color: ${escapeHTML(config.background_color)}`);
   if (config.text_color) styles.push(`color: ${escapeHTML(config.text_color)}`);
 
-  return `<div class="announcement-bar" style="${styles.join('; ')}">${escapeHTML(config.text)}</div>`;
+  styles.push('overflow: hidden');
+  // Misma marquesina que el sitio: el texto se mueve a la velocidad elegida
+  const anchoItem = String(config.text).length * 10 + 80;
+  const REPETICIONES = Math.max(4, Math.ceil(3000 / anchoItem));
+  const item = `<span class="marquee-item">${escapeHTML(config.text)}</span>`;
+  const grupo = `<span class="marquee-group">${item.repeat(REPETICIONES)}</span>`;
+  const largoPx = REPETICIONES * anchoItem;
+  const segundos = Math.min(400, Math.max(6, largoPx / (Math.max(10, Number(config.scroll_speed) || 50) * 1.6)));
+  return `<div class="announcement-bar" style="${styles.join('; ')}"><div class="marquee-track" style="animation-duration: ${segundos.toFixed(1)}s;">${grupo}${grupo}</div></div>`;
 }
 
 // ======================== RENDERIZAR STATS EN PREVIEW ========================

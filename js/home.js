@@ -118,40 +118,52 @@ setInterval(nextBanner, 5000);
 
 function animateCounters() {
     const counters = document.querySelectorAll('.stat-number');
-    
+
     if (counters.length === 0) {
         console.log('No se encontraron contadores');
         return;
     }
-    
-    counters.forEach(el => {
+
+    // Cuenta de 0 al número elegido, una sola vez por contador. El prefijo y el sufijo (★, %, +…) se toman del texto que ya tiene.
+    const animar = (el) => {
+        if (el.dataset.animado === '1') return;
         const target = parseInt(el.getAttribute('data-target'));
         if (!target) return;
-        
-        const isStar = target === 5;
-        const isPercent = target === 100;
-        
+        el.dataset.animado = '1';
+
+        const plantilla = el.textContent.trim();
+        const formatear = (n) => plantilla.replace(/[0-9][0-9.,]*/, n.toLocaleString('es-AR'));
+
         let current = 0;
         const increment = target / 80;
-        
         const timer = setInterval(() => {
             current += increment;
-            
             if (current >= target) {
                 current = target;
                 clearInterval(timer);
             }
-            
-            const value = Math.floor(current);
-            
-            if (isStar) {
-                el.textContent = value + '★';
-            } else if (isPercent) {
-                el.textContent = value + '%';
-            } else {
-                el.textContent = value.toLocaleString('es-AR');
-            }
+            el.textContent = formatear(Math.floor(current));
         }, 25);
+    };
+
+    // La cuenta arranca cuando la sección entra en pantalla (antes corría al cargar la página,
+    // cuando todavía no se veía, y al scrollear los números ya estaban quietos).
+    if (!('IntersectionObserver' in window)) {
+        counters.forEach(animar);
+        return;
+    }
+    const observador = new IntersectionObserver((entradas) => {
+        entradas.forEach(entrada => {
+            if (!entrada.isIntersecting) return;
+            observador.unobserve(entrada.target);
+            animar(entrada.target);
+        });
+    }, { threshold: 0.4 });
+
+    counters.forEach(el => {
+        if (el.dataset.animado === '1' || el.dataset.observando === '1') return;
+        el.dataset.observando = '1';
+        observador.observe(el);
     });
 }
 

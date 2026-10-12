@@ -258,22 +258,18 @@ function attachHomeSectionsBehaviour() {
 }
 
 // ======================== SECCIONES ========================
-// Renderizar zona de texto como sección del contenido (permite múltiples)
-function renderHomeScrollingText(config) {
-  if (!config.text) return '';
-
-  const bgColor = config.background_color || '#FF1493';
-  const textColor = config.text_color || '#FFFFFF';
-  const scrollSpeed = config.scroll_speed || 50;
-  const padding = config.padding || '8px 0';
-
-  return `
-    <div class="home-scrolling-text-section" style="background-color: ${escapeHomeHTML(bgColor)}; color: ${escapeHomeHTML(textColor)}; padding: ${escapeHomeHTML(padding)};">
-      <div style="animation: scroll-left ${Math.max(10, 100 - scrollSpeed)}s linear infinite; white-space: nowrap;">
-        ${escapeHomeHTML(config.text)}
-      </div>
-    </div>
-  `;
+// Pista de la zona de texto: el texto repetido en dos grupos iguales que se desplazan sin saltos.
+// La velocidad (10 = lenta, 200 = rápida) se traduce a píxeles por segundo para que la rapidez no dependa del largo del texto.
+function marqueeTrackHTML(text, speed) {
+  // El grupo tiene que ser más ancho que cualquier pantalla (≈3000 px) para que el bucle no deje huecos
+  const anchoItem = String(text).length * 10 + 80;
+  const REPETICIONES = Math.max(4, Math.ceil(3000 / anchoItem));
+  const item = `<span class="marquee-item">${escapeHomeHTML(text)}</span>`;
+  const grupo = `<span class="marquee-group">${item.repeat(REPETICIONES)}</span>`;
+  const largoPx = REPETICIONES * anchoItem;
+  const pxPorSegundo = Math.max(10, Number(speed) || 50) * 1.6;
+  const segundos = Math.min(400, Math.max(6, largoPx / pxPorSegundo));
+  return `<div class="marquee-track" style="animation-duration: ${segundos.toFixed(1)}s;">${grupo}${grupo}</div>`;
 }
 
 // Renderizar zona de texto como sección del contenido (permite múltiples)
@@ -282,14 +278,11 @@ function renderHomeScrollingText(config) {
 
   const bgColor = config.background_color || '#FF1493';
   const textColor = config.text_color || '#FFFFFF';
-  const scrollSpeed = config.scroll_speed || 50;
   const padding = config.padding || '12px 0';
 
   return `
-    <div class="home-scrolling-text-section" style="background-color: ${escapeHomeHTML(bgColor)}; color: ${escapeHomeHTML(textColor)}; padding: ${escapeHomeHTML(padding)}; text-align: center; font-weight: bold;">
-      <div style="animation: scroll-left ${Math.max(10, 100 - scrollSpeed)}s linear infinite; white-space: nowrap;">
-        ${escapeHomeHTML(config.text)}
-      </div>
+    <div class="home-scrolling-text-section" style="background-color: ${escapeHomeHTML(bgColor)}; color: ${escapeHomeHTML(textColor)}; padding: ${escapeHomeHTML(padding)}; font-weight: bold; overflow: hidden;">
+      ${marqueeTrackHTML(config.text, config.scroll_speed)}
     </div>
   `;
 }
