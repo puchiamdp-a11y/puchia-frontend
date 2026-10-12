@@ -23,15 +23,8 @@ async function loadCategoriasFromAPI() {
 }
 
 function getIconoCategoria(nombre, emoji) {
-  // El emoji elegido en el admin manda; el mapa es sólo para categorías sin emoji.
-  if (emoji) return emoji;
-  const iconos = {
-    'CUMPLEAÑOS': '🎉',
-    'REGALOS': '🎁',
-    'EMPRENDEDORES': '💼',
-    'PROMOS': '🎊'
-  };
-  return iconos[nombre] || '📦';
+  // El emoji es opcional: si la categoría no tiene, no se muestra ninguno.
+  return emoji ? String(emoji).trim() : '';
 }
 
 let currentCategory = null;
@@ -42,7 +35,7 @@ function renderCategories() {
 
     const html = categories.map(category => `
         <div class="category-card" onclick="selectCategory('${category.id}')">
-            <div class="category-card-icon">${category.icon}</div>
+            ${category.icon ? `<div class="category-card-icon">${category.icon}</div>` : ''}
             <div class="category-card-name">${category.name}</div>
             <p style="color: #999; font-size: 14px; margin-top: 8px;">${category.description}</p>
         </div>

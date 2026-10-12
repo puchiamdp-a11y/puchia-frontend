@@ -5078,10 +5078,10 @@ function renderCategorias(categorias) {
   tbody.innerHTML = categorias.map(cat => `
     <tr>
       <td>${cat.id}</td>
-      <td><strong>${(cat.emoji || '📦')} ${cat.nombre}</strong>${cat.en_menu ? ' <span style="font-size: 11px; background: #ede7f6; color: #5e35b1; padding: 2px 8px; border-radius: 10px;">En menú</span>' : ''}</td>
+      <td><strong>${cat.emoji ? cat.emoji + ' ' : ''}${cat.nombre}</strong>${cat.en_menu ? ' <span style="font-size: 11px; background: #ede7f6; color: #5e35b1; padding: 2px 8px; border-radius: 10px;">En menú</span>' : ''}</td>
       <td style="color: #666; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${cat.descripcion || '—'}</td>
       <td>
-        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.emoji || '📦').replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}', ${cat.en_menu === true})" title="Editar">✏️ Editar</button>
+        <button class="btn btn-sm btn-secondary" onclick="editarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${(cat.emoji || '').replace(/'/g, "\\'")}', '${(cat.descripcion || '').replace(/'/g, "\\'")}', ${cat.en_menu === true})" title="Editar">✏️ Editar</button>
         <button class="btn btn-sm btn-danger" onclick="eliminarCategoria(${cat.id})" title="Eliminar">🗑️ Eliminar</button>
       </td>
     </tr>
@@ -5090,7 +5090,7 @@ function renderCategorias(categorias) {
 
 async function guardarCategoria() {
   const nombre = document.getElementById('categoriaNombre').value.trim();
-  const emoji = document.getElementById('categoriaEmoji').value.trim() || '📦';
+  const emoji = document.getElementById('categoriaEmoji').value.trim();   // opcional: vacío = sin emoji
   const descripcion = document.getElementById('categoriaDescripcion').value.trim();
   const categoriaId = document.getElementById('categoriaId').value;
   const enMenu = document.getElementById('categoriaEnMenu').checked;
@@ -5116,7 +5116,7 @@ async function guardarCategoria() {
       },
       body: JSON.stringify({
         nombre: nombre,
-        emoji: emoji,
+        emoji: emoji || null,
         descripcion: descripcion || null,
         en_menu: enMenu
       })
@@ -5150,7 +5150,7 @@ async function guardarCategoria() {
 function editarCategoria(id, nombre, emoji, descripcion, enMenu) {
   document.getElementById('categoriaId').value = id;
   document.getElementById('categoriaNombre').value = nombre;
-  document.getElementById('categoriaEmoji').value = emoji || '📦';
+  document.getElementById('categoriaEmoji').value = emoji || '';
   document.getElementById('categoriaDescripcion').value = descripcion;
   document.getElementById('categoriaEnMenu').checked = enMenu === true;
   document.getElementById('cancelarCategoriaBtn').style.display = 'inline-block';

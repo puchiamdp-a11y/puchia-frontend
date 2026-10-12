@@ -22,17 +22,8 @@ function escapeHomeHTML(value) {
 }
 
 function getIconoCategoriaHome(nombre, emojiFromDB) {
-  // Si viene emoji de la BD, usarlo
-  if (emojiFromDB) return emojiFromDB;
-
-  // Fallback: mapa hardcodeado para categorías antiguas sin emoji
-  const iconos = {
-    'CUMPLEAÑOS': '🎉',
-    'REGALOS': '🎁',
-    'EMPRENDEDORES': '💼',
-    'PROMOS': '🎊'
-  };
-  return iconos[nombre] || '📦';
+  // El emoji es opcional: si la categoría no tiene, no se muestra ninguno.
+  return emojiFromDB ? String(emojiFromDB).trim() : '';
 }
 
 function formatHomePrice(value) {
@@ -429,7 +420,7 @@ function renderHomeCategories(config) {
     const slug = String(category.nombre || '').toLowerCase().replace(/ñ/g, 'n');
     return `
       <div class="category-card" onclick="goToPromos('${escapeHomeHTML(slug)}')">
-        <div class="category-card-icon">${getIconoCategoriaHome(category.nombre, category.emoji)}</div>
+        ${getIconoCategoriaHome(category.nombre, category.emoji) ? `<div class="category-card-icon">${getIconoCategoriaHome(category.nombre, category.emoji)}</div>` : ''}
         <div class="category-card-name">${escapeHomeHTML(category.nombre)}</div>
       </div>
     `;
