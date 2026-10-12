@@ -834,3 +834,28 @@ footer {
     }
 }
 
+
+
+/* ===== Zona de texto con movimiento (marquesina) =====
+   El texto se repite en dos grupos iguales y la pista se desplaza la mitad de su ancho, así el bucle no tiene saltos.
+   La duración la calcula el JS según el largo del texto y la velocidad elegida en el panel. */
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  will-change: transform;
+  animation: scroll-left 30s linear infinite;
+}
+
+.marquee-group {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.marquee-item {
+  padding: 0 2.5rem;
+}
