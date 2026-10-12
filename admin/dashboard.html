@@ -481,10 +481,11 @@
                             <input type="text" id="categoriaNombre" placeholder="Ej: Combos" required>
                         </div>
                         <div class="form-group categoria-field-emoji">
-                            <label for="categoriaEmoji">Emoji</label>
+                            <label for="categoriaEmoji">Emoji <span class="categoria-optional">(opcional)</span></label>
                             <div class="categoria-emoji-picker">
-                                <input type="text" id="categoriaEmoji" placeholder="📦" maxlength="10" readonly>
+                                <input type="text" id="categoriaEmoji" placeholder="—" maxlength="10" readonly title="Sin emoji">
                                 <button type="button" id="abrirEmojiPickerBtn" class="btn btn-secondary">Elegir</button>
+                                <button type="button" id="quitarEmojiBtn" class="btn btn-secondary" onclick="document.getElementById('categoriaEmoji').value = ''" title="Dejar la categoría sin emoji">Quitar</button>
                             </div>
                         </div>
                     </div>
@@ -595,7 +596,7 @@
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="../js/admin-sesion.js?v=2026100201"></script>
-    <script src="../js/admin.js?v=2026100905"></script>
+    <script src="../js/admin.js?v=2026101201"></script>
     <script src="../js/admin-clientes.js?v=2026100904"></script>
     <script src="../js/admin-calendario.js?v=2026100201"></script>
     <script src="../js/admin-caja.js?v=2026100207"></script>

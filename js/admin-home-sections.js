@@ -245,15 +245,8 @@ function formatPreviewPrice(value) {
 }
 
 function getIconoCategoriaPreview(nombre, emoji) {
-  // Igual que el sitio: el emoji elegido en el admin manda sobre el mapa por defecto.
-  if (emoji) return emoji;
-  const iconos = {
-    'CUMPLEAÑOS': '🎉',
-    'REGALOS': '🎁',
-    'EMPRENDEDORES': '💼',
-    'PROMOS': '🎊'
-  };
-  return iconos[nombre] || '📦';
+  // Igual que el sitio: el emoji es opcional y, si no hay, no se muestra ninguno.
+  return emoji ? String(emoji).trim() : '';
 }
 
 function previewPlaceholder(text) {
@@ -352,7 +345,7 @@ function renderPreviewCategories(config) {
 
   const categoriesHTML = categoriesToShow.map(category => `
     <div class="category-card">
-      <div class="category-card-icon">${getIconoCategoriaPreview(category.nombre, category.emoji)}</div>
+      ${getIconoCategoriaPreview(category.nombre, category.emoji) ? `<div class="category-card-icon">${getIconoCategoriaPreview(category.nombre, category.emoji)}</div>` : ''}
       <div class="category-card-name">${escapeHTML(category.nombre)}</div>
       <p style="color: #999; font-size: 14px; margin-top: 8px;">${escapeHTML(category.descripcion || '')}</p>
     </div>
