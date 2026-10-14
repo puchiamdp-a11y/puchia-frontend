@@ -527,48 +527,94 @@ function toggleImportSection() {
   document.getElementById('importResult').style.display = 'none';
 }
 
-async function importarExcel(simular = false) {
+let importandoClientes = false;
+
+async function enviarExcelClientes(archivo, simular) {
+  const formData = new FormData();
+  formData.append('archivo', archivo);
+  const params = new URLSearchParams();
+  if (document.getElementById('chkSumarHistoricos')?.checked) params.set('sumar_historicos', '1');
+  if (simular) params.set('simular', '1');
+  const res = await fetch(`${API_BASE_URL}/admin/clientes/importar?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${getToken()}` },
+    body: formData
+  });
+  return res.json();
+}
+
+function mostrarResultadoImportacion(resultDiv, d) {
+  resultDiv.className = 'import-result success';
+  resultDiv.innerHTML = `
+    <strong>${d.simulacion ? '🧪 Simulación (no se guardó nada)' : '✅ Importación completada'}</strong><br>
+    Total filas: ${d.total_filas} | ${d.simulacion ? 'Se crearían' : 'Creados'}: ${d.exitosos} | Ya existían (omitidos): ${d.omitidos} | Con históricos sumados: ${d.sumados} (+${d.pedidos_sumados} pedidos) | Errores: ${d.errores}<br>
+    ${d.detalle_errores.length ? `<details style="margin-top:8px;"><summary>Ver errores (${d.errores})</summary>
+      <ul style="margin:8px 0 0 16px;font-size:12px;">
+        ${d.detalle_errores.map(e => `<li>Fila ${e.fila}: ${e.error}</li>`).join('')}
+      </ul></details>` : ''}
+  `;
+}
+
+// "Simular" solo muestra el resultado. "Importar" simula primero y pide confirmación:
+// si se cancela, no se guarda nada.
+async function importarExcel(soloSimular = false) {
   const fileInput = document.getElementById('archivoExcel');
   if (!fileInput.files.length) { alert('Selecciona un archivo Excel'); return; }
-
-  const formData = new FormData();
-  formData.append('archivo', fileInput.files[0]);
+  if (importandoClientes) return;
+  importandoClientes = true;
 
   const resultDiv = document.getElementById('importResult');
   resultDiv.style.display = 'block';
   resultDiv.className = 'import-result';
-  resultDiv.innerHTML = `<span class="spinner"></span> ${simular ? 'Simulando' : 'Importando'}...`;
-  const params = new URLSearchParams();
-  if (document.getElementById('chkSumarHistoricos')?.checked) params.set('sumar_historicos', '1');
-  if (simular) params.set('simular', '1');
+  resultDiv.innerHTML = '<span class="spinner"></span> Revisando el archivo...';
 
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/clientes/importar?${params}`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${getToken()}` },
-      body: formData
-    });
-    const data = await res.json();
+    const archivo = fileInput.files[0];
+    const sim = await enviarExcelClientes(archivo, true);
+    if (!sim.success) {
+      resultDiv.className = 'import-result error';
+      resultDiv.innerHTML = `<strong>❌ Error:</strong> ${sim.error || sim.message || 'No se pudo revisar el archivo'}`;
+      return;
+    }
+    const s = sim.data;
+    // Si el servidor no entiende la simulación, ya guardó: no se puede seguir pidiendo confirmación
+    if (!s.simulacion) {
+      mostrarResultadoImportacion(resultDiv, s);
+      listarClientes();
+      alert('⚠️ El servidor importó el archivo directamente (no soporta la simulación). Revisá el resultado.');
+      return;
+    }
+    mostrarResultadoImportacion(resultDiv, s);
+    if (soloSimular) return;
 
+    const sumando = document.getElementById('chkSumarHistoricos')?.checked;
+    const ok = confirm(
+      `Se van a CREAR ${s.exitosos} clientes nuevos` +
+      `${sumando ? ` y SUMAR pedidos históricos (+${s.pedidos_sumados}) a ${s.sumados} clientes que ya existen` : ''}.\n` +
+      `${s.omitidos} ya existen y no se tocan. ${s.errores} filas con error no se cargan.\n\n` +
+      `¿Importar?`
+    );
+    if (!ok) {
+      resultDiv.className = 'import-result';
+      resultDiv.innerHTML = '<strong>Importación cancelada.</strong> No se guardó nada.';
+      return;
+    }
+
+    resultDiv.className = 'import-result';
+    resultDiv.innerHTML = '<span class="spinner"></span> Importando...';
+    const data = await enviarExcelClientes(archivo, false);
     if (data.success) {
-      const d = data.data;
-      resultDiv.className = 'import-result success';
-      resultDiv.innerHTML = `
-        <strong>${d.simulacion ? '🧪 Simulación (no se guardó nada)' : '✅ Importación completada'}</strong><br>
-        Total filas: ${d.total_filas} | ${d.simulacion ? 'Se crearían' : 'Creados'}: ${d.exitosos} | Ya existían (omitidos): ${d.omitidos} | Con históricos sumados: ${d.sumados} (+${d.pedidos_sumados} pedidos) | Errores: ${d.errores}<br>
-        ${d.detalle_errores.length ? `<details style="margin-top:8px;"><summary>Ver errores (${d.errores})</summary>
-          <ul style="margin:8px 0 0 16px;font-size:12px;">
-            ${d.detalle_errores.map(e => `<li>Fila ${e.fila}: ${e.error}</li>`).join('')}
-          </ul></details>` : ''}
-      `;
-      if (!d.simulacion && (d.exitosos > 0 || d.sumados > 0)) listarClientes();
+      mostrarResultadoImportacion(resultDiv, data.data);
+      if (data.data.exitosos > 0 || data.data.sumados > 0) listarClientes();
     } else {
       resultDiv.className = 'import-result error';
-      resultDiv.innerHTML = `<strong>❌ Error:</strong> ${data.error}`;
+      resultDiv.innerHTML = `<strong>❌ Error:</strong> ${data.error || data.message || 'No se pudo importar'}`;
     }
   } catch (err) {
     resultDiv.className = 'import-result error';
     resultDiv.innerHTML = `<strong>❌ Error de conexión:</strong> ${err.message}`;
+  } finally {
+    importandoClientes = false;
   }
 }
 
