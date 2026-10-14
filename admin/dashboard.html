@@ -407,6 +407,10 @@
                         Usá el mismo formato que el Excel que exportás: descargá la plantilla desde "Compartir". Las columnas se leen por nombre (el código es opcional: si falta, se asigna el próximo). Los clientes cuyo código ya existe se omiten.
                     </p>
                     <input type="file" id="archivoExcel" accept=".xlsx,.xls" />
+                    <label style="display:block;margin-top:10px;font-size:13px;">
+                        <input type="checkbox" id="chkSumarHistoricos" /> A los clientes que ya existen, <strong>sumarles</strong> los "Pedidos históricos" del Excel (no cambia ningún otro dato). Usar una sola vez por archivo: si lo importás dos veces, se suma dos veces.
+                    </label>
+                    <button class="btn btn-secondary" id="btnSimularImport" style="margin-top:10px;">Simular (no guarda nada)</button>
                     <button class="btn btn-primary" id="btnConfirmarImport" style="margin-top:10px;">Importar</button>
                     <button class="btn btn-secondary" id="btnCancelarImport" style="margin-top:10px;">Cancelar</button>
                     <div id="importResult" style="display:none; margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px;"></div>

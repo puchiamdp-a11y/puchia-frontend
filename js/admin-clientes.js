@@ -51,7 +51,8 @@ function setupClientesEventListeners() {
   document.getElementById('btnNuevoCliente')?.addEventListener('click', abrirNuevoCliente);
   document.getElementById('btnImportarExcel')?.addEventListener('click', toggleImportSection);
   document.getElementById('btnExportarExcel')?.addEventListener('click', exportarExcel);
-  document.getElementById('btnConfirmarImport')?.addEventListener('click', importarExcel);
+  document.getElementById('btnConfirmarImport')?.addEventListener('click', () => importarExcel(false));
+  document.getElementById('btnSimularImport')?.addEventListener('click', () => importarExcel(true));
   document.getElementById('btnCancelarImport')?.addEventListener('click', () => {
     document.getElementById('importSection').style.display = 'none';
   });
@@ -526,7 +527,7 @@ function toggleImportSection() {
   document.getElementById('importResult').style.display = 'none';
 }
 
-async function importarExcel() {
+async function importarExcel(simular = false) {
   const fileInput = document.getElementById('archivoExcel');
   if (!fileInput.files.length) { alert('Selecciona un archivo Excel'); return; }
 
@@ -536,10 +537,13 @@ async function importarExcel() {
   const resultDiv = document.getElementById('importResult');
   resultDiv.style.display = 'block';
   resultDiv.className = 'import-result';
-  resultDiv.innerHTML = '<span class="spinner"></span> Importando...';
+  resultDiv.innerHTML = `<span class="spinner"></span> ${simular ? 'Simulando' : 'Importando'}...`;
+  const params = new URLSearchParams();
+  if (document.getElementById('chkSumarHistoricos')?.checked) params.set('sumar_historicos', '1');
+  if (simular) params.set('simular', '1');
 
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/clientes/importar`, {
+    const res = await fetch(`${API_BASE_URL}/admin/clientes/importar?${params}`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${getToken()}` },
       body: formData
@@ -550,14 +554,14 @@ async function importarExcel() {
       const d = data.data;
       resultDiv.className = 'import-result success';
       resultDiv.innerHTML = `
-        <strong>✅ Importación completada</strong><br>
-        Total filas: ${d.total_filas} | Exitosos: ${d.exitosos} | Errores: ${d.errores}<br>
+        <strong>${d.simulacion ? '🧪 Simulación (no se guardó nada)' : '✅ Importación completada'}</strong><br>
+        Total filas: ${d.total_filas} | ${d.simulacion ? 'Se crearían' : 'Creados'}: ${d.exitosos} | Ya existían (omitidos): ${d.omitidos} | Con históricos sumados: ${d.sumados} (+${d.pedidos_sumados} pedidos) | Errores: ${d.errores}<br>
         ${d.detalle_errores.length ? `<details style="margin-top:8px;"><summary>Ver errores (${d.errores})</summary>
           <ul style="margin:8px 0 0 16px;font-size:12px;">
             ${d.detalle_errores.map(e => `<li>Fila ${e.fila}: ${e.error}</li>`).join('')}
           </ul></details>` : ''}
       `;
-      if (d.exitosos > 0) listarClientes();
+      if (!d.simulacion && (d.exitosos > 0 || d.sumados > 0)) listarClientes();
     } else {
       resultDiv.className = 'import-result error';
       resultDiv.innerHTML = `<strong>❌ Error:</strong> ${data.error}`;
