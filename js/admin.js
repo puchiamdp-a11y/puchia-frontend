@@ -1343,6 +1343,9 @@ async function saveProduct(e) {
       }
 
       cleanupQuillAutosave();
+      // Borradores ya guardados en la base: no deben volver a aparecer en el próximo "nuevo producto"
+      localStorage.removeItem('quill_autosave_desc_new');
+      if (savedProductId) localStorage.removeItem(`quill_autosave_desc_${savedProductId}`);
       document.getElementById('modalProducto').style.display = 'none';
       puchiaAlert('Producto guardado exitosamente', 'success');
       loadProducts();
@@ -3927,7 +3930,7 @@ function renderMediaGallery(items) {
          </div>`
       : `<img src="${BACKEND_URL}${item.url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=background:#f5f5f5;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px>📷</div>'">`;
 
-    return `<div data-media-id="${item.id}" class="media-thumbnail" style="border:${border};cursor:pointer;" onclick="openGalleryViewModal(${mediaCurrentProductoId}, mediaItems, ${idx})">
+    return `<div data-media-id="${item.id}" data-kind="server" data-idx="${idx}" draggable="true" class="media-thumbnail" style="border:${border};cursor:grab;" onclick="openGalleryViewModal(${mediaCurrentProductoId}, mediaItems, ${idx})">
       ${previewHtml}
       ${esPortada ? `<div style="position:absolute;bottom:2px;left:2px;background:#f59e0b;color:white;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;">★</div>` : ''}
       <div style="position:absolute;top:2px;right:2px;display:flex;gap:2px;">
@@ -3944,7 +3947,7 @@ function renderMediaGallery(items) {
       ? `<img src="${qf.preview}" style="width:100%;height:100%;object-fit:cover;">`
       : `<div style="width:100%;height:100%;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:20px;">▶️</div>`;
 
-    return `<div style="position:relative;width:88px;height:88px;border-radius:8px;overflow:hidden;border:2px dashed #9d4cb8;flex-shrink:0;opacity:0.85;">
+    return `<div data-kind="queued" data-idx="${idx}" draggable="true" style="position:relative;width:88px;height:88px;border-radius:8px;overflow:hidden;border:2px dashed #9d4cb8;flex-shrink:0;opacity:0.85;cursor:grab;">
       ${previewHtml}
       <button type="button" onclick="removeQueuedFile(${idx})" style="position:absolute;top:2px;right:2px;background:rgba(220,50,50,0.85);color:white;border:none;width:20px;height:20px;border-radius:3px;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
       <div style="position:absolute;bottom:2px;left:2px;background:rgba(155,77,184,0.85);color:white;border-radius:3px;padding:1px 5px;font-size:8px;font-weight:700;">COLA</div>
@@ -3953,6 +3956,76 @@ function renderMediaGallery(items) {
   });
 
   gallery.innerHTML = [...serverHtml, ...queuedHtml].join('');
+  initMediaReorder(gallery);
+}
+
+// Reordenar fotos arrastrándolas. Las del servidor se guardan con PUT /media/productos/:id/order;
+// las que están en cola (producto nuevo) solo cambian el orden en que se suben.
+let mediaDragOrigen = null;
+
+function initMediaReorder(gallery) {
+  gallery.querySelectorAll('[data-kind]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      mediaDragOrigen = { kind: el.dataset.kind, idx: Number(el.dataset.idx) };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', 'media-reorder');   // evita que el drop de archivos del dropzone lo tome
+      el.style.opacity = '0.4';
+    });
+    el.addEventListener('dragend', () => {
+      el.style.opacity = '';
+      mediaDragOrigen = null;
+    });
+    el.addEventListener('dragover', e => {
+      if (!mediaDragOrigen || mediaDragOrigen.kind !== el.dataset.kind) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    el.addEventListener('drop', e => {
+      if (!mediaDragOrigen || mediaDragOrigen.kind !== el.dataset.kind) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const origen = mediaDragOrigen.idx;
+      const destino = Number(el.dataset.idx);
+      mediaDragOrigen = null;
+      if (origen !== destino) moverMedia(el.dataset.kind, origen, destino);
+    });
+  });
+}
+
+function moverElemento(lista, from, to) {
+  const copia = [...lista];
+  const [movido] = copia.splice(from, 1);
+  copia.splice(to, 0, movido);
+  return copia;
+}
+
+async function moverMedia(kind, from, to) {
+  if (kind === 'queued') {
+    mediaQueuedFiles = moverElemento(mediaQueuedFiles, from, to);
+    renderMediaGallery(mediaItems);
+    return;
+  }
+
+  const nuevos = moverElemento(mediaItems, from, to);
+  mediaItems = nuevos;                      // reflejo inmediato en pantalla
+  renderMediaGallery(mediaItems);
+
+  try {
+    const token = localStorage.getItem('puchia_admin_token');
+    const resp = await fetch(`${API_BASE_URL}/admin/media/productos/${mediaCurrentProductoId}/order`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ ids: nuevos.map(m => m.id) })
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.success) throw new Error(data.error || 'Error al reordenar');
+    await loadProductMedia(mediaCurrentProductoId);
+    loadProducts();
+  } catch (err) {
+    puchiaAlert(`No se pudo guardar el orden: ${err.message}`, 'error');
+    await loadProductMedia(mediaCurrentProductoId);
+  }
 }
 
 function handleMediaDrop(event) {
@@ -4390,7 +4463,9 @@ function setupQuillAutosave(productoId) {
 
   // Cargar autoguardado para descripcion_completa
   const autosaveKey_desc = `quill_autosave_desc_${productoId}`;
-  const autosave_desc = localStorage.getItem(autosaveKey_desc);
+  // El borrador local solo se recupera para productos nuevos. En edición/duplicado la fuente de verdad es la
+  // descripción guardada en la base; un borrador viejo la pisaba y "desaparecía" la descripción.
+  const autosave_desc = productoId === 'new' ? localStorage.getItem(autosaveKey_desc) : null;
   if (autosave_desc && quillEditor) {
     try {
       quillEditor.root.innerHTML = autosave_desc;
