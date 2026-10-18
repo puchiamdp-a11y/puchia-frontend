@@ -721,12 +721,14 @@ async function openProductDetail(productId) {
               <!-- TÍTULO -->
               <h2 class="modal-title">${product.name}</h2>
 
-              <div class="detail-quantity qty-container-responsive" style="margin-bottom: 16px; padding: 0 0 16px 0; border-bottom: 1px solid #eee;">
-                <button class="qty-decrease qty-button-responsive">−</button>
-                <input type="number" class="qty-input qty-input-responsive" value="1" min="1">
-                <button class="qty-increase qty-button-responsive">+</button>
+              <div class="detail-quantity-wrap">
+                <div class="detail-quantity qty-container-responsive" style="margin-bottom: 16px; padding: 0 0 16px 0; border-bottom: 1px solid #eee;">
+                  <button class="qty-decrease qty-button-responsive">−</button>
+                  <input type="number" class="qty-input qty-input-responsive" value="1" min="1">
+                  <button class="qty-increase qty-button-responsive">+</button>
+                </div>
+                ${leyendaMinimoCompra(product)}
               </div>
-              ${leyendaMinimoCompra(product)}
 
               <!-- VARIANTES (si existen) -->
               <div class="detail-insumo-variants" id="product-variants-${product.id}" style="display: none;">
