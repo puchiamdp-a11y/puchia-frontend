@@ -530,6 +530,8 @@ let productosSel = new Set();
 // "Sin stock" solo se afirma cuando se puede saber (stock simple o insumo con variante); con variantes de stock no se cuenta
 function productoSinStock(p) {
   if (p.tiene_variantes_stock) return false;
+  // Stock ilimitado (controla_stock = false): no tiene cantidad, así que nunca se agota
+  if (esStockIlimitado(p)) return false;
   if (p.stock_type === 'insumo') return !!p.producto_insumo?.insumo_variant && Number(p.stock_disponible) <= 0;
   return Number(p.stock_cantidad || 0) <= 0;
 }
