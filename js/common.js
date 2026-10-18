@@ -248,7 +248,7 @@ function errorMinimoCompra(product, cantidad) {
     if (!minimo) return '';
     const yaEnCarrito = getCart().filter(l => l.id === product.id).reduce((s, l) => s + l.qty, 0);
     if (yaEnCarrito + cantidad >= minimo) return '';
-    return `Tenés que llevar al menos ${minimo} en total${yaEnCarrito ? ` (ya tenés ${yaEnCarrito} en el carrito)` : ''}.`;
+    return `Mínimo de compra ${minimo} unidades`;
 }
 
 // Leyenda chiquita debajo del selector de cantidad (vacía si el producto no tiene mínimo)
