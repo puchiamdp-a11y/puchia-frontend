@@ -242,6 +242,22 @@ function saveCart(cart) {
     localStorage.setItem('puchia_cart', JSON.stringify(cart));
 }
 
+// Mínimo de compra de un producto simple: cuenta lo que ya hay en el carrito más lo que se quiere agregar
+function errorMinimoCompra(product, cantidad) {
+    const minimo = product && product.compra_minima;
+    if (!minimo) return '';
+    const yaEnCarrito = getCart().filter(l => l.id === product.id).reduce((s, l) => s + l.qty, 0);
+    if (yaEnCarrito + cantidad >= minimo) return '';
+    return `Tenés que llevar al menos ${minimo} en total${yaEnCarrito ? ` (ya tenés ${yaEnCarrito} en el carrito)` : ''}.`;
+}
+
+// Leyenda chiquita debajo del selector de cantidad (vacía si el producto no tiene mínimo)
+function leyendaMinimoCompra(product) {
+    const minimo = product && product.compra_minima;
+    if (!minimo) return '';
+    return `<div class="minimo-compra-leyenda" style="font-size: 12px; color: #777; margin-top: 6px;">El mínimo de compra es de ${minimo} unidades</div>`;
+}
+
 function getOrders() {
     const saved = localStorage.getItem('puchia_orders');
     return saved ? JSON.parse(saved) : [];
