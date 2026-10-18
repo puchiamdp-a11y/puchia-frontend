@@ -1560,7 +1560,8 @@
 }
 
 /* ---------- Escritorio: tarjetas más compactas para ver 2 filas de 3 productos sin bajar ----------
-   La foto sigue siendo cuadrada, pero nunca más alta que ~un cuarto de la pantalla.
+   La foto se mantiene vertical (4:5, igual que en móvil): no se limita la altura, porque eso
+   volvía a aplastar la caja y la foto se veía horizontal y cortada.
    (El HTML de la tarjeta trae estilos en línea, por eso van con !important.) */
 @media (min-width: 1025px) {
   .products-grid {
@@ -1571,9 +1572,9 @@
 
   .product-card .product-image,
   .product-card .product-image-wrapper {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 4 / 5;
     min-height: 0 !important;
-    max-height: clamp(130px, 21vh, 250px) !important;
+    max-height: none !important;
   }
 
   .product-card .product-info {
