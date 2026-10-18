@@ -4507,40 +4507,17 @@ openNewProductModal = function() {
 
 const originalEditProduct = editProduct;
 editProduct = function(id) {
+  // No se vuelve a llamar initQuillEditor(): con el editor ya creado vacía el contenido,
+  // y la descripción guardada la carga originalEditProduct.
   originalEditProduct(id);
-  setTimeout(() => {
-    initQuillEditor();
-
-    if (quillEditor && productoActualEnEdicion?.descripcion_completa) {
-      try {
-        quillEditor.root.innerHTML = productoActualEnEdicion.descripcion_completa;
-      } catch (e) {
-        quillEditor.setContents([]);
-      }
-    }
-
-    setupQuillAutosave(id);
-  }, 100);
+  setTimeout(() => setupQuillAutosave(id), 100);
 };
 
 const originalDuplicarProducto = duplicarProducto;
 duplicarProducto = function(id) {
+  // Igual que en editar: la descripción la carga originalDuplicarProducto.
   originalDuplicarProducto(id);
-  setTimeout(() => {
-    initQuillEditor();
-
-    const original = productosGlobal.find(p => p.id === id);
-
-    if (quillEditor && original?.descripcion_completa) {
-      try {
-        quillEditor.root.innerHTML = original.descripcion_completa;
-      } catch (e) {
-        quillEditor.setContents([]);
-      }
-    }
-
-    setupQuillAutosave('duplicate');
-  }, 100);
+  setTimeout(() => setupQuillAutosave('duplicate'), 100);
 };
 
 /* ==================== EXPORTAR/IMPORTAR PRODUCTOS ==================== */
