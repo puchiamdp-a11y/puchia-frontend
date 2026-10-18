@@ -93,6 +93,7 @@ function renderCategoryProducts(categoryId) {
                     <input type="number" class="qty-input" value="1" min="1">
                     <button class="qty-increase">+</button>
                 </div>
+                ${leyendaMinimoCompra(product)}
                 <button class="product-btn btn-add-to-cart">
                     ${etiquetaAgregar(product)}
                 </button>
@@ -129,6 +130,8 @@ function renderCategoryProducts(categoryId) {
             addBtn?.addEventListener('click', () => {
                 if (product.tiene_opciones) { addToCart(product); return; }
                 const qty = parseInt(qtyInput.value) || 1;
+                const errorMinimo = errorMinimoCompra(product, qty);
+                if (errorMinimo) { showToast(errorMinimo, 'error'); return; }
                 for (let i = 0; i < qty; i++) {
                     addToCart(product);
                 }

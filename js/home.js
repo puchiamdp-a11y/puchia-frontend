@@ -245,6 +245,7 @@ async function openProductDetail(productId) {
                 <input type="number" class="qty-input" value="1" min="1">
                 <button class="qty-increase">+</button>
               </div>
+              ${leyendaMinimoCompra(product)}
 
               <div class="detail-description">
                 ${product.descripcion || 'Sin descripción disponible'}
@@ -290,6 +291,8 @@ async function openProductDetail(productId) {
       } else
       modal.querySelector('.modal-add-cart')?.addEventListener('click', () => {
         const qty = parseInt(qtyInput.value) || 1;
+        const errorMinimo = errorMinimoCompra(product, qty);
+        if (errorMinimo) { showToast(errorMinimo, 'error'); return; }
         for (let i = 0; i < qty; i++) {
           addToCart(product);
         }

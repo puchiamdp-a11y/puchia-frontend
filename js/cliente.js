@@ -726,6 +726,7 @@ async function openProductDetail(productId) {
                 <input type="number" class="qty-input qty-input-responsive" value="1" min="1">
                 <button class="qty-increase qty-button-responsive">+</button>
               </div>
+              ${leyendaMinimoCompra(product)}
 
               <!-- VARIANTES (si existen) -->
               <div class="detail-insumo-variants" id="product-variants-${product.id}" style="display: none;">
@@ -866,6 +867,8 @@ async function openProductDetail(productId) {
           }
         }
 
+        const errorMinimo = errorMinimoCompra(product, qty);
+        if (errorMinimo) { showToast(errorMinimo, 'error'); return; }
         for (let i = 0; i < qty; i++) {
           addToCart(product);
         }
