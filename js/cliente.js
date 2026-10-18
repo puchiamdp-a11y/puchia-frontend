@@ -854,9 +854,11 @@ async function openProductDetail(productId) {
       modal.querySelector('.modal-add-cart')?.addEventListener('click', () => {
         const qty = parseInt(qtyInput.value) || 1;
 
-        // Si el producto tiene variantes y se requiere selección
+        // Si el producto tiene variantes y se requiere selección.
+        // Se mira el bloque de variantes: el bloque oculto (insumo sin variantes) deja el select vacío a propósito.
         const selectEl = modal.querySelector(`#variants-select-${product.id}`);
-        if (selectEl && selectEl.style.display !== 'none' && !selectEl.disabled) {
+        const variantsDiv = modal.querySelector(`#product-variants-${product.id}`);
+        if (selectEl && variantsDiv && variantsDiv.style.display !== 'none' && !selectEl.disabled) {
           const selectedVariantId = selectEl.value;
           if (!selectedVariantId) {
             showToast('Por favor selecciona una variante', 'error');
