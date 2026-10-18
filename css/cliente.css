@@ -802,10 +802,18 @@
   min-width: 0;
 }
 
+/* La leyenda no debe agrandar la columna del selector (así el botón conserva su ancho) */
 .product-detail-modal .minimo-compra-leyenda {
   order: 6;
+  width: 0;
+  min-width: 100%;
   margin: 6px 0 0 !important;
   font-size: 12px !important;
+}
+
+/* El botón arranca a la altura del selector, no centrado contra la columna */
+.product-detail-modal .modal-content-wrapper > .btn-add-cart {
+  align-self: start;
 }
 
 /* Cantidad: selector compacto */
