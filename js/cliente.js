@@ -846,7 +846,7 @@ async function openProductDetail(productId) {
         qtyInput.value = parseInt(qtyInput.value) + 1;
       });
 
-      modal.querySelector('.modal-overlay')?.addEventListener('click', closeProductDetail);
+      cerrarAlTocarFuera(modal, closeProductDetail);
       modal.querySelector('.modal-box-close')?.addEventListener('click', closeProductDetail);
       if (product.es_combo && typeof montarSelectorCombo === 'function') {
         montarSelectorCombo(modal, product);
