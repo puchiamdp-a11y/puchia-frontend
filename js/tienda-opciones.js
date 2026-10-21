@@ -45,6 +45,10 @@ async function montarSelectorOpciones(modal, product) {
     const cantidadWrap = modal.querySelector('.detail-quantity');
     const botonViejo = modal.querySelector('.modal-add-cart');
     if (!cantidadWrap || !botonViejo) return;
+    // Precio grande del encabezado: sigue a la última opción elegida en el desplegable; si esa se quita, vuelve al original
+    const precioHeader = modal.querySelector('.detail-price');
+    const precioOriginal = precioHeader ? precioHeader.innerHTML : '';
+    let ultimaOpcion = null;
 
     const panel = document.createElement('div');
     panel.className = 'opciones-selector';
@@ -158,6 +162,11 @@ async function montarSelectorOpciones(modal, product) {
         if (unidades > 0 && minimo && finalProducto < minimo) error = `Tenés que llevar al menos ${minimo} en total${yaEnCarrito ? ` (ya tenés ${yaEnCarrito} en el carrito)` : ''}.`;
         if (unidades > 0 && maximo && finalProducto > maximo) error = `Podés llevar hasta ${maximo} en total${yaEnCarrito ? ` (ya tenés ${yaEnCarrito} en el carrito)` : ''}.`;
         errorEl.textContent = error;
+        if (precioHeader) {
+            const elegida = sel.find(x => x.opcion.id === ultimaOpcion);
+            if (elegida) precioHeader.textContent = formatCurrency(precioDe(elegida.opcion));
+            else precioHeader.innerHTML = precioOriginal;
+        }
         boton.disabled = unidades === 0 || Boolean(error);
         return sel;
     }
@@ -166,6 +175,7 @@ async function montarSelectorOpciones(modal, product) {
         const id = Number(selectEl.value);
         if (!id) return;
         elegidas.set(id, 1);
+        ultimaOpcion = id;
         pintarSelect(); pintarFilas(); actualizar();
     });
     pintarSelect();
