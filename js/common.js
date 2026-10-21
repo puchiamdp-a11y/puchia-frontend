@@ -258,6 +258,16 @@ function leyendaMinimoCompra(product) {
     return `<div class="minimo-compra-leyenda" style="font-size: 12px; color: #777; margin-top: 6px;">El mínimo de compra es de ${minimo} unidades</div>`;
 }
 
+// Cierra el modal de producto al tocar fuera de la caja. Solo cuenta si el clic empieza y termina fuera,
+// así arrastrar desde adentro hacia afuera (por ejemplo para seleccionar texto) no lo cierra.
+function cerrarAlTocarFuera(modal, cerrar) {
+    let empezoAfuera = false;
+    modal.addEventListener('mousedown', e => { empezoAfuera = !e.target.closest('.modal-box'); });
+    modal.addEventListener('click', e => {
+        if (empezoAfuera && !e.target.closest('.modal-box')) cerrar();
+    });
+}
+
 function getOrders() {
     const saved = localStorage.getItem('puchia_orders');
     return saved ? JSON.parse(saved) : [];
