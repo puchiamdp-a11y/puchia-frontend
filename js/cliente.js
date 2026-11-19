@@ -132,7 +132,7 @@ function loadAndRenderProducts() {
             const addBtn = card.querySelector('.btn-add-to-cart');
 
             addBtn?.addEventListener('click', () => {
-                if (addToCart(product)) showToast(`${product.name} agregado al carrito`, 'success');
+                agregarDesdeTarjeta(product, productId);
             });
 
             card.querySelector('.product-image-wrapper')?.addEventListener('click', () => openProductDetail(productId));
@@ -196,7 +196,7 @@ function loadAndRenderPromos() {
             const addBtn = card.querySelector('.btn-add-to-cart');
 
             addBtn?.addEventListener('click', () => {
-                if (addToCart(product)) showToast(`${product.name} agregado al carrito`, 'success');
+                agregarDesdeTarjeta(product, productId);
             });
 
             card.querySelector('.product-image-wrapper')?.addEventListener('click', () => openProductDetail(productId));
@@ -336,6 +336,16 @@ function renderPromosChunked(promos) {
     renderNextChunk();
 }
 
+// Botón de la tarjeta: si el producto simple tiene compra mínima y todavía no se llega al total, no suma 1 suelto;
+// abre el detalle, donde se elige la cantidad (el modal ya valida el mínimo).
+function agregarDesdeTarjeta(product, productId) {
+    if (product && !product.tiene_opciones && !product.es_combo && product.compra_minima) {
+        const error = errorMinimoCompra(product, 1);
+        if (error) { showToast(error, 'error'); openProductDetail(productId); return; }
+    }
+    if (addToCart(product)) showToast(`${product.name} agregado al carrito`, 'success');
+}
+
 // Helper function to attach event listeners (shared for both products and promos)
 function attachProductListeners(grid, products) {
     grid.querySelectorAll('[data-product-id]').forEach(card => {
@@ -345,7 +355,7 @@ function attachProductListeners(grid, products) {
 
         const addBtn = card.querySelector('.btn-add-to-cart');
         addBtn?.addEventListener('click', () => {
-            if (addToCart(product)) showToast(`${product.name} agregado al carrito`, 'success');
+            agregarDesdeTarjeta(product, productId);
         });
 
         card.querySelector('.product-image-wrapper')?.addEventListener('click', () => openProductDetail(productId));
